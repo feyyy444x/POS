@@ -223,3 +223,46 @@
   .receipt-modal-layer .receipt-actions, .receipt-modal-layer .no-print { display: none !important; }
   .receipt-modal-layer .receipt-item, .receipt-modal-layer .receipt-total { break-inside: avoid !important; }
 }
+
+/* NexaPos TV queue: clean, flat navy/teal identity */
+.tv-screen{--queue-navy:#102d50;--queue-teal:#08b996;--queue-ink:#102d50;--queue-muted:#60758b;min-height:100vh;background:#f5f8fb!important;color:var(--queue-ink)!important;padding:clamp(18px,3vw,42px) clamp(16px,4vw,64px) 22px!important;gap:0}
+.tv-header{padding:0 0 20px!important;border-bottom:1px solid #dfe7ee!important;gap:22px}
+.tv-header .brand{color:var(--queue-navy)!important}
+.tv-header .brand-mark{background:var(--queue-navy)!important;box-shadow:none!important}
+.tv-header .brand-accent{color:var(--queue-teal)!important}
+.tv-header .brand small{color:var(--queue-muted)!important}
+.tv-header .live-status{background:#e5fbf4!important;border:1px solid #b8f0df!important;color:#087e65!important}
+.tv-header .live-status i{background:var(--queue-teal)!important}
+.tv-store{font-size:clamp(12px,1.2vw,17px)!important;color:var(--queue-navy)!important;font-weight:700;margin-top:8px!important}
+.tv-clock{color:var(--queue-navy)!important;font-size:clamp(23px,2.5vw,36px)!important}
+.tv-clock small{color:var(--queue-muted)!important}
+.tv-content{grid-template-columns:minmax(0,1.4fr) minmax(280px,.9fr)!important;gap:clamp(16px,2vw,28px)!important;padding:clamp(22px,3vw,38px) 0!important}
+.tv-current,.tv-next{border:1px solid #e0e8ef!important;border-radius:14px!important;background:#fff!important;box-shadow:none!important;color:var(--queue-navy)!important}
+.tv-current{min-height:clamp(350px,54vh,620px)!important;padding:clamp(20px,3vw,40px)!important}
+.tv-current>.eyebrow{font-size:clamp(11px,1vw,14px)!important;color:var(--queue-muted)!important;letter-spacing:.12em}
+.tv-call{border:1px solid #dfe8ee!important;background:#f7fafc!important;border-radius:10px!important;box-shadow:none!important;transform:none!important;min-width:min(260px,90%)!important;margin:9px 0!important;padding:14px 28px!important}
+.tv-call span{color:var(--queue-navy)!important}
+.tv-call-main{background:var(--queue-navy)!important;border:0!important;box-shadow:none!important;margin:20px 0!important}
+.tv-call-main span,.tv-call-main small,.tv-call-main .tv-customer-name{color:#fff!important}
+.tv-call small{color:var(--queue-muted)!important}
+.tv-customer-name{color:var(--queue-navy)!important}
+.tv-empty{color:var(--queue-muted)!important}
+.tv-wave{display:none!important}
+.tv-next{padding:clamp(20px,2.5vw,32px)!important}
+.tv-next-head{padding-bottom:16px;border-bottom:1px solid #e6edf2}
+.tv-next-head h2{color:var(--queue-navy)!important;font-size:clamp(20px,1.7vw,27px)!important}
+.tv-count{background:#e5fbf4!important;color:#087e65!important;border-radius:7px!important}
+.tv-next-row{border-bottom:1px solid #e8eef3!important;padding:clamp(13px,1.7vw,21px) 0!important}
+.tv-next-row:last-of-type{border-bottom:0!important}
+.tv-next-row span{color:var(--queue-teal)!important;font-size:clamp(20px,2vw,28px)!important}
+.tv-next-row small{color:var(--queue-muted)!important}
+.tv-next-empty{color:var(--queue-muted)!important}
+.tv-footer{border-top:1px solid #dfe7ee!important;color:var(--queue-muted)!important;padding-top:16px!important}
+.tv-footer strong{color:var(--queue-navy)!important}
+.tv-footer strong span{color:var(--queue-teal)!important}
+.tv-footer .live-dot{background:var(--queue-teal)!important}
+.tv-error{background:#fff0f0;border:1px solid #f2caca;color:#a82b2b!important;border-radius:8px;padding:10px 13px}
+.tv-login{background:#f5f8fb!important;color:var(--queue-navy)!important}
+.tv-login p{color:var(--queue-muted)!important}
+@media(max-width:950px){.tv-content{grid-template-columns:1fr!important;gap:16px!important}.tv-current{min-height:350px!important}.tv-next{padding:20px!important}}
+@media(max-width:600px){.tv-screen{padding:16px 12px!important}.tv-header{gap:10px!important;align-items:center!important;flex-wrap:wrap}.tv-header .brand{font-size:16px!important}.tv-header .brand-mark{width:30px!important;height:30px!important}.tv-header>div:nth-child(2){flex:1;min-width:120px}.tv-clock{font-size:20px!important}.tv-clock small{font-size:8px!important}.tv-content{padding:16px 0!important}.tv-current{min-height:320px!important;padding:16px!important}.tv-call-main span{font-size:clamp(48px,13vw,64px)!important}.tv-call{min-width:160px!important}.tv-next-head h2{font-size:18px!important}.tv-next-row span{font-size:20px!important}.tv-footer{font-size:10px!important}}
