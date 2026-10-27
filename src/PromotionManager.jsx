@@ -28,7 +28,21 @@ export default function PromotionManager({ onBack, onSignOut }) {
     else setPromos(data || [])
     setLoading(false)
   }, [])
-  useEffect(() => { load() }, [load])
+  useEffect(() => {
+    if (!supabase) return
+    load()
+    const channel = supabase.channel('admin-promotions-live')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'site_promotions' }, load)
+      .subscribe(status => { if (status === 'SUBSCRIBED') load() })
+    const refreshOnResume = () => { if (document.visibilityState === 'visible') load() }
+    window.addEventListener('focus', refreshOnResume)
+    document.addEventListener('visibilitychange', refreshOnResume)
+    return () => {
+      window.removeEventListener('focus', refreshOnResume)
+      document.removeEventListener('visibilitychange', refreshOnResume)
+      supabase.removeChannel(channel)
+    }
+  }, [load])
   const update = (key, value) => setForm(current => ({ ...current, [key]: value }))
   const reset = () => { setForm(initialForm()); setEditingId(null); setNotice('') }
   const edit = (promo) => {
