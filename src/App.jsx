@@ -1038,7 +1038,8 @@ function PublicQueueScreen({display,error}){
   if(!display)return <div className="tv-login"><Brand/><h1>Menghubungkan layar TV…</h1><p>Memuat antrean dan pengaturan tenant.</p></div>
   const mediaVisible=Boolean(selectedMedia)&&(!activeCall)&&(layout==='media-fullscreen'||(layout==='alternate'&&showMedia))
   const queueVisible=activeCall||layout!=='media-fullscreen'&&(layout!=='alternate'||!showMedia)
-  const mediaNode=selectedMedia? <section className="tv-media-panel" key={selectedMedia.id}>
+  const portraitClass = cfg.portrait_background === 'dark' ? 'tv-portrait-dark' : cfg.portrait_background === 'theme' ? 'tv-portrait-theme' : 'tv-portrait-blur'
+  const mediaNode=selectedMedia? <section className={'tv-media-panel '+portraitClass} key={selectedMedia.id}>
     {selectedMedia.media_type==='upload'||/\.(mp4|webm|ogg)(\?.*)?$/i.test(sourceUrl)?<><video className="tv-media-backdrop" key={'bg-'+sourceUrl} src={sourceUrl} autoPlay loop muted playsInline aria-hidden="true"/><video className="tv-media-foreground" key={sourceUrl} src={sourceUrl} autoPlay loop playsInline ref={videoRefVolume} onError={()=>{}}/></>:
       mediaEmbed?<iframe title={selectedMedia.title} src={mediaEmbed} allow="autoplay; encrypted-media; picture-in-picture" allowFullScreen/>:
       <a className="tv-media-link-card" href={sourceUrl} target="_blank" rel="noreferrer"><Video size={28}/><strong>{selectedMedia.title}</strong><small>Buka media di platform asal</small></a>}
