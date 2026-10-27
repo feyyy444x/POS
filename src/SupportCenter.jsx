@@ -97,7 +97,6 @@ export default function SupportCenter({ session, onClose, isSuperAdmin = false, 
       whatsapp_number: phone || null,
       telegram_enabled: Boolean(channelDraft.telegram_enabled),
       telegram_username: telegram || null,
-      updated_by: userId || null,
       updated_at: new Date().toISOString(),
     }, { onConflict: 'id' })
     setChannelBusy(false)
