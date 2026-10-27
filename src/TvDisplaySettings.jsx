@@ -195,32 +195,52 @@ export default function TvDisplaySettings({ store, membership, onNotice }) {
       notify('Kuota video tenant maksimal 100 MB. Hapus video lama terlebih dahulu.')
       return
     }
-    const safeName = file.name.normalize('NFKD').replace(/[^a-zA-Z0-9._-]+/g, '-').slice(-100) || 'video.mp4'
-    const path = storeId + '/' + crypto.randomUUID() + '-' + safeName
+
     setUploading(true)
-    const { error: uploadError } = await supabase.storage.from('tv-media').upload(path, file, {
-      contentType: file.type, upsert: false, cacheControl: '3600',
-    })
-    if (uploadError) {
+    let reservation = null
+    try {
+      const { data: reserveData, error: reserveError } = await supabase.functions.invoke('tv-media-upload', {
+        body: {
+          action: 'reserve',
+          store_id: storeId,
+          title: file.name.slice(0, 160),
+          file_name: file.name,
+          mime_type: file.type,
+          file_size_bytes: file.size,
+        },
+      })
+      if (reserveError || reserveData?.error || !reserveData?.media?.id || !reserveData?.path || !reserveData?.token) {
+        throw new Error(reserveData?.error || reserveError?.message || 'Server upload belum siap. Coba lagi nanti.')
+      }
+      reservation = reserveData
+
+      const { error: uploadError } = await supabase.storage.from('tv-media').uploadToSignedUrl(
+        reserveData.path,
+        reserveData.token,
+        file,
+        { contentType: file.type, upsert: false },
+      )
+      if (uploadError) throw new Error('Upload gagal: ' + uploadError.message)
+
+      const { data: completeData, error: completeError } = await supabase.functions.invoke('tv-media-upload', {
+        body: { action: 'complete', store_id: storeId, media_id: reserveData.media.id },
+      })
+      if (completeError || completeData?.error || !completeData?.media?.id) {
+        throw new Error(completeData?.error || completeError?.message || 'Video belum berhasil diverifikasi.')
+      }
+
+      setMedia(prev => [...prev, completeData.media])
+      notify('Video berhasil diunggah dan kuota telah diverifikasi oleh server.')
+    } catch (error) {
+      if (reservation?.media?.id) {
+        await supabase.functions.invoke('tv-media-upload', {
+          body: { action: 'cancel', store_id: storeId, media_id: reservation.media.id },
+        })
+      }
+      notify(error?.message || 'Upload video gagal.')
+    } finally {
       setUploading(false)
-      notify('Upload gagal: ' + uploadError.message)
-      return
     }
-    const { data: publicData } = supabase.storage.from('tv-media').getPublicUrl(path)
-    const { data, error } = await supabase.from('store_tv_media').insert({
-      store_id: storeId, media_type: 'upload', title: file.name.slice(0, 160),
-      source_url: publicData.publicUrl, storage_path: path, mime_type: file.type,
-      file_size_bytes: file.size, sort_order: media.length, is_active: true,
-    }).select('*').single()
-    if (error) {
-      await supabase.storage.from('tv-media').remove([path])
-      setUploading(false)
-      notify('Video belum tersimpan: ' + error.message)
-      return
-    }
-    setMedia(prev => [...prev, data])
-    setUploading(false)
-    notify('Video berhasil diunggah dan tersimpan di Supabase Storage.')
   }
 
   const deleteMedia = async (item) => {
