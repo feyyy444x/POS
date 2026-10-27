@@ -245,8 +245,12 @@ Deno.serve(async (req: Request) => {
 
   if (action === "cancel") {
     if (!mediaId) return response({ error: "ID media tidak valid." }, 400);
-    const { data: media } = await admin.from("store_tv_media").select("id,storage_path")
+    const { data: media, error: mediaError } = await admin.from("store_tv_media").select("id,storage_path")
       .eq("id", mediaId).eq("store_id", storeId).eq("media_type", "upload").maybeSingle();
+    if (mediaError) return response({ error: "Gagal memeriksa reservasi upload." }, 500);
+    if (media?.storage_path && !media.storage_path.startsWith(storeId + "/")) {
+      return response({ error: "Lokasi berkas tidak sesuai dengan toko ini." }, 403);
+    }
     if (media?.storage_path) {
       const { error: removeError } = await admin.storage.from("tv-media").remove([media.storage_path]);
       if (removeError) return response({ error: "Berkas video belum berhasil dihapus. Reservasi dipertahankan agar pembersihan dapat dicoba ulang." }, 500);
