@@ -4,7 +4,7 @@ alter table public.store_members
   add column if not exists disabled_by uuid references auth.users(id) on delete set null;
 
 update public.store_members
-set disabled_at = coalesce(disabled_at, updated_at, created_at)
+set disabled_at = coalesce(disabled_at, created_at)
 where is_active = false and disabled_at is null;
 
 create or replace function public.manage_store_member(
