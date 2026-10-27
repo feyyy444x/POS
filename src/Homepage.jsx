@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { ArrowRight, BarChart3, CheckCircle2, ChevronDown, CircleDollarSign, Headphones, Menu, Monitor, Package, Printer, ShieldCheck, ShoppingCart, Sparkles, Ticket, X, Zap } from 'lucide-react'
 import { supabase } from './lib/supabase'
 import SupportCenter from './SupportCenter.jsx'
@@ -32,17 +32,30 @@ export default function Homepage() {
   const [selectedPlan, setSelectedPlan] = useState('monthly')
   const [faqOpen, setFaqOpen] = useState(0)
   const [liveChatOpen, setLiveChatOpen] = useState(false)
+  const loadPromos = useCallback(async () => {
+    if (!supabase) return
+    const { data, error } = await supabase.from('site_promotions')
+      .select('id,title,description,discount_type,discount_value,eligible_periods,promo_code,requires_code,starts_at,ends_at,is_active')
+      .eq('is_active', true)
+    if (error) return
+    const now = Date.now()
+    setPromos((data || []).filter(p => (!p.starts_at || new Date(p.starts_at).getTime() <= now) && (!p.ends_at || new Date(p.ends_at).getTime() >= now)))
+  }, [])
   useEffect(() => {
     if (!supabase) return
-    let active = true
-    supabase.from('site_promotions').select('id,title,description,discount_type,discount_value,eligible_periods,promo_code,requires_code,starts_at,ends_at,is_active')
-      .eq('is_active', true).then(({ data, error }) => {
-        if (!active || error) return
-        const now = Date.now()
-        setPromos((data || []).filter(p => (!p.starts_at || new Date(p.starts_at).getTime() <= now) && (!p.ends_at || new Date(p.ends_at).getTime() >= now)))
-      })
-    return () => { active = false }
-  }, [])
+    loadPromos()
+    const channel = supabase.channel('homepage-promotions-live')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'site_promotions' }, loadPromos)
+      .subscribe(status => { if (status === 'SUBSCRIBED') loadPromos() })
+    const refreshOnResume = () => { if (document.visibilityState === 'visible') loadPromos() }
+    window.addEventListener('focus', refreshOnResume)
+    document.addEventListener('visibilitychange', refreshOnResume)
+    return () => {
+      window.removeEventListener('focus', refreshOnResume)
+      document.removeEventListener('visibilitychange', refreshOnResume)
+      supabase.removeChannel(channel)
+    }
+  }, [loadPromos])
   const automaticPromo = promos.find(p => !p.requires_code)
   const couponPromo = useMemo(() => {
     const code = coupon.trim().toUpperCase()
@@ -102,7 +115,7 @@ export default function Homepage() {
       <section className="nx-final-cta"><div><span className="nx-eyebrow">MULAI BERSAMA NEXAPOS</span><h2>Siap menata operasional usaha Anda?</h2><p>Tim kami siap membantu menjelaskan proses penyewaan dan penggunaan NexaPos.</p></div><div><a className="nx-button nx-button-light" href="https://t.me/becaaapos" target="_blank" rel="noreferrer">Hubungi Tim NexaPos <ArrowRight size={16}/></a><a className="nx-cta-login" href="/login">Sudah memiliki akun? Login workspace</a></div></section>
     </main>
     <div className="nx-livechat-launcher">
-      {!liveChatOpen && <button type="button" className="nx-livechat-button" onClick={() => setLiveChatOpen(true)} aria-label="Buka live chat"><span className="nx-livechat-icon"><Headphones size={22}/></span><span><strong>Butuh bantuan?</strong><small>Chat langsung dengan tim kami</small></span><span className="nx-livechat-online" aria-label="Tersedia"/></button>}
+      {!liveChatOpen && <button type="button" className="nx-livechat-button" onClick={() => setLiveChatOpen(true)} aria-label="Buka pusat bantuan" title="Pusat bantuan"><span className="nx-livechat-icon"><img src="/nexapos-mark.svg" alt="" /></span></button>}
       {liveChatOpen && <SupportCenter session={null} onClose={() => setLiveChatOpen(false)} />}
     </div>
     <footer className="nx-footer"><a className="nx-brand" href="/"><span className="nx-brand-mark"><img src="/nexapos-mark.svg" alt="" /></span><span>Nexa<span>Pos</span><small>SMART COMMERCE</small></span></a><p>Solusi kasir digital dan sistem antrian untuk mendukung operasional usaha Anda.</p><div><a href="#fitur">Fitur</a><a href="#harga">Harga sewa</a><a href="#faq">FAQ</a><a href="https://t.me/becaaapos" target="_blank" rel="noreferrer">Hubungi kami</a></div><small>© {new Date().getFullYear()} NexaPos. Seluruh hak dilindungi.</small></footer>
