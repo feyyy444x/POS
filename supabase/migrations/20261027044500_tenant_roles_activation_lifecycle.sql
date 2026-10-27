@@ -262,6 +262,7 @@ begin
     and m.role<>'owner'
   limit 1;
   if not found then raise exception 'Anggota tidak ditemukan atau akses Owner diperlukan'; end if;
+  if not private.is_store_operational(v_member.store_id) then raise exception 'Toko tidak aktif atau masa aktivasinya telah habis'; end if;
   update public.store_members set role=p_role,is_active=coalesce(p_is_active,true)
   where id=p_member_id returning * into v_member;
   return v_member;
