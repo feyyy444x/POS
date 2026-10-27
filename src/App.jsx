@@ -1039,8 +1039,7 @@ function PublicQueueScreen({display,error}){
   const mediaVisible=Boolean(selectedMedia)&&(!activeCall)&&(layout==='media-fullscreen'||(layout==='alternate'&&showMedia))
   const queueVisible=activeCall||layout!=='media-fullscreen'&&(layout!=='alternate'||!showMedia)
   const mediaNode=selectedMedia? <section className="tv-media-panel" key={selectedMedia.id}>
-    {selectedMedia.media_type==='upload'?<div className="tv-media-placeholder"><Video size={28}/><strong>{selectedMedia.title}</strong><small>Video upload akan aktif setelah penyimpanan file dikonfigurasi.</small></div>:
-      /\.(mp4|webm|ogg)(\?.*)?$/i.test(sourceUrl)?<><video className="tv-media-backdrop" key={'bg-'+sourceUrl} src={sourceUrl} autoPlay loop muted playsInline aria-hidden="true"/><video className="tv-media-foreground" key={sourceUrl} src={sourceUrl} autoPlay loop playsInline ref={videoRefVolume} onError={()=>{}}/></>:
+    {selectedMedia.media_type==='upload'||/\.(mp4|webm|ogg)(\?.*)?$/i.test(sourceUrl)?<><video className="tv-media-backdrop" key={'bg-'+sourceUrl} src={sourceUrl} autoPlay loop muted playsInline aria-hidden="true"/><video className="tv-media-foreground" key={sourceUrl} src={sourceUrl} autoPlay loop playsInline ref={videoRefVolume} onError={()=>{}}/></>:
       mediaEmbed?<iframe title={selectedMedia.title} src={mediaEmbed} allow="autoplay; encrypted-media; picture-in-picture" allowFullScreen/>:
       <a className="tv-media-link-card" href={sourceUrl} target="_blank" rel="noreferrer"><Video size={28}/><strong>{selectedMedia.title}</strong><small>Buka media di platform asal</small></a>}
   </section>:<section className="tv-media-panel tv-media-placeholder"><Video size={28}/><strong>Media promosi</strong><small>Tambahkan media melalui dashboard.</small></section>
