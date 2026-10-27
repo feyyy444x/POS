@@ -239,18 +239,16 @@ function App() {
 
   useEffect(()=>{if(!session)return;loadWorkspace()},[session,loadWorkspace])
 
-  // Recover automatically when an Owner/Super Admin adds this account to a store after login.
+  // If the account has no store yet, wait for membership changes through Realtime.
+  // This avoids polling and automatically opens the workspace when an invitation is activated.
   useEffect(()=>{
-    if(!session?.user || store || loading) return
-    const refreshIfVisible = () => { if(document.visibilityState === 'visible') loadWorkspace() }
-    const timer = setInterval(refreshIfVisible, 5000)
-    window.addEventListener('focus', refreshIfVisible)
-    document.addEventListener('visibilitychange', refreshIfVisible)
-    return ()=>{
-      clearInterval(timer)
-      window.removeEventListener('focus', refreshIfVisible)
-      document.removeEventListener('visibilitychange', refreshIfVisible)
-    }
+    if(!session?.user?.id || store || loading || !supabase) return
+    const channel = supabase.channel('nexapos-membership-wait-'+session.user.id)
+      .on('postgres_changes',{event:'*',schema:'public',table:'store_members',filter:'user_id=eq.'+session.user.id},()=>{
+        loadWorkspace()
+      })
+      .subscribe()
+    return ()=>{ supabase.removeChannel(channel) }
   },[session?.user?.id,store?.id,loading,loadWorkspace])
 
   useEffect(()=>{
@@ -837,8 +835,15 @@ function QueueScreen(){
   useEffect(()=>{if(!supabase)return;supabase.auth.getSession().then(({data})=>setSession(data.session));const {data:{subscription}}=supabase.auth.onAuthStateChange((_e,s)=>setSession(s));return()=>subscription.unsubscribe()},[])
   const load=useCallback(async()=>{if(!session?.user)return;const {data:members,error}=await supabase.from('store_members').select('store_id').eq('user_id',session.user.id).order('created_at',{ascending:true});if(error||!members?.length){setError(error?.message||'Akun tidak memiliki toko.');return}const requestedStore=new URLSearchParams(window.location.search).get('store');const sid=(members.find(m=>m.store_id===requestedStore)||members[0]).store_id;const [{data:s},{data:cfg},{data:q}]=await Promise.all([supabase.from('stores').select('*').eq('id',sid).single(),supabase.from('store_settings').select('*').eq('store_id',sid).maybeSingle(),supabase.from('queue_tickets').select('*').eq('store_id',sid).eq('service_date',today()).order('queue_number')]);setStore(s);setSettings(cfg);setTickets(q||[])},[session])
   useEffect(()=>{load()},[load])
-  useEffect(()=>{if(!store||!supabase)return;const channel=supabase.channel('tv-queue-'+store.id).on('postgres_changes',{event:'*',schema:'public',table:'queue_tickets',filter:'store_id=eq.'+store.id},()=>load()).subscribe();return()=>supabase.removeChannel(channel)},[store,load])
-  useEffect(()=>{const t=setInterval(load,15000);return()=>clearInterval(t)},[load])
+  useEffect(()=>{
+    if(!store||!supabase)return
+    const channel=supabase.channel('tv-queue-'+store.id)
+      .on('postgres_changes',{event:'*',schema:'public',table:'queue_tickets',filter:'store_id=eq.'+store.id},()=>load())
+      .on('postgres_changes',{event:'*',schema:'public',table:'store_settings',filter:'store_id=eq.'+store.id},()=>load())
+      .on('postgres_changes',{event:'*',schema:'public',table:'stores',filter:'id=eq.'+store.id},()=>load())
+      .subscribe()
+    return()=>supabase.removeChannel(channel)
+  },[store?.id,load])
   const current=tickets.filter(t=>['called','serving'].includes(t.status)).slice(-3).reverse()
   const waiting=tickets.filter(t=>t.status==='waiting').slice(0,6)
   const queueTenantStatus=store?.status==='active'&&store?.expires_at&&new Date(store.expires_at)<=new Date()?'expired':(store?.status||'active')
@@ -851,13 +856,12 @@ function SupportPortal() {
   const [session, setSession] = useState(null)
   const [opened, setOpened] = useState(false)
   const [isSuperAdmin, setIsSuperAdmin] = useState(false)
-  const [pinReady, setPinReady] = useState(false)
   useEffect(() => {
     if (!supabase) return
     supabase.auth.getSession().then(({data}) => setSession(data.session))
     const {data:{subscription}} = supabase.auth.onAuthStateChange((_event, nextSession) => {
       setSession(nextSession)
-      if (!nextSession) setOpened(false)
+      if (!nextSession) { setOpened(false); setIsSuperAdmin(false) }
     })
     const open = () => setOpened(true)
     window.addEventListener('nexapos-open-support', open)
@@ -865,15 +869,15 @@ function SupportPortal() {
   }, [])
   useEffect(() => {
     let cancelled = false
-    if (!session?.user?.id || !supabase) { setIsSuperAdmin(false); setPinReady(false); return }
-    setPinReady(false)
-    supabase.rpc('get_my_pin_status').then(({data,error}) => { if (!cancelled) setPinReady(!error && Boolean(data?.[0]?.is_verified)) })
+    if (!session?.user?.id || !supabase) { setIsSuperAdmin(false); return }
     supabase.from('super_admins').select('user_id').eq('user_id', session.user.id).maybeSingle().then(({data}) => { if (!cancelled) setIsSuperAdmin(Boolean(data)) })
     return () => { cancelled = true }
-  }, [session?.user?.id, session?.access_token])
-  if (!session || !pinReady) return null
+  }, [session?.user?.id])
+  // App itself enforces PIN verification before exposing the workspace. Avoid a second,
+  // independent PIN check here: a transient RPC failure could otherwise hide the help modal.
+  if (!session) return null
   return <>
-    <button className="support-floating-launcher" onClick={() => setOpened(true)} aria-label="Buka pusat bantuan"><Headphones size={19}/><span>Pusat bantuan</span></button>
+    <button className="support-floating-launcher" onClick={() => setOpened(true)} title="Pusat bantuan" aria-label="Buka pusat bantuan"><Headphones size={21}/></button>
     {opened && <SupportCenter session={session} isSuperAdmin={isSuperAdmin} onClose={() => setOpened(false)}/>}
   </>
 }
