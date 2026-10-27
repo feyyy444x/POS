@@ -67,6 +67,8 @@ create table if not exists public.store_invites (
   expires_at timestamptz not null default (now() + interval '30 days'),
   accepted_at timestamptz
 );
+alter table public.store_invites enable row level security;
+
 create index if not exists store_invites_email_idx on public.store_invites(lower(email));
 create index if not exists stores_status_expiry_idx on public.stores(status, expires_at);
 
