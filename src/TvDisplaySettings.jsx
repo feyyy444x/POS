@@ -105,7 +105,7 @@ export default function TvDisplaySettings({ store, membership, onNotice }) {
   useEffect(() => { load() }, [load])
 
   const setField = (key, value) => setDraft(prev => ({ ...prev, [key]: value }))
-  const totalUploadBytes = useMemo(() => media.filter(item => item.media_type === 'upload').reduce((sum, item) => sum + Number(item.file_size_bytes || 0), 0), [media])
+  const totalUploadBytes = media.filter(item => item.media_type === 'upload' && (item.upload_status === 'complete' || (item.upload_status === 'pending' && item.reservation_expires_at && new Date(item.reservation_expires_at).getTime() > Date.now()))).reduce((sum, item) => sum + Number(item.file_size_bytes || 0), 0)
   const tvUrl = useMemo(() => draft.public_token
     ? window.location.origin + window.location.pathname + '?screen=queue&token=' + encodeURIComponent(draft.public_token)
     : '', [draft.public_token])
@@ -162,17 +162,12 @@ export default function TvDisplaySettings({ store, membership, onNotice }) {
     if (!['http:', 'https:'].includes(parsed.protocol)) { notify('URL harus menggunakan HTTP atau HTTPS.'); return }
     if (!title.trim()) { notify('Isi nama media terlebih dahulu.'); return }
     setAddingMedia(true)
-    const { data, error } = await supabase.from('store_tv_media').insert({
-      store_id: storeId,
-      media_type: 'link',
-      title: title.trim(),
-      source_url: parsed.href,
-      sort_order: media.length,
-      is_active: true,
-    }).select('*').single()
+    const { data: result, error } = await supabase.functions.invoke('tv-media-upload', {
+      body: { action: 'add_link', store_id: storeId, title: title.trim(), source_url: parsed.href },
+    })
     setAddingMedia(false)
-    if (error) { notify('Tautan media belum tersimpan: ' + error.message); return }
-    setMedia(prev => [...prev, data])
+    if (error || result?.error || !result?.media?.id) { notify('Tautan media belum tersimpan: ' + (result?.error || error?.message || 'Permintaan gagal.')); return }
+    setMedia(prev => [...prev, result.media])
     setTitle('')
     setSourceUrl('')
     notify('Tautan media berhasil ditambahkan.')
@@ -191,11 +186,7 @@ export default function TvDisplaySettings({ store, membership, onNotice }) {
       notify('Ukuran berkas harus lebih dari 0 dan maksimal 100 MB.')
       return
     }
-    if (totalUploadBytes + file.size > maxBytes) {
-      notify('Kuota video tenant maksimal 100 MB. Hapus video lama terlebih dahulu.')
-      return
-    }
-
+    // The server is the source of truth for quota; expired pending reservations must not block a retry.
     setUploading(true)
     let reservation = null
     try {
@@ -244,13 +235,14 @@ export default function TvDisplaySettings({ store, membership, onNotice }) {
   }
 
   const deleteMedia = async (item) => {
-    if (!canManage || !window.confirm('Hapus media "' + item.title + '"?')) return
-    if (item.media_type === 'upload' && item.storage_path) {
-      const { error: storageError } = await supabase.storage.from('tv-media').remove([item.storage_path])
-      if (storageError) { notify('Berkas video belum terhapus: ' + storageError.message); return }
+    if (!canManage || !storeId || !window.confirm('Hapus media "' + item.title + '"?')) return
+    const { data, error } = await supabase.functions.invoke('tv-media-upload', {
+      body: { action: 'delete', store_id: storeId, media_id: item.id },
+    })
+    if (error || data?.error || !data?.ok) {
+      notify('Media belum berhasil dihapus: ' + (data?.error || error?.message || 'Permintaan gagal.'))
+      return
     }
-    const { error } = await supabase.from('store_tv_media').delete().eq('id', item.id).eq('store_id', storeId)
-    if (error) { notify('Metadata media belum dapat dihapus: ' + error.message); return }
     setMedia(prev => prev.filter(row => row.id !== item.id))
     notify(item.media_type === 'upload' ? 'Video dan metadata dihapus.' : 'Tautan dihapus dari NexaPos. Video sumber di platform asal tetap ada.')
   }

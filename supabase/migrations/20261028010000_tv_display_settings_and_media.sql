@@ -23,7 +23,7 @@ create table if not exists public.store_tv_settings (
   media_fit text not null default 'contain' check (media_fit in ('contain','cover','original')),
   portrait_background text not null default 'blur' check (portrait_background in ('blur','dark','theme')),
   rotation_seconds integer not null default 20 check (rotation_seconds between 5 and 300),
-  public_token text unique,
+  public_token text unique check (public_token is null or length(public_token) >= 32),
   updated_at timestamptz not null default now()
 );
 
@@ -36,6 +36,9 @@ create table if not exists public.store_tv_media (
   storage_path text,
   mime_type text,
   file_size_bytes bigint,
+  -- Pending reservations expire so abandoned uploads never consume quota indefinitely.
+  upload_status text not null default 'complete' check (upload_status in ('pending','complete')),
+  reservation_expires_at timestamptz,
   sort_order integer not null default 0,
   is_active boolean not null default true,
   created_at timestamptz not null default now(),
@@ -63,19 +66,6 @@ set public = true,
 drop policy if exists "Tenant managers upload TV media" on storage.objects;
 
 drop policy if exists "Tenant managers delete TV media" on storage.objects;
-create policy "Tenant managers delete TV media"
-on storage.objects for delete to authenticated
-using (
-  bucket_id = 'tv-media'
-  and exists (
-    select 1 from public.store_members sm
-    where sm.store_id::text = (storage.foldername(name))[1]
-      and sm.user_id = (select auth.uid())
-      and sm.is_active = true
-      and sm.disabled_at is null
-      and sm.role in ('owner','admin')
-  )
-);
 
 create index if not exists store_tv_media_store_order_idx
   on public.store_tv_media(store_id, sort_order, created_at);
@@ -112,9 +102,14 @@ with check (
 );
 
 drop policy if exists "Store managers manage TV media" on public.store_tv_media;
-create policy "Store managers manage TV media"
-on public.store_tv_media
-for all to authenticated
+drop policy if exists "Store managers read TV media" on public.store_tv_media;
+drop policy if exists "Store managers add TV links" on public.store_tv_media;
+drop policy if exists "Store managers delete TV links" on public.store_tv_media;
+
+-- Managers can read tenant media, but uploaded-file metadata is written only by the
+-- service-role Edge Function after it has validated membership, quota, and the object.
+create policy "Store managers read TV media"
+on public.store_tv_media for select to authenticated
 using (
   exists (
     select 1 from public.store_members sm
@@ -124,9 +119,27 @@ using (
       and sm.disabled_at is null
       and sm.role in ('owner','admin')
   )
-)
+);
+
+create policy "Store managers add TV links"
+on public.store_tv_media for insert to authenticated
 with check (
-  exists (
+  media_type = 'link'
+  and exists (
+    select 1 from public.store_members sm
+    where sm.store_id = store_tv_media.store_id
+      and sm.user_id = (select auth.uid())
+      and sm.is_active = true
+      and sm.disabled_at is null
+      and sm.role in ('owner','admin')
+  )
+);
+
+create policy "Store managers delete TV links"
+on public.store_tv_media for delete to authenticated
+using (
+  media_type = 'link'
+  and exists (
     select 1 from public.store_members sm
     where sm.store_id = store_tv_media.store_id
       and sm.user_id = (select auth.uid())
@@ -149,13 +162,28 @@ begin
     return new;
   end if;
 
-  perform pg_advisory_xact_lock(hashtext(new.store_id::text));
+  perform pg_advisory_xact_lock(hashtextextended(new.store_id::text, 0));
+
+  if new.upload_status = 'pending'
+     and (new.reservation_expires_at is null or new.reservation_expires_at <= now()) then
+    raise exception 'Reservasi upload harus memiliki masa berlaku di masa depan.';
+  end if;
+
+  if tg_op = 'UPDATE' then
+    if old.upload_status = 'pending'
+       and new.upload_status = 'complete'
+       and (old.reservation_expires_at is null or old.reservation_expires_at <= now()) then
+      raise exception 'Reservasi upload sudah kedaluwarsa.';
+    end if;
+  end if;
+
   select coalesce(sum(file_size_bytes), 0)
     into used_bytes
     from public.store_tv_media
    where store_id = new.store_id
      and id <> new.id
-     and media_type = 'upload';
+     and media_type = 'upload'
+     and (upload_status = 'complete' or (upload_status = 'pending' and reservation_expires_at > now()));
 
   if coalesce(new.file_size_bytes, 0) < 1
      or used_bytes + new.file_size_bytes > 104857600 then
@@ -167,7 +195,7 @@ $$;
 
 drop trigger if exists store_tv_media_quota_guard on public.store_tv_media;
 create trigger store_tv_media_quota_guard
-before insert or update of store_id, media_type, file_size_bytes
+before insert or update of store_id, media_type, file_size_bytes, upload_status, reservation_expires_at
 on public.store_tv_media
 for each row execute function public.enforce_store_tv_media_quota();
 
@@ -201,6 +229,7 @@ begin
       ) order by m.sort_order, m.created_at)
       from public.store_tv_media m
       where m.store_id = s.id and m.is_active = true
+        and (m.media_type = 'link' or m.upload_status = 'complete')
     ), '[]'::jsonb),
     'current', coalesce((
       select jsonb_agg(jsonb_build_object(
