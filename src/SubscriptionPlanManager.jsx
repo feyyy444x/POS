@@ -1,0 +1,92 @@
+import { useCallback, useEffect, useState } from 'react'
+import { ArrowLeft, CheckCircle2, Eye, EyeOff, RefreshCw, Save, ShieldCheck } from 'lucide-react'
+import { supabase } from './lib/supabase'
+import './admin-subscription-plans.css'
+
+const defaults = [
+  { plan_key: 'daily', name: 'Harian', duration: '1 hari', price: 10000, note: 'Untuk kebutuhan jangka pendek', features: ['Semua fitur NexaPos', 'POS dan manajemen produk', 'Laporan penjualan dan modal', 'Sistem antrian dan bantuan'], is_popular: false, is_active: true, sort_order: 1 },
+  { plan_key: 'weekly', name: 'Mingguan', duration: '7 hari', price: 49000, note: 'Fleksibel untuk operasional mingguan', features: ['Semua fitur NexaPos', 'POS dan manajemen produk', 'Laporan penjualan dan modal', 'Sistem antrian dan bantuan'], is_popular: false, is_active: true, sort_order: 2 },
+  { plan_key: 'monthly', name: 'Bulanan', duration: '30 hari', price: 149000, note: 'Praktis untuk operasional rutin', features: ['Semua fitur NexaPos', 'POS dan manajemen produk', 'Laporan penjualan dan modal', 'Sistem antrian dan bantuan'], is_popular: true, is_active: true, sort_order: 3 },
+  { plan_key: 'yearly', name: 'Tahunan', duration: '365 hari', price: 1490000, note: 'Pilihan untuk penggunaan jangka panjang', features: ['Semua fitur NexaPos', 'POS dan manajemen produk', 'Laporan penjualan dan modal', 'Sistem antrian dan bantuan'], is_popular: false, is_active: true, sort_order: 4 },
+]
+const money = value => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value || 0))
+
+export default function SubscriptionPlanManager({ onBack }) {
+  const [plans, setPlans] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [savingKey, setSavingKey] = useState('')
+  const [notice, setNotice] = useState('')
+  const [error, setError] = useState('')
+
+  const load = useCallback(async () => {
+    setLoading(true); setError('')
+    const { data, error: queryError } = await supabase.from('site_subscription_plans').select('*').order('sort_order', { ascending: true })
+    if (queryError) {
+      setError('Paket belum dapat dimuat. Pastikan migrasi homepage_subscription_editor sudah diterapkan di Supabase. ' + queryError.message)
+      setPlans(defaults)
+    } else {
+      const byKey = new Map((data || []).map(plan => [plan.plan_key, plan]))
+      setPlans(defaults.map(fallback => ({ ...fallback, ...(byKey.get(fallback.plan_key) || {}) })))
+    }
+    setLoading(false)
+  }, [])
+
+  useEffect(() => { load() }, [load])
+  const update = (key, field, value) => setPlans(current => current.map(plan => plan.plan_key === key ? { ...plan, [field]: value } : plan))
+
+  const save = async plan => {
+    setSavingKey(plan.plan_key); setError(''); setNotice('')
+    const payload = {
+      plan_key: plan.plan_key,
+      name: plan.name.trim(),
+      duration: plan.duration.trim(),
+      price: Number(plan.price),
+      note: plan.note.trim(),
+      features: (Array.isArray(plan.features) ? plan.features : []).map(v => String(v).trim()).filter(Boolean),
+      is_popular: Boolean(plan.is_popular),
+      is_active: Boolean(plan.is_active),
+      sort_order: Number(plan.sort_order) || 0,
+      updated_at: new Date().toISOString(),
+      updated_by: (await supabase.auth.getUser()).data.user?.id || null,
+    }
+    if (!payload.name || !payload.duration || !Number.isFinite(payload.price) || payload.price < 0) {
+      setError('Nama, durasi, dan harga harus valid.'); setSavingKey(''); return
+    }
+    const { error: saveError } = await supabase.from('site_subscription_plans').upsert(payload, { onConflict: 'plan_key' })
+    setSavingKey('')
+    if (saveError) { setError(saveError.message); return }
+    setNotice('Paket ' + payload.name + ' berhasil disimpan. Homepage akan mengikuti pengaturan ini.')
+    await load()
+  }
+
+  return <div className="app-shell super-admin-shell nx-plan-admin">
+    <main className="main-area">
+      <header className="topbar"><div className="topbar-left"><button className="icon-button" onClick={onBack} aria-label="Kembali"><ArrowLeft size={18}/></button><div><div className="breadcrumb">Homepage <span>/</span> <strong>Langganan & paket</strong></div><div className="topbar-date">Atur harga, deskripsi, fitur dan ikon centang paket publik</div></div></div><div className="topbar-actions"><span className="role-chip"><ShieldCheck size={14}/> SUPER ADMIN</span><button className="btn btn-outline btn-small" onClick={load}><RefreshCw size={14}/> Muat ulang</button></div></header>
+      <div className="page-content">
+        <section className="page-section">
+          <div className="page-heading"><div><span className="eyebrow muted">PENGELOLAAN HOMEPAGE</span><h1>Langganan <span className="heading-accent">homepage.</span></h1><p>Harga, deskripsi dan daftar fitur yang disimpan di sini akan digunakan oleh kartu paket homepage. Ikon centang hijau tetap konsisten dan bukan emoji perangkat.</p></div><span className="date-pill"><CheckCircle2 size={14}/> Ikon centang dipertahankan</span></div>
+          {notice && <div className="toast"><CheckCircle2 size={17}/><span>{notice}</span></div>}
+          {error && <div className="notice">{error}</div>}
+          {loading && <div className="empty-state"><span className="spinner spinner-large"/></div>}
+          <div className="nx-subscription-admin-grid">
+            {plans.map(plan => <article className="panel nx-subscription-admin-card" key={plan.plan_key}>
+              <div className="panel-head"><div><h3>{plan.name || plan.plan_key}</h3><p>Kunci paket: <code>{plan.plan_key}</code></p></div><span className={'status-pill '+(plan.is_active?'status-paid':'status-inactive')}>{plan.is_active?'Tampil':'Disembunyikan'}</span></div>
+              <label>Nama paket<input className="text-input" value={plan.name} onChange={e=>update(plan.plan_key,'name',e.target.value)} maxLength={60}/></label>
+              <div className="nx-subscription-two-col"><label>Harga (Rupiah)<input className="text-input" type="number" min="0" step="1000" value={plan.price} onChange={e=>update(plan.plan_key,'price',e.target.value)}/></label><label>Durasi yang tampil<input className="text-input" value={plan.duration} onChange={e=>update(plan.plan_key,'duration',e.target.value)} maxLength={40}/></label></div>
+              <label>Deskripsi singkat<textarea className="text-input" rows="2" value={plan.note} onChange={e=>update(plan.plan_key,'note',e.target.value)} maxLength={220}/></label>
+              <label>Daftar fitur (satu fitur per baris)<textarea className="text-input nx-subscription-feature-input" rows="5" value={(plan.features || []).join('\n')} onChange={e=>update(plan.plan_key,'features',e.target.value.split('\n'))} maxLength={2000}/></label>
+              <div className="nx-subscription-preview"><div><strong>Pratinjau kartu</strong><small>{plan.note || 'Deskripsi paket'}</small><b>{money(plan.price)} <small>/ {plan.duration}</small></b></div><ul>{(plan.features || []).filter(v=>String(v).trim()).map((feature,index)=><li key={index}><CheckCircle2 size={15}/><span>{feature}</span></li>)}</ul></div>
+              <div className="nx-subscription-admin-actions">
+                <label className="nx-subscription-toggle"><input type="checkbox" checked={Boolean(plan.is_active)} onChange={e=>update(plan.plan_key,'is_active',e.target.checked)}/>{plan.is_active?<Eye size={15}/>:<EyeOff size={15}/>} Tampilkan di homepage</label>
+                <label className="nx-subscription-toggle"><input type="checkbox" checked={Boolean(plan.is_popular)} onChange={e=>update(plan.plan_key,'is_popular',e.target.checked)}/> Paket populer</label>
+              </div>
+              <label>Urutan tampil<input className="text-input" type="number" min="1" max="99" value={plan.sort_order} onChange={e=>update(plan.plan_key,'sort_order',e.target.value)}/></label>
+              <button className="btn btn-primary btn-wide" disabled={savingKey===plan.plan_key} onClick={()=>save(plan)}>{savingKey===plan.plan_key?<span className="spinner"/>:<Save size={16}/>} Simpan paket</button>
+            </article>)}
+          </div>
+          <p className="nx-subscription-admin-footnote">Perubahan tidak mengubah transaksi atau masa aktif tenant. Paket yang disembunyikan tidak tampil di homepage publik. Pengelolaan paket tersedia hanya untuk Super Admin.</p>
+        </section>
+      </div>
+    </main>
+  </div>
+}
