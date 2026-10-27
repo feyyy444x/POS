@@ -77,3 +77,43 @@
 .tv-preview-help ul{padding-left:18px;margin:10px 0 0;display:grid;gap:7px;color:var(--muted,#64748b);font-size:12px;line-height:1.5}
 @media(max-width:1050px){.tv-settings-grid{grid-template-columns:1fr}.tv-preview-column{grid-row:1}.tv-preview{max-width:760px;margin:0 auto;width:100%}}
 @media(max-width:560px){.tv-settings-toolbar{align-items:flex-start;flex-direction:column}.tv-settings-panel,.tv-preview-panel{padding:14px}.tv-template-options,.tv-form-row{grid-template-columns:1fr}.tv-preview-body{min-height:220px}.tv-url-row{align-items:stretch;flex-direction:column}.tv-url-actions{flex-direction:column}.tv-url-actions button{width:100%}.tv-media-row{align-items:flex-start;flex-wrap:wrap}.tv-media-row .btn{margin-left:46px}}
+
+/* Public TV display: applies tenant-selected visual settings without changing POS data. */
+.tv-screen-custom{background:var(--tv-custom-bg)!important;color:var(--tv-custom-text)!important;min-height:100vh}
+.tv-screen-custom .tv-header,.tv-screen-custom .tv-footer{color:var(--tv-custom-text);border-color:color-mix(in srgb,var(--tv-custom-text) 16%,transparent)}
+.tv-screen-custom .tv-store,.tv-screen-custom .tv-current .eyebrow,.tv-screen-custom .tv-next .eyebrow{color:var(--tv-custom-text)}
+.tv-screen-custom .tv-call-main>span,.tv-screen-custom .tv-next-row>span{color:var(--tv-custom-primary);font-size:var(--tv-number-size,112px)}
+.tv-screen-custom .tv-customer-name{font-size:var(--tv-name-size,32px)}
+.tv-screen-custom .tv-call small{font-size:var(--tv-counter-size,26px)}
+.tv-screen-custom .tv-next-row small{font-size:var(--tv-next-size,22px)}
+.tv-screen-custom .tv-current,.tv-screen-custom .tv-next{background:transparent;color:var(--tv-custom-text);border-color:color-mix(in srgb,var(--tv-custom-text) 14%,transparent)}
+.tv-screen-custom .tv-next h2,.tv-screen-custom .tv-empty,.tv-screen-custom .tv-next-empty{color:var(--tv-custom-text)}
+.tv-screen-custom .tv-content-custom{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.8fr) minmax(0,.9fr);gap:clamp(12px,2vw,30px);align-items:stretch}
+.tv-screen-custom .tv-content-custom .tv-current,.tv-screen-custom .tv-content-custom .tv-next{min-width:0}
+.tv-screen-custom .tv-media-panel{position:relative;display:grid;place-items:center;overflow:hidden;min-width:0;min-height:260px;border-radius:18px;background:#0b1220;isolation:isolate}
+.tv-screen-custom .tv-media-panel video,.tv-screen-custom .tv-media-panel iframe{position:relative;z-index:1;width:100%;height:100%;min-height:260px;max-height:100%;object-fit:var(--tv-media-fit,contain);border:0}
+.tv-screen-custom .tv-media-panel video.tv-media-backdrop{position:absolute;inset:-5%;z-index:0;width:110%;height:110%;min-height:0;object-fit:cover;filter:blur(26px) brightness(.62);opacity:.85}
+.tv-screen-custom .tv-media-panel video.tv-media-foreground{object-fit:contain}
+.tv-screen-custom .tv-media-placeholder,.tv-screen-custom .tv-media-link-card{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;width:100%;height:100%;min-height:260px;padding:24px;text-align:center;color:#f8fafc;text-decoration:none;background:radial-gradient(circle at 25% 25%,var(--tv-custom-primary),transparent 55%),#0b1220}
+.tv-screen-custom .tv-media-placeholder small,.tv-screen-custom .tv-media-link-card small{opacity:.75}
+.tv-screen-custom .tv-layout-media-top{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(150px,.8fr) minmax(220px,1fr) auto}
+.tv-screen-custom .tv-layout-media-top .tv-media-panel{grid-row:1;grid-column:1/-1;min-height:180px}
+.tv-screen-custom .tv-layout-media-top .tv-current{grid-row:2}
+.tv-screen-custom .tv-layout-media-top .tv-next{grid-row:3}
+.tv-screen-custom .tv-layout-media-bottom{grid-template-columns:minmax(0,1fr) minmax(0,.8fr);grid-template-rows:minmax(200px,1fr) minmax(160px,.7fr)}
+.tv-screen-custom .tv-layout-media-bottom .tv-current{grid-row:1;grid-column:1}
+.tv-screen-custom .tv-layout-media-bottom .tv-next{grid-row:1;grid-column:2}
+.tv-screen-custom .tv-layout-media-bottom .tv-media-panel{grid-row:2;grid-column:1/-1;min-height:180px}
+.tv-screen-custom .tv-layout-media-fullscreen{grid-template-columns:1fr;grid-template-rows:1fr}
+.tv-screen-custom .tv-layout-media-fullscreen .tv-media-panel{grid-row:1;grid-column:1/-1;min-height:55vh}
+.tv-screen-custom .tv-layout-media-fullscreen:not(.tv-media-fullscreen-active) .tv-media-panel{display:none}
+.tv-screen-custom .tv-layout-alternate:not(.tv-media-fullscreen-active) .tv-media-panel{display:none}
+.tv-screen-custom .tv-layout-alternate.tv-media-fullscreen-active{grid-template-columns:1fr;grid-template-rows:1fr}
+.tv-screen-custom .tv-layout-alternate.tv-media-fullscreen-active .tv-media-panel{grid-row:1;grid-column:1/-1;min-height:55vh}
+.tv-public-actions{display:flex;align-items:center;gap:12px}
+.tv-sound-enable{border:1px solid color-mix(in srgb,var(--tv-custom-text) 25%,transparent);border-radius:999px;padding:9px 14px;background:var(--tv-custom-primary);color:#fff;font-size:12px;font-weight:750;cursor:pointer;white-space:nowrap}
+.tv-dark-mode .tv-header,.tv-dark-mode .tv-footer{background:transparent}
+.tv-light-mode .tv-current,.tv-light-mode .tv-next{background:color-mix(in srgb,var(--tv-custom-text) 3%,var(--tv-custom-bg))}
+.tv-screen-custom .tv-wave i{background:var(--tv-custom-primary)}
+@media(max-width:1100px){.tv-screen-custom .tv-content-custom{grid-template-columns:minmax(0,1fr) minmax(0,.8fr)}.tv-screen-custom .tv-layout-split-left .tv-media-panel{grid-column:1/-1;min-height:220px}}
+@media(max-width:680px){.tv-screen-custom .tv-content-custom,.tv-screen-custom .tv-layout-media-bottom,.tv-screen-custom .tv-layout-media-top{grid-template-columns:minmax(0,1fr);grid-template-rows:auto}.tv-screen-custom .tv-content-custom .tv-current,.tv-screen-custom .tv-content-custom .tv-next,.tv-screen-custom .tv-content-custom .tv-media-panel{grid-column:1/-1;grid-row:auto}.tv-public-actions{flex-direction:column;align-items:flex-end;gap:5px}.tv-sound-enable{font-size:10px;padding:6px 9px}.tv-screen-custom .tv-call-main>span{font-size:clamp(48px,var(--tv-number-size,112px),130px)}}
