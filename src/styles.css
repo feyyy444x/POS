@@ -168,3 +168,16 @@
   .app-shell.super-admin-shell .main-area{margin-left:0}
   .super-admin-shell .mobile-menu{display:inline-grid}
 }
+
+
+/* Account security and permanent administration actions */
+.user-admin-actions { display:flex; flex-wrap:wrap; gap:6px; min-width:260px; }
+.member-name-edit { min-width:140px; max-width:190px; }
+.member-manage-actions { display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
+.member-role-form { display:flex; flex-wrap:wrap; align-items:center; gap:6px; }
+.member-role-form .text-input { min-width:110px; }
+.member-role-form .member-name-edit { min-width:140px; }
+@media (max-width: 760px) {
+  .user-admin-actions { min-width:220px; }
+  .member-name-edit { width:100%; max-width:none; }
+}
