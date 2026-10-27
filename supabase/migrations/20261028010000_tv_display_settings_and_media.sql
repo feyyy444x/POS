@@ -53,6 +53,9 @@ create index if not exists store_tv_media_store_order_idx
 alter table public.store_tv_settings enable row level security;
 alter table public.store_tv_media enable row level security;
 
+revoke all on table public.store_tv_settings, public.store_tv_media from anon;
+grant select, insert, update, delete on table public.store_tv_settings, public.store_tv_media to authenticated;
+
 drop policy if exists "Store managers manage TV settings" on public.store_tv_settings;
 create policy "Store managers manage TV settings"
 on public.store_tv_settings
@@ -151,7 +154,7 @@ begin
   select jsonb_build_object(
     'store_id', s.id,
     'store_name', coalesce(ss.store_name, s.name, 'NexaPos'),
-    'settings', to_jsonb(cfg) - 'public_token',
+    'settings', (to_jsonb(cfg) - 'public_token') || jsonb_build_object('queue_prefix', coalesce(ss.queue_prefix, 'A')),
     'media', coalesce((
       select jsonb_agg(jsonb_build_object(
         'id', m.id,
