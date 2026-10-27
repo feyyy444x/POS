@@ -235,3 +235,42 @@ revoke all on function public.super_admin_list_tenant_whatsapp() from public, an
 revoke all on function public.super_admin_set_tenant_whatsapp(uuid,text) from public, anon;
 grant execute on function public.super_admin_list_tenant_whatsapp() to authenticated;
 grant execute on function public.super_admin_set_tenant_whatsapp(uuid,text) to authenticated;
+
+
+-- Centralized help-channel settings: one configuration for every tenant.
+create table if not exists public.support_settings (
+  id integer primary key default 1 check (id = 1),
+  whatsapp_number text,
+  updated_at timestamptz not null default now(),
+  constraint support_settings_whatsapp_format check (
+    whatsapp_number is null or whatsapp_number ~ '^[0-9]{8,15}$'
+  )
+);
+insert into public.support_settings(id, whatsapp_number) values (1, null) on conflict (id) do nothing;
+alter table public.support_settings enable row level security;
+drop policy if exists "authenticated users can read support settings" on public.support_settings;
+create policy "authenticated users can read support settings" on public.support_settings for select to authenticated using (true);
+revoke all on public.support_settings from anon, public;
+grant select on public.support_settings to authenticated;
+
+create or replace function public.super_admin_set_support_whatsapp(p_number text)
+returns void language plpgsql security definer set search_path = ''
+as $$
+declare
+  v_number text := nullif(regexp_replace(coalesce(p_number,''), '[^0-9]', '', 'g'), '');
+begin
+  if not exists (select 1 from public.super_admins sa where sa.user_id = (select auth.uid())) then raise exception 'Super Admin access required'; end if;
+  if v_number is not null and v_number !~ '^[0-9]{8,15}$' then raise exception 'WhatsApp number must contain 8 to 15 digits including country code'; end if;
+  insert into public.support_settings(id, whatsapp_number, updated_at) values (1, v_number, now())
+  on conflict (id) do update set whatsapp_number = excluded.whatsapp_number, updated_at = now();
+end;
+$$;
+revoke all on function public.super_admin_set_support_whatsapp(text) from public, anon;
+grant execute on function public.super_admin_set_support_whatsapp(text) to authenticated;
+do $$
+begin
+  if exists (select 1 from pg_publication where pubname = 'supabase_realtime')
+     and not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'support_settings') then
+    alter publication supabase_realtime add table public.support_settings;
+  end if;
+end $$;
