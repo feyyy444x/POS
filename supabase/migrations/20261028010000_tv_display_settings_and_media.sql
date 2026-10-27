@@ -36,6 +36,8 @@ create table if not exists public.store_tv_media (
   storage_path text,
   mime_type text,
   file_size_bytes bigint,
+  upload_status text not null default 'complete' check (upload_status in ('pending','complete')),
+  reservation_expires_at timestamptz,
   sort_order integer not null default 0,
   is_active boolean not null default true,
   created_at timestamptz not null default now(),
@@ -155,7 +157,8 @@ begin
     from public.store_tv_media
    where store_id = new.store_id
      and id <> new.id
-     and media_type = 'upload';
+     and media_type = 'upload'
+     and (upload_status = 'complete' or (upload_status = 'pending' and reservation_expires_at > now()));
 
   if coalesce(new.file_size_bytes, 0) < 1
      or used_bytes + new.file_size_bytes > 104857600 then
@@ -200,7 +203,7 @@ begin
         'sort_order', m.sort_order
       ) order by m.sort_order, m.created_at)
       from public.store_tv_media m
-      where m.store_id = s.id and m.is_active = true
+      where m.store_id = s.id and m.is_active = true and (m.media_type = 'link' or m.upload_status = 'complete')
     ), '[]'::jsonb),
     'current', coalesce((
       select jsonb_agg(jsonb_build_object(
