@@ -109,7 +109,7 @@ export default function SupportCenter({ session, onClose, isSuperAdmin = false, 
   }
   const normalizedWhatsApp = String(whatsappNumber || '').replace(/[^0-9]/g, '')
   const openWhatsApp = () => {
-    if (!/^\\d{8,15}$/.test(normalizedWhatsApp)) return
+    if (!/^\d{8,15}$/.test(normalizedWhatsApp)) return
     window.open('https://wa.me/' + normalizedWhatsApp, '_blank', 'noopener,noreferrer')
   }
 
@@ -121,7 +121,7 @@ export default function SupportCenter({ session, onClose, isSuperAdmin = false, 
         <button className="support-choice" onClick={() => setMode(isSuperAdmin ? 'inbox' : isGuest ? 'guest-form' : 'chat')}><span className="support-choice-icon support-chat-icon"><MessageCircle size={21}/></span><span><strong>{isSuperAdmin ? 'Inbox live chat' : 'Live chat'}</strong><small>{isSuperAdmin ? 'Baca dan balas pesan pengguna' : 'Kirim pesan langsung kepada tim NexaPos'}</small></span><ArrowRight size={17}/></button>
         <button className="support-choice" onClick={openTelegram} disabled={!telegramUsername}><span className="support-choice-icon support-telegram-icon"><Send size={20}/></span><span><strong>Telegram</strong><small>{telegramUsername ? 'Chat langsung melalui @'+telegramUsername : 'Kontak Telegram belum dikonfigurasi'}</small></span><ExternalLink size={16}/></button>
         {!telegramUsername && <p className="support-config-note">Atur <code>VITE_TELEGRAM_SUPPORT_USERNAME</code> di environment Netlify dengan username Telegram tim bantuan agar tautan mengarah ke akun yang benar.</p>}
-        <button className="support-choice" onClick={openWhatsApp} disabled={!/^\\d{8,15}$/.test(normalizedWhatsApp)}><span className="support-choice-icon support-whatsapp-icon"><MessageCircle size={20}/></span><span><strong>WhatsApp</strong><small>{/^\\d{8,15}$/.test(normalizedWhatsApp) ? 'Hubungi tim bantuan melalui WhatsApp' : 'Belum aktif · isi nomor di Pengaturan toko'}</small></span><ExternalLink size={16}/></button>
+        <button className="support-choice" onClick={openWhatsApp} disabled={!/^\d{8,15}$/.test(normalizedWhatsApp)}><span className="support-choice-icon support-whatsapp-icon"><MessageCircle size={20}/></span><span><strong>WhatsApp</strong><small>{/^\d{8,15}$/.test(normalizedWhatsApp) ? 'Hubungi tim bantuan melalui WhatsApp' : 'Belum aktif · isi nomor di Pengaturan toko'}</small></span><ExternalLink size={16}/></button>
       </div>}
       {mode === 'chat' && <div className="support-chat-view"><button className="support-back" onClick={() => setMode('choices')}><ArrowLeft size={14}/> Kembali ke pilihan bantuan</button><div className="support-chat-intro"><strong>{isSuperAdmin ? 'Percakapan live chat' : 'Live chat NexaPos'}</strong><small>{isSuperAdmin ? activeUser?.email : 'Balasan tim dukungan akan muncul otomatis.'}</small></div>
         <div className="support-messages">{activeMessages.map(m => <div key={m.id} className={'support-message '+(m.sender_role === (isSuperAdmin ? 'support' : 'customer') ? 'support-message-mine' : 'support-message-theirs')}><span>{m.sender_role === 'customer' ? (isSuperAdmin ? m.user_email : 'Anda') : 'Tim NexaPos'}</span><p>{m.message}</p><small>{timeLabel(m.created_at)}</small></div>)}{!activeMessages.length && <div className="support-empty"><MessageCircle size={25}/><strong>Mulai percakapan</strong><span>Tulis pesan pertama Anda di bawah.</span></div>}</div>
