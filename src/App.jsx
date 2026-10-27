@@ -810,6 +810,7 @@ function SupportPortal() {
   const [session, setSession] = useState(null)
   const [opened, setOpened] = useState(false)
   const [isSuperAdmin, setIsSuperAdmin] = useState(false)
+  const [pinReady, setPinReady] = useState(false)
   useEffect(() => {
     if (!supabase) return
     supabase.auth.getSession().then(({data}) => setSession(data.session))
@@ -822,10 +823,14 @@ function SupportPortal() {
     return () => { subscription.unsubscribe(); window.removeEventListener('nexapos-open-support', open) }
   }, [])
   useEffect(() => {
-    if (!session?.user?.id || !supabase) { setIsSuperAdmin(false); return }
-    supabase.from('super_admins').select('user_id').eq('user_id', session.user.id).maybeSingle().then(({data}) => setIsSuperAdmin(Boolean(data)))
-  }, [session?.user?.id])
-  if (!session) return null
+    let cancelled = false
+    if (!session?.user?.id || !supabase) { setIsSuperAdmin(false); setPinReady(false); return }
+    setPinReady(false)
+    supabase.rpc('get_my_pin_status').then(({data,error}) => { if (!cancelled) setPinReady(!error && Boolean(data?.[0]?.is_verified)) })
+    supabase.from('super_admins').select('user_id').eq('user_id', session.user.id).maybeSingle().then(({data}) => { if (!cancelled) setIsSuperAdmin(Boolean(data)) })
+    return () => { cancelled = true }
+  }, [session?.user?.id, session?.access_token])
+  if (!session || !pinReady) return null
   return <>
     <button className="support-floating-launcher" onClick={() => setOpened(true)} aria-label="Buka pusat bantuan"><Headphones size={19}/><span>Pusat bantuan</span></button>
     {opened && <SupportCenter session={session} isSuperAdmin={isSuperAdmin} onClose={() => setOpened(false)}/>}
