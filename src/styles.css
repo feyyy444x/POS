@@ -161,3 +161,10 @@
   .pagination-actions .btn{padding:7px}
   .admin-shortcut{padding:14px}
 }
+
+@media(max-width:950px){
+  .app-shell.super-admin-shell .sidebar{transform:translateX(-105%)}
+  .app-shell.super-admin-shell .sidebar.sidebar-open{transform:translateX(0)}
+  .app-shell.super-admin-shell .main-area{margin-left:0}
+  .super-admin-shell .mobile-menu{display:inline-grid}
+}
