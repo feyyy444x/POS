@@ -126,7 +126,7 @@ begin
   insert into public.pin_verified_sessions(session_id,user_id,expires_at) values(v_session,v_user,now()+interval '12 hours');
   return true;
 end;
-$;
+$$;
 
 create or replace function public.update_my_profile(p_full_name text)
 returns void language plpgsql security definer set search_path = ''
