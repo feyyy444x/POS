@@ -185,7 +185,7 @@ begin
   if p_status not in ('pending','suspended') then
     raise exception 'Status tidak valid. Penghapusan tenant harus menggunakan penghapusan permanen.';
   end if;
-  update public.stores set status=p_status,updated_at=now()
+  update public.stores set status=p_status
   where id=p_store_id and deleted_at is null returning * into v_store;
   if v_store.id is null then raise exception 'Tenant tidak ditemukan'; end if;
   return v_store;
@@ -239,6 +239,7 @@ begin
   if exists(select 1 from public.super_admins where user_id=p_user_id) then raise exception 'Akun Super Admin lain dilindungi dari reset lewat menu ini'; end if;
   delete from public.user_security_pins where user_id=p_user_id;
   delete from public.pin_verified_sessions where user_id=p_user_id;
+  delete from public.user_pin_attempt_limits where user_id=p_user_id;
   if not exists(select 1 from auth.users where id=p_user_id) then raise exception 'Akun tidak ditemukan'; end if;
 end;
 $$;
