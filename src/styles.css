@@ -1022,3 +1022,24 @@ tbody tr:hover{background:#f7fbfd}
 @media (max-width:380px) {
   .topbar-actions .top-avatar { font-size:11px !important; }
 }
+
+
+/* Precisely center the profile initial inside its circular avatar on mobile. */
+@media (max-width:760px) {
+  .topbar-actions .top-avatar {
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    text-align:center !important;
+    line-height:1 !important;
+    padding:0 !important;
+    box-sizing:border-box !important;
+    border-radius:50% !important;
+    font-size:14px !important;
+    font-weight:600 !important;
+    transform:none !important;
+  }
+  .topbar-actions .top-avatar::first-letter {
+    line-height:1 !important;
+  }
+}
