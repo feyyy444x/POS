@@ -55,7 +55,7 @@ $$;
 
 create or replace function public.set_my_pin(p_pin text)
 returns void language plpgsql security definer set search_path = ''
-as $$
+as $set_my_pin$
 declare v_user uuid := auth.uid(); v_session uuid := private.current_session_id();
 begin
   if v_user is null or v_session is null then raise exception 'Sesi login tidak valid'; end if;
@@ -69,7 +69,7 @@ begin
   values(v_session,v_user,now()+interval '12 hours')
   on conflict(session_id) do update set user_id=excluded.user_id,verified_at=now(),expires_at=excluded.expires_at;
 end;
-$;
+$set_my_pin$;
 
 create or replace function public.verify_my_pin(p_pin text)
 returns boolean language plpgsql security definer set search_path = ''
