@@ -58,19 +58,9 @@ set public = true,
     file_size_limit = 104857600,
     allowed_mime_types = array['video/mp4', 'video/webm', 'video/ogg'];
 
+-- Do not allow direct client uploads: all upload reservations and signed upload URLs
+-- must be issued by the server-controlled tv-media-upload Edge Function.
 drop policy if exists "Tenant managers upload TV media" on storage.objects;
-create policy "Tenant managers upload TV media"
-on storage.objects for insert to authenticated
-with check (
-  bucket_id = 'tv-media'
-  and exists (
-    select 1 from public.store_members sm
-    where sm.store_id::text = (storage.foldername(name))[1]
-      and sm.user_id = (select auth.uid())
-      and sm.is_active = true
-      and sm.role in ('owner','admin')
-  )
-);
 
 drop policy if exists "Tenant managers delete TV media" on storage.objects;
 create policy "Tenant managers delete TV media"
