@@ -31,7 +31,7 @@ export default function SupportCenter({ session, onClose, isSuperAdmin = false, 
   const isGuest = !session?.user && !isSuperAdmin
   const guestIdentity = `${guestName.trim()} <${guestEmail.trim()}>`
   const currentTelegramUsername = String(channelSettings.telegram_username || '').replace(/^@/, '').trim()
-  const whatsappNumber = String(channelSettings.whatsapp_number || '').replace(/\\D/g, '')
+  const whatsappNumber = String(channelSettings.whatsapp_number || '').replace(/\D/g, '')
 
   const loadChannelSettings = useCallback(async () => {
     if (!supabase) { setChannelLoading(false); setChannelError('Supabase belum dikonfigurasi.'); return }
@@ -80,7 +80,7 @@ export default function SupportCenter({ session, onClose, isSuperAdmin = false, 
     event.preventDefault()
     setChannelNotice('')
     setChannelError('')
-    const phone = String(channelDraft.whatsapp_number || '').replace(/\\D/g, '')
+    const phone = String(channelDraft.whatsapp_number || '').replace(/\D/g, '')
     const telegram = String(channelDraft.telegram_username || '').replace(/^@/, '').trim()
     if (channelDraft.whatsapp_enabled && !/^[1-9][0-9]{7,14}$/.test(phone)) {
       setChannelError('Masukkan nomor WhatsApp format internasional, angka saja. Contoh format Indonesia: 62812…')
@@ -137,14 +137,28 @@ export default function SupportCenter({ session, onClose, isSuperAdmin = false, 
 
   useEffect(() => {
     if (!supabase || (!userId && !isSuperAdmin)) return
-    const channel = supabase.channel('support-live-'+userId)
+    const refreshMessages = () => {
+      if (mode === 'chat' && !isSuperAdmin && userId) loadMessages(userId)
+      if (mode === 'chat' && isSuperAdmin && activeUser) loadMessages(activeUser.user_id)
+      if (mode === 'inbox' && isSuperAdmin) loadInbox()
+    }
+    const channel = supabase.channel('support-live-' + (userId || 'guest'))
       .on('postgres_changes', { event: '*', schema: 'public', table: 'support_messages' }, payload => {
         if (!isSuperAdmin && payload.new?.user_id !== userId && payload.old?.user_id !== userId) return
-        if (mode === 'chat' && !isSuperAdmin) loadMessages(userId)
-        if (mode === 'chat' && isSuperAdmin && activeUser && (payload.new?.user_id === activeUser.user_id || payload.old?.user_id === activeUser.user_id)) loadMessages(activeUser.user_id)
-        if (mode === 'inbox' && isSuperAdmin) loadInbox()
-      }).subscribe()
-    return () => supabase.removeChannel(channel)
+        refreshMessages()
+      })
+      .subscribe(status => {
+        setRealtimeStatus(status === 'SUBSCRIBED' ? 'Realtime tersambung' : status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' ? 'Realtime terputus, mencoba kembali…' : 'Menyambungkan realtime…')
+        if (status === 'SUBSCRIBED') refreshMessages()
+      })
+    const refreshOnResume = () => { if (document.visibilityState === 'visible') refreshMessages() }
+    window.addEventListener('focus', refreshOnResume)
+    document.addEventListener('visibilitychange', refreshOnResume)
+    return () => {
+      window.removeEventListener('focus', refreshOnResume)
+      document.removeEventListener('visibilitychange', refreshOnResume)
+      supabase.removeChannel(channel)
+    }
   }, [userId, isSuperAdmin, mode, activeUser, loadMessages, loadInbox])
 
   const continueAsGuest = async event => {
