@@ -1,0 +1,11 @@
+# Deployment checklist
+
+- Build command: `npm run build`
+- Publish directory: `dist`
+- Required build variables: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`
+- Required Netlify Functions runtime variables: `SUPABASE_URL` (or reuse `VITE_SUPABASE_URL`) and `SUPABASE_SERVICE_ROLE_KEY`. Store the service-role key only in Netlify's server-side environment; never use a `VITE_` prefix or expose it to browser code.
+- `manage-user-password` also requires `SUPABASE_ANON_KEY` or `VITE_SUPABASE_PUBLISHABLE_KEY`; it checks the caller's PIN-verified Super Admin session before using the service-role key.
+- The PIN migration must be released together with the frontend. Until then, the production site continues using its existing login flow; do not apply the PIN-enforcement migration alone because it intentionally blocks workspace RLS access until users set a PIN.
+- Invitation activation validates a pending, unexpired `store_invites` row before setting the password. The migration `20261027070000_invitation_activation_without_email_confirmation.sql` must be applied to the target Supabase database before enabling this flow.
+- Important: the current Deploy Preview uses the configured production Supabase project. Do not add the production `SUPABASE_SERVICE_ROLE_KEY` to the Deploy Preview/branch-deploy context. Test activation against an isolated staging Supabase project first, or configure the secret only for Production when explicitly releasing this feature.
+- The pull request preview is the review target; do not publish the feature branch to production until the app has been tested end-to-end.

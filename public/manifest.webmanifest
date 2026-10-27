@@ -1,0 +1,27 @@
+{
+  "id": "/",
+  "name": "NexaPos — Smart Commerce",
+  "short_name": "NexaPos",
+  "description": "Kasir, produk, laporan, dan antrian NexaPos.",
+  "lang": "id-ID",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f4f7fb",
+  "theme_color": "#102d50",
+  "icons": [
+    {
+      "src": "/nexapos-mark.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/nexapos-mark.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}
