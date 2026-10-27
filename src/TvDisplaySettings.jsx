@@ -105,7 +105,7 @@ export default function TvDisplaySettings({ store, membership, onNotice }) {
   useEffect(() => { load() }, [load])
 
   const setField = (key, value) => setDraft(prev => ({ ...prev, [key]: value }))
-  const totalUploadBytes = useMemo(() => media.filter(item => item.media_type === 'upload').reduce((sum, item) => sum + Number(item.file_size_bytes || 0), 0), [media])
+  const totalUploadBytes = media.filter(item => item.media_type === 'upload' && (item.upload_status === 'complete' || (item.upload_status === 'pending' && item.reservation_expires_at && new Date(item.reservation_expires_at).getTime() > Date.now()))).reduce((sum, item) => sum + Number(item.file_size_bytes || 0), 0)
   const tvUrl = useMemo(() => draft.public_token
     ? window.location.origin + window.location.pathname + '?screen=queue&token=' + encodeURIComponent(draft.public_token)
     : '', [draft.public_token])
@@ -191,11 +191,7 @@ export default function TvDisplaySettings({ store, membership, onNotice }) {
       notify('Ukuran berkas harus lebih dari 0 dan maksimal 100 MB.')
       return
     }
-    if (totalUploadBytes + file.size > maxBytes) {
-      notify('Kuota video tenant maksimal 100 MB. Hapus video lama terlebih dahulu.')
-      return
-    }
-
+    // The server is the source of truth for quota; expired pending reservations must not block a retry.
     setUploading(true)
     let reservation = null
     try {
