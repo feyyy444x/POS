@@ -697,7 +697,7 @@ function SuperAdminScreen({session,onSignOut}) {
   },[])
   const saveTenantWhatsApp=async(storeId)=>{
     const number=String(tenantWhatsAppNumbers[storeId]||'').replace(/[^0-9]/g,'')
-    if(number && !/^\\d{8,15}$/.test(number)){setNotice('Nomor WhatsApp harus 8–15 digit dengan kode negara.');return}
+    if(number && !/^\d{8,15}$/.test(number)){setNotice('Nomor WhatsApp harus 8–15 digit dengan kode negara.');return}
     const {error}=await supabase.rpc('super_admin_set_tenant_whatsapp',{p_store_id:storeId,p_number:number||null})
     if(error){setNotice(error.message);return}
     setTenantWhatsAppNumbers(prev=>({...prev,[storeId]:number}))
