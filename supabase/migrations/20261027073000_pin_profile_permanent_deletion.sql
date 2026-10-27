@@ -266,6 +266,9 @@ begin
   select email into v_email from auth.users where id=p_user_id;
   if v_email is null then raise exception 'Akun tidak ditemukan'; end if;
   delete from public.store_invites where lower(email)=lower(v_email);
+  -- The current schema does not define an auth.users FK on store_members;
+  -- remove memberships explicitly to avoid orphaned access rows.
+  delete from public.store_members where user_id=p_user_id;
   delete from auth.users where id=p_user_id;
 end;
 $$;
