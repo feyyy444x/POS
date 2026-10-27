@@ -158,7 +158,7 @@ returns boolean language sql stable security definer set search_path = ''
 as $$
   select private.is_pin_verified()
     and exists(select 1 from public.store_members m
-      where m.store_id=target_store and m.user_id=(select auth.uid()) and m.is_active=true)
+      where m.store_id=target_store and m.user_id=(select auth.uid()) and m.disabled_at is null)
 $$;
 
 create or replace function private.is_store_manager(target_store uuid)
@@ -166,7 +166,7 @@ returns boolean language sql stable security definer set search_path = ''
 as $$
   select private.is_pin_verified()
     and exists(select 1 from public.store_members m
-      where m.store_id=target_store and m.user_id=(select auth.uid()) and m.is_active=true
+      where m.store_id=target_store and m.user_id=(select auth.uid()) and m.disabled_at is null
         and m.role in ('owner','admin','manager'))
 $$;
 
@@ -175,7 +175,7 @@ returns boolean language sql stable security definer set search_path = ''
 as $$
   select private.is_pin_verified()
     and exists(select 1 from public.store_members m
-      where m.store_id=target_store and m.user_id=(select auth.uid()) and m.role='owner' and m.is_active=true)
+      where m.store_id=target_store and m.user_id=(select auth.uid()) and m.role='owner' and m.disabled_at is null)
 $$;
 
 create or replace function private.is_store_operational(target_store uuid)
@@ -220,7 +220,7 @@ begin
     u.created_at,u.last_sign_in_at,
     exists(select 1 from public.super_admins sa where sa.user_id=u.id),
     coalesce(u.banned_until>now(),false),count(distinct m.id),
-    count(distinct m.id) filter(where m.is_active=true),
+    count(distinct m.id) filter(where m.disabled_at is null),
     coalesce(string_agg(distinct s.name,', ') filter(where s.name is not null),'')
   from auth.users u
   left join public.store_members m on m.user_id=u.id
@@ -267,7 +267,7 @@ begin
   if exists(select 1 from public.store_members where user_id=p_user_id and role='owner') then
     raise exception 'Akun Owner tidak dapat dihapus dari menu ini';
   end if;
-  if exists(select 1 from public.store_members where user_id=p_user_id and is_active=true) then
+  if exists(select 1 from public.store_members where user_id=p_user_id and disabled_at is null) then
     raise exception 'Nonaktifkan atau hapus semua keanggotaan tenant aktif terlebih dahulu';
   end if;
   select email into v_email from auth.users where id=p_user_id;
@@ -311,7 +311,7 @@ begin
   if v_member.user_id=(select auth.uid()) or v_member.role='owner' then raise exception 'Akun Owner tidak dapat diubah dari menu staf'; end if;
   if p_role not in ('admin','cashier') then raise exception 'Role tidak valid'; end if;
   if length(btrim(coalesce(p_full_name,'')))<2 or length(btrim(p_full_name))>120 then raise exception 'Nama harus 2–120 karakter'; end if;
-  update public.store_members set full_name=btrim(p_full_name),role=p_role,is_active=coalesce(p_is_active,false),
+  update public.store_members set full_name=btrim(p_full_name),role=p_role,
     disabled_at=case when coalesce(p_is_active,false) then null else coalesce(disabled_at,now()) end,
     disabled_by=case when coalesce(p_is_active,false) then null else (select auth.uid()) end
   where id=p_member_id returning * into v_member;
