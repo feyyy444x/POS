@@ -7,6 +7,7 @@ import {
   TrendingUp, UserRound, Users, UserPlus, CalendarDays, Ban, Archive, Mail, Wallet, X
 } from 'lucide-react'
 import { isSupabaseConfigured, supabase } from './lib/supabase'
+import SupportCenter from './SupportCenter.jsx'
 
 const money = (value) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value || 0))
 const today = () => new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' })
@@ -491,7 +492,7 @@ function App() {
       <div className="sidebar-brand"><Brand/></div>
       <div className="store-switch"><span className="store-avatar"><Store size={17}/></span><span className="store-copy">{memberships.length>1?<select className="store-select" aria-label="Pilih toko aktif" value={store.id} onChange={e=>{setSelectedStoreId(e.target.value);setStore(null);setMembership(null);setSettings(null);setProducts([]);setOrders([]);setQueue([]);setCart([]);setReceipt(null);setNotice('')}}>{memberships.map(m=><option key={m.store_id} value={m.store_id}>{m.store_name}</option>)}</select>:<strong>{settings?.store_name||store.name}</strong>}<small>{memberships.length>1?'Ganti workspace':'Workspace aktif'}</small></span>{memberships.length===1&&<ChevronDown size={15}/>}</div>
       <nav className="side-nav">{nav.filter(group=>group.items.length).map(group=><div className="nav-group" key={group.section}><div className="nav-section">{group.section}</div>{group.items.map(([id,label,Icon])=><button key={id} className={`nav-link ${page===id?'nav-active':''}`} onClick={()=>{setPage(id);setMobileNav(false)}}><Icon size={18}/><span>{label}</span>{id==='queue'&&waitingQueue.length>0&&<em>{waitingQueue.length}</em>}</button>)}</div>)}</nav>
-      <div className="sidebar-bottom"><div className="support-card"><span className="support-icon"><Headphones size={17}/></span><strong>Butuh bantuan?</strong><small>Kelola bisnis dengan lebih mudah.</small><button onClick={()=>setNotice('Pusat bantuan NexaPos akan tersedia pada rilis berikutnya.')}>Pusat bantuan <ArrowRight size={13}/></button></div><div className="user-card"><span className="user-avatar">{initial(session.user.email)}</span><span className="user-copy"><strong>{session.user.email.split('@')[0]}</strong><small>{membership.role}</small></span><button className="icon-button" title="Keluar" onClick={()=>supabase.auth.signOut()}><LogOut size={17}/></button></div></div>
+      <div className="sidebar-bottom"><div className="support-card"><span className="support-icon"><Headphones size={17}/></span><strong>Butuh bantuan?</strong><small>Kelola bisnis dengan lebih mudah.</small><button onClick={()=>window.dispatchEvent(new Event('nexapos-open-support'))}>Pusat bantuan <ArrowRight size={13}/></button></div><div className="user-card"><span className="user-avatar">{initial(session.user.email)}</span><span className="user-copy"><strong>{session.user.email.split('@')[0]}</strong><small>{membership.role}</small></span><button className="icon-button" title="Keluar" onClick={()=>supabase.auth.signOut()}><LogOut size={17}/></button></div></div>
     </aside>
     {mobileNav&&<button className="mobile-scrim" onClick={()=>setMobileNav(false)} aria-label="Tutup menu"/>}
     <main className="main-area">
@@ -805,8 +806,34 @@ function QueueScreen(){
   return <main className="tv-screen"><header className="tv-header"><Brand/><div><span className="live-status"><i/> LIVE QUEUE</span><div className="tv-store">{settings?.store_name||store?.name||'NexaPos'}</div></div><div className="tv-clock">{new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'})}<small>{new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long'})}</small></div></header><div className="tv-content"><section className="tv-current"><span className="eyebrow">NOMOR ANTRIAN DIPANGGIL</span>{current.length?current.map((t,i)=><div className={`tv-call ${i===0?'tv-call-main':''}`} key={t.id}><span>{settings?.queue_prefix||'A'}{String(t.queue_number).padStart(3,'0')}</span>{t.customer_name?.trim()&&<strong className="tv-customer-name">{t.customer_name}</strong>}<small>{t.counter_label||'Kasir 1'}</small></div>):<div className="tv-empty">Menunggu panggilan berikutnya…</div>}<div className="tv-wave"><i/><i/><i/><i/><i/><i/><i/><i/><i/><i/><i/><i/><i/><i/><i/></div></section><section className="tv-next"><div className="tv-next-head"><div><span className="eyebrow">ANTRIAN BERIKUTNYA</span><h2>Mohon bersiap</h2></div><span className="tv-count">{waiting.length} menunggu</span></div>{waiting.length?waiting.map(t=><div className="tv-next-row" key={t.id}><span>{settings?.queue_prefix||'A'}{String(t.queue_number).padStart(3,'0')}</span><small>{t.customer_name?.trim()||''}</small></div>):<div className="tv-next-empty">Tidak ada antrian menunggu</div>}</section></div><footer className="tv-footer"><span><i className="live-dot"/> Informasi antrian diperbarui otomatis</span><strong>{settings?.store_name||'NexaPos'} <span>•</span> Terima kasih atas kunjungan Anda</strong></footer>{error&&<div className="tv-error">{error}</div>}</main>
 }
 
+function SupportPortal() {
+  const [session, setSession] = useState(null)
+  const [opened, setOpened] = useState(false)
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false)
+  useEffect(() => {
+    if (!supabase) return
+    supabase.auth.getSession().then(({data}) => setSession(data.session))
+    const {data:{subscription}} = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      setSession(nextSession)
+      if (!nextSession) setOpened(false)
+    })
+    const open = () => setOpened(true)
+    window.addEventListener('nexapos-open-support', open)
+    return () => { subscription.unsubscribe(); window.removeEventListener('nexapos-open-support', open) }
+  }, [])
+  useEffect(() => {
+    if (!session?.user?.id || !supabase) { setIsSuperAdmin(false); return }
+    supabase.from('super_admins').select('user_id').eq('user_id', session.user.id).maybeSingle().then(({data}) => setIsSuperAdmin(Boolean(data)))
+  }, [session?.user?.id])
+  if (!session) return null
+  return <>
+    <button className="support-floating-launcher" onClick={() => setOpened(true)} aria-label="Buka pusat bantuan"><Headphones size={19}/><span>Pusat bantuan</span></button>
+    {opened && <SupportCenter session={session} isSuperAdmin={isSuperAdmin} onClose={() => setOpened(false)}/>}
+  </>
+}
+
 export default function Root(){
   const screen=new URLSearchParams(window.location.search).get('screen')
   if(screen==='queue')return <QueueScreen/>
-  return <App/>
+  return <><App/><SupportPortal/></>
 }
