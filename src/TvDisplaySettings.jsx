@@ -73,6 +73,7 @@ export default function TvDisplaySettings({ store, membership, onNotice }) {
   const [loaded, setLoaded] = useState(false)
   const [saving, setSaving] = useState(false)
   const [addingMedia, setAddingMedia] = useState(false)
+  const [uploading, setUploading] = useState(false)
   const [title, setTitle] = useState('')
   const [sourceUrl, setSourceUrl] = useState('')
   const [localError, setLocalError] = useState('')
@@ -177,16 +178,61 @@ export default function TvDisplaySettings({ store, membership, onNotice }) {
     notify('Tautan media berhasil ditambahkan.')
   }
 
-  const deleteMedia = async (item) => {
-    if (!canManage || !window.confirm('Hapus media "' + item.title + '"?')) return
-    if (item.media_type === 'upload') {
-      notify('Penghapusan berkas upload perlu penyedia penyimpanan video yang dipilih terlebih dahulu. Tidak ada berkas yang dihapus.')
+  const uploadVideo = async (event) => {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file || !canManage || !storeId) return
+    const maxBytes = 100 * 1024 * 1024
+    if (!['video/mp4', 'video/webm', 'video/ogg'].includes(file.type)) {
+      notify('Format yang didukung: MP4, WebM, atau OGG video.')
       return
     }
+    if (file.size < 1 || file.size > maxBytes) {
+      notify('Ukuran berkas harus lebih dari 0 dan maksimal 100 MB.')
+      return
+    }
+    if (totalUploadBytes + file.size > maxBytes) {
+      notify('Kuota video tenant maksimal 100 MB. Hapus video lama terlebih dahulu.')
+      return
+    }
+    const safeName = file.name.normalize('NFKD').replace(/[^a-zA-Z0-9._-]+/g, '-').slice(-100) || 'video.mp4'
+    const path = storeId + '/' + crypto.randomUUID() + '-' + safeName
+    setUploading(true)
+    const { error: uploadError } = await supabase.storage.from('tv-media').upload(path, file, {
+      contentType: file.type, upsert: false, cacheControl: '3600',
+    })
+    if (uploadError) {
+      setUploading(false)
+      notify('Upload gagal: ' + uploadError.message)
+      return
+    }
+    const { data: publicData } = supabase.storage.from('tv-media').getPublicUrl(path)
+    const { data, error } = await supabase.from('store_tv_media').insert({
+      store_id: storeId, media_type: 'upload', title: file.name.slice(0, 160),
+      source_url: publicData.publicUrl, storage_path: path, mime_type: file.type,
+      file_size_bytes: file.size, sort_order: media.length, is_active: true,
+    }).select('*').single()
+    if (error) {
+      await supabase.storage.from('tv-media').remove([path])
+      setUploading(false)
+      notify('Video belum tersimpan: ' + error.message)
+      return
+    }
+    setMedia(prev => [...prev, data])
+    setUploading(false)
+    notify('Video berhasil diunggah dan tersimpan di Supabase Storage.')
+  }
+
+  const deleteMedia = async (item) => {
+    if (!canManage || !window.confirm('Hapus media "' + item.title + '"?')) return
+    if (item.media_type === 'upload' && item.storage_path) {
+      const { error: storageError } = await supabase.storage.from('tv-media').remove([item.storage_path])
+      if (storageError) { notify('Berkas video belum terhapus: ' + storageError.message); return }
+    }
     const { error } = await supabase.from('store_tv_media').delete().eq('id', item.id).eq('store_id', storeId)
-    if (error) { notify('Media belum dapat dihapus: ' + error.message); return }
+    if (error) { notify('Metadata media belum dapat dihapus: ' + error.message); return }
     setMedia(prev => prev.filter(row => row.id !== item.id))
-    notify('Tautan dihapus dari NexaPos. Video sumber di platform asal tetap ada.')
+    notify(item.media_type === 'upload' ? 'Video dan metadata dihapus.' : 'Tautan dihapus dari NexaPos. Video sumber di platform asal tetap ada.')
   }
 
   const templateClass = draft.theme_mode === 'dark' ? 'tv-preview-dark' : 'tv-preview-light'
@@ -252,7 +298,7 @@ export default function TvDisplaySettings({ store, membership, onNotice }) {
             <label>URL YouTube, TikTok, atau tautan video</label><input className="text-input" value={sourceUrl} onChange={e => setSourceUrl(e.target.value)} placeholder="https://..." type="url" required disabled={!canManage}/>
             <button className="btn btn-primary" type="submit" disabled={!canManage || addingMedia}><Plus size={15}/>{addingMedia ? 'Menambahkan…' : 'Tambah tautan media'}</button>
           </form>
-          <div className="tv-upload-pending"><Video size={17}/><div><strong>Upload video MP4</strong><p>Penyimpanan video belum diaktifkan karena penyedia storage belum dipilih. Batas yang akan diterapkan: maksimal 100 MB total per tenant, tanpa batas durasi 1 menit.</p></div></div>
+          <div className="tv-upload-pending"><Video size={17}/><div><strong>Upload video ke Supabase Storage</strong><p>MP4, WebM, atau OGG video. Maksimal 100 MB total untuk seluruh video upload tenant; tidak ada batas durasi 1 menit. Video disimpan sampai Anda menghapusnya.</p><label className="btn btn-outline tv-upload-button">{uploading ? 'Mengunggah video…' : 'Pilih dan upload video'}<input type="file" accept="video/mp4,video/webm,video/ogg" hidden disabled={!canManage || uploading} onChange={uploadVideo}/></label></div></div>
           <div className="tv-quota-summary"><strong>Kuota video</strong><span>{mb(totalUploadBytes)} / 100 MB</span><div className="tv-quota-track"><i style={{width: Math.min(100, totalUploadBytes / 1048576) + '%'}}/></div></div>
           {media.length ? <div className="tv-media-list">{media.map(item => <div className="tv-media-row" key={item.id}><span className="tv-media-type"><Video size={16}/></span><div className="tv-media-copy"><strong>{item.title}</strong><small>{item.media_type === 'upload' ? (mb(item.file_size_bytes) + ' MB · video upload') : item.source_url}</small></div><button type="button" className="btn btn-outline btn-small danger-icon" onClick={() => deleteMedia(item)} disabled={!canManage}><Trash2 size={14}/> Hapus</button></div>)}</div> : <div className="tv-media-empty">Belum ada media. Tambahkan tautan promosi di atas.</div>}
         </div>
