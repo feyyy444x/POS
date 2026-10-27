@@ -93,10 +93,26 @@ Deno.serve(async (req: Request) => {
 
     // Sweep stale Storage objects that have no metadata row. Restrict the sweep to this
     // tenant folder, older than the reservation TTL, and objects absent from all DB rows.
-    const { data: knownRows, error: knownRowsError } = await admin.from("store_tv_media")
-      .select("storage_path").eq("store_id", storeId).eq("media_type", "upload");
-    if (!knownRowsError) {
-      const knownPaths = new Set((knownRows || []).map((row: { storage_path: string | null }) => row.storage_path).filter(Boolean));
+    const knownPaths = new Set<string>();
+    let knownRowsError = false;
+    let knownRowsComplete = false;
+    for (let offset = 0; offset < 10000; offset += 1000) {
+      const { data: knownRows, error: knownRowsPageError } = await admin.from("store_tv_media")
+        .select("storage_path").eq("store_id", storeId).eq("media_type", "upload")
+        .range(offset, offset + 999);
+      if (knownRowsPageError) {
+        knownRowsError = true;
+        break;
+      }
+      for (const row of knownRows || []) {
+        if (row.storage_path) knownPaths.add(row.storage_path);
+      }
+      if (!knownRows || knownRows.length < 1000) {
+        knownRowsComplete = true;
+        break;
+      }
+    }
+    if (!knownRowsError && knownRowsComplete) {
       const cutoff = Date.now() - 60 * 60 * 1000;
       for (let offset = 0; offset < 1000; offset += 100) {
         const { data: objects, error: listObjectsError } = await admin.storage.from("tv-media")
