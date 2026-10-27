@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
-  Activity, ArrowDownRight, ArrowRight, KeyRound, BarChart3, Bell, Boxes, Check, CheckCircle2,
+  Activity, ArrowDownRight, ArrowLeft, ArrowRight, KeyRound, BarChart3, Bell, Boxes, Check, CheckCircle2,
   ChevronDown, CircleDollarSign, Clock3, CreditCard, FileText, Headphones, LayoutDashboard,
   LogOut, Menu, Minus, Monitor, Package, Plus, Printer, QrCode, RefreshCw, Search,
   Settings, ShieldCheck, ShoppingBag, ShoppingCart, SkipForward, Store, Ticket, Trash2,
@@ -10,6 +10,7 @@ import { isSupabaseConfigured, supabase } from './lib/supabase'
 import SupportCenter from './SupportCenter.jsx'
 import Homepage from './Homepage.jsx'
 import PromotionManager from './PromotionManager.jsx'
+import SubscriptionPlanManager from './SubscriptionPlanManager.jsx'
 import TvDisplaySettings from './TvDisplaySettings.jsx'
 
 const money = (value) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value || 0))
@@ -643,7 +644,7 @@ function App() {
     </aside>
     {mobileNav&&<button className="mobile-scrim" onClick={()=>setMobileNav(false)} aria-label="Tutup menu"/>}
     <main className="main-area">
-      <header className="topbar"><div className="topbar-left"><button className="mobile-menu icon-button" onClick={()=>setMobileNav(true)} aria-label="Buka menu"><Menu size={20}/></button><div><div className="breadcrumb">Workspace <span>/</span> <strong>{titleMap[page]}</strong></div><div className="topbar-date">{new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</div></div></div><div className="topbar-actions"><WibClock/><span className="live-status"><i/> LIVE SYNC</span><button className="icon-button refresh-btn" title="Refresh data" onClick={loadWorkspace}><RefreshCw size={17}/></button><span className="top-avatar">{initial(session.user.email)}</span></div></header>
+      <header className="topbar"><div className="topbar-left">{page!=='dashboard'&&page!=='tv-settings'&&<button className="btn btn-outline btn-small nx-back-button" onClick={()=>setPage('dashboard')}><ArrowLeft size={15}/> Kembali</button>}<button className="mobile-menu icon-button" onClick={()=>setMobileNav(true)} aria-label="Buka menu"><Menu size={20}/></button><div><div className="breadcrumb">Workspace <span>/</span> <strong>{titleMap[page]}</strong></div><div className="topbar-date">{new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</div></div></div><div className="topbar-actions"><WibClock/><span className="live-status"><i/> LIVE SYNC</span><button className="icon-button refresh-btn" title="Refresh data" onClick={loadWorkspace}><RefreshCw size={17}/></button><span className="top-avatar">{initial(session.user.email)}</span></div></header>
       {notice&&<div className="toast"><CheckCircle2 size={17}/><span>{notice}</span><button onClick={()=>setNotice('')}><X size={15}/></button></div>}
       <div className="page-content">
         {page==='dashboard'&&<section className="page-section">
@@ -923,10 +924,11 @@ function SuperAdminScreen({session,onSignOut}) {
     const matches=!q||[u.email,u.full_name,u.user_id,u.store_names,u.tenant_roles].some(v=>String(v||'').toLowerCase().includes(q))
     return matches&&(userStatus==='all'||(userStatus==='blocked'?u.is_banned:!u.is_banned))
   })
-  const navItems=[['dashboard','Ringkasan',LayoutDashboard],['stores','Toko / tenant',Store],['users','Manajemen user',Users],['disabled','Akun staf nonaktif',Ban],['support','Pusat bantuan',Headphones],['promotions','Promo & Diskon',Ticket]]
+  const navItems=[['dashboard','Ringkasan',LayoutDashboard],['stores','Toko / tenant',Store],['users','Manajemen user',Users],['disabled','Akun staf nonaktif',Ban],['support','Pusat bantuan',Headphones],['promotions','Promo & Diskon',Ticket],['subscription-plans','Langganan Homepage',CreditCard]]
   const selectSection=(id)=>{setSection(id);setMobileNav(false)}
-  const pageTitle={dashboard:'Ringkasan platform',stores:'Manajemen toko',users:'Manajemen user',disabled:'Akun staf nonaktif',support:'Pusat bantuan',promotions:'Promo & Diskon'}[section]
+  const pageTitle={dashboard:'Ringkasan platform',stores:'Manajemen toko',users:'Manajemen user',disabled:'Akun staf nonaktif',support:'Pusat bantuan',promotions:'Promo & Diskon','subscription-plans':'Langganan Homepage'}[section]
   if(section==='promotions') return <PromotionManager onBack={()=>setSection('dashboard')} onSignOut={onSignOut}/>
+  if(section==='subscription-plans') return <SubscriptionPlanManager onBack={()=>setSection('dashboard')}/>
   return <div className="app-shell super-admin-shell">
     <aside className={`sidebar ${mobileNav?'sidebar-open':''}`}>
       <div className="sidebar-brand"><Brand/></div>
@@ -936,7 +938,7 @@ function SuperAdminScreen({session,onSignOut}) {
     </aside>
     {mobileNav&&<button className="mobile-scrim" onClick={()=>setMobileNav(false)} aria-label="Tutup menu"/>}
     <main className="main-area">
-      <header className="topbar"><div className="topbar-left"><button className="mobile-menu icon-button" onClick={()=>setMobileNav(true)} aria-label="Buka menu"><Menu size={20}/></button><div><div className="breadcrumb">Platform <span>/</span> <strong>{pageTitle}</strong></div><div className="topbar-date">Manajemen user, toko, dan akses platform</div></div></div><div className="topbar-actions"><WibClock/><span className="role-chip"><ShieldCheck size={14}/> SUPER ADMIN</span><button className="icon-button" onClick={()=>{load();loadUsers();loadDisabledMembers()}} title="Muat ulang"><RefreshCw size={17}/></button></div></header>
+      <header className="topbar"><div className="topbar-left">{section!=='dashboard'&&<button className="btn btn-outline btn-small nx-back-button" onClick={()=>selectSection('dashboard')}><ArrowLeft size={15}/> Kembali</button>}<button className="mobile-menu icon-button" onClick={()=>setMobileNav(true)} aria-label="Buka menu"><Menu size={20}/></button><div><div className="breadcrumb">Platform <span>/</span> <strong>{pageTitle}</strong></div><div className="topbar-date">Manajemen user, toko, dan akses platform</div></div></div><div className="topbar-actions"><WibClock/><span className="role-chip"><ShieldCheck size={14}/> SUPER ADMIN</span><button className="icon-button" onClick={()=>{load();loadUsers();loadDisabledMembers()}} title="Muat ulang"><RefreshCw size={17}/></button></div></header>
       {notice&&<div className="toast"><CheckCircle2 size={17}/><span>{notice}</span><button onClick={()=>setNotice('')}><X size={15}/></button></div>}
       <div className="page-content">
         {section==='support'&&<section className="page-section support-admin-page"><div className="page-heading"><div><span className="eyebrow muted">PLATFORM / SUPPORT</span><h1>Pusat <span className="heading-accent">bantuan.</span></h1><p>Atur WhatsApp dan Telegram, serta tangani percakapan live chat tenant.</p></div><span className="date-pill"><Headphones size={14}/> Sinkron realtime</span></div><SupportCenter session={session} isSuperAdmin embedded onClose={()=>setSection('dashboard')}/></section>}
