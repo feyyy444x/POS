@@ -32,27 +32,27 @@ update public.store_members m set email=u.email,
 from auth.users u where u.id=m.user_id and m.email='';
 
 create or replace function private.is_store_member(target_store uuid)
-returns boolean language sql stable security definer set search_path = '' as $
+returns boolean language sql stable security definer set search_path = '' as $$
   select exists(select 1 from public.store_members m
     where m.store_id=target_store and m.user_id=(select auth.uid()) and m.is_active=true)
-$;
+$$;
 revoke all on function private.is_store_member(uuid) from public, anon;
 grant execute on function private.is_store_member(uuid) to authenticated;
 
 create or replace function private.is_store_manager(target_store uuid)
-returns boolean language sql stable security definer set search_path = '' as $
+returns boolean language sql stable security definer set search_path = '' as $$
   select exists(select 1 from public.store_members m
     where m.store_id=target_store and m.user_id=(select auth.uid()) and m.is_active=true
       and m.role in ('owner','admin','manager'))
-$;
+$$;
 revoke all on function private.is_store_manager(uuid) from public, anon;
 grant execute on function private.is_store_manager(uuid) to authenticated;
 
 create or replace function private.is_store_owner(target_store uuid)
-returns boolean language sql stable security definer set search_path = '' as $
+returns boolean language sql stable security definer set search_path = '' as $$
   select exists(select 1 from public.store_members m
     where m.store_id=target_store and m.user_id=(select auth.uid()) and m.role='owner' and m.is_active=true)
-$;
+$$;
 revoke all on function private.is_store_owner(uuid) from public, anon;
 grant execute on function private.is_store_owner(uuid) to authenticated;
 
@@ -252,7 +252,7 @@ create or replace function public.manage_store_member(
   p_member_id uuid,
   p_role text,
   p_is_active boolean
-) returns public.store_members language plpgsql security definer set search_path = '' as $
+) returns public.store_members language plpgsql security definer set search_path = '' as $$
 declare v_member public.store_members;
 begin
   if p_role not in ('admin','cashier') then raise exception 'Jabatan hanya boleh Admin atau Kasir'; end if;
@@ -269,7 +269,7 @@ begin
   where id=p_member_id returning * into v_member;
   return v_member;
 end;
-$;
+$$;
 revoke all on function public.manage_store_member(uuid,text,boolean) from public, anon;
 grant execute on function public.manage_store_member(uuid,text,boolean) to authenticated;
 
