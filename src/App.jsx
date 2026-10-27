@@ -951,33 +951,110 @@ function SupportPortal(){
 
 function QueueScreen(){
   const [session,setSession]=useState(null)
+  const [sessionReady,setSessionReady]=useState(false)
   const [store,setStore]=useState(null)
   const [settings,setSettings]=useState(null)
   const [tickets,setTickets]=useState([])
   const [error,setError]=useState('')
-  useEffect(()=>{if(!supabase)return;supabase.auth.getSession().then(({data})=>setSession(data.session));const {data:{subscription}}=supabase.auth.onAuthStateChange((_e,s)=>setSession(s));return()=>subscription.unsubscribe()},[])
-  const load=useCallback(async()=>{if(!session?.user)return;const {data:members,error}=await supabase.from('store_members').select('store_id').eq('user_id',session.user.id).order('created_at',{ascending:true});if(error||!members?.length){setError(error?.message||'Akun tidak memiliki toko.');return}const requestedStore=new URLSearchParams(window.location.search).get('store');const sid=(members.find(m=>m.store_id===requestedStore)||members[0]).store_id;const [{data:s},{data:cfg},{data:q}]=await Promise.all([supabase.from('stores').select('*').eq('id',sid).single(),supabase.from('store_settings').select('*').eq('store_id',sid).maybeSingle(),supabase.from('queue_tickets').select('*').eq('store_id',sid).eq('service_date',today()).order('queue_number')]);setStore(s);setSettings(cfg);setTickets(q||[])},[session])
-  useEffect(()=>{load()},[load])
-  useEffect(() => {
-    let cancelled=false
-    if(!session?.user?.id||!supabase){setWhatsappNumber('');return}
-    const refresh=async()=>{
-      const {data,error}=await supabase.from('support_settings').select('whatsapp_number').eq('id',1).maybeSingle()
-      if(!cancelled&&!error)setWhatsappNumber(String(data?.whatsapp_number||'').replace(/[^0-9]/g,''))
+  const [loading,setLoading]=useState(true)
+
+  useEffect(()=>{
+    if(!supabase){setError('Koneksi database belum dikonfigurasi.');setSessionReady(true);setLoading(false);return}
+    let alive=true
+    supabase.auth.getSession().then(({data,error})=>{
+      if(!alive)return
+      if(error)setError(error.message)
+      setSession(data?.session||null)
+      setSessionReady(true)
+      setLoading(false)
+    })
+    const {data:{subscription}}=supabase.auth.onAuthStateChange((_event,nextSession)=>{
+      if(!alive)return
+      setSession(nextSession)
+      setSessionReady(true)
+    })
+    return()=>{alive=false;subscription.unsubscribe()}
+  },[])
+
+  const loadWorkspace=useCallback(async()=>{
+    if(!session?.user?.id||!supabase)return
+    setLoading(true)
+    setError('')
+    const {data:members,error:memberError}=await supabase.from('store_members')
+      .select('store_id').eq('user_id',session.user.id).order('created_at',{ascending:true})
+    if(memberError||!members?.length){
+      setError(memberError?.message||'Akun ini belum terdaftar sebagai anggota toko.')
+      setStore(null);setTickets([]);setLoading(false);return
     }
-    refresh()
-    const channel=supabase.channel('global-support-whatsapp')
-      .on('postgres_changes',{event:'*',schema:'public',table:'support_settings',filter:'id=eq.1'},refresh)
+    const requestedStore=new URLSearchParams(window.location.search).get('store')
+    const selected=members.find(m=>m.store_id===requestedStore)||members[0]
+    const [{data:storeData,error:storeError},{data:config,error:configError}]=await Promise.all([
+      supabase.from('stores').select('*').eq('id',selected.store_id).maybeSingle(),
+      supabase.from('store_settings').select('*').eq('store_id',selected.store_id).maybeSingle()
+    ])
+    if(storeError||!storeData){
+      setError(storeError?.message||'Data toko tidak dapat dimuat.')
+      setStore(null);setTickets([]);setLoading(false);return
+    }
+    setStore(storeData)
+    setSettings(configError?null:config)
+    setLoading(false)
+  },[session])
+
+  const loadTickets=useCallback(async(storeId)=>{
+    if(!storeId||!supabase)return
+    const {data,error}=await supabase.from('queue_tickets').select('*')
+      .eq('store_id',storeId).eq('service_date',today())
+      .order('queue_number',{ascending:true})
+    if(error){setError('Gagal memuat antrian: '+error.message);return}
+    setTickets(data||[])
+    setError('')
+  },[])
+
+  useEffect(()=>{if(session?.user?.id)loadWorkspace()},[session?.user?.id,loadWorkspace])
+
+  useEffect(()=>{
+    if(!store?.id||!supabase)return
+    loadTickets(store.id)
+    const channel=supabase.channel('queue-tv-'+store.id)
+      .on('postgres_changes',{event:'*',schema:'public',table:'queue_tickets',filter:'store_id=eq.'+store.id},()=>loadTickets(store.id))
       .subscribe()
-    return()=>{cancelled=true;supabase.removeChannel(channel)}
-  },[session?.user?.id])
-  // App itself enforces PIN verification before exposing the workspace. Avoid a second,
-  // independent PIN check here: a transient RPC failure could otherwise hide the help modal.
-  if (!session) return null
-  return <>
-    <button className="support-floating-launcher" onClick={() => setOpened(true)} title="Pusat bantuan" aria-label="Buka pusat bantuan"><Headphones size={21}/></button>
-    {opened && <SupportCenter session={session} isSuperAdmin={isSuperAdmin} whatsappNumber={whatsappNumber} onClose={() => setOpened(false)}/>}
-  </>
+    return()=>{supabase.removeChannel(channel)}
+  },[store?.id,loadTickets])
+
+  const activeTickets=tickets.filter(t=>t.status==='called'||t.status==='serving')
+  const waitingTickets=tickets.filter(t=>t.status==='waiting')
+  const currentTicket=activeTickets[0]||null
+  const prefix=settings?.queue_prefix||'A'
+  const storeName=settings?.store_name||store?.name||'NexaPos'
+
+  if(!sessionReady||loading){
+    return <main style={{minHeight:'100vh',display:'grid',placeItems:'center',background:'#0b1020',color:'#fff',fontFamily:'system-ui,sans-serif'}}><div style={{textAlign:'center'}}><div style={{fontSize:24,fontWeight:800}}>NexaPos</div><p style={{color:'#aab4ca'}}>Memuat layar antrian…</p></div></main>
+  }
+  if(!session){
+    return <main style={{minHeight:'100vh',display:'grid',placeItems:'center',padding:24,background:'#0b1020',color:'#fff',fontFamily:'system-ui,sans-serif'}}><div style={{maxWidth:520,textAlign:'center'}}><h1 style={{fontSize:32}}>Layar Antrian NexaPos</h1><p style={{color:'#c2cbe0'}}>Silakan login melalui aplikasi NexaPos terlebih dahulu, lalu buka kembali layar TV antrian.</p><button onClick={()=>{window.location.href=window.location.pathname}} style={{padding:'12px 20px',border:0,borderRadius:10,background:'#7c6cff',color:'#fff',fontWeight:700,cursor:'pointer'}}>Kembali ke login</button></div></main>
+  }
+  return <main style={{minHeight:'100vh',padding:'clamp(18px,3vw,48px)',boxSizing:'border-box',background:'radial-gradient(ellipse at top,#1c2850 0%,#0b1020 65%)',color:'#fff',fontFamily:'system-ui,-apple-system,sans-serif'}}>
+    <header style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:16,flexWrap:'wrap',borderBottom:'1px solid #303b5a',paddingBottom:20,marginBottom:28}}>
+      <div><div style={{fontSize:13,letterSpacing:3,color:'#aab5d2',fontWeight:700}}>NEXAPOS • SISTEM ANTRIAN</div><h1 style={{fontSize:'clamp(24px,3vw,42px)',margin:'8px 0 0'}}>{storeName}</h1></div>
+      <div style={{textAlign:'right',color:'#c5cce0'}}><div style={{fontSize:14}}>ANTRIAN HARI INI</div><div style={{fontSize:26,fontWeight:800}}>{tickets.length} tiket</div></div>
+    </header>
+    {error&&<div role="status" style={{marginBottom:20,padding:14,borderRadius:12,background:'#52232b',color:'#ffe2e5'}}>{error}</div>}
+    <section style={{display:'grid',gridTemplateColumns:'minmax(0,1.4fr) minmax(280px,1fr)',gap:24}}>
+      <div style={{border:'1px solid #344166',borderRadius:24,padding:'clamp(22px,4vw,48px)',background:'rgba(23,32,61,.88)',textAlign:'center',minHeight:300,display:'flex',flexDirection:'column',justifyContent:'center'}}>
+        <div style={{fontSize:16,letterSpacing:3,color:'#b9c4e3',fontWeight:700}}>NOMOR DIPANGGIL</div>
+        <div aria-live="polite" style={{fontSize:'clamp(76px,15vw,180px)',lineHeight:1.05,fontWeight:900,letterSpacing:-5,color:'#b9a7ff',margin:'18px 0'}}>{currentTicket?prefix+String(currentTicket.queue_number).padStart(3,'0'):'— — —'}</div>
+        <div style={{fontSize:'clamp(18px,2vw,28px)',fontWeight:700}}>{currentTicket?.counter_label||'Silakan menunggu'}</div>
+        <div style={{marginTop:10,color:'#b9c4e3'}}>{currentTicket?(currentTicket.status==='serving'?'Sedang dilayani':'Silakan menuju loket'):'Nomor berikutnya akan ditampilkan di sini'}</div>
+      </div>
+      <div style={{border:'1px solid #344166',borderRadius:24,padding:24,background:'rgba(23,32,61,.72)'}}>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:18}}><h2 style={{margin:0,fontSize:24}}>Antrian berikutnya</h2><span style={{borderRadius:99,padding:'6px 10px',background:'#25375a',color:'#cbd8ff',fontWeight:700}}>{waitingTickets.length} menunggu</span></div>
+        {waitingTickets.length===0?<p style={{color:'#b9c4e3'}}>Tidak ada antrian yang menunggu.</p>:<ol style={{listStyle:'none',padding:0,margin:0,display:'grid',gap:10}}>{waitingTickets.slice(0,8).map(ticket=><li key={ticket.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:12,padding:'14px 16px',borderRadius:12,background:'#111a33',border:'1px solid #2e3a5a'}}><strong style={{fontSize:24,color:'#fff'}}>{prefix+String(ticket.queue_number).padStart(3,'0')}</strong><span style={{color:'#c2cbe0',fontSize:14}}>{ticket.counter_label||'Menunggu'}</span></li>)}</ol>}
+      </div>
+    </section>
+    <footer style={{display:'flex',justifyContent:'space-between',gap:12,flexWrap:'wrap',marginTop:24,color:'#aab5d2',fontSize:13}}><span>Pembaruan antrian otomatis saat koneksi aktif</span><span>{new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric',timeZone:'Asia/Jakarta'})}</span></footer>
+    <style>{'@media(max-width:760px){main section{grid-template-columns:1fr!important}}'}</style>
+  </main>
 }
 
 export default function Root(){
