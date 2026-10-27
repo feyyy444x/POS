@@ -989,7 +989,8 @@ function PublicQueueScreen({display,error}){
   const cfg=display?.settings||{}
   const media=display?.media||[]
   const activeCall=current.length>0
-  const layout=cfg.layout_mode||'split-left'
+  // Without configured media, never use a media-only layout: keep the queue visible.
+  const layout=media.length?(cfg.layout_mode||'split-left'):'split-left'
   const selectedMedia=media.length?media[mediaIndex%media.length]:null
   const sourceUrl=selectedMedia?.source_url||''
   const videoRefVolume=(element)=>{if(element){element.volume=Math.max(0,Math.min(1,Number(cfg.media_volume??35)/100));element.muted=Number(cfg.media_volume??35)===0}}
@@ -1043,7 +1044,7 @@ function PublicQueueScreen({display,error}){
     {selectedMedia.media_type==='upload'||/\.(mp4|webm|ogg)(\?.*)?$/i.test(sourceUrl)?<><video className="tv-media-backdrop" key={'bg-'+sourceUrl} src={sourceUrl} autoPlay loop muted playsInline aria-hidden="true"/><video className="tv-media-foreground" key={sourceUrl} src={sourceUrl} autoPlay loop playsInline ref={videoRefVolume} onError={()=>{}}/></>:
       mediaEmbed?<iframe title={selectedMedia.title} src={mediaEmbed} allow="autoplay; encrypted-media; picture-in-picture" allowFullScreen/>:
       <a className="tv-media-link-card" href={sourceUrl} target="_blank" rel="noreferrer"><Video size={28}/><strong>{selectedMedia.title}</strong><small>Buka media di platform asal</small></a>}
-  </section>:<section className="tv-media-panel tv-media-placeholder"><Video size={28}/><strong>Media promosi</strong><small>Tambahkan media melalui dashboard.</small></section>
+  </section>:null
   return <main className={'tv-screen tv-screen-custom '+(cfg.theme_mode==='dark'?'tv-dark-mode':'tv-light-mode')+' tv-template-'+(cfg.template||'modern-blue')} style={{'--tv-custom-primary':cfg.primary_color||'#2563eb','--tv-custom-bg':cfg.background_color||(cfg.theme_mode==='dark'?'#0b1220':'#f8fafc'),'--tv-custom-text':cfg.text_color||(cfg.theme_mode==='dark'?'#f8fafc':'#0f172a'),'--tv-number-size':(cfg.queue_number_size||112)+'px','--tv-name-size':(cfg.customer_name_size||32)+'px','--tv-counter-size':(cfg.counter_size||26)+'px','--tv-next-size':(cfg.next_queue_size||22)+'px','--tv-media-fit':cfg.media_fit==='cover'?'cover':cfg.media_fit==='original'?'none':'contain'}}>
     <header className="tv-header"><Brand/><div><span className="live-status"><i/> LIVE QUEUE</span><div className="tv-store">{display.store_name||'NexaPos'}</div></div><div className="tv-public-actions"><WibClock className="tv-clock" showDate/><button className="tv-sound-enable" onClick={()=>{setSoundEnabled(true);try{window.speechSynthesis?.resume();document.querySelectorAll('.tv-media-foreground').forEach(video=>{video.volume=Math.max(0,Math.min(1,Number(cfg.media_volume??35)/100));video.muted=Number(cfg.media_volume??35)===0;video.play().catch(()=>{})})}catch{}}}>{soundEnabled?'Suara antrean aktif':'Aktifkan suara'}</button></div></header>
     <div className={'tv-content tv-content-custom tv-layout-'+layout+(mediaVisible?' tv-media-fullscreen-active':'')}>
