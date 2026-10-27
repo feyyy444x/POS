@@ -210,17 +210,3 @@
 .support-compose{display:flex;align-items:flex-end;gap:8px;padding-top:12px}.support-compose textarea{flex:1;resize:vertical;min-height:46px;max-height:110px;padding:11px 12px;border:1px solid #e4e3ef;border-radius:12px;outline:none;font-size:12px;font-family:inherit;color:#25243b}.support-compose textarea:focus{border-color:#8c80ff}.support-compose .btn{min-height:42px;white-space:nowrap}.support-error{margin:8px 0 0;color:#c33b4a;font-size:10px;line-height:1.5}.support-empty{display:flex;flex:1;min-height:130px;align-items:center;justify-content:center;flex-direction:column;gap:8px;color:#9291a5;text-align:center}.support-empty strong{font-size:12px;color:#48475f}.support-empty span{font-size:10px}
 .support-inbox-toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}.support-inbox-list{display:flex;flex-direction:column;gap:7px;overflow:auto}.support-inbox-item{display:flex;align-items:center;gap:10px;width:100%;padding:11px;border:1px solid #ecebf4;border-radius:12px;background:#fff;text-align:left;cursor:pointer}.support-inbox-item:hover{background:#faf9ff;border-color:#c8c2ff}.support-inbox-avatar{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:#efedff;color:#6657ed;font-size:12px;font-weight:700;flex-shrink:0}.support-inbox-item>span:nth-child(2){display:flex;flex:1;min-width:0;flex-direction:column;gap:4px}.support-inbox-item strong{font-size:11px}.support-inbox-item small{font-size:10px;color:#85859c;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:255px}.support-inbox-item time{font-size:9px;color:#9291a5;white-space:nowrap}
 @media(max-width:520px){.support-floating-launcher{right:12px;bottom:12px;padding:12px 14px}.support-overlay{padding:8px;align-items:flex-end}.support-modal{max-height:92vh;min-height:55vh;border-radius:20px 20px 15px 15px}.support-choices{padding:20px}.support-chat-view,.support-inbox-view{padding:12px}.support-compose{gap:6px}.support-compose .btn{padding:10px}.support-inbox-item small{max-width:155px}}
-
-
-/* NexaPos custom brand assets: responsive wordmark and SMART ECOMMERCE tagline */
-.brand{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:5px;letter-spacing:normal;line-height:1}
-.brand .brand-wordmark{display:block;width:220px;max-width:100%;height:auto;object-fit:contain;object-position:left center}
-.brand .brand-tagline{display:block;margin-left:2px;font-family:'DM Sans',sans-serif;font-size:8px;font-weight:700;letter-spacing:.22em;line-height:1.4;color:#8f91aa}
-.auth-left .brand .brand-wordmark{width:245px}
-.auth-left .brand .brand-tagline{color:#aeb5ca}
-.sidebar .brand{gap:4px}
-.sidebar .brand .brand-wordmark{width:150px}
-.sidebar .brand .brand-tagline{font-size:7px;letter-spacing:.2em;color:#9297a8}
-.tv-header .brand .brand-wordmark{width:190px}
-.brand-small .brand-wordmark{width:160px}
-@media(max-width:600px){.auth-left .brand .brand-wordmark{width:205px}.sidebar .brand .brand-wordmark{width:145px}}
