@@ -165,11 +165,36 @@ function App() {
     setLoading(true)
     const {data: memberRows, error: memberError} = await supabase.from('store_members').select('store_id,role,is_active,created_at,full_name,email').eq('user_id',session.user.id).eq('is_active',true).order('created_at',{ascending:false})
     if (memberError) { setNotice(memberError.message); setLoading(false); return }
-    if (!memberRows?.length) { setMemberships([]); setStore(null); setNotice('Akun belum memiliki toko. Minta pemilik toko menambahkan akun ini sebagai karyawan.'); setLoading(false); return }
-    const {data: storeRows, error: storesError} = await supabase.from('stores').select('id,name').in('id',memberRows.map(m=>m.store_id))
+    // Auth/session dan RLS kadang belum siap tepat setelah login di browser mobile.
+    // Ulangi query singkat sebelum menyimpulkan bahwa akun tidak punya tenant.
+    let resolvedMembers = memberRows || []
+    if (!resolvedMembers.length) {
+      for (let attempt = 0; attempt < 3 && !resolvedMembers.length; attempt++) {
+        await new Promise(resolve => setTimeout(resolve, 500 * (attempt + 1)))
+        const { data: retryRows, error: retryError } = await supabase
+          .from('store_members').select('store_id,role,is_active,created_at,full_name,email')
+          .eq('user_id', session.user.id).eq('is_active', true)
+          .order('created_at', { ascending: false })
+        if (retryError) {
+          setNotice(retryError.message)
+          setLoading(false)
+          return
+        }
+        resolvedMembers = retryRows || []
+      }
+    }
+    if (!resolvedMembers.length) {
+      setMemberships([])
+      setMembership(null)
+      setStore(null)
+      setNotice('Akun belum memiliki toko. Jika Anda baru saja login atau menerima undangan, coba sebentar lagi.')
+      setLoading(false)
+      return
+    }
+    const {data: storeRows, error: storesError} = await supabase.from('stores').select('id,name').in('id',resolvedMembers.map(m=>m.store_id))
     if (storesError) { setNotice(storesError.message); setLoading(false); return }
     const {data: settingRows} = await supabase.from('store_settings').select('store_id,store_name').in('store_id',memberRows.map(m=>m.store_id))
-    const availableMemberships = memberRows.map(m=>({...m,store_name:settingRows?.find(s=>s.store_id===m.store_id)?.store_name||storeRows?.find(s=>s.id===m.store_id)?.name||'Toko'}))
+    const availableMemberships = resolvedMembers.map(m=>({...m,store_name:settingRows?.find(s=>s.store_id===m.store_id)?.store_name||storeRows?.find(s=>s.id===m.store_id)?.name||'Toko'}))
     setMemberships(availableMemberships)
     const member = availableMemberships.find(m=>m.store_id===selectedStoreId) || availableMemberships[0]
     if (selectedStoreId !== member.store_id) setSelectedStoreId(member.store_id)
@@ -203,15 +228,35 @@ function App() {
 
   useEffect(()=>{
     if (!session || !membership?.store_id || !supabase) return
-    const channel = supabase.channel('nexapos-live-'+membership.store_id)
-      .on('postgres_changes',{event:'*',schema:'public',table:'queue_tickets',filter:'store_id=eq.'+membership.store_id},payload=>{
+    const storeId = membership.store_id
+    let refreshTimer
+    const refreshOrders = () => supabase.from('orders').select('*').eq('store_id',storeId).order('created_at',{ascending:false}).then(({data,error})=>{if(!error&&data)setOrders(data)})
+    const refreshProducts = () => supabase.from('products').select('*').eq('store_id',storeId).order('created_at',{ascending:false}).then(({data,error})=>{if(!error&&data)setProducts(data)})
+    const refreshSettings = () => supabase.from('store_settings').select('*').eq('store_id',storeId).maybeSingle().then(({data,error})=>{if(!error&&data)setSettings(data)})
+    const refreshTeam = () => { if (membership.role==='owner') loadWorkspace() }
+    const channel = supabase.channel('nexapos-live-'+storeId)
+      .on('postgres_changes',{event:'*',schema:'public',table:'queue_tickets',filter:'store_id=eq.'+storeId},payload=>{
         if(payload.eventType==='DELETE') setQueue(prev=>prev.filter(t=>t.id!==payload.old.id))
         else setQueue(prev=>{const rows=prev.filter(t=>t.id!==payload.new.id);rows.push(payload.new);return rows.sort((a,b)=>a.queue_number-b.queue_number)})
       })
-      .on('postgres_changes',{event:'*',schema:'public',table:'products',filter:'store_id=eq.'+membership.store_id},()=>supabase.from('products').select('*').eq('store_id',membership.store_id).order('created_at',{ascending:false}).then(({data})=>setProducts(data||[])))
+      .on('postgres_changes',{event:'*',schema:'public',table:'products',filter:'store_id=eq.'+storeId},refreshProducts)
+      .on('postgres_changes',{event:'*',schema:'public',table:'orders',filter:'store_id=eq.'+storeId},refreshOrders)
+      .on('postgres_changes',{event:'*',schema:'public',table:'store_settings',filter:'store_id=eq.'+storeId},refreshSettings)
+      .on('postgres_changes',{event:'*',schema:'public',table:'store_members',filter:'store_id=eq.'+storeId},refreshTeam)
+      .on('postgres_changes',{event:'*',schema:'public',table:'store_invites',filter:'store_id=eq.'+storeId},refreshTeam)
       .subscribe()
-    return ()=>supabase.removeChannel(channel)
-  },[session,membership?.store_id])
+    // Fallback when a mobile browser suspends/reconnects its realtime websocket.
+    refreshTimer = setInterval(() => {
+      if (document.visibilityState === 'visible') loadWorkspace()
+    }, 30000)
+    const onVisible = () => { if (document.visibilityState === 'visible') loadWorkspace() }
+    document.addEventListener('visibilitychange', onVisible)
+    return ()=>{
+      clearInterval(refreshTimer)
+      document.removeEventListener('visibilitychange', onVisible)
+      supabase.removeChannel(channel)
+    }
+  },[session,membership?.store_id,membership?.role,loadWorkspace])
 
   useEffect(()=>{if(!notice)return;const timer=setTimeout(()=>setNotice(''),4500);return()=>clearTimeout(timer)},[notice])
 
