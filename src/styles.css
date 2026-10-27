@@ -516,3 +516,24 @@ tbody tr:hover{background:#f7fbfd}
 .brand-mark-image{background:transparent!important;box-shadow:none!important;border-radius:0!important}.brand-mark-image .brand-logo-image{object-fit:contain}.brand-accent{color:var(--nexa-teal)!important}.sidebar .brand-mark{background:transparent!important;box-shadow:none!important}
 
 .support-guest-form{display:flex;flex-direction:column;gap:8px;margin-top:18px}.support-guest-form label{font-size:11px;font-weight:700;color:#102d50;margin-top:5px}.support-guest-form input{width:100%;box-sizing:border-box;padding:12px 13px;border:1px solid #dfe7ee;border-radius:11px;background:#fff;color:#102d50;font:inherit;font-size:13px;outline:none}.support-guest-form input:focus{border-color:#08b996;box-shadow:0 0 0 3px #08b9961c}.support-guest-form .btn{margin-top:12px;justify-content:center;min-height:44px}.support-guest-form .support-error{margin-top:5px}
+
+
+/* Cashier shift, attendance and WhatsApp support */
+.settings-help{display:block;margin:-5px 0 10px;color:var(--muted);font-size:11px;line-height:1.6}
+.support-whatsapp-icon{background:#e8f9ef!important;color:#128c52!important}
+.shift-closed-pill{background:#fff5e8!important;color:#9a5b08!important;border-color:#f4d8a7!important}
+.shift-required-banner{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:18px 20px;margin-bottom:20px;border:1px solid #f4d8a7;border-radius:16px;background:#fffaf1}
+.shift-required-banner strong{display:block;color:#102d50;font-size:14px}
+.shift-required-banner p{margin:6px 0 0;color:#60758b;font-size:12px;line-height:1.6}
+.shift-form{padding:24px;margin-bottom:22px}
+.shift-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin:20px 0}
+.shift-form-grid label,.shift-open-grid label{display:flex;flex-direction:column;gap:8px;color:var(--muted);font-size:12px;font-weight:750}
+.shift-notes-label{grid-column:1/-1}
+.shift-open-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin:20px 0}
+.shift-open-note{display:flex;align-items:center;gap:10px;padding:14px;border-radius:12px;background:#effbf7;color:#365d57;font-size:12px;line-height:1.6}
+.shift-open-note svg{flex:0 0 auto;color:#087e65}
+.shift-difference-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:16px 0 20px}
+.shift-difference-grid>div{display:flex;flex-direction:column;gap:6px;padding:15px;border:1px solid var(--line);border-radius:12px;background:#f8fafc}
+.shift-difference-grid span{font-size:12px;color:var(--muted);font-weight:700}
+.shift-difference-grid strong{font-size:20px;color:var(--ink)}
+@media(max-width:650px){.shift-required-banner{align-items:flex-start;flex-direction:column}.shift-form{padding:17px}.shift-form-grid,.shift-open-grid,.shift-difference-grid{grid-template-columns:1fr}.shift-notes-label{grid-column:auto}}
