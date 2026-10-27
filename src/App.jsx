@@ -163,26 +163,18 @@ function App() {
   const loadWorkspace = useCallback(async () => {
     if (!session?.user || !supabase) return
     setLoading(true)
-    const {data: memberRows, error: memberError} = await supabase.from('store_members').select('store_id,role,is_active,created_at,full_name,email').eq('user_id',session.user.id).eq('is_active',true).order('created_at',{ascending:false})
-    if (memberError) { setNotice(memberError.message); setLoading(false); return }
-    // Auth/session dan RLS kadang belum siap tepat setelah login di browser mobile.
-    // Ulangi query singkat sebelum menyimpulkan bahwa akun tidak punya tenant.
-    let resolvedMembers = memberRows || []
-    if (!resolvedMembers.length) {
-      for (let attempt = 0; attempt < 3 && !resolvedMembers.length; attempt++) {
-        await new Promise(resolve => setTimeout(resolve, 500 * (attempt + 1)))
-        const { data: retryRows, error: retryError } = await supabase
-          .from('store_members').select('store_id,role,is_active,created_at,full_name,email')
-          .eq('user_id', session.user.id).eq('is_active', true)
-          .order('created_at', { ascending: false })
-        if (retryError) {
-          setNotice(retryError.message)
-          setLoading(false)
-          return
-        }
-        resolvedMembers = retryRows || []
-      }
+    let memberRows = null
+    let memberError = null
+    // Auth/session and RLS can settle shortly after sign-in; retry both empty and transient-error responses.
+    for (let attempt = 0; attempt < 4; attempt++) {
+      const result = await supabase.from('store_members').select('store_id,role,is_active,created_at,full_name,email').eq('user_id',session.user.id).eq('is_active',true).order('created_at',{ascending:false})
+      memberRows = result.data
+      memberError = result.error
+      if (!memberError && memberRows?.length) break
+      if (attempt < 3) await new Promise(resolve => setTimeout(resolve, 500 * (attempt + 1)))
     }
+    let resolvedMembers = memberRows || []
+    if (memberError) { setNotice('Koneksi belum siap saat memuat keanggotaan. Sistem akan mencoba lagi otomatis.'); setLoading(false); return }
     if (!resolvedMembers.length) {
       setMemberships([])
       setMembership(null)
@@ -193,7 +185,7 @@ function App() {
     }
     const {data: storeRows, error: storesError} = await supabase.from('stores').select('id,name').in('id',resolvedMembers.map(m=>m.store_id))
     if (storesError) { setNotice(storesError.message); setLoading(false); return }
-    const {data: settingRows} = await supabase.from('store_settings').select('store_id,store_name').in('store_id',memberRows.map(m=>m.store_id))
+    const {data: settingRows} = await supabase.from('store_settings').select('store_id,store_name').in('store_id',resolvedMembers.map(m=>m.store_id))
     const availableMemberships = resolvedMembers.map(m=>({...m,store_name:settingRows?.find(s=>s.store_id===m.store_id)?.store_name||storeRows?.find(s=>s.id===m.store_id)?.name||'Toko'}))
     setMemberships(availableMemberships)
     const member = availableMemberships.find(m=>m.store_id===selectedStoreId) || availableMemberships[0]
@@ -594,6 +586,19 @@ function SuperAdminScreen({session,onSignOut}) {
   const statusOf=(tenant)=>tenant.status==='active'&&tenant.expires_at&&new Date(tenant.expires_at)<=new Date()?'expired':tenant.status
   const loadDisabledMembers=useCallback(async()=>{setDisabledLoading(true);const {data,error}=await supabase.rpc('super_admin_list_disabled_members');if(error)setNotice(error.message);else setDisabledMembers(data||[]);setDisabledLoading(false)},[])
   useEffect(()=>{loadDisabledMembers()},[loadDisabledMembers])
+  // Keep Super Admin lists in sync across sessions; polling is a fallback for suspended mobile tabs.
+  useEffect(()=>{
+    const channel=supabase.channel('nexapos-super-admin-live')
+      .on('postgres_changes',{event:'*',schema:'public',table:'stores'},()=>load())
+      .on('postgres_changes',{event:'*',schema:'public',table:'store_members'},()=>{loadUsers();loadDisabledMembers()})
+      .on('postgres_changes',{event:'*',schema:'public',table:'store_invites'},()=>loadUsers())
+      .subscribe()
+    const refresh=()=>{if(document.visibilityState==='visible'){load();loadUsers();loadDisabledMembers()}}
+    const timer=setInterval(refresh,30000)
+    document.addEventListener('visibilitychange',refresh)
+    window.addEventListener('online',refresh)
+    return()=>{clearInterval(timer);document.removeEventListener('visibilitychange',refresh);window.removeEventListener('online',refresh);supabase.removeChannel(channel)}
+  },[load,loadUsers,loadDisabledMembers])
   // Super Admin views also refresh automatically, including after a mobile browser resumes.
   useEffect(()=>{
     const refreshAdminData=()=>{if(document.visibilityState==='visible'){load();loadUsers();loadDisabledMembers()}}
