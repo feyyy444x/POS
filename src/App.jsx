@@ -163,18 +163,27 @@ function App() {
   const loadWorkspace = useCallback(async () => {
     if (!session?.user || !supabase) return
     setLoading(true)
+    setNotice('')
     let memberRows = null
     let memberError = null
     // Auth/session and RLS can settle shortly after sign-in; retry both empty and transient-error responses.
     for (let attempt = 0; attempt < 4; attempt++) {
-      const result = await supabase.from('store_members').select('store_id,role,is_active,created_at,full_name,email').eq('user_id',session.user.id).eq('is_active',true).order('created_at',{ascending:false})
+      let timeoutId
+      const timeout = new Promise(resolve => { timeoutId = setTimeout(() => resolve({data:null,error:{message:'Permintaan ke server terlalu lama. Periksa koneksi internet lalu coba masuk kembali.'}}), 10000) })
+      let result
+      try {
+        result = await Promise.race([
+          supabase.from('store_members').select('store_id,role,is_active,created_at,full_name,email').eq('user_id',session.user.id).eq('is_active',true).order('created_at',{ascending:false}),
+          timeout
+        ])
+      } finally { clearTimeout(timeoutId) }
       memberRows = result.data
       memberError = result.error
       if (!memberError && memberRows?.length) break
       if (attempt < 3) await new Promise(resolve => setTimeout(resolve, 500 * (attempt + 1)))
     }
     let resolvedMembers = memberRows || []
-    if (memberError) { setNotice('Koneksi belum siap saat memuat keanggotaan. Sistem akan mencoba lagi otomatis.'); setLoading(false); return }
+    if (memberError) { setNotice(memberError.message || 'Koneksi belum siap saat memuat keanggotaan. Periksa internet lalu coba lagi.'); setLoading(false); return }
     if (!resolvedMembers.length) {
       setMemberships([])
       setMembership(null)
