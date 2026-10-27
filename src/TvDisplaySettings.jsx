@@ -105,7 +105,13 @@ export default function TvDisplaySettings({ store, membership, onNotice }) {
   useEffect(() => { load() }, [load])
 
   const setField = (key, value) => setDraft(prev => ({ ...prev, [key]: value }))
-  const totalUploadBytes = useMemo(() => media.filter(item => item.media_type === 'upload').reduce((sum, item) => sum + Number(item.file_size_bytes || 0), 0), [media])
+  const totalUploadBytes = useMemo(() => media.filter(item =>
+    item.media_type === 'upload' && (
+      item.upload_status === 'complete' ||
+      (item.upload_status === 'pending' && item.reservation_expires_at && new Date(item.reservation_expires_at).getTime() > Date.now())
+    )
+  ).reduce((sum, item) => sum + Number(item.file_size_bytes || 0), 0), [media])
+  const visibleMedia = useMemo(() => media.filter(item => item.media_type !== 'upload' || item.upload_status !== 'pending'), [media])
   const tvUrl = useMemo(() => draft.public_token
     ? window.location.origin + window.location.pathname + '?screen=queue&token=' + encodeURIComponent(draft.public_token)
     : '', [draft.public_token])
@@ -245,12 +251,18 @@ export default function TvDisplaySettings({ store, membership, onNotice }) {
 
   const deleteMedia = async (item) => {
     if (!canManage || !window.confirm('Hapus media "' + item.title + '"?')) return
-    if (item.media_type === 'upload' && item.storage_path) {
-      const { error: storageError } = await supabase.storage.from('tv-media').remove([item.storage_path])
-      if (storageError) { notify('Berkas video belum terhapus: ' + storageError.message); return }
+    if (item.media_type === 'upload') {
+      const { data, error } = await supabase.functions.invoke('tv-media-upload', {
+        body: { action: 'delete', store_id: storeId, media_id: item.id },
+      })
+      if (error || data?.error || !data?.ok) {
+        notify(data?.error || error?.message || 'Video belum dapat dihapus.')
+        return
+      }
+    } else {
+      const { error } = await supabase.from('store_tv_media').delete().eq('id', item.id).eq('store_id', storeId)
+      if (error) { notify('Tautan media belum dapat dihapus: ' + error.message); return }
     }
-    const { error } = await supabase.from('store_tv_media').delete().eq('id', item.id).eq('store_id', storeId)
-    if (error) { notify('Metadata media belum dapat dihapus: ' + error.message); return }
     setMedia(prev => prev.filter(row => row.id !== item.id))
     notify(item.media_type === 'upload' ? 'Video dan metadata dihapus.' : 'Tautan dihapus dari NexaPos. Video sumber di platform asal tetap ada.')
   }
@@ -320,7 +332,7 @@ export default function TvDisplaySettings({ store, membership, onNotice }) {
           </form>
           <div className="tv-upload-pending"><Video size={17}/><div><strong>Upload video ke Supabase Storage</strong><p>MP4, WebM, atau OGG video. Maksimal 100 MB total untuk seluruh video upload tenant; tidak ada batas durasi 1 menit. Video disimpan sampai Anda menghapusnya.</p><label className="btn btn-outline tv-upload-button">{uploading ? 'Mengunggah video…' : 'Pilih dan upload video'}<input type="file" accept="video/mp4,video/webm,video/ogg" hidden disabled={!canManage || uploading} onChange={uploadVideo}/></label></div></div>
           <div className="tv-quota-summary"><strong>Kuota video</strong><span>{mb(totalUploadBytes)} / 100 MB</span><div className="tv-quota-track"><i style={{width: Math.min(100, totalUploadBytes / 1048576) + '%'}}/></div></div>
-          {media.length ? <div className="tv-media-list">{media.map(item => <div className="tv-media-row" key={item.id}><span className="tv-media-type"><Video size={16}/></span><div className="tv-media-copy"><strong>{item.title}</strong><small>{item.media_type === 'upload' ? (mb(item.file_size_bytes) + ' MB · video upload') : item.source_url}</small></div><button type="button" className="btn btn-outline btn-small danger-icon" onClick={() => deleteMedia(item)} disabled={!canManage}><Trash2 size={14}/> Hapus</button></div>)}</div> : <div className="tv-media-empty">Belum ada media. Tambahkan tautan promosi di atas.</div>}
+          {visibleMedia.length ? <div className="tv-media-list">{visibleMedia.map(item => <div className="tv-media-row" key={item.id}><span className="tv-media-type"><Video size={16}/></span><div className="tv-media-copy"><strong>{item.title}</strong><small>{item.media_type === 'upload' ? (mb(item.file_size_bytes) + ' MB · video upload') : item.source_url}</small></div><button type="button" className="btn btn-outline btn-small danger-icon" onClick={() => deleteMedia(item)} disabled={!canManage}><Trash2 size={14}/> Hapus</button></div>)}</div> : <div className="tv-media-empty">Belum ada media. Tambahkan tautan promosi di atas.</div>}
         </div>
       </div>
       <aside className="tv-preview-column">
