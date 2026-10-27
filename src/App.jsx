@@ -429,6 +429,7 @@ function App() {
   if(pinStatus.error)return <div className="loading-screen"><p>Modul keamanan PIN belum siap: {pinStatus.error}</p><p>Terapkan migrasi PIN sebelum memakai versi ini.</p><button className="btn btn-outline" onClick={()=>supabase.auth.signOut()}>Keluar</button></div>
   if(!pinStatus.has_pin||!pinStatus.is_verified)return <PinGate session={session} status={pinStatus} onReady={setPinStatus} onSignOut={()=>supabase.auth.signOut()}/>
   if(isSuperAdmin)return <SuperAdminScreen session={session} onSignOut={()=>supabase.auth.signOut()}/>
+  if(loading&&!store)return <div className="loading-screen"><span className="spinner spinner-large"/><span>Memeriksa keanggotaan toko…</span></div>
   if(!store)return <div className="loading-screen"><span className="spinner spinner-large"/><p>{notice||'Akun ini belum terhubung ke toko. Minta Owner atau Super Admin mengirim undangan.'}</p><button className="btn btn-ghost" onClick={()=>supabase.auth.signOut()}>Keluar</button></div>
   const effectiveStoreStatus = store.status === 'active' && store.expires_at && new Date(store.expires_at) <= new Date() ? 'expired' : (store.status || 'active')
   if(effectiveStoreStatus !== 'active') return <TenantLockedScreen store={store} status={effectiveStoreStatus} onSignOut={()=>supabase.auth.signOut()}/>
