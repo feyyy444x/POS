@@ -23,7 +23,7 @@ create table if not exists public.store_tv_settings (
   media_fit text not null default 'contain' check (media_fit in ('contain','cover','original')),
   portrait_background text not null default 'blur' check (portrait_background in ('blur','dark','theme')),
   rotation_seconds integer not null default 20 check (rotation_seconds between 5 and 300),
-  public_token text unique,
+  public_token text unique check (public_token is null or length(public_token) >= 32),
   updated_at timestamptz not null default now()
 );
 
