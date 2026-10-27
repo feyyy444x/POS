@@ -56,13 +56,13 @@ Deno.serve(async (req: Request) => {
   }
 
   const [{ data: membership, error: membershipError }, { data: store, error: storeError }] = await Promise.all([
-    admin.from("store_members").select("role,is_active")
+    admin.from("store_members").select("role,is_active,disabled_at")
       .eq("store_id", storeId).eq("user_id", userResult.user.id).maybeSingle(),
     admin.from("stores").select("id,status,expires_at").eq("id", storeId).maybeSingle(),
   ]);
 
   if (membershipError || storeError) return response({ error: "Gagal memeriksa akses toko." }, 500);
-  if (!membership || membership.is_active !== true || !["owner", "admin"].includes(membership.role)) {
+  if (!membership || membership.is_active !== true || membership.disabled_at !== null || !["owner", "admin"].includes(membership.role)) {
     return response({ error: "Hanya Owner/Admin aktif yang dapat mengelola media TV." }, 403);
   }
   if (!store || store.status !== "active" || (store.expires_at && new Date(store.expires_at).getTime() <= Date.now())) {
