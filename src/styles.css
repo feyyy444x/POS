@@ -531,3 +531,66 @@ tbody tr:hover{background:#f7fbfd}
 .shift-difference-grid span{font-size:12px;color:var(--muted);font-weight:700}
 .shift-difference-grid strong{font-size:20px;color:var(--ink)}
 @media(max-width:650px){.shift-required-banner{align-items:flex-start;flex-direction:column}.shift-form{padding:17px}.shift-form-grid,.shift-open-grid,.shift-difference-grid{grid-template-columns:1fr}.shift-notes-label{grid-column:auto}}
+
+
+/* Reliable support entry point: compact NexaPos mark instead of a text bubble. */
+.support-floating-launcher {
+  width: 50px !important;
+  height: 50px !important;
+  min-width: 50px !important;
+  min-height: 50px !important;
+  padding: 7px !important;
+  display: grid !important;
+  place-items: center !important;
+  border: 1px solid #d9e7ee !important;
+  border-radius: 16px !important;
+  background: #fff !important;
+  color: #102d50 !important;
+  box-shadow: 0 10px 28px #102d5026 !important;
+  z-index: 80 !important;
+  touch-action: manipulation;
+}
+.support-floating-launcher img { display:block; width:100%; height:100%; max-width:36px; max-height:36px; object-fit:contain; }
+.support-floating-launcher:hover { transform: translateY(-2px); box-shadow: 0 14px 34px #102d5033 !important; }
+.support-floating-launcher:focus-visible { outline:3px solid #08b996; outline-offset:3px; }
+
+.sidebar-bottom { position:relative; z-index:3; }
+.support-card button { min-height:34px; position:relative; z-index:2; touch-action:manipulation; cursor:pointer; }
+
+.support-embedded { display:block; width:100%; min-width:0; }
+.support-modal-embedded { width:100%; max-width:none; max-height:none; min-height:580px; border-radius:18px; box-shadow:0 8px 28px #102d500c; }
+.support-modal-embedded .support-settings-view { min-height:0; }
+.support-settings-view { flex:1; min-height:0; overflow:auto; padding:22px; }
+.support-settings-intro { margin-bottom:18px; }
+.support-settings-intro h2 { font-size:22px; margin:9px 0 6px; }
+.support-settings-intro p { max-width:720px; color:#60758b; font-size:12px; line-height:1.7; margin-bottom:10px; }
+.support-settings-intro>small { display:inline-flex; align-items:center; gap:7px; color:#60758b; font-size:10px; }
+.support-realtime-dot { display:inline-block; width:7px; height:7px; border-radius:50%; background:#08b996; box-shadow:0 0 0 3px #08b9961b; }
+.support-settings-form { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+.support-channel-setting { display:flex; flex-direction:column; align-items:stretch; gap:9px; min-width:0; padding:16px; border:1px solid #dfe7ee; border-radius:14px; background:#fbfdfe; }
+.support-channel-setting>label:not(.support-toggle-row) { font-size:11px; font-weight:700; color:#102d50; margin-top:4px; }
+.support-channel-setting .text-input { width:100%; min-width:0; }
+.support-channel-setting>small { color:#60758b; font-size:10px; line-height:1.55; }
+.support-toggle-row { display:flex; align-items:flex-start; gap:10px; cursor:pointer; }
+.support-toggle-row input { margin:3px 0 0; accent-color:#08b996; width:15px; height:15px; flex-shrink:0; }
+.support-toggle-row span { display:flex; flex-direction:column; gap:4px; }
+.support-toggle-row strong { color:#102d50; font-size:12px; }
+.support-toggle-row small { color:#60758b; font-size:10px; line-height:1.55; }
+.support-settings-actions { display:flex; flex-wrap:wrap; align-items:center; gap:9px; grid-column:1/-1; padding-top:4px; }
+.support-success { display:flex; align-items:flex-start; gap:7px; margin:0; grid-column:1/-1; color:#087e65; font-size:11px; line-height:1.6; }
+.support-settings-loading { display:flex; align-items:center; gap:9px; padding:16px 0; color:#60758b; font-size:12px; }
+.support-whatsapp-icon { background:#e5fbef; color:#128c54; }
+.support-choice:disabled { opacity:.55; }
+.support-choices .support-inbox-link { min-height:36px; }
+.support-admin-page>.page-heading { margin-bottom:18px; }
+
+@media(max-width:760px) {
+  .support-modal-embedded { min-height:520px; }
+  .support-modal-embedded .support-settings-view { padding:16px; }
+  .support-settings-form { grid-template-columns:minmax(0,1fr); }
+  .support-settings-actions { grid-column:1; align-items:stretch; }
+  .support-settings-actions .btn { justify-content:center; }
+}
+@media print {
+  .support-floating-launcher, .support-overlay { display:none !important; }
+}
