@@ -153,7 +153,8 @@ function App() {
     const {data,error}=await supabase.rpc('complete_sale',{p_store_id:store.id,p_items:cart.map(i=>({product_id:i.id,quantity:i.quantity})),p_discount:safeDiscount,p_payment_method:payMethod,p_paid_amount:paid,p_customer_name:queueCustomer||null,p_create_queue:true})
     setQueueBusy(false)
     if(error){setNotice(error.message);return}
-    setReceipt(data)
+    const {data: receiptItems} = await supabase.from('order_items').select('*').eq('order_id',data.order.id).order('id')
+    setReceipt({...data,items:receiptItems||[]})
     setCart([]);setPaidAmount('');setDiscount('0');setQueueCustomer('')
     await loadWorkspace()
     setPage('pos')
