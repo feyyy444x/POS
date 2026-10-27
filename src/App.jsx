@@ -1060,13 +1060,17 @@ function SupportPortal() {
   const [session, setSession] = useState(null)
   const [opened, setOpened] = useState(false)
   const [isSuperAdmin, setIsSuperAdmin] = useState(false)
-  const [pinReady, setPinReady] = useState(false)
+  const [pinReadyUserId, setPinReadyUserId] = useState(null)
+  const pinReady = Boolean(session?.user?.id && pinReadyUserId === session.user.id)
   useEffect(() => {
     if (!supabase) return
     supabase.auth.getSession().then(({data}) => setSession(data.session))
     const {data:{subscription}} = supabase.auth.onAuthStateChange((_event, nextSession) => {
       setSession(nextSession)
-      if (!nextSession) setOpened(false)
+      if (!nextSession) {
+        setOpened(false)
+        setPinReadyUserId(null)
+      }
     })
     const open = () => { setOpened(true) }
     window.addEventListener('nexapos-open-support', open)
@@ -1074,10 +1078,18 @@ function SupportPortal() {
   }, [])
   useEffect(() => {
     let cancelled = false
-    if (!session?.user?.id || !supabase) { setIsSuperAdmin(false); setPinReady(false); return }
-    setPinReady(false)
-    supabase.rpc('get_my_pin_status').then(({data,error}) => { if (!cancelled) setPinReady(!error && Boolean(data?.[0]?.is_verified)) })
-    supabase.from('super_admins').select('user_id').eq('user_id', session.user.id).maybeSingle().then(({data}) => { if (!cancelled) setIsSuperAdmin(Boolean(data)) })
+    const userId = session?.user?.id
+    if (!userId || !supabase) {
+      setIsSuperAdmin(false)
+      setPinReadyUserId(null)
+      return
+    }
+    supabase.rpc('get_my_pin_status').then(({data,error}) => {
+      if (!cancelled) setPinReadyUserId(!error && Boolean(data?.[0]?.is_verified) ? userId : null)
+    })
+    supabase.from('super_admins').select('user_id').eq('user_id', userId).maybeSingle().then(({data}) => {
+      if (!cancelled) setIsSuperAdmin(Boolean(data))
+    })
     return () => { cancelled = true }
   }, [session?.user?.id, session?.access_token])
   if (!session || !pinReady) return null
