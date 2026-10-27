@@ -60,24 +60,10 @@ set public = true,
     file_size_limit = 104857600,
     allowed_mime_types = array['video/mp4', 'video/webm', 'video/ogg'];
 
--- Do not allow direct client uploads: all upload reservations and signed upload URLs
--- must be issued by the server-controlled tv-media-upload Edge Function.
+-- All upload and delete operations for stored video files must go through the
+-- authenticated tv-media-upload Edge Function so object storage and metadata stay in sync.
 drop policy if exists "Tenant managers upload TV media" on storage.objects;
-
 drop policy if exists "Tenant managers delete TV media" on storage.objects;
-create policy "Tenant managers delete TV media"
-on storage.objects for delete to authenticated
-using (
-  bucket_id = 'tv-media'
-  and exists (
-    select 1 from public.store_members sm
-    where sm.store_id::text = (storage.foldername(name))[1]
-      and sm.user_id = (select auth.uid())
-      and sm.is_active = true
-      and sm.disabled_at is null
-      and sm.role in ('owner','admin')
-  )
-);
 
 create index if not exists store_tv_media_store_order_idx
   on public.store_tv_media(store_id, sort_order, created_at);
@@ -114,9 +100,13 @@ with check (
 );
 
 drop policy if exists "Store managers manage TV media" on public.store_tv_media;
-create policy "Store managers manage TV media"
+drop policy if exists "Store managers add TV links" on public.store_tv_media;
+drop policy if exists "Store managers delete TV links" on public.store_tv_media;
+drop policy if exists "Store managers read TV media" on public.store_tv_media;
+
+create policy "Store managers read TV media"
 on public.store_tv_media
-for all to authenticated
+for select to authenticated
 using (
   exists (
     select 1 from public.store_members sm
@@ -126,9 +116,31 @@ using (
       and sm.disabled_at is null
       and sm.role in ('owner','admin')
   )
-)
+);
+
+-- Links can be managed directly by an authenticated tenant manager. Upload metadata
+-- is written/deleted only by the service-role Edge Function after validating the object.
+create policy "Store managers add TV links"
+on public.store_tv_media
+for insert to authenticated
 with check (
-  exists (
+  media_type = 'link'
+  and exists (
+    select 1 from public.store_members sm
+    where sm.store_id = store_tv_media.store_id
+      and sm.user_id = (select auth.uid())
+      and sm.is_active = true
+      and sm.disabled_at is null
+      and sm.role in ('owner','admin')
+  )
+);
+
+create policy "Store managers delete TV links"
+on public.store_tv_media
+for delete to authenticated
+using (
+  media_type = 'link'
+  and exists (
     select 1 from public.store_members sm
     where sm.store_id = store_tv_media.store_id
       and sm.user_id = (select auth.uid())
