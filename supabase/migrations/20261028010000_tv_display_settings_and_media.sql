@@ -169,11 +169,12 @@ begin
     raise exception 'Reservasi upload harus memiliki masa berlaku di masa depan.';
   end if;
 
-  if tg_op = 'UPDATE'
-     and old.upload_status = 'pending'
-     and new.upload_status = 'complete'
-     and (old.reservation_expires_at is null or old.reservation_expires_at <= now()) then
-    raise exception 'Reservasi upload sudah kedaluwarsa.';
+  if tg_op = 'UPDATE' then
+    if old.upload_status = 'pending'
+       and new.upload_status = 'complete'
+       and (old.reservation_expires_at is null or old.reservation_expires_at <= now()) then
+      raise exception 'Reservasi upload sudah kedaluwarsa.';
+    end if;
   end if;
 
   select coalesce(sum(file_size_bytes), 0)
