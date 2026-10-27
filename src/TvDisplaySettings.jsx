@@ -48,7 +48,7 @@ function randomToken() {
 function previewSource(item) {
   const url = item?.source_url || ''
   if (!url) return { type: 'placeholder', url: '' }
-  if (/\\.(mp4|webm|ogg)(\\?.*)?$/i.test(url)) return { type: 'video', url }
+  if (/\.(mp4|webm|ogg)(\?.*)?$/i.test(url)) return { type: 'video', url }
   try {
     const parsed = new URL(url)
     if (parsed.hostname.includes('youtu.be')) {
@@ -60,7 +60,7 @@ function previewSource(item) {
       return id ? { type: 'embed', url: 'https://www.youtube-nocookie.com/embed/' + id + '?autoplay=1&mute=1&loop=1&playlist=' + id + '&controls=0' } : { type: 'link', url }
     }
     if (parsed.hostname.includes('tiktok.com')) {
-      const match = parsed.pathname.match(/\\/video\\/(\\d+)/)
+      const match = parsed.pathname.match(/\/video\/(\d+)/)
       return match ? { type: 'embed', url: 'https://www.tiktok.com/embed/v2/' + match[1] } : { type: 'link', url }
     }
   } catch {}
