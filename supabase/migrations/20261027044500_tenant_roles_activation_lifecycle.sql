@@ -348,3 +348,6 @@ end;
 $$;
 revoke all on function public.complete_sale(uuid,jsonb,numeric,text,numeric,text,boolean) from public, anon;
 grant execute on function public.complete_sale(uuid,jsonb,numeric,text,numeric,text,boolean) to authenticated;
+
+-- The browser can read only the rows permitted by the RLS policies above.
+grant select on public.super_admins, public.store_invites to authenticated;
