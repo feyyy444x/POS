@@ -104,7 +104,8 @@ function App() {
     if (!memberRows?.length) { setMemberships([]); setStore(null); setNotice('Akun belum memiliki toko. Minta pemilik toko menambahkan akun ini sebagai karyawan.'); setLoading(false); return }
     const {data: storeRows, error: storesError} = await supabase.from('stores').select('id,name').in('id',memberRows.map(m=>m.store_id))
     if (storesError) { setNotice(storesError.message); setLoading(false); return }
-    const availableMemberships = memberRows.map(m=>({...m,store_name:storeRows?.find(s=>s.id===m.store_id)?.name||'Toko'}))
+    const {data: settingRows} = await supabase.from('store_settings').select('store_id,store_name').in('store_id',memberRows.map(m=>m.store_id))
+    const availableMemberships = memberRows.map(m=>({...m,store_name:settingRows?.find(s=>s.store_id===m.store_id)?.store_name||storeRows?.find(s=>s.id===m.store_id)?.name||'Toko'}))
     setMemberships(availableMemberships)
     const member = availableMemberships.find(m=>m.store_id===selectedStoreId) || availableMemberships[0]
     if (selectedStoreId !== member.store_id) setSelectedStoreId(member.store_id)
