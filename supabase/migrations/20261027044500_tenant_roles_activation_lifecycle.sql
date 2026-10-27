@@ -24,11 +24,37 @@ where m.store_id=s.id and m.role='owner';
 
 alter table public.store_members
   add column if not exists email text not null default '',
-  add column if not exists full_name text not null default '';
+  add column if not exists full_name text not null default '',
+  add column if not exists is_active boolean not null default true;
 
 update public.store_members m set email=u.email,
   full_name=coalesce(u.raw_user_meta_data->>'full_name','')
 from auth.users u where u.id=m.user_id and m.email='';
+
+create or replace function private.is_store_member(target_store uuid)
+returns boolean language sql stable security definer set search_path = '' as $
+  select exists(select 1 from public.store_members m
+    where m.store_id=target_store and m.user_id=(select auth.uid()) and m.is_active=true)
+$;
+revoke all on function private.is_store_member(uuid) from public, anon;
+grant execute on function private.is_store_member(uuid) to authenticated;
+
+create or replace function private.is_store_manager(target_store uuid)
+returns boolean language sql stable security definer set search_path = '' as $
+  select exists(select 1 from public.store_members m
+    where m.store_id=target_store and m.user_id=(select auth.uid()) and m.is_active=true
+      and m.role in ('owner','admin','manager'))
+$;
+revoke all on function private.is_store_manager(uuid) from public, anon;
+grant execute on function private.is_store_manager(uuid) to authenticated;
+
+create or replace function private.is_store_owner(target_store uuid)
+returns boolean language sql stable security definer set search_path = '' as $
+  select exists(select 1 from public.store_members m
+    where m.store_id=target_store and m.user_id=(select auth.uid()) and m.role='owner' and m.is_active=true)
+$;
+revoke all on function private.is_store_owner(uuid) from public, anon;
+grant execute on function private.is_store_owner(uuid) to authenticated;
 
 create table if not exists public.store_invites (
   id uuid primary key default gen_random_uuid(),
@@ -219,6 +245,30 @@ end;
 $$;
 revoke all on function public.invite_store_member(uuid,text,text,text) from public, anon;
 grant execute on function public.invite_store_member(uuid,text,text,text) to authenticated;
+
+create or replace function public.manage_store_member(
+  p_member_id uuid,
+  p_role text,
+  p_is_active boolean
+) returns public.store_members language plpgsql security definer set search_path = '' as $
+declare v_member public.store_members;
+begin
+  if p_role not in ('admin','cashier') then raise exception 'Jabatan hanya boleh Admin atau Kasir'; end if;
+  select m.* into v_member
+  from public.store_members m
+  join public.store_members actor on actor.store_id=m.store_id
+  where m.id=p_member_id and actor.user_id=(select auth.uid())
+    and actor.role='owner' and actor.is_active=true
+    and m.role<>'owner'
+  limit 1;
+  if not found then raise exception 'Anggota tidak ditemukan atau akses Owner diperlukan'; end if;
+  update public.store_members set role=p_role,is_active=coalesce(p_is_active,true)
+  where id=p_member_id returning * into v_member;
+  return v_member;
+end;
+$;
+revoke all on function public.manage_store_member(uuid,text,boolean) from public, anon;
+grant execute on function public.manage_store_member(uuid,text,boolean) to authenticated;
 
 -- Rebuild policies so operational data is unavailable as soon as activation expires.
 do $$
