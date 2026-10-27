@@ -973,7 +973,7 @@ function SupportPortal() {
   if (!session || (!pinReady && !opened)) return null
   return <>
     <button type="button" className="support-floating-launcher" onClick={() => setOpened(true)} aria-label="Buka pusat bantuan" title="Pusat bantuan"><img src="/nexapos-mark.svg" alt="" /></button>
-    {opened && <SupportCenter session={session} isSuperAdmin={isSuperAdmin} onClose={() => setOpened(false)}/>
+    {opened && <SupportCenter session={session} isSuperAdmin={isSuperAdmin} onClose={() => setOpened(false)}/>}
   </>
 }
 
