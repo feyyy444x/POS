@@ -6,7 +6,6 @@ create table if not exists public.support_channel_settings (
   whatsapp_number text,
   telegram_enabled boolean not null default true,
   telegram_username text not null default 'becaaapos',
-  updated_by uuid references auth.users(id) on delete set null,
   updated_at timestamptz not null default now(),
   constraint support_channel_settings_whatsapp_number_format
     check (whatsapp_number is null or whatsapp_number ~ '^[1-9][0-9]{7,14}$'),
