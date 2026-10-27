@@ -56,7 +56,7 @@ function AuthScreen() {
       <label>Password</label><div className="field"><ShieldCheck size={17}/><input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="Minimal 6 karakter" required minLength={6} autoComplete={mode==='login'?'current-password':'new-password'}/></div>
       {message && <div className={`notice ${message.includes('berhasil') || message.includes('Akun dibuat') ? 'notice-success' : ''}`}>{message}</div>}
       <button className="btn btn-primary btn-wide" disabled={busy}>{busy ? <span className="spinner"/> : mode==='login' ? 'Masuk ke workspace' : 'Buat akun NexaPos'} <ArrowRight size={17}/></button>
-      <div className="auth-switch">{mode==='login'?'Belum punya akun?':'Sudah punya akun?'} <button type="button" onClick={()=>{setMode(mode==='login'?'signup':'login');setMessage('')}}>{mode==='login'?'Daftar sekarang':'Masuk'}</button></div>
+      <div className="auth-switch">{mode==='login'?'Punya undangan?':'Sudah punya akun?'} <button type="button" onClick={()=>{setMode(mode==='login'?'signup':'login');setMessage('')}}>{mode==='login'?'Aktifkan akun':'Masuk'}</button></div>
       <div className="secure-note"><ShieldCheck size={14}/> Sesi aman dengan Supabase Auth</div>
     </form></div>
   </main>
