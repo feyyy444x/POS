@@ -594,3 +594,33 @@ tbody tr:hover{background:#f7fbfd}
 @media print {
   .support-floating-launcher, .support-overlay { display:none !important; }
 }
+
+
+/* Compact, reliable help launcher and a shared live WIB clock. */
+.support-floating-launcher{
+  width:46px!important;height:46px!important;min-width:46px!important;
+  padding:0!important;display:grid!important;place-items:center!important;
+  border-radius:50%!important;right:18px!important;bottom:18px!important;
+  z-index:130!important;overflow:hidden!important;
+  box-shadow:0 5px 18px #102d5030!important;
+}
+.support-floating-launcher img{display:block!important;width:25px!important;height:25px!important;object-fit:contain!important}
+.support-floating-launcher span{display:none!important}
+.support-floating-launcher:hover{transform:translateY(-2px) scale(1.03)}
+.wib-digital-clock{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;color:#526b82;font-size:11px;font-variant-numeric:tabular-nums}
+.wib-digital-clock strong{font-size:12px;letter-spacing:.04em;color:#102d50;font-weight:800}
+.wib-digital-clock small{font-size:9px;font-weight:800;color:#087e65}
+.wib-digital-clock em{font-style:normal;font-size:10px;color:#60758b}
+.topbar-actions .wib-digital-clock{padding:7px 9px;border:1px solid #dfe7ee;border-radius:10px;background:#fff}
+.tv-clock.wib-digital-clock{display:flex;flex-direction:column;align-items:flex-end;gap:4px;color:#fff;font-size:clamp(20px,2.3vw,34px);font-weight:800}
+.tv-clock.wib-digital-clock svg{display:none}
+.tv-clock.wib-digital-clock strong{font-size:inherit;color:inherit;letter-spacing:.02em}
+.tv-clock.wib-digital-clock small{font-size:11px;color:#c9fff0}
+.tv-clock.wib-digital-clock em{font-size:11px;color:#c7d9e8}
+@media(max-width:760px){
+  .topbar-actions .wib-digital-clock{gap:4px;padding:6px;font-size:9px}
+  .topbar-actions .wib-digital-clock svg{display:none}
+  .topbar-actions .wib-digital-clock strong{font-size:10px}
+  .support-floating-launcher{right:12px!important;bottom:12px!important;width:42px!important;height:42px!important;min-width:42px!important}
+  .support-floating-launcher img{width:23px!important;height:23px!important}
+}
