@@ -167,7 +167,7 @@ export default function TvDisplaySettings({ store, membership, onNotice }) {
     notify('Tautan dihapus dari NexaPos. Video sumber di platform asal tetap ada.')
   }
 
-  const templateClass = draft.template === 'premium-dark' ? 'tv-preview-dark' : draft.theme_mode === 'dark' ? 'tv-preview-dark' : 'tv-preview-light'
+  const templateClass = draft.theme_mode === 'dark' ? 'tv-preview-dark' : 'tv-preview-light'
   const isManagerText = canManage ? 'Owner/Admin dapat mengubah pengaturan' : 'Mode baca saja — pengaturan hanya dapat diubah Owner/Admin'
 
   if (!loaded) return <section className="page-section"><div className="panel tv-settings-loading"><RefreshCw className="spin" size={18}/> Memuat pengaturan TV…</div></section>
@@ -186,7 +186,7 @@ export default function TvDisplaySettings({ store, membership, onNotice }) {
           <label>Template dasar</label>
           <div className="tv-template-options">
             {TEMPLATES.map(([value, label, desc]) => <label key={value} className={'tv-template-option ' + (draft.template === value ? 'selected' : '')}>
-              <input type="radio" name="tv-template" value={value} checked={draft.template === value} onChange={() => setField('template', value)} disabled={!canManage}/>
+              <input type="radio" name="tv-template" value={value} checked={draft.template === value} onChange={() => setDraft(prev => ({ ...prev, template: value, primary_color: ({'modern-blue':'#2563eb','minimal-light':'#64748b','premium-dark':'#8b5cf6','queue-media':'#0ea5e9','professional':'#16a34a'})[value], ...(value === 'premium-dark' ? { theme_mode: 'dark' } : value === 'minimal-light' ? { theme_mode: 'light' } : {}) }))} disabled={!canManage}/>
               <span><strong>{label}</strong><small>{desc}</small></span>
             </label>)}
           </div>
@@ -237,7 +237,7 @@ export default function TvDisplaySettings({ store, membership, onNotice }) {
       </div>
       <aside className="tv-preview-column">
         <div className="panel tv-preview-panel"><div className="panel-head"><div><h3><Palette size={17}/> Pratinjau tampilan</h3><p>Contoh perubahan sebelum disimpan.</p></div></div>
-          <div className={'tv-preview ' + templateClass} style={{'--tv-primary': draft.primary_color, '--tv-bg': draft.background_color, '--tv-text': draft.text_color, '--tv-number-size': draft.queue_number_size + 'px', '--tv-name-size': draft.customer_name_size + 'px', '--tv-counter-size': draft.counter_size + 'px', '--tv-next-size': draft.next_queue_size + 'px'}}>
+          <div className={'tv-preview tv-preview-template-' + draft.template + ' ' + templateClass} style={{'--tv-primary': draft.primary_color, '--tv-bg': draft.background_color, '--tv-text': draft.text_color, '--tv-number-size': draft.queue_number_size + 'px', '--tv-name-size': draft.customer_name_size + 'px', '--tv-counter-size': draft.counter_size + 'px', '--tv-next-size': draft.next_queue_size + 'px'}}>
             <header><span className="tv-preview-brand">Nexa<span>Pos</span></span><span className="tv-preview-live">● LIVE</span></header>
             <div className={'tv-preview-body tv-layout-' + draft.layout_mode}>
               <section className="tv-preview-queue"><small>NOMOR ANTRIAN DIPANGGIL</small><strong className="tv-preview-number">A012</strong><b className="tv-preview-customer">Pelanggan contoh</b><span className="tv-preview-counter">Kasir 1</span><div className="tv-preview-next"><small>ANTRIAN BERIKUTNYA</small><strong>A013　A014　A015</strong></div></section>
