@@ -293,6 +293,14 @@ function App() {
     if (!session || !membership?.store_id || !supabase) return
     const storeId = membership.store_id
     const refreshOrders = () => supabase.from('orders').select('*').eq('store_id',storeId).order('created_at',{ascending:false}).then(({data,error})=>{if(!error&&data)setOrders(data)})
+    const refreshOrderItems = async () => {
+      const {data:orderRows,error:ordersError}=await supabase.from('orders').select('id').eq('store_id',storeId)
+      if(ordersError||!orderRows)return
+      const orderIds=orderRows.map(o=>o.id)
+      if(!orderIds.length){setOrderItems([]);return}
+      const {data:itemRows,error:itemError}=await supabase.from('order_items').select('*').in('order_id',orderIds)
+      if(!itemError&&itemRows)setOrderItems(itemRows)
+    }
     const refreshProducts = () => supabase.from('products').select('*').eq('store_id',storeId).order('created_at',{ascending:false}).then(({data,error})=>{if(!error&&data)setProducts(data)})
     const refreshSettings = () => supabase.from('store_settings').select('*').eq('store_id',storeId).maybeSingle().then(({data,error})=>{if(!error&&data)setSettings(data)})
     const refreshTeam = () => loadWorkspace()
@@ -304,18 +312,19 @@ function App() {
       })
       .on('postgres_changes',{event:'*',schema:'public',table:'products',filter:'store_id=eq.'+storeId},refreshProducts)
       .on('postgres_changes',{event:'*',schema:'public',table:'orders',filter:'store_id=eq.'+storeId},refreshOrders)
+      .on('postgres_changes',{event:'*',schema:'public',table:'order_items'},refreshOrderItems)
       .on('postgres_changes',{event:'*',schema:'public',table:'store_settings',filter:'store_id=eq.'+storeId},refreshSettings)
       .on('postgres_changes',{event:'*',schema:'public',table:'stores',filter:'id=eq.'+storeId},refreshTeam)
       .on('postgres_changes',{event:'*',schema:'public',table:'store_members',filter:'store_id=eq.'+storeId},refreshTeam)
       .on('postgres_changes',{event:'*',schema:'public',table:'store_invites',filter:'store_id=eq.'+storeId},refreshTeam)
       .subscribe((status)=>{
         if(status==='SUBSCRIBED'){
-          refreshOrders(); refreshProducts(); refreshSettings(); refreshTeam(); refreshQueue()
+          refreshOrders(); refreshOrderItems(); refreshProducts(); refreshSettings(); refreshTeam(); refreshQueue()
         }
       })
     const refreshOnResume = () => {
       if(document.visibilityState !== 'visible') return
-      refreshOrders(); refreshProducts(); refreshSettings(); refreshQueue(); refreshTeam()
+      refreshOrders(); refreshOrderItems(); refreshProducts(); refreshSettings(); refreshQueue(); refreshTeam()
     }
     window.addEventListener('focus',refreshOnResume)
     document.addEventListener('visibilitychange',refreshOnResume)
