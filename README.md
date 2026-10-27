@@ -4,10 +4,11 @@ NexaPos is a responsive point-of-sale, inventory, and real-time queue management
 
 ## Included modules
 - Supabase email/password authentication with invitation-based tenant membership; public sign-up alone does not create a store or grant an Owner role
-- Super Admin tenant registration and activation; store owners invite Admin/Cashier accounts
+- Super Admin tenant registration and activation; store owners invite Admin/Cashier accounts with one-time activation codes
+- Four-digit PIN setup and verification, profile updates, and account recovery controls
 - Product catalog with create, edit, delete, categories, SKU/barcode, price, and stock
 - POS cart, server-validated checkout, stock decrement, cash/QRIS/transfer selection, and receipt number
-- 80mm thermal receipt print layout using the browser print dialog
+- 80mm thermal receipt print layout with optional store logo (PNG/JPEG/WebP, max 3 MB) using the browser print dialog
 - Real-time queue ticket creation, call/serve/complete/skip actions, and TV display
 - Sales history and CSV export
 - Store settings and role-based manager controls
@@ -19,7 +20,7 @@ NexaPos is a responsive point-of-sale, inventory, and real-time queue management
 4. Build with `npm run build`.
 
 ## Deployment
-Netlify uses `npm run build` and publishes `dist`. SPA routing is configured in `netlify.toml`. Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` in Netlify's build environment for every deployment context that should connect to Supabase. Vite embeds these values during build, so changing them requires a fresh deploy. For pull-request testing, ensure both variables are set in the **Deploy Preview** context and redeploy that preview; changing variables does not update an already-published preview automatically.
+Netlify uses `npm run build` and publishes `dist`. SPA routing is configured in `netlify.toml`. Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` in Netlify's build environment for every deployment context that should connect to Supabase. Vite embeds these values during build, so changing them requires a fresh deploy. The `netlify/functions/` directory must be included in the deployed artifact for server-side invitation activation and Super Admin password management. Set `SUPABASE_URL` and a secret `SUPABASE_SERVICE_ROLE_KEY` in the Deploy Preview context for those functions; never expose the service-role key through a `VITE_` variable. For pull-request testing, ensure the Vite variables are set in the **Deploy Preview** context and redeploy that preview; changing variables does not update an already-published preview automatically.
 
 ## Notes
 - All exposed application tables have Row Level Security policies.
