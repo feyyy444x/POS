@@ -29,6 +29,8 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
       - name: Install app dependencies
         run: npm install --no-package-lock
+      - name: Generate Windows app icons
+        run: npx tauri icon src-tauri/icons/nexapos.svg
       - name: Build Windows installer
         run: npm run tauri -- build
         env:
