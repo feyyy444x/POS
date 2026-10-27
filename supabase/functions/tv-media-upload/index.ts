@@ -70,6 +70,26 @@ Deno.serve(async (req: Request) => {
   }
 
   if (action === "reserve") {
+    // Best-effort garbage collection of expired reservations for this tenant.
+    // Expired reservations are excluded from quota in SQL even if cleanup temporarily fails.
+    const { data: expired, error: expiredError } = await admin.from("store_tv_media")
+      .select("id,storage_path")
+      .eq("store_id", storeId)
+      .eq("media_type", "upload")
+      .eq("upload_status", "pending")
+      .lt("reservation_expires_at", new Date().toISOString())
+      .limit(100);
+    if (expiredError) return response({ error: "Gagal membersihkan reservasi upload lama." }, 500);
+    for (const item of expired || []) {
+      if (item.storage_path) {
+        const { error: removeError } = await admin.storage.from("tv-media").remove([item.storage_path]);
+        if (removeError) continue; // Keep metadata so a later request can retry cleanup.
+      }
+      const { error: deleteError } = await admin.from("store_tv_media").delete()
+        .eq("id", item.id).eq("store_id", storeId).eq("upload_status", "pending");
+      if (deleteError) continue;
+    }
+
     const title = typeof body.title === "string" ? body.title.trim().slice(0, 160) : "";
     const mimeType = typeof body.mime_type === "string" ? body.mime_type : "";
     const fileSize = Number(body.file_size_bytes);
@@ -92,9 +112,11 @@ Deno.serve(async (req: Request) => {
       storage_path: path,
       mime_type: mimeType,
       file_size_bytes: fileSize,
+      upload_status: "pending",
+      reservation_expires_at: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
       sort_order: 0,
       is_active: true,
-    }).select("id,store_id,title,source_url,storage_path,mime_type,file_size_bytes,media_type,sort_order,is_active,created_at,updated_at").single();
+    }).select("id,store_id,title,source_url,storage_path,mime_type,file_size_bytes,media_type,upload_status,reservation_expires_at,sort_order,is_active,created_at,updated_at").single();
 
     if (insertError || !media) {
       const isQuota = /Kuota video tenant maksimal 100 MB/i.test(insertError?.message || "");
@@ -112,9 +134,14 @@ Deno.serve(async (req: Request) => {
   if (action === "complete") {
     if (!mediaId) return response({ error: "ID media tidak valid." }, 400);
     const { data: media, error: mediaError } = await admin.from("store_tv_media")
-      .select("id,store_id,storage_path,file_size_bytes").eq("id", mediaId).eq("store_id", storeId).eq("media_type", "upload").maybeSingle();
+      .select("id,store_id,storage_path,file_size_bytes,upload_status,reservation_expires_at").eq("id", mediaId).eq("store_id", storeId).eq("media_type", "upload").maybeSingle();
     if (mediaError) return response({ error: "Gagal memeriksa media." }, 500);
     if (!media?.storage_path || !media.storage_path.startsWith(storeId + "/")) return response({ error: "Reservasi upload tidak ditemukan." }, 404);
+    if (media.upload_status !== "pending" || !media.reservation_expires_at || new Date(media.reservation_expires_at).getTime() <= Date.now()) {
+      await admin.storage.from("tv-media").remove([media.storage_path]);
+      await admin.from("store_tv_media").delete().eq("id", mediaId).eq("store_id", storeId).eq("upload_status", "pending");
+      return response({ error: "Reservasi upload sudah kedaluwarsa. Silakan unggah ulang." }, 410);
+    }
 
     const folder = storeId;
     const filename = media.storage_path.slice(folder.length + 1);
@@ -134,9 +161,9 @@ Deno.serve(async (req: Request) => {
     }
 
     const { data: finalized, error: finalizeError } = await admin.from("store_tv_media")
-      .update({ file_size_bytes: actualSize, mime_type: actualType })
+      .update({ file_size_bytes: actualSize, mime_type: actualType, upload_status: "complete", reservation_expires_at: null })
       .eq("id", mediaId).eq("store_id", storeId)
-      .select("id,store_id,title,source_url,storage_path,mime_type,file_size_bytes,media_type,sort_order,is_active,created_at,updated_at").single();
+      .select("id,store_id,title,source_url,storage_path,mime_type,file_size_bytes,media_type,upload_status,sort_order,is_active,created_at,updated_at").single();
 
     if (finalizeError || !finalized) {
       await admin.storage.from("tv-media").remove([media.storage_path]);
@@ -151,7 +178,10 @@ Deno.serve(async (req: Request) => {
     if (!mediaId) return response({ error: "ID media tidak valid." }, 400);
     const { data: media } = await admin.from("store_tv_media").select("id,storage_path")
       .eq("id", mediaId).eq("store_id", storeId).eq("media_type", "upload").maybeSingle();
-    if (media?.storage_path) await admin.storage.from("tv-media").remove([media.storage_path]);
+    if (media?.storage_path) {
+      const { error: removeError } = await admin.storage.from("tv-media").remove([media.storage_path]);
+      if (removeError) return response({ error: "Berkas video belum berhasil dihapus. Reservasi dipertahankan agar pembersihan dapat dicoba ulang." }, 500);
+    }
     const { error } = await admin.from("store_tv_media").delete().eq("id", mediaId).eq("store_id", storeId);
     if (error) return response({ error: "Gagal membersihkan reservasi upload." }, 500);
     return response({ ok: true });
