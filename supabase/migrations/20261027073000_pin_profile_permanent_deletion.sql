@@ -69,7 +69,7 @@ begin
   values(v_session,v_user,now()+interval '12 hours')
   on conflict(session_id) do update set user_id=excluded.user_id,verified_at=now(),expires_at=excluded.expires_at;
 end;
-$;$;
+$;
 
 create or replace function public.verify_my_pin(p_pin text)
 returns boolean language plpgsql security definer set search_path = ''
