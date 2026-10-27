@@ -539,3 +539,5 @@ tbody tr:hover{background:#f7fbfd}
 @media(max-width:650px){.shift-required-banner{align-items:flex-start;flex-direction:column}.shift-form{padding:17px}.shift-form-grid,.shift-open-grid,.shift-difference-grid{grid-template-columns:1fr}.shift-notes-label{grid-column:auto}}
 
 .tenant-whatsapp-editor{display:flex;align-items:center;gap:8px;min-width:240px}.tenant-whatsapp-editor .text-input{min-width:150px;max-width:190px;padding:9px 10px;font-size:12px}.tenant-whatsapp-editor .btn{white-space:nowrap}.tenant-list-panel td>small{display:block;margin-top:5px;color:var(--muted);font-size:10px}
+
+.support-global-config{margin-bottom:18px}.support-global-wa-form{display:grid;gap:8px;padding:0 20px 20px}.support-global-wa-form label{font-size:12px;font-weight:700}.support-global-wa-form>div{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.support-global-wa-form input{max-width:300px;min-width:200px}.support-global-wa-form small{font-size:11px;color:var(--muted)}
