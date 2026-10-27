@@ -4,7 +4,6 @@ const config: CapacitorConfig = {
   appId: 'id.nexapos.app',
   appName: 'NexaPos',
   webDir: 'dist',
-  bundledWebRuntime: false,
   server: {
     androidScheme: 'https',
   },
