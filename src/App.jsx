@@ -239,19 +239,15 @@ function App() {
 
   useEffect(()=>{if(!session)return;loadWorkspace()},[session,loadWorkspace])
 
-  // Recover automatically when an Owner/Super Admin adds this account to a store after login.
+  // Listen for store membership changes so newly assigned users enter their workspace without polling.
   useEffect(()=>{
-    if(!session?.user || store || loading) return
-    const refreshIfVisible = () => { if(document.visibilityState === 'visible') loadWorkspace() }
-    const timer = setInterval(refreshIfVisible, 5000)
-    window.addEventListener('focus', refreshIfVisible)
-    document.addEventListener('visibilitychange', refreshIfVisible)
-    return ()=>{
-      clearInterval(timer)
-      window.removeEventListener('focus', refreshIfVisible)
-      document.removeEventListener('visibilitychange', refreshIfVisible)
-    }
-  },[session?.user?.id,store?.id,loading,loadWorkspace])
+    if(!session?.user?.id || store || !supabase) return
+    const channel = supabase.channel('nexapos-membership-'+session.user.id)
+      .on('postgres_changes',{event:'*',schema:'public',table:'store_members',filter:'user_id=eq.'+session.user.id},()=>loadWorkspace())
+      .on('postgres_changes',{event:'*',schema:'public',table:'stores'},()=>loadWorkspace())
+      .subscribe()
+    return ()=>{ supabase.removeChannel(channel) }
+  },[session?.user?.id,store?.id,loadWorkspace])
 
   useEffect(()=>{
     if (!session || !membership?.store_id || !supabase) return
@@ -837,8 +833,14 @@ function QueueScreen(){
   useEffect(()=>{if(!supabase)return;supabase.auth.getSession().then(({data})=>setSession(data.session));const {data:{subscription}}=supabase.auth.onAuthStateChange((_e,s)=>setSession(s));return()=>subscription.unsubscribe()},[])
   const load=useCallback(async()=>{if(!session?.user)return;const {data:members,error}=await supabase.from('store_members').select('store_id').eq('user_id',session.user.id).order('created_at',{ascending:true});if(error||!members?.length){setError(error?.message||'Akun tidak memiliki toko.');return}const requestedStore=new URLSearchParams(window.location.search).get('store');const sid=(members.find(m=>m.store_id===requestedStore)||members[0]).store_id;const [{data:s},{data:cfg},{data:q}]=await Promise.all([supabase.from('stores').select('*').eq('id',sid).single(),supabase.from('store_settings').select('*').eq('store_id',sid).maybeSingle(),supabase.from('queue_tickets').select('*').eq('store_id',sid).eq('service_date',today()).order('queue_number')]);setStore(s);setSettings(cfg);setTickets(q||[])},[session])
   useEffect(()=>{load()},[load])
-  useEffect(()=>{if(!store||!supabase)return;const channel=supabase.channel('tv-queue-'+store.id).on('postgres_changes',{event:'*',schema:'public',table:'queue_tickets',filter:'store_id=eq.'+store.id},()=>load()).subscribe();return()=>supabase.removeChannel(channel)},[store,load])
-  useEffect(()=>{const t=setInterval(load,15000);return()=>clearInterval(t)},[load])
+  useEffect(()=>{
+    if(!store||!supabase)return
+    const channel=supabase.channel('tv-queue-'+store.id)
+      .on('postgres_changes',{event:'*',schema:'public',table:'queue_tickets',filter:'store_id=eq.'+store.id},()=>load())
+      .on('postgres_changes',{event:'*',schema:'public',table:'store_settings',filter:'store_id=eq.'+store.id},()=>load())
+      .subscribe()
+    return()=>supabase.removeChannel(channel)
+  },[store,load])
   const current=tickets.filter(t=>['called','serving'].includes(t.status)).slice(-3).reverse()
   const waiting=tickets.filter(t=>t.status==='waiting').slice(0,6)
   const queueTenantStatus=store?.status==='active'&&store?.expires_at&&new Date(store.expires_at)<=new Date()?'expired':(store?.status||'active')
