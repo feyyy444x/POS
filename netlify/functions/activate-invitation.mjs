@@ -32,7 +32,7 @@ export default async (request) => {
     const { data: invites, error: inviteError } = await admin
       .from('store_invites')
       .select('id,store_id,email,full_name,role,expires_at,accepted_at')
-      .ilike('email', email)
+      .eq('email', email)
       .is('accepted_at', null)
       .gt('expires_at', now)
 
