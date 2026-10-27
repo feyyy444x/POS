@@ -3,7 +3,8 @@
 NexaPos is a responsive point-of-sale, inventory, and real-time queue management web app built with React, Vite, and Supabase.
 
 ## Included modules
-- Supabase email/password authentication; first registered user owns their new store
+- Supabase email/password authentication with invitation-based tenant membership; public sign-up alone does not create a store or grant an Owner role
+- Super Admin tenant registration and activation; store owners invite Admin/Cashier accounts
 - Product catalog with create, edit, delete, categories, SKU/barcode, price, and stock
 - POS cart, server-validated checkout, stock decrement, cash/QRIS/transfer selection, and receipt number
 - 80mm thermal receipt print layout using the browser print dialog
