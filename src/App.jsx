@@ -104,7 +104,7 @@ function App() {
   const loadWorkspace = useCallback(async () => {
     if (!session?.user || !supabase) return
     setLoading(true)
-    const {data: memberRows, error: memberError} = await supabase.from('store_members').select('store_id,role').eq('user_id',session.user.id).order('created_at',{ascending:true})
+    const {data: memberRows, error: memberError} = await supabase.from('store_members').select('store_id,role,is_active,created_at').eq('user_id',session.user.id).eq('is_active',true).order('created_at',{ascending:false})
     if (memberError) { setNotice(memberError.message); setLoading(false); return }
     if (!memberRows?.length) { setMemberships([]); setStore(null); setNotice('Akun belum memiliki toko. Minta pemilik toko menambahkan akun ini sebagai karyawan.'); setLoading(false); return }
     const {data: storeRows, error: storesError} = await supabase.from('stores').select('id,name').in('id',memberRows.map(m=>m.store_id))
@@ -136,7 +136,9 @@ function App() {
 
   useEffect(()=>{if(!session){setIsSuperAdmin(false);setAdminCheckReady(true);return}setAdminCheckReady(false);supabase.from('super_admins').select('user_id').eq('user_id',session.user.id).maybeSingle().then(({data})=>{setIsSuperAdmin(Boolean(data));setAdminCheckReady(true)})},[session])
 
-  useEffect(()=>{if(session) supabase.rpc('accept_store_invites').then(()=>loadWorkspace()).catch(()=>loadWorkspace())},[session,loadWorkspace])
+  useEffect(()=>{setSelectedStoreId('')},[session?.user?.id])
+
+  useEffect(()=>{if(!session)return;supabase.rpc('accept_store_invites').then(({data})=>{if(Number(data)>0)setSelectedStoreId('');return loadWorkspace()}).catch(()=>loadWorkspace())},[session,loadWorkspace])
 
   useEffect(()=>{
     if (!session || !membership?.store_id || !supabase) return
