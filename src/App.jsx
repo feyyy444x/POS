@@ -15,7 +15,7 @@ const shortTime = (value) => new Date(value).toLocaleTimeString('id-ID', { hour:
 const initial = (name) => (name || 'N').trim().slice(0, 1).toUpperCase()
 
 function Brand({ small = false }) {
-  return <div className={`brand ${small ? 'brand-small' : ''}`} aria-label="NexaPos SMART ECOMMERCE"><img className="brand-wordmark" src="/nexapos-wordmark.svg" alt="NexaPos" /><span className="brand-tagline">SMART ECOMMERCE</span></div>
+  return <div className={`brand ${small ? 'brand-small' : ''}`}><span className="brand-mark"><ShoppingBag size={small ? 17 : 21} strokeWidth={2.5}/></span><span>Nexa<span className="brand-accent">Pos</span><small>SMART COMMERCE</small></span></div>
 }
 
 function AuthScreen() {
