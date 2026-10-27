@@ -624,3 +624,85 @@ tbody tr:hover{background:#f7fbfd}
   .support-floating-launcher{right:12px!important;bottom:12px!important;width:42px!important;height:42px!important;min-width:42px!important}
   .support-floating-launcher img{width:23px!important;height:23px!important}
 }
+
+
+/* Mobile workspace layout repair: preserve existing brand colors and desktop styling. */
+@media (max-width: 760px) {
+  .app-shell { min-width: 0; overflow-x: clip; }
+  .main-area { margin-left: 0; width: 100%; min-width: 0; }
+  .topbar {
+    height: auto;
+    min-height: 0;
+    padding: 12px 14px;
+    gap: 10px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  .topbar-left {
+    min-width: 0;
+    flex: 1 1 100%;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+  }
+  .topbar-left > * { min-width: 0; }
+  .topbar-left .btn,
+  .topbar-left .back-button,
+  .topbar-left button { max-width: 100%; }
+  .breadcrumb {
+    min-width: 0;
+    line-height: 1.4;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  .breadcrumb strong { overflow-wrap: anywhere; }
+  .topbar-date { line-height: 1.35; overflow-wrap: anywhere; }
+  .topbar-actions {
+    min-width: 0;
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 8px;
+  }
+  .topbar-actions .wib-digital-clock { flex: 0 0 auto; }
+  .live-status { max-width: 100%; white-space: normal; }
+  .page-content { padding: 22px 14px 36px; min-width: 0; }
+  .page-heading { align-items: flex-start; flex-wrap: wrap; gap: 12px; }
+  .page-heading > * { min-width: 0; max-width: 100%; }
+  .page-heading h1 { font-size: clamp(23px, 6vw, 29px); overflow-wrap: anywhere; }
+  .page-heading p { line-height: 1.65; overflow-wrap: anywhere; }
+  .panel, .panel-head, .section-title-row, .catalog-toolbar { min-width: 0; }
+  .panel-head, .section-title-row { align-items: flex-start; flex-wrap: wrap; }
+  .table-wrap { max-width: 100%; }
+  .modal-card, .dialog-card, .support-modal, .support-modal-embedded { max-width: calc(100vw - 20px); }
+  .support-floating-launcher { z-index: 130; }
+}
+@media (max-width: 520px) {
+  .topbar { padding: 10px 12px; }
+  .topbar-left { grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px; }
+  .topbar-left .btn, .topbar-left .back-button {
+    min-height: 40px;
+    padding: 8px 10px;
+    gap: 6px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+  .topbar-left .breadcrumb { font-size: 11px; }
+  .topbar-actions { gap: 7px; }
+  .topbar-actions .wib-digital-clock { padding: 6px 8px; }
+  .page-content { padding: 18px 12px 30px; }
+  .page-heading { margin-bottom: 20px; }
+  .shift-required-banner { gap: 12px; }
+  .shift-required-banner strong { line-height: 1.45; }
+  .shift-required-banner p { overflow-wrap: anywhere; }
+  .report-filter-grid, .shift-form-grid, .shift-open-grid { grid-template-columns: minmax(0, 1fr); }
+  .stats-grid, .dashboard-grid, .pos-layout, .product-grid { min-width: 0; }
+  .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .product-tile { min-width: 0; }
+  .cart-panel { min-width: 0; }
+  .support-settings-form { grid-template-columns: minmax(0, 1fr); }
+}
