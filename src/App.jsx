@@ -23,19 +23,40 @@ function AuthScreen() {
   const [password, setPassword] = useState('')
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState('')
+  const [success, setSuccess] = useState(false)
+
   const submit = async (event) => {
     event.preventDefault()
     setMessage('')
-    if (!isSupabaseConfigured) { setMessage('Konfigurasi Supabase belum tersedia. Tambahkan VITE_SUPABASE_URL dan VITE_SUPABASE_PUBLISHABLE_KEY di environment Netlify.'); return }
+    setSuccess(false)
+    if (!isSupabaseConfigured) {
+      setMessage('Konfigurasi Supabase belum tersedia. Tambahkan VITE_SUPABASE_URL dan VITE_SUPABASE_PUBLISHABLE_KEY di environment Netlify.')
+      return
+    }
     setBusy(true)
-    const result = mode === 'login'
-      ? await supabase.auth.signInWithPassword({ email, password })
-      : await supabase.auth.signUp({ email, password })
-    setBusy(false)
-    if (result.error) setMessage(result.error.message)
-    else if (mode === 'signup' && !result.data.session) setMessage('Akun dibuat. Periksa email untuk verifikasi, lalu masuk ke NexaPos.')
-    else setMessage(mode === 'signup' ? 'Akun berhasil dibuat. Menyiapkan toko Anda…' : '')
+    try {
+      if (mode === 'login') {
+        const result = await supabase.auth.signInWithPassword({ email: email.trim(), password })
+        if (result.error) setMessage(result.error.message)
+      } else {
+        const response = await fetch('/.netlify/functions/activate-invitation', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email.trim(), password }),
+        })
+        const result = await response.json().catch(() => ({}))
+        if (!response.ok) throw new Error(result.error || 'Aktivasi undangan gagal. Periksa kembali email dan status undangan.')
+        setSuccess(true)
+        setMessage('Undangan berhasil diverifikasi dan password berhasil dibuat. Silakan masuk menggunakan email dan password tersebut.')
+        setMode('login')
+      }
+    } catch (error) {
+      setMessage(error.message || 'Terjadi kesalahan. Silakan coba lagi.')
+    } finally {
+      setBusy(false)
+    }
   }
+
   return <main className="auth-shell">
     <div className="auth-orb orb-one"/><div className="auth-orb orb-two"/>
     <div className="auth-left">
@@ -50,14 +71,14 @@ function AuthScreen() {
     <div className="auth-right"><form className="auth-card" onSubmit={submit}>
       <div className="auth-card-icon"><ShieldCheck size={23}/></div>
       <span className="eyebrow muted">WORKSPACE ACCESS</span>
-      <h2>{mode === 'login' ? 'Selamat datang' : 'Aktifkan akun undangan'}</h2>
-      <p className="subtle">{mode === 'login' ? 'Masuk untuk melanjutkan ke dashboard NexaPos.' : 'Gunakan email yang sudah didaftarkan Owner atau Super Admin.'}</p>
-      <label>Email</label><div className="field"><UserRound size={17}/><input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="nama@bisnis.com" required autoComplete="email"/></div>
-      <label>Password</label><div className="field"><ShieldCheck size={17}/><input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="Minimal 6 karakter" required minLength={6} autoComplete={mode==='login'?'current-password':'new-password'}/></div>
-      {message && <div className={`notice ${message.includes('berhasil') || message.includes('Akun dibuat') ? 'notice-success' : ''}`}>{message}</div>}
-      <button className="btn btn-primary btn-wide" disabled={busy}>{busy ? <span className="spinner"/> : mode==='login' ? 'Masuk ke workspace' : 'Buat akun NexaPos'} <ArrowRight size={17}/></button>
-      <div className="auth-switch">{mode==='login'?'Punya undangan?':'Sudah punya akun?'} <button type="button" onClick={()=>{setMode(mode==='login'?'signup':'login');setMessage('')}}>{mode==='login'?'Aktifkan akun':'Masuk'}</button></div>
-      <div className="secure-note"><ShieldCheck size={14}/> Sesi aman dengan Supabase Auth</div>
+      <h2>{mode === 'login' ? 'Selamat datang' : 'Aktivasi Undangan'}</h2>
+      <p className="subtle">{mode === 'login' ? 'Masuk menggunakan akun NexaPos yang sudah aktif.' : 'Aktivasi hanya tersedia untuk email yang telah didaftarkan Owner atau Super Admin.'}</p>
+      <label>Email terdaftar pada undangan</label><div className="field"><UserRound size={17}/><input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="nama@bisnis.com" required autoComplete="email"/></div>
+      <label>Password {mode === 'login' ? '' : 'baru'}</label><div className="field"><ShieldCheck size={17}/><input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder={mode==='login'?'Masukkan password':'Minimal 8 karakter'} required minLength={mode==='login'?1:8} autoComplete={mode==='login'?'current-password':'new-password'}/></div>
+      {message && <div className={`notice ${success ? 'notice-success' : ''}`}>{message}</div>}
+      <button className="btn btn-primary btn-wide" disabled={busy}>{busy ? <span className="spinner"/> : mode==='login' ? 'Masuk ke workspace' : 'Verifikasi & aktifkan akun'} <ArrowRight size={17}/></button>
+      <div className="auth-switch">{mode==='login'?'Sudah menerima undangan?':'Sudah mengaktifkan akun?'} <button type="button" onClick={()=>{setMode(mode==='login'?'activate':'login');setMessage('');setSuccess(false)}}>{mode==='login'?'Aktivasi Undangan':'Kembali ke login'}</button></div>
+      <div className="secure-note"><ShieldCheck size={14}/> Aktivasi diperiksa langsung terhadap undangan tenant</div>
     </form></div>
   </main>
 }
