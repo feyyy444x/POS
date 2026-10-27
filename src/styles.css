@@ -972,3 +972,30 @@ tbody tr:hover{background:#f7fbfd}
   .topbar-actions .wib-digital-clock { padding:4px !important; }
   .topbar-actions .top-avatar { flex-basis:26px !important; width:26px !important; height:26px !important; }
 }
+
+
+/* Keep Live Sync visible in the compact one-row mobile header. */
+@media (max-width:760px) {
+  .topbar-actions .live-status {
+    display:inline-flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    flex:0 0 auto !important;
+    white-space:nowrap !important;
+    gap:4px !important;
+    padding:5px 6px !important;
+    font-size:8px !important;
+    line-height:1 !important;
+    letter-spacing:.02em !important;
+    border-radius:999px !important;
+  }
+  .topbar-actions .live-status i {
+    display:inline-block !important;
+    flex:0 0 5px !important;
+    width:5px !important;
+    height:5px !important;
+  }
+}
+@media (max-width:380px) {
+  .topbar-actions .live-status { padding:4px !important; font-size:7px !important; gap:3px !important; }
+}
