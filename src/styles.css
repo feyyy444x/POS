@@ -513,3 +513,5 @@ tbody tr:hover{background:#f7fbfd}
 /* NexaPos identity palette: deep navy and emerald teal. Tenant-uploaded logos are intentionally untouched. */
 :root{--purple:#087e65;--purple-dark:#066b58;--nexa-navy:#102d50;--nexa-teal:#08b996;--ink:#102d50;--muted:#60758b;--line:#dfe7ee;--bg:#f5f8fb}
 .brand-mark-image{background:transparent!important;box-shadow:none!important;border-radius:0!important}.brand-mark-image .brand-logo-image{object-fit:contain}.brand-accent{color:var(--nexa-teal)!important}.sidebar .brand-mark{background:transparent!important;box-shadow:none!important}
+
+.support-guest-form{display:flex;flex-direction:column;gap:8px;margin-top:18px}.support-guest-form label{font-size:11px;font-weight:700;color:#102d50;margin-top:5px}.support-guest-form input{width:100%;box-sizing:border-box;padding:12px 13px;border:1px solid #dfe7ee;border-radius:11px;background:#fff;color:#102d50;font:inherit;font-size:13px;outline:none}.support-guest-form input:focus{border-color:#08b996;box-shadow:0 0 0 3px #08b9961c}.support-guest-form .btn{margin-top:12px;justify-content:center;min-height:44px}.support-guest-form .support-error{margin-top:5px}
