@@ -61,9 +61,14 @@
 .tv-preview-media-blur{position:absolute;inset:-18px;background:radial-gradient(circle at 30% 30%,var(--tv-primary),transparent 55%),linear-gradient(135deg,#0f172a,#64748b);filter:blur(18px);opacity:.8}
 .tv-preview-media-card{position:relative;display:flex;flex-direction:column;align-items:center;gap:8px;padding:16px;text-align:center;color:white;font-size:12px}
 .tv-preview-media-card small{font-size:10px;opacity:.75}
-.tv-preview-dark{background:#0b1220;color:#f8fafc;--tv-bg:#0b1220!important;--tv-text:#f8fafc!important}
-.tv-preview-dark .tv-preview-queue{background:#111827}
+.tv-preview-dark{background:var(--tv-bg);color:var(--tv-text)}
+.tv-preview-dark .tv-preview-queue{background:color-mix(in srgb,var(--tv-text) 5%,var(--tv-bg))}
 .tv-preview-light{background:var(--tv-bg);color:var(--tv-text)}
+.tv-preview-template-modern-blue .tv-preview-live{color:#0d9488}
+.tv-preview-template-minimal-light{box-shadow:none}
+.tv-preview-template-premium-dark{border-color:#334155}
+.tv-preview-template-queue-media .tv-preview-media{background:linear-gradient(135deg,#082f49,#0ea5e9)}
+.tv-preview-template-professional .tv-preview-live{color:#16a34a}
 .tv-layout-media-top,.tv-layout-media-bottom{grid-template-columns:1fr;grid-template-rows: minmax(80px,.65fr) minmax(150px,1fr)}
 .tv-layout-media-top .tv-preview-media{grid-row:1}
 .tv-layout-media-top .tv-preview-queue{grid-row:2}
