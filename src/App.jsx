@@ -174,7 +174,7 @@ function App() {
 
   useEffect(()=>{setSelectedStoreId('')},[session?.user?.id])
 
-  useEffect(()=>{if(!session)return;supabase.rpc('accept_store_invites').then(({data})=>{if(Number(data)>0)setSelectedStoreId('');return loadWorkspace()}).catch(()=>loadWorkspace())},[session,loadWorkspace])
+  useEffect(()=>{if(!session)return;loadWorkspace()},[session,loadWorkspace])
 
   useEffect(()=>{
     if (!session || !membership?.store_id || !supabase) return
