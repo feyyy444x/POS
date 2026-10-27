@@ -306,9 +306,11 @@ function App() {
   const reportDiscount=reportPaidOrders.reduce((s,o)=>s+Number(o.discount||0),0)
   const reportItems=orderItems.filter(i=>reportPaidOrders.some(o=>o.id===i.order_id))
   const reportUnits=reportItems.reduce((s,i)=>s+Number(i.quantity||0),0)
-  const reportCostOf=(i)=>Number(i.cost_price??i.unit_cost??i.purchase_price??i.cost??0)
-  const reportHasCost=reportItems.some(i=>i.cost_price!=null||i.unit_cost!=null||i.purchase_price!=null||i.cost!=null)
-  const reportGrossProfit=reportHasCost?reportItems.reduce((s,i)=>s+(Number(i.unit_price??i.price??i.price_each??0)-reportCostOf(i))*Number(i.quantity||0),0):null
+  // order_items stores the sold price but not a historical cost snapshot; use the product's current cost_price.
+  // Keep profit unavailable when any sold item has no linked product or a zero/missing cost, rather than inventing a margin.
+  const reportCostOf=(i)=>{const product=products.find(p=>p.id===i.product_id);const value=product?.cost_price;return value==null||Number(value)<=0?null:Number(value)}
+  const reportHasCompleteCost=reportItems.length>0&&reportItems.every(i=>reportCostOf(i)!==null)
+  const reportGrossProfit=reportHasCompleteCost?reportItems.reduce((s,i)=>s+(Number(i.unit_price??0)-reportCostOf(i))*Number(i.quantity||0),0):null
   const reportExpenses=0
   const reportNetProfit=reportGrossProfit===null?null:reportGrossProfit-reportExpenses
 
