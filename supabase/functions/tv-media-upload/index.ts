@@ -81,6 +81,7 @@ Deno.serve(async (req: Request) => {
       .limit(100);
     if (expiredError) return response({ error: "Gagal membersihkan reservasi upload lama." }, 500);
     for (const item of expired || []) {
+      if (item.storage_path && !item.storage_path.startsWith(storeId + "/")) continue;
       if (item.storage_path) {
         const { error: removeError } = await admin.storage.from("tv-media").remove([item.storage_path]);
         if (removeError) continue; // Keep metadata so a later request can retry cleanup.
@@ -88,6 +89,27 @@ Deno.serve(async (req: Request) => {
       const { error: deleteError } = await admin.from("store_tv_media").delete()
         .eq("id", item.id).eq("store_id", storeId).eq("upload_status", "pending");
       if (deleteError) continue;
+    }
+
+    // Sweep stale Storage objects that have no metadata row. Restrict the sweep to this
+    // tenant folder, older than the reservation TTL, and objects absent from all DB rows.
+    const { data: knownRows, error: knownRowsError } = await admin.from("store_tv_media")
+      .select("storage_path").eq("store_id", storeId).eq("media_type", "upload");
+    if (!knownRowsError) {
+      const knownPaths = new Set((knownRows || []).map((row: { storage_path: string | null }) => row.storage_path).filter(Boolean));
+      const cutoff = Date.now() - 60 * 60 * 1000;
+      for (let offset = 0; offset < 1000; offset += 100) {
+        const { data: objects, error: listObjectsError } = await admin.storage.from("tv-media")
+          .list(storeId, { limit: 100, offset, sortBy: { column: "created_at", order: "asc" } });
+        if (listObjectsError || !objects?.length) break;
+        for (const object of objects) {
+          if (!object.id || !object.created_at || new Date(object.created_at).getTime() >= cutoff) continue;
+          const orphanPath = storeId + "/" + object.name;
+          if (knownPaths.has(orphanPath)) continue;
+          await admin.storage.from("tv-media").remove([orphanPath]);
+        }
+        if (objects.length < 100) break;
+      }
     }
 
     const title = typeof body.title === "string" ? body.title.trim().slice(0, 160) : "";
@@ -129,6 +151,50 @@ Deno.serve(async (req: Request) => {
       return response({ error: "Tidak dapat membuat tautan upload aman." }, 500);
     }
     return response({ media, path, token: signed.token });
+  }
+
+  if (action === "add_link") {
+    const title = typeof body.title === "string" ? body.title.trim().slice(0, 160) : "";
+    const rawUrl = typeof body.source_url === "string" ? body.source_url.trim() : "";
+    let parsedUrl: URL;
+    try {
+      parsedUrl = new URL(rawUrl);
+    } catch {
+      return response({ error: "URL media tidak valid." }, 400);
+    }
+    if (!title || !["http:", "https:"].includes(parsedUrl.protocol)) {
+      return response({ error: "Nama media dan URL HTTP/HTTPS wajib diisi." }, 400);
+    }
+    const { data: media, error } = await admin.from("store_tv_media").insert({
+      store_id: storeId,
+      media_type: "link",
+      title,
+      source_url: parsedUrl.href,
+      sort_order: 0,
+      is_active: true,
+    }).select("*").single();
+    if (error || !media) return response({ error: "Tautan media belum dapat disimpan." }, 400);
+    return response({ media });
+  }
+
+  if (action === "delete") {
+    if (!mediaId) return response({ error: "ID media tidak valid." }, 400);
+    const { data: media, error: mediaError } = await admin.from("store_tv_media")
+      .select("id,store_id,media_type,storage_path")
+      .eq("id", mediaId).eq("store_id", storeId).maybeSingle();
+    if (mediaError) return response({ error: "Gagal memeriksa media." }, 500);
+    if (!media) return response({ error: "Media tidak ditemukan pada toko ini." }, 404);
+    if (media.media_type === "upload") {
+      if (!media.storage_path || !media.storage_path.startsWith(storeId + "/")) {
+        return response({ error: "Lokasi berkas media tidak valid." }, 403);
+      }
+      const { error: removeError } = await admin.storage.from("tv-media").remove([media.storage_path]);
+      if (removeError) return response({ error: "Berkas video belum berhasil dihapus; metadata dipertahankan agar bisa dicoba lagi." }, 500);
+    }
+    const { error: deleteError } = await admin.from("store_tv_media").delete()
+      .eq("id", mediaId).eq("store_id", storeId);
+    if (deleteError) return response({ error: "Berkas sudah ditangani, tetapi metadata belum terhapus. Silakan ulangi penghapusan." }, 500);
+    return response({ ok: true });
   }
 
   if (action === "complete") {
