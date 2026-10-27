@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { ArrowLeft, CalendarClock, Check, CirclePercent, Plus, RefreshCw, Save, ShieldCheck, Ticket, Trash2, X } from 'lucide-react'
 import { supabase } from './lib/supabase'
+import './admin-promotions.css'
 
 const periods = [
   { value: 'daily', label: 'Harian' },
