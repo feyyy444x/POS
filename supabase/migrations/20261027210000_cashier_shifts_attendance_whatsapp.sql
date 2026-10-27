@@ -64,7 +64,7 @@ create or replace function public.close_cashier_shift(
 language plpgsql
 security definer
 set search_path = ''
-as $
+as $$
 declare
   v_shift public.cashier_shifts;
   v_expected_cash numeric(12,2);
@@ -116,7 +116,7 @@ begin
 
   return v_shift;
 end;
-$;
+$$;
 
 revoke all on function public.close_cashier_shift(uuid,numeric,numeric,text) from public, anon;
 grant execute on function public.close_cashier_shift(uuid,numeric,numeric,text) to authenticated;
@@ -125,7 +125,7 @@ grant execute on function public.close_cashier_shift(uuid,numeric,numeric,text) 
 create or replace function public.complete_sale(
   p_store_id uuid,p_items jsonb,p_discount numeric default 0,p_payment_method text default 'cash',
   p_paid_amount numeric default 0,p_customer_name text default null,p_create_queue boolean default true
-) returns jsonb language plpgsql security definer set search_path = '' as $
+) returns jsonb language plpgsql security definer set search_path = '' as $$
 declare
   v_item jsonb; v_product public.products; v_qty integer; v_subtotal numeric(12,2) := 0;
   v_discount numeric(12,2) := greatest(coalesce(p_discount,0),0); v_total numeric(12,2);
@@ -161,7 +161,7 @@ begin
   if coalesce(p_create_queue,true) then v_ticket := public.create_queue_ticket(p_store_id,p_customer_name,v_order.id); end if;
   return jsonb_build_object('order',to_jsonb(v_order),'ticket',case when v_ticket.id is null then null else to_jsonb(v_ticket) end);
 end;
-$;
+$$;
 revoke all on function public.complete_sale(uuid,jsonb,numeric,text,numeric,text,boolean) from public, anon;
 grant execute on function public.complete_sale(uuid,jsonb,numeric,text,numeric,text,boolean) to authenticated;
 
