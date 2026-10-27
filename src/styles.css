@@ -181,3 +181,15 @@
   .user-admin-actions { min-width:220px; }
   .member-name-edit { width:100%; max-width:none; }
 }
+
+/* Store logo upload and thermal receipt rendering */
+.store-logo-editor{display:flex;align-items:center;gap:16px;padding:14px;border:1px solid #ececf4;border-radius:12px;background:#fbfbfe;margin-bottom:8px}
+.store-logo-preview{width:92px;height:76px;object-fit:contain;border-radius:9px;background:#fff;border:1px solid #ececf4;padding:6px;flex-shrink:0}
+.store-logo-placeholder{width:92px;height:76px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;border:1px dashed #d8d7e8;border-radius:9px;color:#999db1;font-size:10px;flex-shrink:0}
+.store-logo-controls{display:flex;flex-direction:column;align-items:flex-start;gap:8px;min-width:0;flex:1}
+.logo-file-input{width:100%;padding:8px!important;font-size:11px!important;background:#fff}
+.store-logo-controls small{font-size:10px;color:#85899f;line-height:1.5}
+.logo-upload-status{display:flex;align-items:center;gap:7px;color:#6657ed;font-size:11px}
+.spinner-purple{border-color:#6657ed30;border-top-color:#6657ed}
+.receipt-store-logo{display:block;width:auto;max-width:120px;height:auto;max-height:76px;object-fit:contain;margin:0 auto 8px}
+@media(max-width:520px){.store-logo-editor{align-items:flex-start;gap:10px;padding:10px}.store-logo-preview,.store-logo-placeholder{width:76px;height:68px}.logo-file-input{font-size:10px!important}}
