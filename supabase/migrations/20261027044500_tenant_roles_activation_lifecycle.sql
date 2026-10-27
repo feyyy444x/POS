@@ -292,8 +292,7 @@ create policy "super admins update stores" on public.stores
 for update to authenticated using (private.is_super_admin()) with check (private.is_super_admin());
 create policy "super admins insert stores" on public.stores
 for insert to authenticated with check (private.is_super_admin());
-create policy "super admins delete stores" on public.stores
-for delete to authenticated using (private.is_super_admin());
+-- Physical tenant deletion is intentionally disabled; Super Admin uses status='deleted' to preserve audit history.
 
 create policy "members and super admins read memberships" on public.store_members
 for select to authenticated using (private.is_store_member(store_id) or private.is_super_admin());
