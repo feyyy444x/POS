@@ -326,3 +326,78 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline-color:#0
 .support-inbox-item:hover{background:#f0fbf7;border-color:#9de7d4}
 .support-inbox-avatar{background:#e5fbf4;color:#087e65}
 @media(max-width:760px){.sidebar{border-right-color:#dfe7ee}}
+
+
+/* GLOBAL BRAND PASS — every NexaPos screen, workspace, tenant, auth, admin and TV */
+:root{
+  color-scheme:light;
+  --ink:#102d50;--muted:#60758b;--line:#dfe7ee;--purple:#087e65;--purple-dark:#066b58;
+  --surface:#ffffff;--bg:#f5f8fb;--nexa-navy:#102d50;--nexa-teal:#08b996;
+}
+body,.app-shell{background:#f5f8fb;color:#102d50}
+h1,h2,h3{color:inherit}
+a{color:#087e65}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid #08b996;outline-offset:2px}
+.auth-shell{background:#102d50;color:#fff}
+.auth-left{background:radial-gradient(ellipse at 10% 80%,#164568 0,transparent 45%),linear-gradient(145deg,#102d50,#143a5a)}
+.auth-hero h1 span{color:#65e2c3}
+.auth-hero .eyebrow,.auth-footer span{color:#65e2c3}
+.orb-one,.orb-two{border-color:#08b99622;box-shadow:0 0 100px #08b9960a}
+.auth-right{background:#f5f8fb}
+.auth-card{border-color:#dfe7ee;box-shadow:0 28px 80px #102d500d}
+.brand-mark{background:#102d50;box-shadow:none}
+.brand-accent{color:#08b996}
+.brand small{color:#60758b}
+.sidebar,.topbar,.panel,.stat-card,.cart-panel,.product-tile,.auth-card,.modal-card,.settings-card,.table-card{background:#fff;border-color:#dfe7ee}
+.main-area,.page-content{color:#102d50}
+.topbar{border-bottom-color:#dfe7ee}
+.breadcrumb strong,.strong,.store-select,.store-copy strong,.user-copy strong{color:#102d50}
+.nav-link{color:#60758b}
+.nav-link svg{color:#60758b}
+.nav-link:hover,.nav-active{background:#e5fbf4;color:#087e65}
+.nav-link:hover svg,.nav-active svg{color:#087e65}
+.nav-active{box-shadow:inset 3px 0 #08b996}
+.nav-link em,.queue-number,.product-add,.product-tile-icon,.auth-card-icon,.empty-icon,.store-avatar,.support-icon,.support-inbox-avatar{background:#e5fbf4;color:#087e65}
+.btn-primary,.banner-button-primary{background:#102d50;color:#fff;border-color:#102d50;box-shadow:none}
+.btn-primary:hover:not(:disabled){background:#17436b}
+.btn-ghost,.category-pills button.category-active,.status-serving{background:#e5fbf4;color:#087e65;border-color:#b8f0df}
+.btn-outline{border-color:#dfe7ee;color:#102d50}
+.btn-outline:hover:not(:disabled){border-color:#9de7d4;background:#f0fbf7}
+.text-button,.auth-switch button,.support-card button,.product-tile-bottom strong,.heading-accent,.eyebrow{color:#087e65}
+.welcome-banner{background:linear-gradient(112deg,#102d50,#164568 62%,#087e65)}
+.banner-label{color:#9cebd6}
+.banner-copy h2 span{color:#65e2c3}
+.art-chart i{background:linear-gradient(#65e2c3,#08b996)}
+.art-card-head span,.pulse-dot{background:#08b996}
+.floating-chip>svg,.cart-head h3 svg{color:#087e65}
+.field,.text-input,.search-box,.date-pill,.payment-options button,.category-pills button{border-color:#dfe7ee}
+.field:focus-within,.text-input:focus,.search-box:focus-within{border-color:#08b996;box-shadow:0 0 0 3px #08b99618}
+.product-tile:hover:not(:disabled){border-color:#9de7d4;box-shadow:0 7px 20px #08b99610}
+.queue-mini-stats div{background:#f0fbf7}
+.queue-mini-row,.tv-next-row{border-color:#e5edf2}
+.status-pill.status-serving{background:#e5fbf4;color:#087e65}
+.live-status{background:#e5fbf4;border-color:#b8f0df;color:#087e65}
+.live-status i,.live-dot{background:#08b996}
+.support-card{background:#f0fbf7;border-color:#d5f5e9}
+.support-floating-launcher{background:#102d50!important;color:#fff!important;box-shadow:0 8px 24px #102d5026!important}
+.support-overlay{background:#102d5070}
+.support-message-mine{background:#e5fbf4}
+.support-message>span{color:#087e65}
+.support-compose textarea:focus{border-color:#08b996}
+.support-inbox-item:hover{background:#f0fbf7;border-color:#9de7d4}
+.toast{border-color:#b8f0df;color:#087e65}
+.table-wrap th,th{background:#f5f8fb;color:#60758b;border-bottom-color:#dfe7ee}
+td,tbody tr td{border-bottom-color:#edf1f5}
+tbody tr:hover{background:#f7fbfd}
+.status-paid{background:#e5fbf4;color:#087e65}
+.top-avatar,.user-avatar{background:linear-gradient(135deg,#e0f9f0,#a9ead7);color:#087e65}
+.store-switch{border-color:#dfe7ee}
+.icon-button:hover{background:#e5fbf4;color:#087e65}
+.empty-state,.muted,.subtle{color:#60758b}
+.notice-success{background:#e5fbf4;color:#087e65}
+.tv-screen{background:#f5f8fb!important;color:#102d50!important}
+.tv-header .brand-mark{background:#102d50!important}
+.tv-header .brand-accent,.tv-next-row span{color:#08b996!important}
+.tv-call-main{background:#102d50!important}
+.tv-count{background:#e5fbf4!important;color:#087e65!important}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
