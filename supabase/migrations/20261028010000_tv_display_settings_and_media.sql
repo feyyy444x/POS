@@ -168,6 +168,14 @@ begin
      and (new.reservation_expires_at is null or new.reservation_expires_at <= now()) then
     raise exception 'Reservasi upload harus memiliki masa berlaku di masa depan.';
   end if;
+
+  if tg_op = 'UPDATE'
+     and old.upload_status = 'pending'
+     and new.upload_status = 'complete'
+     and (old.reservation_expires_at is null or old.reservation_expires_at <= now()) then
+    raise exception 'Reservasi upload sudah kedaluwarsa.';
+  end if;
+
   select coalesce(sum(file_size_bytes), 0)
     into used_bytes
     from public.store_tv_media
