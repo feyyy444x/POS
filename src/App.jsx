@@ -83,6 +83,25 @@ function AuthScreen() {
   </main>
 }
 
+
+function PinGate({session,status,onReady,onSignOut}) {
+  const [pin,setPin]=useState('')
+  const [busy,setBusy]=useState(false)
+  const [error,setError]=useState('')
+  const setup=!status?.has_pin
+  const submit=async(event)=>{
+    event.preventDefault();setError('')
+    if(!/^\\d{4}$/.test(pin)){setError('PIN harus tepat 4 angka.');return}
+    setBusy(true)
+    const {data,error:rpcError}=await supabase.rpc(setup?'set_my_pin':'verify_my_pin',setup?{p_pin:pin}:{p_pin:pin})
+    setBusy(false)
+    if(rpcError){setError(rpcError.message);return}
+    if(!setup&&data!==true){setPin('');setError('PIN salah. Silakan coba kembali.');return}
+    onReady({has_pin:true,is_verified:true})
+  }
+  return <main className="auth-shell"><div className="auth-orb orb-one"/><div className="auth-orb orb-two"/><div className="auth-left"><Brand/><div className="auth-hero"><span className="eyebrow"><span className="pulse-dot"/> ACCOUNT SECURITY</span><h1>Satu langkah<br/><span>lebih aman.</span></h1><p>PIN pribadi melindungi akses ke workspace NexaPos.</p></div><div className="auth-footer">© {new Date().getFullYear()} NexaPos</div></div><div className="auth-right"><form className="auth-card" onSubmit={submit}><div className="auth-card-icon"><ShieldCheck size={23}/></div><span className="eyebrow muted">PIN VERIFICATION</span><h2>{setup?'Buat PIN 4 angka':'Masukkan PIN'}</h2><p className="subtle">{setup?'Buat PIN pribadi sebelum menggunakan workspace. Jangan gunakan PIN yang mudah ditebak.':'Password benar. Verifikasi PIN untuk membuka workspace.'}</p><label>PIN 4 angka</label><div className="field"><ShieldCheck size={17}/><input type="password" inputMode="numeric" pattern="[0-9]{4}" maxLength={4} autoComplete="off" value={pin} onChange={e=>setPin(e.target.value.replace(/\\D/g,'').slice(0,4))} placeholder="••••" required/></div>{error&&<div className="notice">{error}</div>}<button className="btn btn-primary btn-wide" disabled={busy||pin.length!==4}>{busy?<span className="spinner"/>:setup?'Simpan PIN & lanjut':'Verifikasi PIN'} <ArrowRight size={17}/></button><div className="secure-note"><ShieldCheck size={14}/> PIN diverifikasi server dan sesi dibatasi 12 jam</div><button type="button" className="text-button" onClick={onSignOut}>Keluar dari akun</button></form></div></main>
+}
+
 function Pagination({page,total,pageSize=10,onChange}) {
   const pages=Math.max(1,Math.ceil(total/pageSize))
   if(total<=pageSize)return null
@@ -95,6 +114,7 @@ function App() {
   const [session, setSession] = useState(null)
   const [authReady, setAuthReady] = useState(false)
   const [adminCheckReady, setAdminCheckReady] = useState(false)
+  const [pinStatus, setPinStatus] = useState(null)
   const [isSuperAdmin, setIsSuperAdmin] = useState(false)
   const [store, setStore] = useState(null)
   const [membership, setMembership] = useState(null)
@@ -171,6 +191,8 @@ function App() {
   }, [session, selectedStoreId])
 
   useEffect(()=>{if(!session){setIsSuperAdmin(false);setAdminCheckReady(true);return}setAdminCheckReady(false);supabase.from('super_admins').select('user_id').eq('user_id',session.user.id).maybeSingle().then(({data})=>{setIsSuperAdmin(Boolean(data));setAdminCheckReady(true)})},[session])
+
+  useEffect(()=>{if(!session){setPinStatus(null);return}let cancelled=false;setPinStatus(null);supabase.rpc('get_my_pin_status').then(({data,error})=>{if(cancelled)return;if(error)setPinStatus({error:error.message});else setPinStatus(data?.[0]||{has_pin:false,is_verified:false})});return()=>{cancelled=true}},[session?.user?.id,session?.access_token])
 
   useEffect(()=>{setSelectedStoreId('')},[session?.user?.id])
 
@@ -310,6 +332,9 @@ function App() {
 
   if(!authReady || (session && !adminCheckReady))return <div className="loading-screen"><span className="spinner spinner-large"/><span>Menyiapkan NexaPos…</span></div>
   if(!session)return <AuthScreen/>
+  if(!pinStatus)return <div className="loading-screen"><span className="spinner spinner-large"/><span>Memeriksa keamanan akun…</span></div>
+  if(pinStatus.error)return <div className="loading-screen"><p>Modul keamanan PIN belum siap: {pinStatus.error}</p><p>Terapkan migrasi PIN sebelum memakai versi ini.</p><button className="btn btn-outline" onClick={()=>supabase.auth.signOut()}>Keluar</button></div>
+  if(!pinStatus.has_pin||!pinStatus.is_verified)return <PinGate session={session} status={pinStatus} onReady={setPinStatus} onSignOut={()=>supabase.auth.signOut()}/>
   if(isSuperAdmin)return <SuperAdminScreen session={session} onSignOut={()=>supabase.auth.signOut()}/>
   if(!store)return <div className="loading-screen"><span className="spinner spinner-large"/><p>{notice||'Akun ini belum terhubung ke toko. Minta Owner atau Super Admin mengirim undangan.'}</p><button className="btn btn-ghost" onClick={()=>supabase.auth.signOut()}>Keluar</button></div>
   const effectiveStoreStatus = store.status === 'active' && store.expires_at && new Date(store.expires_at) <= new Date() ? 'expired' : (store.status || 'active')
