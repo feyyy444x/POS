@@ -296,6 +296,7 @@ function App() {
     const refreshProducts = () => supabase.from('products').select('*').eq('store_id',storeId).order('created_at',{ascending:false}).then(({data,error})=>{if(!error&&data)setProducts(data)})
     const refreshSettings = () => supabase.from('store_settings').select('*').eq('store_id',storeId).maybeSingle().then(({data,error})=>{if(!error&&data)setSettings(data)})
     const refreshTeam = () => loadWorkspace()
+    const refreshQueue = () => supabase.from('queue_tickets').select('*').eq('store_id',storeId).order('queue_number',{ascending:true}).then(({data,error})=>{if(!error&&data)setQueue(data)})
     const channel = supabase.channel('nexapos-live-'+storeId)
       .on('postgres_changes',{event:'*',schema:'public',table:'queue_tickets',filter:'store_id=eq.'+storeId},payload=>{
         if(payload.eventType==='DELETE') setQueue(prev=>prev.filter(t=>t.id!==payload.old.id))
@@ -312,7 +313,6 @@ function App() {
           refreshOrders(); refreshProducts(); refreshSettings(); refreshTeam(); refreshQueue()
         }
       })
-    const refreshQueue = () => supabase.from('queue_tickets').select('*').eq('store_id',storeId).order('queue_number',{ascending:true}).then(({data,error})=>{if(!error&&data)setQueue(data)})
     const refreshOnResume = () => {
       if(document.visibilityState !== 'visible') return
       refreshOrders(); refreshProducts(); refreshSettings(); refreshQueue(); refreshTeam()
