@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { ArrowRight, BarChart3, CheckCircle2, ChevronDown, CircleDollarSign, Headphones, Menu, Monitor, Package, Printer, ShieldCheck, ShoppingCart, Sparkles, Ticket, X, Zap } from 'lucide-react'
 import { supabase } from './lib/supabase'
+import SupportCenter from './SupportCenter.jsx'
 import './homepage.css'
 
 const money = (value) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value || 0))
@@ -30,6 +31,7 @@ export default function Homepage() {
   const [coupon, setCoupon] = useState('')
   const [selectedPlan, setSelectedPlan] = useState('monthly')
   const [faqOpen, setFaqOpen] = useState(0)
+  const [liveChatOpen, setLiveChatOpen] = useState(false)
   useEffect(() => {
     if (!supabase) return
     let active = true
@@ -99,6 +101,10 @@ export default function Homepage() {
       <section className="nx-faq" id="faq"><div className="nx-section-head"><span className="nx-eyebrow">PERTANYAAN UMUM</span><h2>Informasi sebelum Anda menyewa.</h2><p>Berikut beberapa hal yang sering ditanyakan mengenai layanan NexaPos.</p></div><div className="nx-faq-list">{[{q:'Apakah semua masa sewa mendapatkan fitur yang sama?',a:'Ya. Seluruh pilihan masa sewa mendapatkan fitur aplikasi yang sama. Perbedaannya hanya pada jangka waktu penggunaan.'},{q:'Bagaimana cara mulai menyewa NexaPos?',a:'Pilih masa sewa yang sesuai, lalu hubungi tim NexaPos melalui Telegram untuk memperoleh informasi proses pembayaran dan aktivasi.'},{q:'Apakah NexaPos mendukung printer thermal?',a:'NexaPos menyediakan alur cetak struk untuk printer thermal yang kompatibel dengan perangkat dan browser yang digunakan.'},{q:'Bagaimana jika masa sewa berakhir?',a:'Akses tenant perlu diperpanjang oleh pengelola layanan. Silakan hubungi tim NexaPos untuk konfirmasi masa aktif dan perpanjangan.'}].map((item,i)=><div className={'nx-faq-item '+(faqOpen===i?'is-open':'')} key={item.q}><button onClick={()=>setFaqOpen(faqOpen===i?-1:i)}><span>{item.q}</span><ChevronDown size={18}/></button>{faqOpen===i&&<p>{item.a}</p>}</div>)}</div></section>
       <section className="nx-final-cta"><div><span className="nx-eyebrow">MULAI BERSAMA NEXAPOS</span><h2>Siap menata operasional usaha Anda?</h2><p>Tim kami siap membantu menjelaskan proses penyewaan dan penggunaan NexaPos.</p></div><div><a className="nx-button nx-button-light" href="https://t.me/becaaapos" target="_blank" rel="noreferrer">Hubungi Tim NexaPos <ArrowRight size={16}/></a><a className="nx-cta-login" href="/login">Sudah memiliki akun? Login workspace</a></div></section>
     </main>
+    <div className="nx-livechat-launcher">
+      {!liveChatOpen && <button type="button" className="nx-livechat-button" onClick={() => setLiveChatOpen(true)} aria-label="Buka live chat"><span className="nx-livechat-icon"><Headphones size={22}/></span><span><strong>Butuh bantuan?</strong><small>Chat langsung dengan tim kami</small></span><span className="nx-livechat-online" aria-label="Tersedia"/></button>}
+      {liveChatOpen && <SupportCenter session={null} onClose={() => setLiveChatOpen(false)} />}
+    </div>
     <footer className="nx-footer"><a className="nx-brand" href="/"><span className="nx-brand-mark"><img src="/nexapos-mark.svg" alt="" /></span><span>Nexa<span>Pos</span><small>SMART COMMERCE</small></span></a><p>Solusi kasir digital dan sistem antrian untuk mendukung operasional usaha Anda.</p><div><a href="#fitur">Fitur</a><a href="#harga">Harga sewa</a><a href="#faq">FAQ</a><a href="https://t.me/becaaapos" target="_blank" rel="noreferrer">Hubungi kami</a></div><small>© {new Date().getFullYear()} NexaPos. Seluruh hak dilindungi.</small></footer>
   </div>
 }
