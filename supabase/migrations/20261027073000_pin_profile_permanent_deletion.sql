@@ -263,11 +263,16 @@ begin
   if not private.is_super_admin() then raise exception 'Super Admin access required'; end if;
   if p_user_id is null or p_user_id=(select auth.uid()) then raise exception 'Tidak dapat menghapus akun sendiri'; end if;
   if exists(select 1 from public.super_admins where user_id=p_user_id) then raise exception 'Akun Super Admin dilindungi'; end if;
+  if exists(select 1 from public.store_members where user_id=p_user_id and role='owner') then
+    raise exception 'Akun Owner tidak dapat dihapus dari menu ini';
+  end if;
+  if exists(select 1 from public.store_members where user_id=p_user_id and is_active=true) then
+    raise exception 'Nonaktifkan atau hapus semua keanggotaan tenant aktif terlebih dahulu';
+  end if;
   select email into v_email from auth.users where id=p_user_id;
   if v_email is null then raise exception 'Akun tidak ditemukan'; end if;
   delete from public.store_invites where lower(email)=lower(v_email);
-  -- The current schema does not define an auth.users FK on store_members;
-  -- remove memberships explicitly to avoid orphaned access rows.
+  -- Delete disabled membership rows explicitly; active access and Owner accounts are protected above.
   delete from public.store_members where user_id=p_user_id;
   delete from auth.users where id=p_user_id;
 end;
