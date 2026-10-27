@@ -967,7 +967,7 @@ function SupportPortal() {
       setSession(nextSession)
       if (!nextSession) setOpened(false)
     })
-    const open = (event) => { setOpened(true); if (event?.detail?.authorized) setPinReady(true) }
+    const open = (event) => { if (!event?.detail?.authorized) return; setPinReady(true); setOpened(true) }
     window.addEventListener('nexapos-open-support', open)
     return () => { subscription.unsubscribe(); window.removeEventListener('nexapos-open-support', open) }
   }, [])
