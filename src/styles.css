@@ -999,3 +999,26 @@ tbody tr:hover{background:#f7fbfd}
 @media (max-width:380px) {
   .topbar-actions .live-status { padding:4px !important; font-size:7px !important; gap:3px !important; }
 }
+
+
+/* Center profile initial precisely inside its circular avatar on mobile. */
+@media (max-width:760px) {
+  .topbar-actions .top-avatar {
+    box-sizing:border-box !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    text-align:center !important;
+    line-height:1 !important;
+    padding:0 !important;
+    border:0 !important;
+    border-radius:50% !important;
+    font-size:12px !important;
+    font-weight:800 !important;
+    font-family:inherit !important;
+    transform:none !important;
+  }
+}
+@media (max-width:380px) {
+  .topbar-actions .top-avatar { font-size:11px !important; }
+}
