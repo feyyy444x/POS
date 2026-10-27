@@ -4,7 +4,7 @@ import {
   ChevronDown, CircleDollarSign, Clock3, CreditCard, FileText, Headphones, LayoutDashboard,
   LogOut, Menu, Minus, Monitor, Package, Plus, Printer, QrCode, RefreshCw, Search,
   Settings, ShieldCheck, ShoppingBag, ShoppingCart, SkipForward, Store, Ticket, Trash2,
-  TrendingUp, UserRound, Users, UserPlus, CalendarDays, Ban, Archive, Mail, Wallet, X
+  TrendingUp, UserRound, Users, UserPlus, CalendarDays, Ban, Archive, Mail, Wallet, X, MessageCircle
 } from 'lucide-react'
 import { isSupabaseConfigured, supabase } from './lib/supabase'
 import SupportCenter from './SupportCenter.jsx'
@@ -910,6 +910,43 @@ function SuperAdminScreen({session,onSignOut}) {
       </div>
     </main>
   </div>
+}
+
+
+function SupportPortal(){
+  const [session,setSession]=useState(null)
+  const [isSuperAdmin,setIsSuperAdmin]=useState(false)
+  const [whatsappNumber,setWhatsappNumber]=useState('')
+  const [opened,setOpened]=useState(false)
+
+  useEffect(()=>{
+    if(!supabase)return
+    supabase.auth.getSession().then(({data})=>setSession(data.session))
+    const {data:{subscription}}=supabase.auth.onAuthStateChange((_event,nextSession)=>setSession(nextSession))
+    return()=>subscription.unsubscribe()
+  },[])
+
+  useEffect(()=>{
+    let cancelled=false
+    if(!session?.user?.id||!supabase){setIsSuperAdmin(false);setWhatsappNumber('');return}
+    supabase.from('super_admins').select('user_id').eq('user_id',session.user.id).maybeSingle()
+      .then(({data})=>{if(!cancelled)setIsSuperAdmin(Boolean(data))})
+    const refresh=async()=>{
+      const {data,error}=await supabase.from('support_settings').select('whatsapp_number').eq('id',1).maybeSingle()
+      if(!cancelled&&!error)setWhatsappNumber(String(data?.whatsapp_number||'').replace(/[^0-9]/g,''))
+    }
+    refresh()
+    const channel=supabase.channel('global-support-whatsapp-portal')
+      .on('postgres_changes',{event:'*',schema:'public',table:'support_settings',filter:'id=eq.1'},refresh)
+      .subscribe()
+    return()=>{cancelled=true;supabase.removeChannel(channel)}
+  },[session?.user?.id])
+
+  if(!session)return null
+  return <>
+    <button className="support-floating-launcher" onClick={()=>setOpened(true)} title="Pusat bantuan" aria-label="Buka pusat bantuan"><Headphones size={21}/></button>
+    {opened&&<SupportCenter session={session} isSuperAdmin={isSuperAdmin} whatsappNumber={whatsappNumber} onClose={()=>setOpened(false)}/>}
+  </>
 }
 
 function QueueScreen(){
