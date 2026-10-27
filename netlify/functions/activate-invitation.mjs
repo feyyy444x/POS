@@ -111,6 +111,8 @@ export default async (request) => {
       email,
       full_name: invite.full_name || '',
       is_active: true,
+      disabled_at: null,
+      disabled_by: null,
     }))
     const { error: membershipError } = await admin
       .from('store_members')
