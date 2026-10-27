@@ -266,3 +266,63 @@
 .tv-login p{color:var(--queue-muted)!important}
 @media(max-width:950px){.tv-content{grid-template-columns:1fr!important;gap:16px!important}.tv-current{min-height:350px!important}.tv-next{padding:20px!important}}
 @media(max-width:600px){.tv-screen{padding:16px 12px!important}.tv-header{gap:10px!important;align-items:center!important;flex-wrap:wrap}.tv-header .brand{font-size:16px!important}.tv-header .brand-mark{width:30px!important;height:30px!important}.tv-header>div:nth-child(2){flex:1;min-width:120px}.tv-clock{font-size:20px!important}.tv-clock small{font-size:8px!important}.tv-content{padding:16px 0!important}.tv-current{min-height:320px!important;padding:16px!important}.tv-call-main span{font-size:clamp(48px,13vw,64px)!important}.tv-call{min-width:160px!important}.tv-next-head h2{font-size:18px!important}.tv-next-row span{font-size:20px!important}.tv-footer{font-size:10px!important}}
+
+
+/* NexaPos workspace + tenant theme: logo navy, teal and clean neutral surfaces */
+:root{
+  --ink:#102d50;--muted:#60758b;--line:#dfe7ee;--purple:#087e65;--purple-dark:#066b58;
+  --surface:#fff;--bg:#f5f8fb;--nexa-navy:#102d50;--nexa-teal:#08b996;
+}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline-color:#08b996}
+.sidebar{border-right-color:#dfe7ee}
+.sidebar .brand{color:#102d50}
+.sidebar .brand-mark{background:#102d50;box-shadow:none}
+.sidebar .brand-accent{color:#08b996}
+.sidebar .brand small{color:#60758b}
+.store-avatar,.support-icon{background:#e5fbf4;color:#087e65}
+.store-switch{border-color:#dfe7ee}
+.nav-link:hover{background:#eefaf6;color:#087e65}
+.nav-link:hover svg{color:#087e65}
+.nav-active{background:#e5fbf4;color:#087e65;box-shadow:inset 3px 0 #08b996}
+.nav-active svg{color:#087e65}
+.nav-link em{background:#d6f7ed;color:#087e65}
+.support-card{background:#f0fbf7;border-color:#d5f5e9}
+.support-card button{color:#087e65}
+.user-avatar,.top-avatar{background:linear-gradient(135deg,#e0f9f0,#a9ead7);color:#087e65}
+.icon-button:hover{background:#e5fbf4;color:#087e65}
+.welcome-banner{background:linear-gradient(112deg,#102d50,#164568 62%,#087e65)}
+.banner-label{color:#9cebd6}
+.banner-copy h2 span{color:#65e2c3}
+.banner-button{color:#102d50}
+.art-ring{border-color:#d8fff025}
+.art-card-head span{background:#08b996}
+.art-chart i{background:linear-gradient(#65e2c3,#08b996)}
+.floating-chip>svg{color:#087e65}
+.eyebrow,.heading-accent{color:#087e65}
+.wave{color:#08b996}
+.btn-primary{background:#102d50;box-shadow:0 5px 14px #102d501a}
+.btn-primary:hover:not(:disabled){background:#17436b;box-shadow:0 8px 18px #102d5024}
+.btn-ghost{background:#e5fbf4;color:#087e65}
+.auth-card-icon{background:#e5fbf4;color:#087e65}
+.auth-switch button{color:#087e65}
+.field:focus-within,.text-input:focus{border-color:#08b996;box-shadow:0 0 0 3px #08b99618}
+.category-pills button.category-active{background:#e5fbf4;border-color:#b8f0df;color:#087e65}
+.product-tile:hover:not(:disabled){border-color:#9de7d4;box-shadow:0 7px 20px #08b99610}
+.product-tile-icon,.product-add{background:#e5fbf4;color:#087e65}
+.product-tile-bottom strong{color:#087e65}
+.cart-head h3 svg{color:#087e65}
+.payment-options button:focus-visible{outline-color:#08b996}
+.queue-number{background:#e5fbf4;color:#087e65}
+.queue-mini-stats div{background:#f0fbf7}
+.empty-icon{background:#e5fbf4;color:#087e65}
+.text-button{color:#087e65}
+.status-serving{background:#e5fbf4;color:#087e65}
+.date-pill:focus-visible{outline-color:#08b996}
+.toast{border-color:#b8f0df;color:#087e65}
+.support-floating-launcher{background:#102d50!important;color:#fff!important}
+.support-message-mine{background:#e5fbf4}
+.support-message>span{color:#087e65}
+.support-compose textarea:focus{border-color:#08b996}
+.support-inbox-item:hover{background:#f0fbf7;border-color:#9de7d4}
+.support-inbox-avatar{background:#e5fbf4;color:#087e65}
+@media(max-width:760px){.sidebar{border-right-color:#dfe7ee}}
