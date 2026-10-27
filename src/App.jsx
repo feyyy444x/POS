@@ -1037,7 +1037,7 @@ function PublicQueueScreen({display,error}){
   if(error&&!display)return <div className="tv-login"><Brand/><h1>URL TV tidak tersedia</h1><p>{error}</p><small>Periksa URL dari dashboard tenant atau buat URL TV baru.</small></div>
   if(!display)return <div className="tv-login"><Brand/><h1>Menghubungkan layar TV…</h1><p>Memuat antrean dan pengaturan tenant.</p></div>
   const mediaVisible=Boolean(selectedMedia)&&(!activeCall)&&(layout==='media-fullscreen'||(layout==='alternate'&&showMedia))
-  const queueVisible=activeCall||layout!=='media-fullscreen'&&(layout!=='alternate'||!showMedia)
+  const queueVisible=!selectedMedia||activeCall||(layout!=='media-fullscreen'&&(layout!=='alternate'||!showMedia))
   const portraitClass = cfg.portrait_background === 'dark' ? 'tv-portrait-dark' : cfg.portrait_background === 'theme' ? 'tv-portrait-theme' : 'tv-portrait-blur'
   const mediaNode=selectedMedia? <section className={'tv-media-panel '+portraitClass} key={selectedMedia.id}>
     {selectedMedia.media_type==='upload'||/\.(mp4|webm|ogg)(\?.*)?$/i.test(sourceUrl)?<><video className="tv-media-backdrop" key={'bg-'+sourceUrl} src={sourceUrl} autoPlay loop muted playsInline aria-hidden="true"/><video className="tv-media-foreground" key={sourceUrl} src={sourceUrl} autoPlay loop playsInline ref={videoRefVolume} onError={()=>{}}/></>:
