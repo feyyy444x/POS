@@ -336,11 +336,8 @@ function App() {
     if(!activeShift||shiftBusy||shiftCountedCash===''||shiftCountedQris==='')return
     const countedCash=Math.max(0,Number(shiftCountedCash)||0)
     const countedQris=Math.max(0,Number(shiftCountedQris)||0)
-    const closedAt=new Date().toISOString()
-    const expectedCash=Number(activeShift.opening_cash||0)+currentShiftOrders.filter(o=>o.payment_method==='cash'&&o.status==='paid').reduce((sum,o)=>sum+Number(o.total||0),0)
-    const expectedQris=currentShiftOrders.filter(o=>o.payment_method==='qris'&&o.status==='paid').reduce((sum,o)=>sum+Number(o.total||0),0)
     setShiftBusy(true)
-    const {error}=await supabase.from('cashier_shifts').update({closed_at:closedAt,counted_cash:countedCash,counted_qris:countedQris,expected_cash:expectedCash,expected_qris:expectedQris,cash_difference:countedCash-expectedCash,qris_difference:countedQris-expectedQris,notes:shiftNotes.trim()||null}).eq('id',activeShift.id).is('closed_at',null)
+    const {error}=await supabase.rpc('close_cashier_shift',{p_shift_id:activeShift.id,p_counted_cash:countedCash,p_counted_qris:countedQris,p_notes:shiftNotes.trim()||null})
     setShiftBusy(false)
     if(error){setNotice(error.message);return}
     setActiveShift(null)
