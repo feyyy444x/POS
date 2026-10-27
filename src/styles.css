@@ -860,3 +860,115 @@ tbody tr:hover{background:#f7fbfd}
   .topbar-actions .live-status { padding:6px 5px !important; font-size:7px !important; }
   .topbar-actions .top-avatar { flex-basis:27px !important; width:27px !important; height:27px !important; }
 }
+
+
+/* User-approved exact mobile header order: sidebar, back icon, date, clock, profile. */
+.desktop-date { display:inline; }
+.mobile-date { display:none; }
+@media (max-width:760px) {
+  .topbar {
+    display:flex !important;
+    flex-direction:row !important;
+    flex-wrap:nowrap !important;
+    align-items:center !important;
+    justify-content:space-between !important;
+    gap:5px !important;
+    padding:8px 9px !important;
+    min-height:54px !important;
+    overflow:hidden !important;
+  }
+  .topbar-left {
+    display:flex !important;
+    flex:0 1 auto !important;
+    width:auto !important;
+    min-width:0 !important;
+    flex-wrap:nowrap !important;
+    align-items:center !important;
+    gap:4px !important;
+  }
+  .topbar-left .mobile-menu {
+    order:0 !important;
+    flex:0 0 30px !important;
+    width:30px !important;
+    min-width:30px !important;
+    height:34px !important;
+    padding:0 !important;
+  }
+  .topbar-back {
+    order:1 !important;
+    display:inline-flex !important;
+    flex:0 0 30px !important;
+    width:30px !important;
+    min-width:30px !important;
+    height:34px !important;
+    min-height:34px !important;
+    padding:0 !important;
+    margin:0 !important;
+    justify-content:center !important;
+    gap:0 !important;
+    border-radius:8px !important;
+  }
+  .topbar-back span { display:none !important; }
+  .topbar-title-group {
+    order:2 !important;
+    display:block !important;
+    flex:0 1 65px !important;
+    width:65px !important;
+    min-width:0 !important;
+    max-width:65px !important;
+  }
+  .topbar-title-group .breadcrumb { display:none !important; }
+  .topbar-date {
+    display:block !important;
+    margin:0 !important;
+    width:100% !important;
+    font-size:10px !important;
+    line-height:1.1 !important;
+    white-space:nowrap !important;
+    overflow:hidden !important;
+    text-overflow:ellipsis !important;
+  }
+  .desktop-date { display:none !important; }
+  .mobile-date { display:inline !important; }
+  .topbar-actions {
+    display:flex !important;
+    flex:0 0 auto !important;
+    width:auto !important;
+    min-width:0 !important;
+    flex-wrap:nowrap !important;
+    align-items:center !important;
+    justify-content:flex-end !important;
+    gap:5px !important;
+  }
+  .topbar-actions .wib-digital-clock {
+    display:inline-flex !important;
+    flex:0 0 auto !important;
+    padding:5px 6px !important;
+    gap:3px !important;
+    font-size:9px !important;
+    border-radius:8px !important;
+  }
+  .topbar-actions .wib-digital-clock strong { font-size:10px !important; }
+  .topbar-actions .wib-digital-clock small { font-size:8px !important; }
+  .topbar-actions .live-status,
+  .topbar-actions .role-chip,
+  .topbar-actions .refresh-btn,
+  .topbar-actions > .icon-button { display:none !important; }
+  .topbar-actions .top-avatar {
+    display:flex !important;
+    flex:0 0 29px !important;
+    width:29px !important;
+    height:29px !important;
+    margin:0 !important;
+  }
+}
+@media (max-width:380px) {
+  .topbar { padding-left:6px !important; padding-right:6px !important; gap:3px !important; }
+  .topbar-left { gap:2px !important; }
+  .topbar-left .mobile-menu,
+  .topbar-back { flex-basis:27px !important; width:27px !important; min-width:27px !important; }
+  .topbar-title-group { flex-basis:48px !important; width:48px !important; max-width:48px !important; }
+  .topbar-actions { gap:3px !important; }
+  .topbar-actions .wib-digital-clock { padding:4px !important; }
+  .topbar-actions .top-avatar { flex-basis:26px !important; width:26px !important; height:26px !important; }
+}
