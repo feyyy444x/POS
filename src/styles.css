@@ -515,3 +515,112 @@ tbody tr:hover{background:#f7fbfd}
 .brand-mark-image{background:transparent!important;box-shadow:none!important;border-radius:0!important}.brand-mark-image .brand-logo-image{object-fit:contain}.brand-accent{color:var(--nexa-teal)!important}.sidebar .brand-mark{background:transparent!important;box-shadow:none!important}
 
 .support-guest-form{display:flex;flex-direction:column;gap:8px;margin-top:18px}.support-guest-form label{font-size:11px;font-weight:700;color:#102d50;margin-top:5px}.support-guest-form input{width:100%;box-sizing:border-box;padding:12px 13px;border:1px solid #dfe7ee;border-radius:11px;background:#fff;color:#102d50;font:inherit;font-size:13px;outline:none}.support-guest-form input:focus{border-color:#08b996;box-shadow:0 0 0 3px #08b9961c}.support-guest-form .btn{margin-top:12px;justify-content:center;min-height:44px}.support-guest-form .support-error{margin-top:5px}
+
+
+/* Cashier shift and attendance screens */
+.shift-closed-pill{background:#fff5e8!important;color:#9a5b08!important;border-color:#f4d8a7!important}
+.shift-required-banner{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:18px 20px;margin-bottom:20px;border:1px solid #f4d8a7;border-radius:16px;background:#fffaf1}
+.shift-required-banner strong{display:block;color:#102d50;font-size:14px}
+.shift-required-banner p{margin:6px 0 0;color:#60758b;font-size:12px;line-height:1.6}
+.shift-form{padding:24px;margin-bottom:22px}
+.shift-form-grid,.shift-open-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin:20px 0}
+.shift-form-grid label,.shift-open-grid label{display:flex;flex-direction:column;gap:8px;color:var(--muted);font-size:12px;font-weight:750}
+.shift-notes-label{grid-column:1/-1}
+.shift-difference-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:16px 0 20px}
+.shift-difference-grid>div{display:flex;flex-direction:column;gap:6px;padding:15px;border:1px solid var(--line);border-radius:12px;background:#f8fafc}
+.shift-difference-grid span{font-size:12px;color:var(--muted);font-weight:700}
+.shift-difference-grid strong{font-size:20px;color:var(--ink)}
+@media(max-width:650px){.shift-required-banner{align-items:flex-start;flex-direction:column}.shift-form{padding:17px}.shift-form-grid,.shift-open-grid,.shift-difference-grid{grid-template-columns:1fr}.shift-notes-label{grid-column:auto}}
+
+
+/* Reliable support entry point: compact NexaPos mark instead of a text bubble. */
+.support-floating-launcher {
+  width: 50px !important;
+  height: 50px !important;
+  min-width: 50px !important;
+  min-height: 50px !important;
+  padding: 7px !important;
+  display: grid !important;
+  place-items: center !important;
+  border: 1px solid #d9e7ee !important;
+  border-radius: 16px !important;
+  background: #fff !important;
+  color: #102d50 !important;
+  box-shadow: 0 10px 28px #102d5026 !important;
+  z-index: 80 !important;
+  touch-action: manipulation;
+}
+.support-floating-launcher img { display:block; width:100%; height:100%; max-width:36px; max-height:36px; object-fit:contain; }
+.support-floating-launcher:hover { transform: translateY(-2px); box-shadow: 0 14px 34px #102d5033 !important; }
+.support-floating-launcher:focus-visible { outline:3px solid #08b996; outline-offset:3px; }
+
+.sidebar-bottom { position:relative; z-index:3; }
+.support-card button { min-height:34px; position:relative; z-index:2; touch-action:manipulation; cursor:pointer; }
+
+.support-embedded { display:block; width:100%; min-width:0; }
+.support-modal-embedded { width:100%; max-width:none; max-height:none; min-height:580px; border-radius:18px; box-shadow:0 8px 28px #102d500c; }
+.support-modal-embedded .support-settings-view { min-height:0; }
+.support-settings-view { flex:1; min-height:0; overflow:auto; padding:22px; }
+.support-settings-intro { margin-bottom:18px; }
+.support-settings-intro h2 { font-size:22px; margin:9px 0 6px; }
+.support-settings-intro p { max-width:720px; color:#60758b; font-size:12px; line-height:1.7; margin-bottom:10px; }
+.support-settings-intro>small { display:inline-flex; align-items:center; gap:7px; color:#60758b; font-size:10px; }
+.support-realtime-dot { display:inline-block; width:7px; height:7px; border-radius:50%; background:#08b996; box-shadow:0 0 0 3px #08b9961b; }
+.support-settings-form { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+.support-channel-setting { display:flex; flex-direction:column; align-items:stretch; gap:9px; min-width:0; padding:16px; border:1px solid #dfe7ee; border-radius:14px; background:#fbfdfe; }
+.support-channel-setting>label:not(.support-toggle-row) { font-size:11px; font-weight:700; color:#102d50; margin-top:4px; }
+.support-channel-setting .text-input { width:100%; min-width:0; }
+.support-channel-setting>small { color:#60758b; font-size:10px; line-height:1.55; }
+.support-toggle-row { display:flex; align-items:flex-start; gap:10px; cursor:pointer; }
+.support-toggle-row input { margin:3px 0 0; accent-color:#08b996; width:15px; height:15px; flex-shrink:0; }
+.support-toggle-row span { display:flex; flex-direction:column; gap:4px; }
+.support-toggle-row strong { color:#102d50; font-size:12px; }
+.support-toggle-row small { color:#60758b; font-size:10px; line-height:1.55; }
+.support-settings-actions { display:flex; flex-wrap:wrap; align-items:center; gap:9px; grid-column:1/-1; padding-top:4px; }
+.support-success { display:flex; align-items:flex-start; gap:7px; margin:0; grid-column:1/-1; color:#087e65; font-size:11px; line-height:1.6; }
+.support-settings-loading { display:flex; align-items:center; gap:9px; padding:16px 0; color:#60758b; font-size:12px; }
+.support-whatsapp-icon { background:#e5fbef; color:#128c54; }
+.support-choice:disabled { opacity:.55; }
+.support-choices .support-inbox-link { min-height:36px; }
+.support-admin-page>.page-heading { margin-bottom:18px; }
+
+@media(max-width:760px) {
+  .support-modal-embedded { min-height:520px; }
+  .support-modal-embedded .support-settings-view { padding:16px; }
+  .support-settings-form { grid-template-columns:minmax(0,1fr); }
+  .support-settings-actions { grid-column:1; align-items:stretch; }
+  .support-settings-actions .btn { justify-content:center; }
+}
+@media print {
+  .support-floating-launcher, .support-overlay { display:none !important; }
+}
+
+
+/* Compact, reliable help launcher and a shared live WIB clock. */
+.support-floating-launcher{
+  width:46px!important;height:46px!important;min-width:46px!important;
+  padding:0!important;display:grid!important;place-items:center!important;
+  border-radius:50%!important;right:18px!important;bottom:18px!important;
+  z-index:130!important;overflow:hidden!important;
+  box-shadow:0 5px 18px #102d5030!important;
+}
+.support-floating-launcher img{display:block!important;width:25px!important;height:25px!important;object-fit:contain!important}
+.support-floating-launcher span{display:none!important}
+.support-floating-launcher:hover{transform:translateY(-2px) scale(1.03)}
+.wib-digital-clock{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;color:#526b82;font-size:11px;font-variant-numeric:tabular-nums}
+.wib-digital-clock strong{font-size:12px;letter-spacing:.04em;color:#102d50;font-weight:800}
+.wib-digital-clock small{font-size:9px;font-weight:800;color:#087e65}
+.wib-digital-clock em{font-style:normal;font-size:10px;color:#60758b}
+.topbar-actions .wib-digital-clock{padding:7px 9px;border:1px solid #dfe7ee;border-radius:10px;background:#fff}
+.tv-clock.wib-digital-clock{display:flex;flex-direction:column;align-items:flex-end;gap:4px;color:#fff;font-size:clamp(20px,2.3vw,34px);font-weight:800}
+.tv-clock.wib-digital-clock svg{display:none}
+.tv-clock.wib-digital-clock strong{font-size:inherit;color:inherit;letter-spacing:.02em}
+.tv-clock.wib-digital-clock small{font-size:11px;color:#c9fff0}
+.tv-clock.wib-digital-clock em{font-size:11px;color:#c7d9e8}
+@media(max-width:760px){
+  .topbar-actions .wib-digital-clock{gap:4px;padding:6px;font-size:9px}
+  .topbar-actions .wib-digital-clock svg{display:none}
+  .topbar-actions .wib-digital-clock strong{font-size:10px}
+  .support-floating-launcher{right:12px!important;bottom:12px!important;width:42px!important;height:42px!important;min-width:42px!important}
+  .support-floating-launcher img{width:23px!important;height:23px!important}
+}

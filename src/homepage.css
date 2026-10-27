@@ -16,3 +16,25 @@
 
 /* Floating guest live chat popup on the public homepage */
 .nx-livechat-launcher{position:fixed;right:24px;bottom:22px;z-index:1000;font-family:inherit}.nx-livechat-button{display:flex;align-items:center;gap:12px;position:relative;border:1px solid #d8e8e4;border-radius:18px;padding:12px 16px 12px 12px;background:#fff;color:#102d50;box-shadow:0 14px 45px #102d5024;cursor:pointer;text-align:left;transition:transform .2s,box-shadow .2s}.nx-livechat-button:hover{transform:translateY(-2px);box-shadow:0 18px 50px #102d5033}.nx-livechat-icon{display:grid;place-items:center;width:46px;height:46px;border-radius:14px;background:linear-gradient(145deg,#102d50,#087e65);color:white}.nx-livechat-button strong,.nx-livechat-button small{display:block}.nx-livechat-button strong{font-size:13px;font-weight:750}.nx-livechat-button small{font-size:11px;color:#60758b;margin-top:3px}.nx-livechat-online{width:9px;height:9px;border-radius:50%;background:#08b996;box-shadow:0 0 0 4px #08b99620;margin-left:5px;align-self:flex-start;margin-top:4px}.nx-livechat-launcher .support-widget{position:fixed;right:24px;bottom:22px;z-index:1001}@media(max-width:520px){.nx-livechat-launcher{right:12px;bottom:12px}.nx-livechat-button{padding:10px 12px 10px 10px;border-radius:15px}.nx-livechat-icon{width:42px;height:42px}.nx-livechat-launcher .support-widget{right:10px;bottom:10px;left:10px;width:auto;max-width:none}}
+
+
+/* Compact homepage support launcher; the full help dialog opens on click. */
+.nx-livechat-button {
+  width:52px !important;
+  height:52px !important;
+  min-width:52px !important;
+  min-height:52px !important;
+  display:grid !important;
+  place-items:center !important;
+  padding:6px !important;
+  border:1px solid #d9e7ee !important;
+  border-radius:16px !important;
+  background:#fff !important;
+  box-shadow:0 10px 28px #102d5026 !important;
+}
+.nx-livechat-button:hover { transform:translateY(-2px); }
+.nx-livechat-icon { width:38px !important; height:38px !important; border-radius:11px !important; background:transparent !important; color:#102d50 !important; }
+.nx-livechat-icon img { display:block; width:100%; height:100%; object-fit:contain; }
+.nx-livechat-button>span:not(.nx-livechat-icon) { display:none !important; }
+.nx-livechat-launcher { right:20px; bottom:20px; }
+@media(max-width:520px) { .nx-livechat-launcher { right:12px; bottom:12px; } }
