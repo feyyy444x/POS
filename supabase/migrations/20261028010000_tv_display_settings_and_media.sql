@@ -43,12 +43,14 @@ create table if not exists public.store_tv_media (
   constraint store_tv_media_source_check check (
     (media_type = 'link' and source_url is not null and source_url ~ '^https?://' and storage_path is null and file_size_bytes is null)
     or
-    (media_type = 'upload' and source_url is null and storage_path is not null and file_size_bytes between 1 and 104857600)
+    (media_type = 'upload' and source_url is not null and source_url ~ '^https?://' and storage_path is not null and file_size_bytes between 1 and 104857600)
   )
 );
 
--- Store TV videos in Supabase Storage. Public reads are intentional for token-based public TV screens;
--- uploads and deletes are restricted to active tenant owners/admins by folder (store UUID).
+-- Store TV videos in Supabase Storage. Public reads are intentional because public TV screens do not
+-- have a Supabase user session; upload/delete access is restricted to active tenant owners/admins.
+-- Note: the 100 MiB per-tenant aggregate is enforced on metadata rows; strict protection against direct
+-- Storage API uploads outside this UI would require a server-side upload endpoint/Edge Function.
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values ('tv-media', 'tv-media', true, 104857600, array['video/mp4', 'video/webm', 'video/ogg'])
 on conflict (id) do update
