@@ -205,6 +205,7 @@ begin
       ) order by m.sort_order, m.created_at)
       from public.store_tv_media m
       where m.store_id = s.id and m.is_active = true
+        and (m.media_type = 'link' or m.upload_status = 'complete')
     ), '[]'::jsonb),
     'current', coalesce((
       select jsonb_agg(jsonb_build_object(
