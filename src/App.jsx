@@ -594,6 +594,13 @@ function SuperAdminScreen({session,onSignOut}) {
   const statusOf=(tenant)=>tenant.status==='active'&&tenant.expires_at&&new Date(tenant.expires_at)<=new Date()?'expired':tenant.status
   const loadDisabledMembers=useCallback(async()=>{setDisabledLoading(true);const {data,error}=await supabase.rpc('super_admin_list_disabled_members');if(error)setNotice(error.message);else setDisabledMembers(data||[]);setDisabledLoading(false)},[])
   useEffect(()=>{loadDisabledMembers()},[loadDisabledMembers])
+  // Super Admin views also refresh automatically, including after a mobile browser resumes.
+  useEffect(()=>{
+    const refreshAdminData=()=>{if(document.visibilityState==='visible'){load();loadUsers();loadDisabledMembers()}}
+    const timer=setInterval(refreshAdminData,30000)
+    document.addEventListener('visibilitychange',refreshAdminData)
+    return ()=>{clearInterval(timer);document.removeEventListener('visibilitychange',refreshAdminData)}
+  },[load,loadUsers,loadDisabledMembers])
   const activeCount=tenants.filter(t=>statusOf(t)==='active').length
   const expiredCount=tenants.filter(t=>statusOf(t)==='expired').length
   const submitTenant=async(event)=>{
