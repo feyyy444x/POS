@@ -34,8 +34,9 @@ jobs:
       - name: Build Windows installer
         run: npm run tauri -- build
         env:
-          VITE_SUPABASE_URL: https://example.supabase.co
-          VITE_SUPABASE_PUBLISHABLE_KEY: ci-placeholder-key
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_TELEGRAM_SUPPORT_USERNAME: ${{ vars.VITE_TELEGRAM_SUPPORT_USERNAME }}
       - name: Upload Windows installers
         uses: actions/upload-artifact@v4
         with:
