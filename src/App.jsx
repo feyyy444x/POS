@@ -949,16 +949,23 @@ function SupportPortal() {
   }, [session?.user?.id])
   useEffect(() => {
     let cancelled=false
+    let channel=null
     if(!session?.user?.id||!supabase){setWhatsappNumber('');return}
     const loadTenantWhatsApp=async()=>{
       const {data:members}=await supabase.from('store_members').select('store_id').eq('user_id',session.user.id).order('created_at',{ascending:true}).limit(1)
       const storeId=members?.[0]?.store_id
       if(!storeId){if(!cancelled)setWhatsappNumber('');return}
-      const {data:cfg}=await supabase.from('store_settings').select('whatsapp_support_number').eq('store_id',storeId).maybeSingle()
-      if(!cancelled)setWhatsappNumber(String(cfg?.whatsapp_support_number||'').replace(/[^0-9]/g,''))
+      const refresh=async()=>{
+        const {data:cfg}=await supabase.from('store_settings').select('whatsapp_support_number').eq('store_id',storeId).maybeSingle()
+        if(!cancelled)setWhatsappNumber(String(cfg?.whatsapp_support_number||'').replace(/[^0-9]/g,''))
+      }
+      await refresh()
+      if(!cancelled)channel=supabase.channel('support-whatsapp-'+storeId)
+        .on('postgres_changes',{event:'*',schema:'public',table:'store_settings',filter:'store_id=eq.'+storeId},refresh)
+        .subscribe()
     }
     loadTenantWhatsApp()
-    return()=>{cancelled=true}
+    return()=>{cancelled=true;if(channel)supabase.removeChannel(channel)}
   },[session?.user?.id])
   // App itself enforces PIN verification before exposing the workspace. Avoid a second,
   // independent PIN check here: a transient RPC failure could otherwise hide the help modal.
