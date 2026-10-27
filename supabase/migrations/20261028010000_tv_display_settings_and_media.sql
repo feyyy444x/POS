@@ -66,19 +66,6 @@ set public = true,
 drop policy if exists "Tenant managers upload TV media" on storage.objects;
 
 drop policy if exists "Tenant managers delete TV media" on storage.objects;
-create policy "Tenant managers delete TV media"
-on storage.objects for delete to authenticated
-using (
-  bucket_id = 'tv-media'
-  and exists (
-    select 1 from public.store_members sm
-    where sm.store_id::text = (storage.foldername(name))[1]
-      and sm.user_id = (select auth.uid())
-      and sm.is_active = true
-      and sm.disabled_at is null
-      and sm.role in ('owner','admin')
-  )
-);
 
 create index if not exists store_tv_media_store_order_idx
   on public.store_tv_media(store_id, sort_order, created_at);
@@ -115,9 +102,14 @@ with check (
 );
 
 drop policy if exists "Store managers manage TV media" on public.store_tv_media;
-create policy "Store managers manage TV media"
-on public.store_tv_media
-for all to authenticated
+drop policy if exists "Store managers read TV media" on public.store_tv_media;
+drop policy if exists "Store managers add TV links" on public.store_tv_media;
+drop policy if exists "Store managers delete TV links" on public.store_tv_media;
+
+-- Managers can read tenant media, but uploaded-file metadata is written only by the
+-- service-role Edge Function after it has validated membership, quota, and the object.
+create policy "Store managers read TV media"
+on public.store_tv_media for select to authenticated
 using (
   exists (
     select 1 from public.store_members sm
@@ -127,9 +119,27 @@ using (
       and sm.disabled_at is null
       and sm.role in ('owner','admin')
   )
-)
+);
+
+create policy "Store managers add TV links"
+on public.store_tv_media for insert to authenticated
 with check (
-  exists (
+  media_type = 'link'
+  and exists (
+    select 1 from public.store_members sm
+    where sm.store_id = store_tv_media.store_id
+      and sm.user_id = (select auth.uid())
+      and sm.is_active = true
+      and sm.disabled_at is null
+      and sm.role in ('owner','admin')
+  )
+);
+
+create policy "Store managers delete TV links"
+on public.store_tv_media for delete to authenticated
+using (
+  media_type = 'link'
+  and exists (
     select 1 from public.store_members sm
     where sm.store_id = store_tv_media.store_id
       and sm.user_id = (select auth.uid())
@@ -152,7 +162,12 @@ begin
     return new;
   end if;
 
-  perform pg_advisory_xact_lock(hashtext(new.store_id::text));
+  perform pg_advisory_xact_lock(hashtextextended(new.store_id::text, 0));
+
+  if new.upload_status = 'pending'
+     and (new.reservation_expires_at is null or new.reservation_expires_at <= now()) then
+    raise exception 'Reservasi upload harus memiliki masa berlaku di masa depan.';
+  end if;
   select coalesce(sum(file_size_bytes), 0)
     into used_bytes
     from public.store_tv_media
