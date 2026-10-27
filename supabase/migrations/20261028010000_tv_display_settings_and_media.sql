@@ -36,6 +36,9 @@ create table if not exists public.store_tv_media (
   storage_path text,
   mime_type text,
   file_size_bytes bigint,
+  -- Pending reservations expire so abandoned uploads never consume quota indefinitely.
+  upload_status text not null default 'complete' check (upload_status in ('pending','complete')),
+  reservation_expires_at timestamptz,
   sort_order integer not null default 0,
   is_active boolean not null default true,
   created_at timestamptz not null default now(),
@@ -155,7 +158,8 @@ begin
     from public.store_tv_media
    where store_id = new.store_id
      and id <> new.id
-     and media_type = 'upload';
+     and media_type = 'upload'
+     and (upload_status = 'complete' or (upload_status = 'pending' and reservation_expires_at > now()));
 
   if coalesce(new.file_size_bytes, 0) < 1
      or used_bytes + new.file_size_bytes > 104857600 then
@@ -167,7 +171,7 @@ $$;
 
 drop trigger if exists store_tv_media_quota_guard on public.store_tv_media;
 create trigger store_tv_media_quota_guard
-before insert or update of store_id, media_type, file_size_bytes
+before insert or update of store_id, media_type, file_size_bytes, upload_status, reservation_expires_at
 on public.store_tv_media
 for each row execute function public.enforce_store_tv_media_quota();
 
