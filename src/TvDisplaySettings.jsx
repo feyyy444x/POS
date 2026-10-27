@@ -45,6 +45,28 @@ function randomToken() {
   return Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('')
 }
 
+function previewSource(item) {
+  const url = item?.source_url || ''
+  if (!url) return { type: 'placeholder', url: '' }
+  if (/\\.(mp4|webm|ogg)(\\?.*)?$/i.test(url)) return { type: 'video', url }
+  try {
+    const parsed = new URL(url)
+    if (parsed.hostname.includes('youtu.be')) {
+      const id = parsed.pathname.split('/').filter(Boolean)[0]
+      return id ? { type: 'embed', url: 'https://www.youtube-nocookie.com/embed/' + id + '?autoplay=1&mute=1&loop=1&playlist=' + id + '&controls=0' } : { type: 'link', url }
+    }
+    if (parsed.hostname.includes('youtube.com')) {
+      const id = parsed.searchParams.get('v') || parsed.pathname.split('/').filter(Boolean).pop()
+      return id ? { type: 'embed', url: 'https://www.youtube-nocookie.com/embed/' + id + '?autoplay=1&mute=1&loop=1&playlist=' + id + '&controls=0' } : { type: 'link', url }
+    }
+    if (parsed.hostname.includes('tiktok.com')) {
+      const match = parsed.pathname.match(/\\/video\\/(\\d+)/)
+      return match ? { type: 'embed', url: 'https://www.tiktok.com/embed/v2/' + match[1] } : { type: 'link', url }
+    }
+  } catch {}
+  return { type: 'link', url }
+}
+
 export default function TvDisplaySettings({ store, membership, onNotice }) {
   const [draft, setDraft] = useState(DEFAULTS)
   const [media, setMedia] = useState([])
@@ -241,7 +263,7 @@ export default function TvDisplaySettings({ store, membership, onNotice }) {
             <header><span className="tv-preview-brand">Nexa<span>Pos</span></span><span className="tv-preview-live">● LIVE</span></header>
             <div className={'tv-preview-body tv-layout-' + draft.layout_mode}>
               <section className="tv-preview-queue"><small>NOMOR ANTRIAN DIPANGGIL</small><strong className="tv-preview-number">A012</strong><b className="tv-preview-customer">Pelanggan contoh</b><span className="tv-preview-counter">Kasir 1</span><div className="tv-preview-next"><small>ANTRIAN BERIKUTNYA</small><strong>A013　A014　A015</strong></div></section>
-              <section className="tv-preview-media"><div className="tv-preview-media-blur"/><div className="tv-preview-media-card"><Video size={24}/><strong>{media[0]?.title || 'Media promosi'}</strong><small>{media.length ? 'Contoh area media' : 'Tambahkan media untuk pratinjau'}</small></div></section>
+              <section className="tv-preview-media"><div className="tv-preview-media-blur"/>{media[0]?.media_type==='upload'?<div className="tv-preview-media-card"><Video size={24}/><strong>{media[0].title}</strong><small>Pratinjau video upload menunggu konfigurasi penyimpanan</small></div>:previewSource(media[0]).type==='video'?<><video className="tv-preview-media-backdrop" src={previewSource(media[0]).url} muted autoPlay loop playsInline/><video className="tv-preview-media-video" src={previewSource(media[0]).url} muted autoPlay loop playsInline/><span className="tv-preview-media-label">{media[0].title}</span></>:previewSource(media[0]).type==='embed'?<iframe title={media[0].title} src={previewSource(media[0]).url} allow="autoplay; encrypted-media; picture-in-picture" allowFullScreen/>:<a className="tv-preview-media-card" href={previewSource(media[0]).url||undefined} target="_blank" rel="noreferrer"><Video size={24}/><strong>{media[0]?.title || 'Media promosi'}</strong><small>{media.length ? 'Buka tautan untuk melihat media' : 'Tambahkan media untuk pratinjau'}</small></a>}</section>
             </div>
             <footer>Informasi antrean diperbarui otomatis</footer>
           </div>
