@@ -224,7 +224,7 @@ function App() {
     const refreshOrders = () => supabase.from('orders').select('*').eq('store_id',storeId).order('created_at',{ascending:false}).then(({data,error})=>{if(!error&&data)setOrders(data)})
     const refreshProducts = () => supabase.from('products').select('*').eq('store_id',storeId).order('created_at',{ascending:false}).then(({data,error})=>{if(!error&&data)setProducts(data)})
     const refreshSettings = () => supabase.from('store_settings').select('*').eq('store_id',storeId).maybeSingle().then(({data,error})=>{if(!error&&data)setSettings(data)})
-    const refreshTeam = () => { if (membership.role==='owner') loadWorkspace() }
+    const refreshTeam = () => loadWorkspace()
     const channel = supabase.channel('nexapos-live-'+storeId)
       .on('postgres_changes',{event:'*',schema:'public',table:'queue_tickets',filter:'store_id=eq.'+storeId},payload=>{
         if(payload.eventType==='DELETE') setQueue(prev=>prev.filter(t=>t.id!==payload.old.id))
@@ -233,6 +233,7 @@ function App() {
       .on('postgres_changes',{event:'*',schema:'public',table:'products',filter:'store_id=eq.'+storeId},refreshProducts)
       .on('postgres_changes',{event:'*',schema:'public',table:'orders',filter:'store_id=eq.'+storeId},refreshOrders)
       .on('postgres_changes',{event:'*',schema:'public',table:'store_settings',filter:'store_id=eq.'+storeId},refreshSettings)
+      .on('postgres_changes',{event:'*',schema:'public',table:'stores',filter:'id=eq.'+storeId},refreshTeam)
       .on('postgres_changes',{event:'*',schema:'public',table:'store_members',filter:'store_id=eq.'+storeId},refreshTeam)
       .on('postgres_changes',{event:'*',schema:'public',table:'store_invites',filter:'store_id=eq.'+storeId},refreshTeam)
       .subscribe()
