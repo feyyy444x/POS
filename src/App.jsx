@@ -21,6 +21,7 @@ function AuthScreen() {
   const [mode, setMode] = useState('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [activationCode, setActivationCode] = useState('')
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState('')
   const [success, setSuccess] = useState(false)
@@ -42,7 +43,7 @@ function AuthScreen() {
         const response = await fetch('/.netlify/functions/activate-invitation', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: email.trim(), password }),
+          body: JSON.stringify({ email: email.trim(), password, activationCode: activationCode.trim() }),
         })
         const result = await response.json().catch(() => ({}))
         if (!response.ok) throw new Error(result.error || 'Aktivasi undangan gagal. Periksa kembali email dan status undangan.')
@@ -74,6 +75,7 @@ function AuthScreen() {
       <h2>{mode === 'login' ? 'Selamat datang' : 'Aktivasi Undangan'}</h2>
       <p className="subtle">{mode === 'login' ? 'Masuk menggunakan akun NexaPos yang sudah aktif.' : 'Aktivasi hanya tersedia untuk email yang telah didaftarkan Owner atau Super Admin.'}</p>
       <label>Email terdaftar pada undangan</label><div className="field"><UserRound size={17}/><input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="nama@bisnis.com" required autoComplete="email"/></div>
+      {mode === 'activate' && <><label>Kode aktivasi dari Owner</label><div className="field"><KeyRound size={17}/><input value={activationCode} onChange={e=>setActivationCode(e.target.value.replace(/[^a-f0-9]/gi,'').slice(0,32))} placeholder="Tempel kode aktivasi" autoComplete="off" required minLength={32} maxLength={32}/></div></>}
       <label>Password {mode === 'login' ? '' : 'baru'}</label><div className="field"><ShieldCheck size={17}/><input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder={mode==='login'?'Masukkan password':'Minimal 8 karakter'} required minLength={mode==='login'?1:8} autoComplete={mode==='login'?'current-password':'new-password'}/></div>
       {message && <div className={`notice ${success ? 'notice-success' : ''}`}>{message}</div>}
       <button className="btn btn-primary btn-wide" disabled={busy}>{busy ? <span className="spinner"/> : mode==='login' ? 'Masuk ke workspace' : 'Verifikasi & aktifkan akun'} <ArrowRight size={17}/></button>
@@ -287,12 +289,13 @@ function App() {
     event.preventDefault()
     if (membership?.role !== 'owner') { setNotice('Hanya Owner yang dapat mendaftarkan karyawan.'); return }
     const form = new FormData(event.currentTarget)
+    const activationCode = crypto.randomUUID().replaceAll('-', '')
     setTeamSaving(true)
-    const {error} = await supabase.rpc('invite_store_member', {p_store_id:store.id,p_email:String(form.get('email')||'').trim(),p_full_name:String(form.get('full_name')||'').trim(),p_role:String(form.get('role')||'cashier')})
+    const {error} = await supabase.rpc('invite_store_member', {p_store_id:store.id,p_email:String(form.get('email')||'').trim(),p_full_name:String(form.get('full_name')||'').trim(),p_role:String(form.get('role')||'cashier'),p_activation_code:activationCode})
     setTeamSaving(false)
     if (error) { setNotice(error.message); return }
     event.currentTarget.reset()
-    setNotice('Undangan dibuat. Pengguna wajib membuka menu Aktivasi Undangan, memverifikasi email yang terdaftar, dan membuat password sebelum login.')
+    setNotice('Undangan dibuat. Kode aktivasi sekali pakai: '+activationCode+'. Salin dan kirimkan secara pribadi kepada karyawan. Kode diperlukan untuk aktivasi.')
     await loadWorkspace()
   }
 
