@@ -41,5 +41,5 @@ begin
 end;
 $function$;
 
-revoke all on function public.owner_regenerate_store_invite(uuid, text) from public;
+revoke all on function public.owner_regenerate_store_invite(uuid, text) from public, anon;
 grant execute on function public.owner_regenerate_store_invite(uuid, text) to authenticated;
