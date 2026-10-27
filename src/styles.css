@@ -706,3 +706,53 @@ tbody tr:hover{background:#f7fbfd}
   .cart-panel { min-width: 0; }
   .support-settings-form { grid-template-columns: minmax(0, 1fr); }
 }
+
+
+/* Mobile header hierarchy requested: Back, date, WIB time, Live Sync and profile.
+   Hide the redundant Workspace / module breadcrumb only on narrow screens. */
+.topbar-back { display:none; }
+.topbar-title-group { min-width:0; }
+@media (max-width:760px) {
+  .topbar { display:flex; flex-direction:column; align-items:stretch; gap:9px; }
+  .topbar-left {
+    display:flex;
+    flex:1 1 auto;
+    width:100%;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:9px;
+  }
+  .topbar-back {
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    flex:0 0 auto;
+    gap:7px;
+    min-height:40px;
+    padding:8px 12px;
+    white-space:nowrap;
+  }
+  .topbar-left .mobile-menu { flex:0 0 40px; }
+  .topbar-title-group { flex:1 1 100%; order:3; }
+  .topbar-title-group .breadcrumb { display:none !important; }
+  .topbar-date { display:block; margin:0; font-size:12px; }
+  .topbar-actions {
+    width:100%;
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    justify-content:flex-start;
+    gap:8px;
+  }
+  .topbar-actions .wib-digital-clock { flex:0 0 auto; }
+  .topbar-actions .live-status { flex:0 0 auto; }
+  .topbar-actions .refresh-btn { display:none; }
+  .topbar-actions .top-avatar { margin-left:auto; flex:0 0 auto; }
+}
+@media (max-width:420px) {
+  .topbar { padding:9px 12px; }
+  .topbar-back { min-height:38px; padding:7px 10px; font-size:12px; }
+  .topbar-actions { gap:7px; }
+  .topbar-actions .wib-digital-clock { padding:6px 8px; }
+  .topbar-actions .live-status { padding:7px 9px; font-size:9px; }
+}
