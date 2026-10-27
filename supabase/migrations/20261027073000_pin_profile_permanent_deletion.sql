@@ -102,7 +102,7 @@ end;
 $$;
 
 create or replace function public.change_my_pin(p_current_pin text,p_new_pin text)
-returns void language plpgsql security definer set search_path = ''
+returns boolean language plpgsql security definer set search_path = ''
 as $$
 declare v_user uuid := auth.uid(); v_session uuid := private.current_session_id(); v_hash text; v_attempts integer; v_locked timestamptz;
 begin
@@ -118,14 +118,15 @@ begin
       failed_attempts=case when public.user_pin_attempt_limits.locked_until is not null and public.user_pin_attempt_limits.locked_until<=now() then 1 else public.user_pin_attempt_limits.failed_attempts+1 end,
       locked_until=case when (case when public.user_pin_attempt_limits.locked_until is not null and public.user_pin_attempt_limits.locked_until<=now() then 1 else public.user_pin_attempt_limits.failed_attempts+1 end)>=5 then now()+interval '15 minutes' else null end,
       updated_at=now();
-    raise exception 'PIN saat ini salah';
+    return false;
   end if;
   delete from public.user_pin_attempt_limits where user_id=v_user;
   update public.user_security_pins set pin_hash=extensions.crypt(p_new_pin,extensions.gen_salt('bf')),updated_at=now() where user_id=v_user;
   delete from public.pin_verified_sessions where user_id=v_user;
   insert into public.pin_verified_sessions(session_id,user_id,expires_at) values(v_session,v_user,now()+interval '12 hours');
+  return true;
 end;
-$$;
+$;
 
 create or replace function public.update_my_profile(p_full_name text)
 returns void language plpgsql security definer set search_path = ''
