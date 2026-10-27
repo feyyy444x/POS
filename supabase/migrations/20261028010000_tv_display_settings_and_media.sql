@@ -48,9 +48,9 @@ create table if not exists public.store_tv_media (
 );
 
 -- Store TV videos in Supabase Storage. Public reads are intentional because public TV screens do not
--- have a Supabase user session; upload/delete access is restricted to active tenant owners/admins.
--- Note: the 100 MiB per-tenant aggregate is enforced on metadata rows; strict protection against direct
--- Storage API uploads outside this UI would require a server-side upload endpoint/Edge Function.
+-- have a Supabase user session. Direct client uploads are disabled below; the server-controlled
+-- tv-media-upload Edge Function reserves quota before issuing signed upload URLs and verifies uploads.
+-- Upload/delete access must remain tenant-scoped; public object URLs are readable by anyone who has them.
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values ('tv-media', 'tv-media', true, 104857600, array['video/mp4', 'video/webm', 'video/ogg'])
 on conflict (id) do update
