@@ -8,6 +8,8 @@ import {
 } from 'lucide-react'
 import { isSupabaseConfigured, supabase } from './lib/supabase'
 import SupportCenter from './SupportCenter.jsx'
+import Homepage from './Homepage.jsx'
+import PromotionManager from './PromotionManager.jsx'
 
 const money = (value) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value || 0))
 const today = () => new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' })
@@ -511,7 +513,7 @@ function App() {
   ]
 
   if(!authReady || (session && !adminCheckReady))return <div className="loading-screen"><span className="spinner spinner-large"/><span>Menyiapkan NexaPos…</span></div>
-  if(!session)return <AuthScreen/>
+  if(!session)return (window.location.pathname === '/' || window.location.pathname === '/index.html' ? <Homepage/> : <AuthScreen/>)
   if(!pinStatus)return <div className="loading-screen"><span className="spinner spinner-large"/><span>Memeriksa keamanan akun…</span></div>
   if(pinStatus.error)return <div className="loading-screen"><p>Modul keamanan PIN belum siap: {pinStatus.error}</p><p>Terapkan migrasi PIN sebelum memakai versi ini.</p><button className="btn btn-outline" onClick={()=>supabase.auth.signOut()}>Keluar</button></div>
   if(!pinStatus.has_pin||!pinStatus.is_verified)return <PinGate session={session} status={pinStatus} onReady={setPinStatus} onSignOut={()=>supabase.auth.signOut()}/>
@@ -801,9 +803,10 @@ function SuperAdminScreen({session,onSignOut}) {
     const matches=!q||[u.email,u.full_name,u.user_id,u.store_names,u.tenant_roles].some(v=>String(v||'').toLowerCase().includes(q))
     return matches&&(userStatus==='all'||(userStatus==='blocked'?u.is_banned:!u.is_banned))
   })
-  const navItems=[['dashboard','Ringkasan',LayoutDashboard],['stores','Toko / tenant',Store],['users','Manajemen user',Users],['disabled','Akun staf nonaktif',Ban]]
+  const navItems=[['dashboard','Ringkasan',LayoutDashboard],['stores','Toko / tenant',Store],['users','Manajemen user',Users],['disabled','Akun staf nonaktif',Ban],['promotions','Promo & Diskon',Ticket]]
   const selectSection=(id)=>{setSection(id);setMobileNav(false)}
-  const pageTitle={dashboard:'Ringkasan platform',stores:'Manajemen toko',users:'Manajemen user',disabled:'Akun staf nonaktif'}[section]
+  const pageTitle={dashboard:'Ringkasan platform',stores:'Manajemen toko',users:'Manajemen user',disabled:'Akun staf nonaktif',promotions:'Promo & Diskon'}[section]
+  if(section==='promotions') return <PromotionManager onBack={()=>setSection('dashboard')} onSignOut={onSignOut}/>
   return <div className="app-shell super-admin-shell">
     <aside className={`sidebar ${mobileNav?'sidebar-open':''}`}>
       <div className="sidebar-brand"><Brand/></div>
