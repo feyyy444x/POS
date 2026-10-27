@@ -19,7 +19,7 @@ NexaPos is a responsive point-of-sale, inventory, and real-time queue management
 4. Build with `npm run build`.
 
 ## Deployment
-Netlify uses `npm run build` and publishes `dist`. SPA routing is configured in `netlify.toml`. Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` in Netlify's build environment for every deployment context that should connect to Supabase. Vite embeds these values during build, so changing them requires a fresh deploy.
+Netlify uses `npm run build` and publishes `dist`. SPA routing is configured in `netlify.toml`. Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` in Netlify's build environment for every deployment context that should connect to Supabase. Vite embeds these values during build, so changing them requires a fresh deploy. For pull-request testing, ensure both variables are set in the **Deploy Preview** context and redeploy that preview; changing variables does not update an already-published preview automatically.
 
 ## Notes
 - All exposed application tables have Row Level Security policies.
