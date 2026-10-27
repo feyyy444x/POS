@@ -1,0 +1,48 @@
+name: NexaPos PWA package
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [feature/nexapos-app-packaging]
+    paths:
+      - "src/**"
+      - "public/**"
+      - "index.html"
+      - "package.json"
+      - "vite.config.js"
+      - ".github/workflows/pwa-package.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build-pwa:
+    name: Build installable web bundle
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: npm install --no-package-lock
+      - name: Build PWA bundle
+        run: npm run build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_TELEGRAM_SUPPORT_USERNAME: ${{ vars.VITE_TELEGRAM_SUPPORT_USERNAME }}
+      - name: Verify PWA assets
+        run: |
+          test -s dist/manifest.webmanifest
+          test -s dist/sw.js
+          test -s dist/index.html
+      - name: Upload PWA bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: nexapos-pwa-${{ github.sha }}
+          path: dist/
+          if-no-files-found: error
+          retention-days: 14
