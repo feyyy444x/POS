@@ -47,6 +47,43 @@ create table if not exists public.store_tv_media (
   )
 );
 
+-- Store TV videos in Supabase Storage. Public reads are intentional for token-based public TV screens;
+-- uploads and deletes are restricted to active tenant owners/admins by folder (store UUID).
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('tv-media', 'tv-media', true, 104857600, array['video/mp4', 'video/webm', 'video/ogg'])
+on conflict (id) do update
+set public = true,
+    file_size_limit = 104857600,
+    allowed_mime_types = array['video/mp4', 'video/webm', 'video/ogg'];
+
+drop policy if exists "Tenant managers upload TV media" on storage.objects;
+create policy "Tenant managers upload TV media"
+on storage.objects for insert to authenticated
+with check (
+  bucket_id = 'tv-media'
+  and exists (
+    select 1 from public.store_members sm
+    where sm.store_id::text = (storage.foldername(name))[1]
+      and sm.user_id = (select auth.uid())
+      and sm.is_active = true
+      and sm.role in ('owner','admin')
+  )
+);
+
+drop policy if exists "Tenant managers delete TV media" on storage.objects;
+create policy "Tenant managers delete TV media"
+on storage.objects for delete to authenticated
+using (
+  bucket_id = 'tv-media'
+  and exists (
+    select 1 from public.store_members sm
+    where sm.store_id::text = (storage.foldername(name))[1]
+      and sm.user_id = (select auth.uid())
+      and sm.is_active = true
+      and sm.role in ('owner','admin')
+  )
+);
+
 create index if not exists store_tv_media_store_order_idx
   on public.store_tv_media(store_id, sort_order, created_at);
 
