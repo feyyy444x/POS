@@ -258,6 +258,12 @@ function App() {
     const refreshProducts = () => supabase.from('products').select('*').eq('store_id',storeId).order('created_at',{ascending:false}).then(({data,error})=>{if(!error&&data)setProducts(data)})
     const refreshSettings = () => supabase.from('store_settings').select('*').eq('store_id',storeId).maybeSingle().then(({data,error})=>{if(!error&&data)setSettings(data)})
     const refreshTeam = () => loadWorkspace()
+    const refreshOrderItems = () => {
+      const orderIds = orders.map(order => order.id)
+      if (!orderIds.length) { setOrderItems([]); return }
+      supabase.from('order_items').select('*').in('order_id',orderIds)
+        .then(({data,error})=>{if(!error&&data)setOrderItems(data)})
+    }
     const channel = supabase.channel('nexapos-live-'+storeId)
       .on('postgres_changes',{event:'*',schema:'public',table:'queue_tickets',filter:'store_id=eq.'+storeId},payload=>{
         if(payload.eventType==='DELETE') setQueue(prev=>prev.filter(t=>t.id!==payload.old.id))
@@ -265,6 +271,10 @@ function App() {
       })
       .on('postgres_changes',{event:'*',schema:'public',table:'products',filter:'store_id=eq.'+storeId},refreshProducts)
       .on('postgres_changes',{event:'*',schema:'public',table:'orders',filter:'store_id=eq.'+storeId},refreshOrders)
+      .on('postgres_changes',{event:'*',schema:'public',table:'order_items'},payload=>{
+        const orderId = payload.new?.order_id || payload.old?.order_id
+        if (orderId && orders.some(order=>order.id===orderId)) refreshOrderItems()
+      })
       .on('postgres_changes',{event:'*',schema:'public',table:'store_settings',filter:'store_id=eq.'+storeId},refreshSettings)
       .on('postgres_changes',{event:'*',schema:'public',table:'stores',filter:'id=eq.'+storeId},refreshTeam)
       .on('postgres_changes',{event:'*',schema:'public',table:'store_members',filter:'store_id=eq.'+storeId},refreshTeam)
@@ -274,7 +284,7 @@ function App() {
     return ()=>{
       supabase.removeChannel(channel)
     }
-  },[session,membership?.store_id,membership?.role,loadWorkspace])
+  },[session,membership?.store_id,membership?.role,loadWorkspace,orders])
 
   useEffect(()=>{if(!notice)return;const timer=setTimeout(()=>setNotice(''),4500);return()=>clearTimeout(timer)},[notice])
 
