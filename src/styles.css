@@ -1043,3 +1043,45 @@ tbody tr:hover{background:#f7fbfd}
     line-height:1 !important;
   }
 }
+
+
+/* Make the floating live-chat/help launcher a true perfect circle. */
+.support-floating-launcher {
+  width:48px !important;
+  height:48px !important;
+  min-width:48px !important;
+  min-height:48px !important;
+  max-width:48px !important;
+  max-height:48px !important;
+  padding:0 !important;
+  aspect-ratio:1 / 1 !important;
+  box-sizing:border-box !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  border-radius:50% !important;
+  overflow:hidden !important;
+}
+.support-floating-launcher img {
+  display:block !important;
+  flex:0 0 25px !important;
+  width:25px !important;
+  height:25px !important;
+  max-width:25px !important;
+  max-height:25px !important;
+  margin:0 !important;
+  object-fit:contain !important;
+  object-position:center !important;
+}
+@media (max-width:760px) {
+  .support-floating-launcher {
+    width:44px !important;
+    height:44px !important;
+    min-width:44px !important;
+    min-height:44px !important;
+    max-width:44px !important;
+    max-height:44px !important;
+    border-radius:50% !important;
+    padding:0 !important;
+  }
+}
