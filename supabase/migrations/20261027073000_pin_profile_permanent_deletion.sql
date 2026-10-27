@@ -189,7 +189,7 @@ $$;
 create or replace function public.set_store_tenant_status(p_store_id uuid,p_status text)
 returns public.stores
 language plpgsql security definer set search_path = ''
-as $
+as $tenant_status$
 declare v_store public.stores;
 begin
   if not private.is_super_admin() then raise exception 'Super Admin access required'; end if;
@@ -201,7 +201,7 @@ begin
   if v_store.id is null then raise exception 'Tenant tidak ditemukan'; end if;
   return v_store;
 end;
-$;
+$tenant_status$;
 
 create or replace function public.super_admin_list_users()
 returns table(
