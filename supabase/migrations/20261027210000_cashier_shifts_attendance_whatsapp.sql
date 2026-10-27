@@ -178,3 +178,60 @@ begin
     alter publication supabase_realtime add table public.cashier_shifts;
   end if;
 end $$;
+
+
+-- Super Admin can configure a support number for any tenant without joining that tenant.
+create or replace function public.super_admin_list_tenant_whatsapp()
+returns table(store_id uuid, whatsapp_support_number text)
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+begin
+  if not exists (select 1 from public.super_admins sa where sa.user_id = (select auth.uid())) then
+    raise exception 'Super Admin access required';
+  end if;
+  return query
+    select s.id, ss.whatsapp_support_number
+    from public.stores s
+    left join public.store_settings ss on ss.store_id = s.id
+    where s.status <> 'deleted';
+end;
+$$;
+
+create or replace function public.super_admin_set_tenant_whatsapp(
+  p_store_id uuid,
+  p_number text
+) returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_number text := nullif(regexp_replace(coalesce(p_number,''), '[^0-9]', '', 'g'), '');
+begin
+  if not exists (select 1 from public.super_admins sa where sa.user_id = (select auth.uid())) then
+    raise exception 'Super Admin access required';
+  end if;
+  if v_number is not null and v_number !~ '^[0-9]{8,15}$' then
+    raise exception 'WhatsApp number must contain 8 to 15 digits including country code';
+  end if;
+  if not exists (select 1 from public.stores s where s.id = p_store_id and s.status <> 'deleted') then
+    raise exception 'Tenant not found';
+  end if;
+
+  insert into public.store_settings(store_id, store_name, whatsapp_support_number, updated_at)
+  select s.id, s.name, v_number, now()
+  from public.stores s
+  where s.id = p_store_id
+  on conflict (store_id) do update
+    set whatsapp_support_number = excluded.whatsapp_support_number,
+        updated_at = now();
+end;
+$$;
+
+revoke all on function public.super_admin_list_tenant_whatsapp() from public, anon;
+revoke all on function public.super_admin_set_tenant_whatsapp(uuid,text) from public, anon;
+grant execute on function public.super_admin_list_tenant_whatsapp() to authenticated;
+grant execute on function public.super_admin_set_tenant_whatsapp(uuid,text) to authenticated;
