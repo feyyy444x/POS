@@ -72,6 +72,7 @@ using (
     where sm.store_id::text = (storage.foldername(name))[1]
       and sm.user_id = (select auth.uid())
       and sm.is_active = true
+      and sm.disabled_at is null
       and sm.role in ('owner','admin')
   )
 );
@@ -95,6 +96,7 @@ using (
     where sm.store_id = store_tv_settings.store_id
       and sm.user_id = (select auth.uid())
       and sm.is_active = true
+      and sm.disabled_at is null
       and sm.role in ('owner','admin')
   )
 )
@@ -104,6 +106,7 @@ with check (
     where sm.store_id = store_tv_settings.store_id
       and sm.user_id = (select auth.uid())
       and sm.is_active = true
+      and sm.disabled_at is null
       and sm.role in ('owner','admin')
   )
 );
@@ -118,6 +121,7 @@ using (
     where sm.store_id = store_tv_media.store_id
       and sm.user_id = (select auth.uid())
       and sm.is_active = true
+      and sm.disabled_at is null
       and sm.role in ('owner','admin')
   )
 )
@@ -127,6 +131,7 @@ with check (
     where sm.store_id = store_tv_media.store_id
       and sm.user_id = (select auth.uid())
       and sm.is_active = true
+      and sm.disabled_at is null
       and sm.role in ('owner','admin')
   )
 );
