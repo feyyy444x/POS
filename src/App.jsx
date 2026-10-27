@@ -237,15 +237,8 @@ function App() {
       .on('postgres_changes',{event:'*',schema:'public',table:'store_members',filter:'store_id=eq.'+storeId},refreshTeam)
       .on('postgres_changes',{event:'*',schema:'public',table:'store_invites',filter:'store_id=eq.'+storeId},refreshTeam)
       .subscribe()
-    // Fallback when a mobile browser suspends/reconnects its realtime websocket.
-    refreshTimer = setInterval(() => {
-      if (document.visibilityState === 'visible') loadWorkspace()
-    }, 30000)
-    const onVisible = () => { if (document.visibilityState === 'visible') loadWorkspace() }
-    document.addEventListener('visibilitychange', onVisible)
+    // No polling or page-visibility refresh: data updates through Supabase Realtime events.
     return ()=>{
-      clearInterval(refreshTimer)
-      document.removeEventListener('visibilitychange', onVisible)
       supabase.removeChannel(channel)
     }
   },[session,membership?.store_id,membership?.role,loadWorkspace])
@@ -599,12 +592,14 @@ function SuperAdminScreen({session,onSignOut}) {
     window.addEventListener('online',refresh)
     return()=>{clearInterval(timer);document.removeEventListener('visibilitychange',refresh);window.removeEventListener('online',refresh);supabase.removeChannel(channel)}
   },[load,loadUsers,loadDisabledMembers])
-  // Super Admin views also refresh automatically, including after a mobile browser resumes.
+  // Super Admin lists update from database events; no polling.
   useEffect(()=>{
-    const refreshAdminData=()=>{if(document.visibilityState==='visible'){load();loadUsers();loadDisabledMembers()}}
-    const timer=setInterval(refreshAdminData,30000)
-    document.addEventListener('visibilitychange',refreshAdminData)
-    return ()=>{clearInterval(timer);document.removeEventListener('visibilitychange',refreshAdminData)}
+    const channel=supabase.channel('nexapos-super-admin-live')
+      .on('postgres_changes',{event:'*',schema:'public',table:'stores'},()=>{load();loadUsers()})
+      .on('postgres_changes',{event:'*',schema:'public',table:'store_members'},()=>{loadUsers();loadDisabledMembers()})
+      .on('postgres_changes',{event:'*',schema:'public',table:'store_invites'},()=>loadUsers())
+      .subscribe()
+    return ()=>{supabase.removeChannel(channel)}
   },[load,loadUsers,loadDisabledMembers])
   const activeCount=tenants.filter(t=>statusOf(t)==='active').length
   const expiredCount=tenants.filter(t=>statusOf(t)==='expired').length
