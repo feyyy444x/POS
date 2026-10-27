@@ -12,12 +12,21 @@ NexaPos is a responsive point-of-sale, inventory, and real-time queue management
 - Real-time queue ticket creation, call/serve/complete/skip actions, and TV display
 - Sales history and CSV export
 - Store settings and role-based manager controls
+- Help Center with in-app live chat for customers and Super Admin replies, plus Telegram support link
 
 ## Local setup
 1. Copy `.env.example` to `.env`.
 2. Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`.
-3. Run `npm install`, then `npm run dev`.
-4. Build with `npm run build`.
+3. Set `VITE_TELEGRAM_SUPPORT_USERNAME` to the support team's Telegram username without the @ sign (example: `nexapos_support`).
+4. Run `npm install`, then `npm run dev`.
+5. Build with `npm run build`.
+
+## Help Center setup
+1. Apply `supabase/migrations/20261027170000_support_center.sql` to the connected Supabase project (Supabase SQL Editor or your normal migration workflow). This creates the live-chat table, row-level security policies, indexes, and Realtime publication entry.
+2. In Netlify, set `VITE_TELEGRAM_SUPPORT_USERNAME` to the real Telegram username of your support account. Do not include `@` or a `t.me/` prefix.
+3. Trigger a new Deploy Preview build after setting environment variables. Vite embeds `VITE_*` values at build time.
+4. Sign in as a normal tenant user, complete PIN verification, and open **Pusat bantuan → Live chat** to send a message. A Super Admin can open the Help Center inbox and reply to user conversations. Telegram opens the configured support account in a new tab.
+5. The Telegram option remains disabled until a username is configured, preventing users from being sent to an incorrect account.
 
 ## Deployment
 Netlify uses `npm run build` and publishes `dist`. SPA routing is configured in `netlify.toml`. Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` in Netlify's build environment for every deployment context that should connect to Supabase. Vite embeds these values during build, so changing them requires a fresh deploy. The `netlify/functions/` directory must be included in the deployed artifact for server-side invitation activation and Super Admin password management. Set `SUPABASE_URL` and a secret `SUPABASE_SERVICE_ROLE_KEY` in the Deploy Preview context for those functions; never expose the service-role key through a `VITE_` variable. For pull-request testing, ensure the Vite variables are set in the **Deploy Preview** context and redeploy that preview; changing variables does not update an already-published preview automatically.
