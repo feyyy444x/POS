@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
-  Activity, ArrowDownRight, ArrowRight, KeyRound, BarChart3, Bell, Boxes, Check, CheckCircle2,
+  Activity, ArrowDownRight, ArrowRight, ArrowLeft, KeyRound, BarChart3, Bell, Boxes, Check, CheckCircle2,
   ChevronDown, CircleDollarSign, Clock3, CreditCard, FileText, Headphones, LayoutDashboard,
   LogOut, Menu, Minus, Monitor, Package, Plus, Printer, QrCode, RefreshCw, Search,
   Settings, ShieldCheck, ShoppingBag, ShoppingCart, SkipForward, Store, Ticket, Trash2,
@@ -643,7 +643,7 @@ function App() {
     </aside>
     {mobileNav&&<button className="mobile-scrim" onClick={()=>setMobileNav(false)} aria-label="Tutup menu"/>}
     <main className="main-area">
-      <header className="topbar"><div className="topbar-left"><button className="mobile-menu icon-button" onClick={()=>setMobileNav(true)} aria-label="Buka menu"><Menu size={20}/></button><div><div className="breadcrumb">Workspace <span>/</span> <strong>{titleMap[page]}</strong></div><div className="topbar-date">{new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</div></div></div><div className="topbar-actions"><WibClock/><span className="live-status"><i/> LIVE SYNC</span><button className="icon-button refresh-btn" title="Refresh data" onClick={loadWorkspace}><RefreshCw size={17}/></button><span className="top-avatar">{initial(session.user.email)}</span></div></header>
+      <header className="topbar"><div className="topbar-left"><button className="mobile-menu icon-button" onClick={()=>setMobileNav(true)} aria-label="Buka sidebar"><Menu size={20}/></button><button className="topbar-back btn btn-outline" onClick={()=>setPage('dashboard')} aria-label="Kembali ke dashboard"><ArrowLeft size={17}/></button><div className="topbar-title-group"><div className="breadcrumb">Workspace <span>/</span> <strong>{titleMap[page]}</strong></div><div className="topbar-date"><span className="desktop-date">{new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</span><span className="mobile-date">{new Date().toLocaleDateString('id-ID',{day:'2-digit',month:'2-digit',year:'numeric'})}</span></div></div></div><div className="topbar-actions"><WibClock/><span className="live-status"><i/> LIVE SYNC</span><button className="icon-button refresh-btn" title="Refresh data" onClick={loadWorkspace}><RefreshCw size={17}/></button><span className="top-avatar">{initial(session.user.email)}</span></div></header>
       {notice&&<div className="toast"><CheckCircle2 size={17}/><span>{notice}</span><button onClick={()=>setNotice('')}><X size={15}/></button></div>}
       <div className="page-content">
         {page==='dashboard'&&<section className="page-section">
@@ -936,7 +936,7 @@ function SuperAdminScreen({session,onSignOut}) {
     </aside>
     {mobileNav&&<button className="mobile-scrim" onClick={()=>setMobileNav(false)} aria-label="Tutup menu"/>}
     <main className="main-area">
-      <header className="topbar"><div className="topbar-left"><button className="mobile-menu icon-button" onClick={()=>setMobileNav(true)} aria-label="Buka menu"><Menu size={20}/></button><div><div className="breadcrumb">Platform <span>/</span> <strong>{pageTitle}</strong></div><div className="topbar-date">Manajemen user, toko, dan akses platform</div></div></div><div className="topbar-actions"><WibClock/><span className="role-chip"><ShieldCheck size={14}/> SUPER ADMIN</span><button className="icon-button" onClick={()=>{load();loadUsers();loadDisabledMembers()}} title="Muat ulang"><RefreshCw size={17}/></button></div></header>
+      <header className="topbar"><div className="topbar-left"><button className="mobile-menu icon-button" onClick={()=>setMobileNav(true)} aria-label="Buka sidebar"><Menu size={20}/></button><button className="topbar-back btn btn-outline" onClick={()=>setPage("dashboard")} aria-label="Kembali ke dashboard"><ArrowLeft size={17}/></button><div className="topbar-title-group"><div className="breadcrumb">Platform <span>/</span> <strong>{pageTitle}</strong></div><div className="topbar-date"><span className="desktop-date">Manajemen user, toko, dan akses platform</span><span className="mobile-date">{new Date().toLocaleDateString("id-ID",{day:"2-digit",month:"2-digit",year:"numeric"})}</span></div></div></div><div className="topbar-actions"><WibClock/><span className="role-chip"><ShieldCheck size={14}/> SUPER ADMIN</span><button className="icon-button" onClick={()=>{load();loadUsers();loadDisabledMembers()}} title="Muat ulang"><RefreshCw size={17}/></button><span className="top-avatar">{initial(session.user.email)}</span></div></header>
       {notice&&<div className="toast"><CheckCircle2 size={17}/><span>{notice}</span><button onClick={()=>setNotice('')}><X size={15}/></button></div>}
       <div className="page-content">
         {section==='support'&&<section className="page-section support-admin-page"><div className="page-heading"><div><span className="eyebrow muted">PLATFORM / SUPPORT</span><h1>Pusat <span className="heading-accent">bantuan.</span></h1><p>Atur WhatsApp dan Telegram, serta tangani percakapan live chat tenant.</p></div><span className="date-pill"><Headphones size={14}/> Sinkron realtime</span></div><SupportCenter session={session} isSuperAdmin embedded onClose={()=>setSection('dashboard')}/></section>}
@@ -1060,13 +1060,17 @@ function SupportPortal() {
   const [session, setSession] = useState(null)
   const [opened, setOpened] = useState(false)
   const [isSuperAdmin, setIsSuperAdmin] = useState(false)
-  const [pinReady, setPinReady] = useState(false)
+  const [pinReadyUserId, setPinReadyUserId] = useState(null)
+  const pinReady = Boolean(session?.user?.id && pinReadyUserId === session.user.id)
   useEffect(() => {
     if (!supabase) return
     supabase.auth.getSession().then(({data}) => setSession(data.session))
     const {data:{subscription}} = supabase.auth.onAuthStateChange((_event, nextSession) => {
       setSession(nextSession)
-      if (!nextSession) setOpened(false)
+      if (!nextSession) {
+        setOpened(false)
+        setPinReadyUserId(null)
+      }
     })
     const open = () => { setOpened(true) }
     window.addEventListener('nexapos-open-support', open)
@@ -1074,10 +1078,18 @@ function SupportPortal() {
   }, [])
   useEffect(() => {
     let cancelled = false
-    if (!session?.user?.id || !supabase) { setIsSuperAdmin(false); setPinReady(false); return }
-    setPinReady(false)
-    supabase.rpc('get_my_pin_status').then(({data,error}) => { if (!cancelled) setPinReady(!error && Boolean(data?.[0]?.is_verified)) })
-    supabase.from('super_admins').select('user_id').eq('user_id', session.user.id).maybeSingle().then(({data}) => { if (!cancelled) setIsSuperAdmin(Boolean(data)) })
+    const userId = session?.user?.id
+    if (!userId || !supabase) {
+      setIsSuperAdmin(false)
+      setPinReadyUserId(null)
+      return
+    }
+    supabase.rpc('get_my_pin_status').then(({data,error}) => {
+      if (!cancelled) setPinReadyUserId(!error && Boolean(data?.[0]?.is_verified) ? userId : null)
+    })
+    supabase.from('super_admins').select('user_id').eq('user_id', userId).maybeSingle().then(({data}) => {
+      if (!cancelled) setIsSuperAdmin(Boolean(data))
+    })
     return () => { cancelled = true }
   }, [session?.user?.id, session?.access_token])
   if (!session || !pinReady) return null
