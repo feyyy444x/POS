@@ -104,12 +104,23 @@ $$;
 create or replace function public.change_my_pin(p_current_pin text,p_new_pin text)
 returns void language plpgsql security definer set search_path = ''
 as $$
-declare v_user uuid := auth.uid(); v_session uuid := private.current_session_id(); v_hash text;
+declare v_user uuid := auth.uid(); v_session uuid := private.current_session_id(); v_hash text; v_attempts integer; v_locked timestamptz;
 begin
   if v_user is null or v_session is null then raise exception 'Sesi login tidak valid'; end if;
+  select failed_attempts,locked_until into v_attempts,v_locked from public.user_pin_attempt_limits where user_id=v_user;
+  if v_locked is not null and v_locked>now() then raise exception 'Terlalu banyak percobaan. Coba lagi setelah %',v_locked; end if;
   if p_new_pin !~ '^[0-9]{4}$' then raise exception 'PIN baru harus tepat 4 angka'; end if;
   select pin_hash into v_hash from public.user_security_pins where user_id=v_user;
-  if v_hash is null or v_hash <> extensions.crypt(p_current_pin,v_hash) then raise exception 'PIN saat ini salah'; end if;
+  if v_hash is null or v_hash <> extensions.crypt(coalesce(p_current_pin,''),v_hash) then
+    insert into public.user_pin_attempt_limits(user_id,failed_attempts,locked_until,updated_at)
+    values(v_user,1,null,now())
+    on conflict(user_id) do update set
+      failed_attempts=case when public.user_pin_attempt_limits.locked_until is not null and public.user_pin_attempt_limits.locked_until<=now() then 1 else public.user_pin_attempt_limits.failed_attempts+1 end,
+      locked_until=case when (case when public.user_pin_attempt_limits.locked_until is not null and public.user_pin_attempt_limits.locked_until<=now() then 1 else public.user_pin_attempt_limits.failed_attempts+1 end)>=5 then now()+interval '15 minutes' else null end,
+      updated_at=now();
+    raise exception 'PIN saat ini salah';
+  end if;
+  delete from public.user_pin_attempt_limits where user_id=v_user;
   update public.user_security_pins set pin_hash=extensions.crypt(p_new_pin,extensions.gen_salt('bf')),updated_at=now() where user_id=v_user;
   delete from public.pin_verified_sessions where user_id=v_user;
   insert into public.pin_verified_sessions(session_id,user_id,expires_at) values(v_session,v_user,now()+interval '12 hours');
