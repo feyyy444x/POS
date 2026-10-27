@@ -93,7 +93,7 @@ export default function TvDisplaySettings({ store, membership, onNotice }) {
       supabase.from('store_tv_media').select('*').eq('store_id', storeId).order('sort_order').order('created_at'),
     ])
     if (settingsError || mediaError) {
-      notify('Pengaturan TV belum dapat dimuat. Pastikan migrasi TV sudah diterapkan pada database uji: ' + (settingsError?.message || mediaError?.message))
+      notify('Pengaturan TV belum dapat dimuat. Pastikan migrasi TV Display sudah aktif pada proyek Supabase POS: ' + (settingsError?.message || mediaError?.message))
     } else {
       setDraft({ ...DEFAULTS, ...(settingsRow || {}) })
       setMedia(mediaRows || [])
@@ -243,6 +243,8 @@ export default function TvDisplaySettings({ store, membership, onNotice }) {
           body: { action: 'cancel', store_id: storeId, media_id: reservation.media.id },
         })
       }
+      // Refresh media/quota after a failed attempt so the editor reflects server cleanup.
+      await load()
       notify(error?.message || 'Upload video gagal.')
     } finally {
       setUploading(false)
