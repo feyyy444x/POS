@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
-  Activity, ArrowDownRight, ArrowRight, KeyRound, BarChart3, Bell, Boxes, Check, CheckCircle2,
+  Activity, ArrowDownRight, ArrowRight, ArrowLeft, KeyRound, BarChart3, Bell, Boxes, Check, CheckCircle2,
   ChevronDown, CircleDollarSign, Clock3, CreditCard, FileText, Headphones, LayoutDashboard,
   LogOut, Menu, Minus, Monitor, Package, Plus, Printer, QrCode, RefreshCw, Search,
   Settings, ShieldCheck, ShoppingBag, ShoppingCart, SkipForward, Store, Ticket, Trash2,
@@ -643,7 +643,7 @@ function App() {
     </aside>
     {mobileNav&&<button className="mobile-scrim" onClick={()=>setMobileNav(false)} aria-label="Tutup menu"/>}
     <main className="main-area">
-      <header className="topbar"><div className="topbar-left"><button className="mobile-menu icon-button" onClick={()=>setMobileNav(true)} aria-label="Buka menu"><Menu size={20}/></button><div><div className="breadcrumb">Workspace <span>/</span> <strong>{titleMap[page]}</strong></div><div className="topbar-date">{new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</div></div></div><div className="topbar-actions"><WibClock/><span className="live-status"><i/> LIVE SYNC</span><button className="icon-button refresh-btn" title="Refresh data" onClick={loadWorkspace}><RefreshCw size={17}/></button><span className="top-avatar">{initial(session.user.email)}</span></div></header>
+      <header className="topbar"><div className="topbar-left"><button className="topbar-back btn btn-outline" onClick={()=>setPage('dashboard')} aria-label="Kembali ke dashboard"><ArrowLeft size={17}/><span>Kembali</span></button><button className="mobile-menu icon-button" onClick={()=>setMobileNav(true)} aria-label="Buka menu"><Menu size={20}/></button><div className="topbar-title-group"><div className="breadcrumb">Workspace <span>/</span> <strong>{titleMap[page]}</strong></div><div className="topbar-date">{new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</div></div></div><div className="topbar-actions"><WibClock/><span className="live-status"><i/> LIVE SYNC</span><button className="icon-button refresh-btn" title="Refresh data" onClick={loadWorkspace}><RefreshCw size={17}/></button><span className="top-avatar">{initial(session.user.email)}</span></div></header>
       {notice&&<div className="toast"><CheckCircle2 size={17}/><span>{notice}</span><button onClick={()=>setNotice('')}><X size={15}/></button></div>}
       <div className="page-content">
         {page==='dashboard'&&<section className="page-section">
