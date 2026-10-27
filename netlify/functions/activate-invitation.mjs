@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { createHash, timingSafeEqual } from 'node:crypto'
 
 const json = (body, status = 200) => new Response(JSON.stringify(body), {
   status,
@@ -13,8 +14,10 @@ export default async (request) => {
   try { payload = await request.json() } catch { return json({ error: 'Permintaan tidak valid.' }, 400) }
   const email = String(payload?.email || '').trim().toLowerCase()
   const password = String(payload?.password || '')
+  const activationCode = String(payload?.activationCode || '').trim().toLowerCase()
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json({ error: 'Masukkan alamat email yang valid.' }, 400)
   if (password.length < 8 || password.length > 128) return json({ error: 'Password harus terdiri dari 8 sampai 128 karakter.' }, 400)
+  if (!/^[a-f0-9]{32}$/.test(activationCode)) return json({ error: 'Masukkan kode aktivasi 32 karakter dari Owner toko.' }, 400)
 
   const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -31,7 +34,7 @@ export default async (request) => {
     const now = new Date().toISOString()
     const { data: invites, error: inviteError } = await admin
       .from('store_invites')
-      .select('id,store_id,email,full_name,role,expires_at,accepted_at')
+      .select('id,store_id,email,full_name,role,expires_at,accepted_at,activation_code_hash')
       .eq('email', email)
       .is('accepted_at', null)
       .gt('expires_at', now)
@@ -44,7 +47,16 @@ export default async (request) => {
       return json({ error: 'Email ini tidak memiliki undangan yang masih berlaku. Pastikan Owner mendaftarkan email yang sama.' }, 403)
     }
 
-    const storeIds = [...new Set(invites.map((invite) => invite.store_id))]
+    const suppliedHash = createHash('sha256').update(activationCode, 'utf8').digest('hex')
+    const supplied = Buffer.from(suppliedHash, 'hex')
+    const validInvitesByCode = invites.filter((invite) => {
+      if (!invite.activation_code_hash || !/^[a-f0-9]{64}$/i.test(invite.activation_code_hash)) return false
+      const stored = Buffer.from(invite.activation_code_hash, 'hex')
+      return stored.length === supplied.length && timingSafeEqual(stored, supplied)
+    })
+    if (!validInvitesByCode.length) return json({ error: 'Kode aktivasi tidak cocok dengan undangan email ini.' }, 403)
+
+    const storeIds = [...new Set(validInvitesByCode.map((invite) => invite.store_id))]
     const { data: stores, error: storesError } = await admin
       .from('stores')
       .select('id,status,deleted_at')
@@ -54,7 +66,7 @@ export default async (request) => {
       return json({ error: 'Status toko tidak dapat diverifikasi saat ini.' }, 500)
     }
     const validStoreIds = new Set((stores || []).filter((store) => !store.deleted_at && store.status !== 'deleted').map((store) => store.id))
-    const validInvites = invites.filter((invite) => validStoreIds.has(invite.store_id))
+    const validInvites = validInvitesByCode.filter((invite) => validStoreIds.has(invite.store_id))
     if (!validInvites.length) return json({ error: 'Undangan berasal dari toko yang sudah dihapus.' }, 403)
 
     let user = null
