@@ -138,7 +138,8 @@ Deno.serve(async (req: Request) => {
     if (mediaError) return response({ error: "Gagal memeriksa media." }, 500);
     if (!media?.storage_path || !media.storage_path.startsWith(storeId + "/")) return response({ error: "Reservasi upload tidak ditemukan." }, 404);
     if (media.upload_status !== "pending" || !media.reservation_expires_at || new Date(media.reservation_expires_at).getTime() <= Date.now()) {
-      await admin.storage.from("tv-media").remove([media.storage_path]);
+      const { error: expiredRemoveError } = await admin.storage.from("tv-media").remove([media.storage_path]);
+      if (expiredRemoveError) return response({ error: "Reservasi kedaluwarsa; pembersihan berkas akan dicoba ulang." }, 500);
       await admin.from("store_tv_media").delete().eq("id", mediaId).eq("store_id", storeId).eq("upload_status", "pending");
       return response({ error: "Reservasi upload sudah kedaluwarsa. Silakan unggah ulang." }, 410);
     }
@@ -155,7 +156,8 @@ Deno.serve(async (req: Request) => {
     const actualSize = Number(object.metadata?.size || 0);
     const actualType = typeof object.metadata?.mimetype === "string" ? object.metadata.mimetype : "";
     if (!Number.isSafeInteger(actualSize) || actualSize < 1 || actualSize > MAX_BYTES || !ALLOWED_TYPES.has(actualType)) {
-      await admin.storage.from("tv-media").remove([media.storage_path]);
+      const { error: invalidRemoveError } = await admin.storage.from("tv-media").remove([media.storage_path]);
+      if (invalidRemoveError) return response({ error: "Berkas tidak valid dan pembersihannya akan dicoba ulang." }, 500);
       await admin.from("store_tv_media").delete().eq("id", mediaId).eq("store_id", storeId);
       return response({ error: "Berkas yang diunggah tidak sesuai batas ukuran atau format." }, 400);
     }
@@ -166,7 +168,8 @@ Deno.serve(async (req: Request) => {
       .select("id,store_id,title,source_url,storage_path,mime_type,file_size_bytes,media_type,upload_status,sort_order,is_active,created_at,updated_at").single();
 
     if (finalizeError || !finalized) {
-      await admin.storage.from("tv-media").remove([media.storage_path]);
+      const { error: failedFinalizeRemoveError } = await admin.storage.from("tv-media").remove([media.storage_path]);
+      if (failedFinalizeRemoveError) return response({ error: "Verifikasi gagal; pembersihan berkas akan dicoba ulang." }, 500);
       await admin.from("store_tv_media").delete().eq("id", mediaId).eq("store_id", storeId);
       const isQuota = /Kuota video tenant maksimal 100 MB/i.test(finalizeError?.message || "");
       return response({ error: isQuota ? "Ukuran aktual melebihi sisa kuota 100 MB. Video dibatalkan." : "Video belum dapat diverifikasi." }, isQuota ? 413 : 400);
