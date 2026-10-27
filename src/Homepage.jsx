@@ -5,7 +5,7 @@ import SupportCenter from './SupportCenter.jsx'
 import './homepage.css'
 
 const money = (value) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value || 0))
-const plans = [
+const fallbackPlans = [
   { key: 'daily', name: 'Harian', duration: '1 hari', price: 10000, note: 'Untuk kebutuhan jangka pendek' },
   { key: 'weekly', name: 'Mingguan', duration: '7 hari', price: 49000, note: 'Fleksibel untuk operasional mingguan' },
   { key: 'monthly', name: 'Bulanan', duration: '30 hari', price: 149000, note: 'Praktis untuk operasional rutin', popular: true },
@@ -26,6 +26,7 @@ function discountFor(plan, promo) {
   return Math.min(plan.price, Number(promo.discount_value || 0))
 }
 export default function Homepage() {
+  const [plans, setPlans] = useState(fallbackPlans)
   const [promos, setPromos] = useState([])
   const [menuOpen, setMenuOpen] = useState(false)
   const [coupon, setCoupon] = useState('')
@@ -56,6 +57,31 @@ export default function Homepage() {
       supabase.removeChannel(channel)
     }
   }, [loadPromos])
+  useEffect(() => {
+    if (!supabase) return
+    let mounted = true
+    const loadPlans = async () => {
+      const { data, error } = await supabase.from('site_subscription_plans')
+        .select('plan_key,name,duration,price,note,features,is_popular,is_active,sort_order')
+        .eq('is_active', true).order('sort_order', { ascending: true })
+      if (!error && mounted && Array.isArray(data) && data.length) {
+        setPlans(data.map(plan => ({ ...plan, key: plan.plan_key, price: Number(plan.price), popular: Boolean(plan.is_popular), features: Array.isArray(plan.features) ? plan.features : [] })))
+      }
+    }
+    loadPlans()
+    const channel = supabase.channel('homepage-subscription-plans-live')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'site_subscription_plans' }, loadPlans)
+      .subscribe(status => { if (status === 'SUBSCRIBED') loadPlans() })
+    const refresh = () => { if (document.visibilityState === 'visible') loadPlans() }
+    window.addEventListener('focus', refresh)
+    document.addEventListener('visibilitychange', refresh)
+    return () => {
+      mounted = false
+      window.removeEventListener('focus', refresh)
+      document.removeEventListener('visibilitychange', refresh)
+      supabase.removeChannel(channel)
+    }
+  }, [])
   const automaticPromo = promos.find(p => !p.requires_code)
   const couponPromo = useMemo(() => {
     const code = coupon.trim().toUpperCase()
@@ -108,7 +134,7 @@ export default function Homepage() {
       <section className="nx-section nx-pricing" id="harga"><div className="nx-section-head"><span className="nx-eyebrow">PILIHAN MASA SEWA</span><h2>Fleksibel sesuai kebutuhan Anda.</h2><p>Semua pilihan masa sewa mendapatkan akses ke fitur aplikasi yang sama. Silakan pilih durasi yang paling sesuai.</p></div>
         {automaticPromo && <div className="nx-promo-banner"><div><span className="nx-promo-label"><Ticket size={14}/> {automaticPromo.title || 'PROMO AKTIF'}</span><h3>{automaticPromo.description || 'Nikmati penawaran selama periode promo berlangsung.'}</h3></div><span className="nx-promo-badge">PENAWARAN KHUSUS</span></div>}
         <div className="nx-coupon-row"><label htmlFor="nx-coupon">Memiliki kode kupon?</label><div><Ticket size={17}/><input id="nx-coupon" value={coupon} onChange={e=>setCoupon(e.target.value.toUpperCase())} placeholder="Masukkan kode promo"/>{coupon && <button onClick={()=>setCoupon('')} aria-label="Hapus kode kupon"><X size={15}/></button>}</div>{coupon && <small className={couponPromo?'nx-coupon-valid':'nx-coupon-hint'}>{couponPromo?'Kode terdeteksi. Konfirmasi syarat promo dengan tim NexaPos.':'Kode akan diperiksa kembali oleh tim saat konfirmasi penyewaan.'}</small>}</div>
-        <div className="nx-plan-grid">{plans.map(plan=>{const displayPromo=couponPromo?{...couponPromo,requires_code:false}:automaticPromo;const discount=discountFor(plan,displayPromo);const finalPrice=plan.price-discount;return <article className={'nx-plan-card '+(plan.popular?'nx-plan-popular':'')+(selectedPlan===plan.key?' nx-plan-selected':'')} key={plan.key} onClick={()=>setSelectedPlan(plan.key)}><div className="nx-plan-top"><span>{plan.name}</span>{plan.popular&&<b>PALING DIPILIH</b>}</div><p>{plan.note}</p><div className="nx-price">{discount>0&&<del>{money(plan.price)}</del>}<strong>{money(finalPrice)}</strong><small>/ {plan.duration}</small></div>{discount>0&&<span className="nx-saving">Hemat {money(discount)}</span>}<ul><li><CheckCircle2 size={15}/> Semua fitur NexaPos</li><li><CheckCircle2 size={15}/> POS dan manajemen produk</li><li><CheckCircle2 size={15}/> Laporan penjualan dan modal</li><li><CheckCircle2 size={15}/> Sistem antrian dan bantuan</li></ul><button className="nx-button nx-button-plan" onClick={e=>{e.stopPropagation();contact(plan,activePromo)}}>Tanyakan penyewaan <ArrowRight size={15}/></button></article>})}</div>
+        <div className="nx-plan-grid">{plans.map(plan=>{const displayPromo=couponPromo?{...couponPromo,requires_code:false}:automaticPromo;const discount=discountFor(plan,displayPromo);const finalPrice=plan.price-discount;return <article className={'nx-plan-card '+(plan.popular?'nx-plan-popular':'')+(selectedPlan===plan.key?' nx-plan-selected':'')} key={plan.key} onClick={()=>setSelectedPlan(plan.key)}><div className="nx-plan-top"><span>{plan.name}</span>{plan.popular&&<b>PALING DIPILIH</b>}</div><p>{plan.note}</p><div className="nx-price">{discount>0&&<del>{money(plan.price)}</del>}<strong>{money(finalPrice)}</strong><small>/ {plan.duration}</small></div>{discount>0&&<span className="nx-saving">Hemat {money(discount)}</span>}<ul>{(plan.features || []).map((feature,index)=><li key={index}><CheckCircle2 size={15}/> {feature}</li>)}</ul><button className="nx-button nx-button-plan" onClick={e=>{e.stopPropagation();contact(plan,activePromo)}}>Tanyakan penyewaan <ArrowRight size={15}/></button></article>})}</div>
         <p className="nx-pricing-note">Harga dan potongan di halaman ini merupakan informasi penawaran. Harga akhir, syarat promo, dan aktivasi akan dikonfirmasi oleh tim NexaPos sebelum pembayaran.</p>
       </section>
       <section className="nx-faq" id="faq"><div className="nx-section-head"><span className="nx-eyebrow">PERTANYAAN UMUM</span><h2>Informasi sebelum Anda menyewa.</h2><p>Berikut beberapa hal yang sering ditanyakan mengenai layanan NexaPos.</p></div><div className="nx-faq-list">{[{q:'Apakah semua masa sewa mendapatkan fitur yang sama?',a:'Ya. Seluruh pilihan masa sewa mendapatkan fitur aplikasi yang sama. Perbedaannya hanya pada jangka waktu penggunaan.'},{q:'Bagaimana cara mulai menyewa NexaPos?',a:'Pilih masa sewa yang sesuai, lalu hubungi tim NexaPos melalui Telegram untuk memperoleh informasi proses pembayaran dan aktivasi.'},{q:'Apakah NexaPos mendukung printer thermal?',a:'NexaPos menyediakan alur cetak struk untuk printer thermal yang kompatibel dengan perangkat dan browser yang digunakan.'},{q:'Bagaimana jika masa sewa berakhir?',a:'Akses tenant perlu diperpanjang oleh pengelola layanan. Silakan hubungi tim NexaPos untuk konfirmasi masa aktif dan perpanjangan.'}].map((item,i)=><div className={'nx-faq-item '+(faqOpen===i?'is-open':'')} key={item.q}><button onClick={()=>setFaqOpen(faqOpen===i?-1:i)}><span>{item.q}</span><ChevronDown size={18}/></button>{faqOpen===i&&<p>{item.a}</p>}</div>)}</div></section>
