@@ -7,7 +7,9 @@ begin
   foreach table_name in array array[
     'site_subscription_plans',
     'store_tv_settings',
-    'store_tv_media'
+    'store_tv_media',
+    'store_members',
+    'store_invites'
   ] loop
     if to_regclass('public.' || table_name) is not null
        and not exists (
