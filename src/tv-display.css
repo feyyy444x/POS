@@ -227,3 +227,7 @@
 .tv-screen-custom .tv-layout-smart-loop.tv-smart-loop-idle .tv-current{position:relative;z-index:1;align-self:start;max-width:92%;background:color-mix(in srgb,var(--tv-custom-bg) 82%,transparent);backdrop-filter:blur(12px);border:1px solid color-mix(in srgb,var(--tv-custom-text) 20%,transparent)}
 .tv-screen-custom .tv-layout-smart-loop.tv-smart-loop-idle .tv-next{position:relative;z-index:1;align-self:end;max-width:92%;background:color-mix(in srgb,var(--tv-custom-bg) 82%,transparent);backdrop-filter:blur(12px);border:1px solid color-mix(in srgb,var(--tv-custom-text) 20%,transparent)}
 .tv-screen-custom .tv-layout-smart-loop.tv-smart-loop-idle{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:minmax(0,1fr);grid-template-areas:"current next"}
+
+.tv-screen-custom .tv-media-panel>.tv-media-image{position:relative;z-index:1;width:100%;height:100%;min-height:0;max-height:100%;object-fit:var(--tv-media-fit,contain);display:block}
+.tv-preview-media-image{position:relative;z-index:2;width:100%;height:100%;min-height:0;object-fit:contain;display:block}
+.tv-screen-custom .tv-media-panel video.tv-media-foreground{object-fit:var(--tv-media-fit,contain)}
