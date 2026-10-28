@@ -1160,8 +1160,6 @@ function SupportPortal() {
   const [session, setSession] = useState(null)
   const [opened, setOpened] = useState(false)
   const [isSuperAdmin, setIsSuperAdmin] = useState(false)
-  const [pinReadyUserId, setPinReadyUserId] = useState(null)
-  const pinReady = Boolean(session?.user?.id && pinReadyUserId === session.user.id)
   useEffect(() => {
     if (!supabase) return
     supabase.auth.getSession().then(({data}) => setSession(data.session))
@@ -1169,7 +1167,6 @@ function SupportPortal() {
       setSession(nextSession)
       if (!nextSession) {
         setOpened(false)
-        setPinReadyUserId(null)
       }
     })
     const open = () => { setOpened(true) }
@@ -1181,12 +1178,8 @@ function SupportPortal() {
     const userId = session?.user?.id
     if (!userId || !supabase) {
       setIsSuperAdmin(false)
-      setPinReadyUserId(null)
       return
     }
-    supabase.rpc('get_my_pin_status').then(({data,error}) => {
-      if (!cancelled) setPinReadyUserId(!error && Boolean(data?.[0]?.is_verified) ? userId : null)
-    })
     supabase.from('super_admins').select('user_id').eq('user_id', userId).maybeSingle().then(({data}) => {
       if (!cancelled) setIsSuperAdmin(Boolean(data))
     })
