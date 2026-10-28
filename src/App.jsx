@@ -515,11 +515,16 @@ function App() {
       setQueueCounterLabel(counterLabel)
       try { localStorage.setItem('nexapos-counter-label', counterLabel) } catch {}
       setQueueBusy(true)
-      const {error}=await supabase.rpc('call_queue_ticket',{p_ticket_id:ticket.id,p_counter_label:counterLabel})
-      setQueueBusy(false)
-      if(error){setNotice(error.message);return}
-      await loadWorkspace()
-      setNotice('Antrean berhasil dipanggil oleh '+counterLabel+'.')
+      try {
+        const {error}=await supabase.rpc('call_queue_ticket',{p_ticket_id:ticket.id,p_counter_label:counterLabel})
+        if(error){setNotice(error.message);return}
+        await loadWorkspace()
+        setNotice('Antrean berhasil dipanggil oleh '+counterLabel+'.')
+      } catch (error) {
+        setNotice(error?.message || 'Gagal memanggil antrean. Periksa koneksi lalu coba lagi.')
+      } finally {
+        setQueueBusy(false)
+      }
       return
     }
     const update={status}
