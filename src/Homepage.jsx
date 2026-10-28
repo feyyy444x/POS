@@ -10,10 +10,10 @@ import './homepage.css'
 
 const money = (value) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value || 0))
 const fallbackPlans = [
-  { key: 'daily', name: 'Harian', duration: '1 hari', price: 10000, note: 'Untuk kebutuhan jangka pendek' },
-  { key: 'weekly', name: 'Mingguan', duration: '7 hari', price: 49000, note: 'Fleksibel untuk operasional mingguan' },
-  { key: 'monthly', name: 'Bulanan', duration: '30 hari', price: 149000, note: 'Praktis untuk operasional rutin', popular: true },
-  { key: 'yearly', name: 'Tahunan', duration: '365 hari', price: 1490000, note: 'Pilihan untuk penggunaan jangka panjang' },
+  { key: 'daily', name: 'Harian', duration: '1 hari', price: 3000, note: 'Coba alur kerja untuk kebutuhan harian' },
+  { key: 'weekly', name: 'Mingguan', duration: '7 hari', price: 15000, note: 'Fleksibel untuk operasional mingguan' },
+  { key: 'monthly', name: 'Bulanan', duration: '30 hari', price: 35000, note: 'Untuk operasional bisnis yang rutin', popular: true },
+  { key: 'yearly', name: 'Tahunan', duration: '365 hari', price: 300000, note: 'Lebih praktis untuk penggunaan jangka panjang' },
 ]
 const features = [
   { number: '01', icon: ShoppingCart, title: 'Transaksi yang mengalir', text: 'Layani pelanggan, catat pembayaran, dan simpan setiap transaksi dengan alur kasir yang praktis.' },
@@ -234,13 +234,63 @@ export default function Homepage() {
         <div className="living-feature-list">{features.map(({number,icon:Icon,title,text},index)=><article className="living-feature-row living-reveal" key={number}><span className="living-feature-number">{number}</span><span className="living-feature-icon"><Icon size={23}/></span><div className="living-feature-copy"><h3>{title}</h3><p>{text}</p></div><span className="living-feature-meta">{index===0?'POINT OF SALE':index===1?'MULTI-ACCOUNT':index===2?'QUEUE DISPLAY':index===3?'CATALOGUE':index===4?'REPORTING':'THERMAL PRINT'}</span><ArrowUpRight className="living-feature-arrow" size={20}/></article>)}</div>
       </section>
 
-      <section className="living-pricing" id="harga">
-        <div className="living-section-head living-reveal"><div><span className="living-eyebrow">ACCESS THE SYSTEM</span><h2>Pilih durasi.<br/><em>Bangun ritme bisnismu.</em></h2></div><p>Semua pilihan masa sewa mendapatkan akses ke fitur aplikasi yang sama. Pilih durasi sesuai kebutuhan operasional Anda.</p></div>
-        {activePromo && <div className="living-pricing-promo"><div><span><Ticket size={14}/> {activePromo.title || 'PROMO AKTIF'}</span><b>{activePromo.description || 'Nikmati penawaran selama periode promo berlangsung.'}</b><small className="living-promo-terms">Potongan {promoDiscountLabel(activePromo)} · Berlaku untuk: {eligiblePeriods(activePromo).map(period=>({daily:'Harian',weekly:'Mingguan',monthly:'Bulanan',yearly:'Tahunan'}[period]||period)).join(', ')||'Semua paket'}{activePromo.requires_code&&activePromo.promo_code?` · Kode ${activePromo.promo_code}`:''}{activePromo.ends_at?` · Sampai ${new Date(activePromo.ends_at).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'})}`:''}</small></div><span className="living-promo-badge">{activePromo.requires_code?'KODE PROMO':'PROMO AKTIF'}</span></div>}
-        <div className="living-coupon living-reveal"><label htmlFor="living-coupon">Punya kode promo?</label><div><Ticket size={17}/><input id="living-coupon" value={coupon} onChange={e=>setCoupon(e.target.value.toUpperCase())} placeholder="Masukkan kode promo"/>{coupon && <button onClick={()=>setCoupon('')} aria-label="Hapus kode kupon"><X size={15}/></button>}</div>{coupon && <small className={couponPromo?'is-valid':''}>{couponPromo?`Kode valid · ${couponPromo.title||'Promo NexaPos'}`:coupon?'Kode belum valid atau tidak sedang berlaku.':'Kode akan diverifikasi sebelum konfirmasi penyewaan.'}</small>}</div>
-        {promos.some(p=>p.requires_code) && <div className="living-voucher-list">{promos.filter(p=>requiresPromoCode(p)).map(p=><article className={couponPromo?.id===p.id?'is-active':''} key={p.id}><div><span><Ticket size={14}/>{p.title||'Voucher NexaPos'}</span><p>{p.description||'Masukkan kode voucher untuk melihat penawaran yang berlaku.'}</p><small>Potongan {promoDiscountLabel(p)} · Berlaku untuk: {eligiblePeriods(p).map(period=>({daily:'Harian',weekly:'Mingguan',monthly:'Bulanan',yearly:'Tahunan'}[period]||period)).join(', ')||'Semua paket'}</small></div><button type="button" onClick={()=>setCoupon(p.promo_code||'')} disabled={!p.promo_code}>{p.promo_code?'Gunakan kode '+p.promo_code:'Kode tidak tersedia'} <ArrowRight size={13}/></button></article>)}</div>}
-        <div className="living-plan-grid">{plans.map(plan=>{const displayPromo=coupon.trim()?(couponPromo?{...couponPromo,requires_code:false}:null):automaticPromo;const discount=discountFor(plan,displayPromo);const finalPrice=plan.price-discount;return <article className={'living-plan'+(plan.popular?' is-popular':'')+(selectedPlan===plan.key?' is-selected':'')} key={plan.key} onClick={()=>setSelectedPlan(plan.key)}><div className="living-plan-top"><span>{plan.name}</span>{plan.popular&&<b>PALING DIPILIH</b>}</div><p>{plan.note}</p><div className="living-price">{discount>0&&<del>{money(plan.price)}</del>}<strong>{money(finalPrice)}</strong><small>/ {plan.duration}</small></div>{discount>0&&<span className="living-saving">Hemat {money(discount)}</span>}<ul>{(plan.features?.length?plan.features:['Akses workspace NexaPos','Fitur kasir dan produk','Pengelolaan antrian','Bantuan penggunaan']).map((feature,index)=><li key={index}><CheckCircle2 size={14}/>{feature}</li>)}</ul><button className="living-cta living-plan-cta" onClick={e=>{e.stopPropagation();contact(plan,displayPromo)}}>Tanyakan penyewaan <ArrowRight size={14}/></button></article>})}</div>
-        <p className="living-pricing-note">Harga dan potongan merupakan informasi penawaran. Harga akhir, syarat promo, dan aktivasi akan dikonfirmasi oleh tim NexaPos sebelum pembayaran.</p>
+
+      <section className="living-pricing living-pricing-redesign" id="harga">
+        <div className="living-section-head living-reveal">
+          <div><span className="living-eyebrow">PILIH AKSES NEXAPOS / 04</span><h2>Satu sistem untuk bisnismu.<br/><em>Pilih masa aksesnya.</em></h2></div>
+          <p>Kasir multi-akun, pengelolaan produk dan stok, pencatatan transaksi, laporan operasional, serta layar antrian digital dalam satu workspace. Pilih durasi yang sesuai dengan ritme usahamu.</p>
+        </div>
+        {activePromo && <article className="living-pricing-promo living-promo-feature" aria-live="polite">
+          <div className="living-promo-feature-mark"><Sparkles size={23}/><span>LIMITED<br/>OFFER</span></div>
+          <div className="living-promo-feature-copy">
+            <div className="living-promo-kicker"><span className="living-live-dot"/> {requiresPromoCode(activePromo) ? 'VOUCHER TERSEDIA' : 'PROMO DARI NEXAPOS'} <span className="living-promo-kicker-line"/></div>
+            <h3>{activePromo.title || 'Penawaran khusus NexaPos'}</h3>
+            <p>{activePromo.description || 'Dapatkan harga khusus untuk masa akses NexaPos pilihanmu.'}</p>
+            <div className="living-promo-details">
+              <span><CheckCircle2 size={14}/> Berlaku untuk {eligiblePeriods(activePromo).map(period=>({daily:'Harian',weekly:'Mingguan',monthly:'Bulanan',yearly:'Tahunan'}[period]||period)).join(', ')||'semua paket'}</span>
+              {activePromo.ends_at && <span><Activity size={14}/> Sampai {new Date(activePromo.ends_at).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})}</span>}
+              {requiresPromoCode(activePromo) && activePromo.promo_code && <span><Ticket size={14}/> Kode: {activePromo.promo_code}</span>}
+            </div>
+          </div>
+          <div className="living-promo-feature-discount"><small>POTONGAN</small><strong>{promoDiscountLabel(activePromo)}</strong><span>{requiresPromoCode(activePromo) ? 'Gunakan kode promo' : 'Otomatis di harga paket'}</span></div>
+        </article>}
+        <div className="living-pricing-toolbar">
+          <div><span className="living-eyebrow">PILIHAN MASA AKSES</span><p>Harga diperbarui mengikuti pengaturan Superadmin.</p></div>
+          <div className="living-pricing-live"><i/> HARGA & PROMO TERKINI</div>
+        </div>
+        <div className="living-coupon living-coupon-redesign">
+          <label htmlFor="living-coupon"><Ticket size={15}/> Punya kode voucher?</label>
+          <div><input id="living-coupon" value={coupon} onChange={e=>setCoupon(e.target.value.toUpperCase())} placeholder="Ketik kode voucher di sini"/>{coupon && <button type="button" onClick={()=>setCoupon('')} aria-label="Hapus kode kupon"><X size={15}/></button>}</div>
+          {coupon && <small className={couponPromo?'is-valid':''}>{couponPromo?'✓ '+(couponPromo.title||'Voucher NexaPos')+' siap digunakan pada paket yang memenuhi syarat.':'Kode belum cocok atau masa promo sudah berakhir.'}</small>}
+        </div>
+        {promos.some(p=>requiresPromoCode(p)) && <div className="living-voucher-list living-voucher-list-redesign">{promos.filter(p=>requiresPromoCode(p)).map(p=><article className={couponPromo?.id===p.id?'is-active':''} key={p.id}>
+          <div><span><Ticket size={14}/>{p.title||'Voucher NexaPos'}</span><p>{p.description||'Masukkan kode untuk menggunakan penawaran ini.'}</p><small>Potongan {promoDiscountLabel(p)} · {eligiblePeriods(p).map(period=>({daily:'Harian',weekly:'Mingguan',monthly:'Bulanan',yearly:'Tahunan'}[period]||period)).join(', ')||'Semua paket'}</small></div>
+          <button type="button" onClick={()=>setCoupon(p.promo_code||'')} disabled={!p.promo_code}>{p.promo_code?'Pakai voucher':'Kode tidak tersedia'} <ArrowRight size={13}/></button>
+        </article>)}</div>}
+        <div className="living-plan-grid living-plan-grid-redesign">
+          {plans.map((plan,index)=>{
+            const displayPromo=coupon.trim()?(couponPromo?{...couponPromo,requires_code:false}:null):automaticPromo;
+            const eligible=displayPromo ? eligiblePeriods(displayPromo) : [];
+            const isEligible=!eligible.length||eligible.includes(String(plan.key||plan.plan_key||'').toLowerCase());
+            const discount=isEligible?discountFor(plan,displayPromo):0;
+            const finalPrice=Math.max(0,Number(plan.price||0)-discount);
+            const planFeatures=plan.features?.length?plan.features:['Kasir dan pencatatan transaksi','Akun karyawan bekerja bersamaan','Produk, kategori, dan stok','Sistem antrian digital','Laporan operasional'];
+            return <article className={'living-plan living-plan-redesign'+(plan.popular?' is-popular':'')+(selectedPlan===plan.key?' is-selected':'')} key={plan.key} style={{'--plan-index':index}} onClick={()=>setSelectedPlan(plan.key)}>
+              <div className="living-plan-top"><span>{plan.name}</span>{plan.popular&&<b>REKOMENDASI</b>}</div>
+              <p className="living-plan-note">{plan.note || 'Akses NexaPos sesuai kebutuhan bisnismu.'}</p>
+              <div className="living-plan-price-label">{discount>0?'HARGA PROMO':'HARGA PAKET'}</div>
+              <div className="living-price living-price-redesign">{discount>0&&<del>{money(plan.price)}</del>}<strong>{money(finalPrice)}</strong><small>/ {plan.duration || ({daily:'1 hari',weekly:'7 hari',monthly:'30 hari',yearly:'365 hari'}[plan.key]||'masa akses')}</small></div>
+              {discount>0&&<div className="living-saving living-saving-redesign"><Zap size={13}/> Hemat {money(discount)} <b>−{promoDiscountLabel(displayPromo)}</b></div>}
+              {displayPromo && !isEligible && <div className="living-plan-ineligible">Promo tidak berlaku untuk durasi ini</div>}
+              <div className="living-plan-divider"/>
+              <ul>{planFeatures.map((feature,featureIndex)=><li key={featureIndex}><CheckCircle2 size={14}/>{feature}</li>)}</ul>
+              <button className="living-cta living-plan-cta living-plan-cta-redesign" onClick={e=>{e.stopPropagation();contact(plan,displayPromo&&isEligible?displayPromo:null)}}>{discount>0?'Pilih paket promo':'Tanyakan paket'} <ArrowRight size={14}/></button>
+              <span className="living-plan-footnote">Konfirmasi aktivasi melalui tim NexaPos</span>
+            </article>
+          })}
+        </div>
+        {!activePromo && <div className="living-no-promo"><span><Activity size={16}/></span><div><b>Belum ada promo otomatis yang aktif</b><p>Pantau halaman ini untuk penawaran terbaru. Voucher berkode dapat dimasukkan pada kolom di atas.</p></div></div>}
+        <p className="living-pricing-note">Harga dan informasi promo mengikuti pengaturan aktif di Superadmin. Ketentuan akhir, proses pembayaran, dan aktivasi akan dikonfirmasi oleh tim NexaPos sebelum penyewaan.</p>
       </section>
 
       <section className="living-faq" id="faq"><div className="living-section-head living-reveal"><div><span className="living-eyebrow">GOOD TO KNOW</span><h2>Sebelum mulai,<br/><em>ini yang perlu diketahui.</em></h2></div><p>Jawaban ringkas untuk membantu Anda memahami cara memulai menggunakan NexaPos.</p></div><div className="living-faq-list">{[{q:'Apakah semua masa sewa mendapatkan fitur yang sama?',a:'Ya. Seluruh pilihan masa sewa mendapatkan fitur aplikasi yang sama. Perbedaannya hanya pada jangka waktu penggunaan.'},{q:'Bagaimana cara mulai menyewa NexaPos?',a:'Pilih masa sewa yang sesuai, lalu hubungi tim NexaPos melalui Telegram untuk memperoleh informasi proses pembayaran dan aktivasi.'},{q:'Apakah NexaPos mendukung printer thermal?',a:'NexaPos menyediakan alur cetak struk untuk printer thermal yang kompatibel dengan perangkat dan browser yang digunakan.'},{q:'Apakah beberapa karyawan dapat menggunakan akun masing-masing?',a:'NexaPos dirancang untuk mendukung beberapa akun karyawan dalam satu toko, dengan identitas transaksi yang mengikuti akun yang digunakan dan hak akses masing-masing.'},{q:'Bagaimana jika masa sewa berakhir?',a:'Akses tenant perlu diperpanjang oleh pengelola layanan. Silakan hubungi tim NexaPos untuk konfirmasi masa aktif dan perpanjangan.'}].map((item,i)=><div className={'living-faq-item'+(faqOpen===i?' is-open':'')} key={item.q}><button onClick={()=>setFaqOpen(faqOpen===i?-1:i)} aria-expanded={faqOpen===i}><span><small>0{i+1}</small>{item.q}</span><ChevronDown size={17}/></button>{faqOpen===i&&<p>{item.a}</p>}</div>)}</div></section>
