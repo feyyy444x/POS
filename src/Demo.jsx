@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { ArrowLeft, Bell, CheckCircle2, CircleDollarSign, Clock3, LockKeyhole, Minus, Monitor, Plus, Search, ShoppingBag, ShoppingCart, Ticket, X } from 'lucide-react'
+import { Activity, ArrowLeft, ArrowUpRight, Bell, Check, CheckCircle2, CircleDollarSign, Clock3, LockKeyhole, Minus, Monitor, Plus, Search, ShoppingBag, ShoppingCart, Store, Ticket, UserPlus, Users, X } from 'lucide-react'
 import './demo.css'
 
 const products = [
