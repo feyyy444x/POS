@@ -169,6 +169,7 @@ function App() {
   const [monitoringNow, setMonitoringNow] = useState(Date.now())
   const [monitoringSoundReady, setMonitoringSoundReady] = useState(false)
   const lastBreakSoundRef = useRef({})
+  const monitoringAudioContextRef = useRef(null)
   const [queueBusy, setQueueBusy] = useState(false)
   const [mobileNav, setMobileNav] = useState(false)
   const [receipt, setReceipt] = useState(null)
@@ -371,9 +372,8 @@ function App() {
       if(lastBreakSoundRef.current[row.id]===interval)continue
       lastBreakSoundRef.current[row.id]=interval
       try{
-        const AudioContextClass=window.AudioContext||window.webkitAudioContext
-        if(!AudioContextClass)continue
-        const context=new AudioContextClass()
+        const context=monitoringAudioContextRef.current
+        if(!context||context.state!=='running')continue
         const oscillator=context.createOscillator();const gain=context.createGain()
         oscillator.type='sine';oscillator.frequency.value=880;gain.gain.value=0.12
         oscillator.connect(gain);gain.connect(context.destination);oscillator.start()
@@ -591,11 +591,12 @@ function App() {
     try{
       const AudioContextClass=window.AudioContext||window.webkitAudioContext
       if(!AudioContextClass){setNotice('Browser ini tidak mendukung suara pengingat.');return}
-      const context=new AudioContextClass();await context.resume()
+      let context=monitoringAudioContextRef.current
+      if(!context||context.state==='closed'){context=new AudioContextClass();monitoringAudioContextRef.current=context}
+      await context.resume()
       const oscillator=context.createOscillator();const gain=context.createGain()
       oscillator.frequency.value=880;gain.gain.value=0.08;oscillator.connect(gain);gain.connect(context.destination)
       oscillator.start();gain.gain.exponentialRampToValueAtTime(0.001,context.currentTime+0.2);oscillator.stop(context.currentTime+0.2)
-      oscillator.onended=()=>context.close()
       setMonitoringSoundReady(true);setNotice('Suara pengingat monitoring aktif di browser ini.')
     }catch{setNotice('Browser memblokir suara. Izinkan audio pada browser lalu coba lagi.')}
   }
