@@ -29,10 +29,14 @@ const storyScenes = {
   antrian: { index: '03', eyebrow: 'SAAT PELANGGAN MENUNGGU', title: 'Antrian ikut tersinkron.', description: 'Nomor antrian dikelola secara digital dan dapat ditampilkan di layar TV agar pelanggan tahu giliran mereka.', icon: Monitor, status: 'Layar antrian aktif', tag: 'LIVE QUEUE' },
 }
 function discountFor(plan, promo) {
-  if (!promo || !promo.is_active || !promo.eligible_periods?.includes(plan.key)) return 0
-  if (promo.requires_code) return 0
-  if (promo.discount_type === 'percent') return Math.min(plan.price, Math.round(plan.price * Number(promo.discount_value || 0) / 100))
-  return Math.min(plan.price, Number(promo.discount_value || 0))
+  if (!promo || promo.requires_code) return 0
+  const eligible = Array.isArray(promo.eligible_periods) ? promo.eligible_periods.map(value => String(value).toLowerCase()) : []
+  const key = String(plan?.key || plan?.plan_key || '').toLowerCase()
+  if (eligible.length && !eligible.includes(key)) return 0
+  const price = Math.max(0, Number(plan?.price || 0))
+  const value = Math.max(0, Number(promo.discount_value || 0))
+  if (promo.discount_type === 'percent') return Math.min(price, Math.round(price * Math.min(value, 100) / 100))
+  return Math.min(price, value)
 }
 function Brand({ footer = false }) {
   return <a className={'living-brand' + (footer ? ' living-brand-footer' : '')} href="/" aria-label="NexaPos beranda">
@@ -208,7 +212,7 @@ export default function Homepage() {
         <div className="living-bridge-map living-reveal"><div className="living-map-core"><img src="/nexapos-mark.svg" alt=""/><span>NexaPos</span></div><div className="living-map-item map-one"><ShoppingCart size={17}/><span>Transaksi</span></div><div className="living-map-item map-two"><Users size={17}/><span>Karyawan</span></div><div className="living-map-item map-three"><Monitor size={17}/><span>Antrian TV</span></div><div className="living-map-item map-four"><BarChart3 size={17}/><span>Laporan</span></div><div className="living-map-link link-one"/><div className="living-map-link link-two"/><div className="living-map-link link-three"/><div className="living-map-link link-four"/></div>
       </section>
 
-      {activePromo && <section className="living-promo living-reveal"><div className="living-promo-symbol"><Sparkles size={20}/></div><div><span>PENAWARAN NEXAPOS</span><h2>{activePromo.title || 'Penawaran khusus NexaPos'}</h2><p>{activePromo.description || 'Hubungi tim kami untuk informasi penawaran yang sedang berlaku.'}</p></div><a className="living-cta living-cta-light" href="#harga">Lihat penawaran <ArrowRight size={15}/></a></section>}
+      {activePromo && <section className="living-promo"><div className="living-promo-symbol"><Sparkles size={20}/></div><div><span>PENAWARAN NEXAPOS</span><h2>{activePromo.title || 'Penawaran khusus NexaPos'}</h2><p>{activePromo.description || 'Hubungi tim kami untuk informasi penawaran yang sedang berlaku.'}</p></div><a className="living-cta living-cta-light" href="#harga">Lihat penawaran <ArrowRight size={15}/></a></section>}
 
       <section className="living-features" id="fitur">
         <div className="living-section-head living-reveal"><div><span className="living-eyebrow">BUILT AROUND YOUR BUSINESS</span><h2>Semua bagian punya peran.<br/><em>Semuanya saling mendukung.</em></h2></div><p>Alat yang Anda perlukan untuk menjaga aktivitas bisnis tetap teratur, dari depan kasir hingga layar antrian.</p></div>
