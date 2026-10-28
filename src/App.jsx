@@ -908,7 +908,7 @@ function App() {
   if(effectiveStoreStatus !== 'active') return <TenantLockedScreen store={store} status={effectiveStoreStatus} onSignOut={()=>supabase.auth.signOut()}/>
 
   const tenantDaysRemaining = store?.expires_at ? Math.ceil((new Date(store.expires_at).setHours(0,0,0,0)-new Date().setHours(0,0,0,0))/86400000) : null
-  const tenantExpiryTone = tenantDaysRemaining === null ? '' : tenantDaysRemaining < 7 ? 'critical' : tenantDaysRemaining <= 24 ? 'warning' : 'healthy'
+  const tenantExpiryTone = tenantDaysRemaining === null ? '' : tenantDaysRemaining < 7 ? 'critical' : tenantDaysRemaining <= 25 ? 'warning' : 'healthy'
   const titleMap={dashboard:'Ringkasan',pos:'Kasir / POS',products:'Produk & stok',queue:'Sistem antrian',monitoring:'Monitoring kasir aktif',reports:'Laporan penjualan',attendance:'Laporan absensi',cashier:'Buka / tutup kasir',settings:'Pengaturan toko',profile:'Profil & keamanan','tv-settings':'Edit Tampilan TV'}
   return <div className="app-shell">
     <aside className={`sidebar ${mobileNav?'sidebar-open':''}`}>
