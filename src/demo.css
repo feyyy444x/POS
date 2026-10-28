@@ -11,3 +11,6 @@
 
 .demo-receipt-preview{max-width:520px;margin:18px 0;padding:18px;border:1px dashed #cbd2de;border-radius:10px;background:#fafbfc;color:#4c5268;text-align:center}
 .demo-receipt-preview strong{font-size:12px}.demo-receipt-preview p{font-size:10px;white-space:pre-wrap;margin:12px 0}.demo-receipt-preview small{font-size:9px;color:#7e8498}
+
+.demo-tv-preview{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;min-height:260px;margin:20px 0;padding:28px;border:1px solid #253252;border-radius:13px;background:radial-gradient(ellipse at 50% 0%,#283d67,#10172b 70%);color:#f4f8ff;text-align:center;overflow:hidden}
+.demo-tv-preview small{font-size:8px;letter-spacing:.2em;color:#a6b7d9}.demo-tv-preview strong{font:800 clamp(48px,8vw,78px)/1 Manrope;color:#8be5ce;letter-spacing:-.06em}.demo-tv-preview>span{font-size:10px;font-weight:800;letter-spacing:.12em}.demo-tv-preview p{font-size:10px;color:#b3bfd8;margin:0}.demo-tv-actions{display:flex;gap:10px;flex-wrap:wrap}
