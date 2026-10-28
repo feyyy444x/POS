@@ -221,3 +221,9 @@
 @media(max-aspect-ratio:4/3){
   .tv-screen-custom{width:100vw;height:56.25vw;max-height:100vh}
 }
+
+/* Smart Loop idle state: keep current-call details visible over a media-first canvas. */
+.tv-screen-custom .tv-layout-smart-loop.tv-smart-loop-idle .tv-media-panel{position:absolute;inset:0;grid-area:auto;z-index:0;opacity:1}
+.tv-screen-custom .tv-layout-smart-loop.tv-smart-loop-idle .tv-current{position:relative;z-index:1;align-self:start;max-width:46%;background:color-mix(in srgb,var(--tv-custom-bg) 82%,transparent);backdrop-filter:blur(12px);border:1px solid color-mix(in srgb,var(--tv-custom-text) 20%,transparent)}
+.tv-screen-custom .tv-layout-smart-loop.tv-smart-loop-idle .tv-next{position:relative;z-index:1;align-self:end;max-width:42%;background:color-mix(in srgb,var(--tv-custom-bg) 82%,transparent);backdrop-filter:blur(12px);border:1px solid color-mix(in srgb,var(--tv-custom-text) 20%,transparent)}
+.tv-screen-custom .tv-layout-smart-loop.tv-smart-loop-idle{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:minmax(0,1fr);grid-template-areas:"current next"}
