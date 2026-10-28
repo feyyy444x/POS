@@ -381,22 +381,14 @@ function App() {
       .on('postgres_changes',{event:'*',schema:'public',table:'store_settings',filter:'store_id=eq.'+storeId},refreshSettings)
       .on('postgres_changes',{event:'*',schema:'public',table:'stores',filter:'id=eq.'+storeId},refreshTeam)
       .subscribe((status)=>{
+        if(!navigator.onLine){setSyncStatus('offline');return}
         if(status==='SUBSCRIBED'){
+          setSyncStatus('connected')
           refreshOrders(); refreshOrderItems(); refreshProducts(); refreshSettings(); refreshTeam(); refreshQueue()
-        }
+        } else if(status==='CHANNEL_ERROR'||status==='TIMED_OUT') setSyncStatus('unstable')
       })
-    const refreshOnResume = () => {
-      if(document.visibilityState !== 'visible') return
-      refreshOrders(); refreshOrderItems(); refreshProducts(); refreshSettings(); refreshQueue(); refreshTeam()
-    }
-    window.addEventListener('focus',refreshOnResume)
-    document.addEventListener('visibilitychange',refreshOnResume)
-    return ()=>{
-      window.removeEventListener('focus',refreshOnResume)
-      document.removeEventListener('visibilitychange',refreshOnResume)
-      supabase.removeChannel(channel)
-    }
-  },[session,membership?.store_id,membership?.role,loadWorkspace])
+    return ()=>{supabase.removeChannel(channel)}
+  },[session,membership?.store_id,membership?.role,loadWorkspace,manualRefreshTick])
 
   // Keep the Owner's member and invitation tables in sync through Supabase Realtime.
   useEffect(()=>{
