@@ -19,6 +19,7 @@ export default function PublicQueueScreen() {
   const [success, setSuccess] = useState('')
 
   const load = useCallback(async () => {
+    setError('')
     if (!supabase || !/^[0-9a-f-]{36}$/i.test(storeId)) {
       setError('Tautan antrian tidak valid. Minta tautan resmi dari toko.')
       setLoading(false)
