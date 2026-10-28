@@ -76,7 +76,7 @@ export default function Homepage() {
       .eq('is_active', true)
     if (error) return
     const now = Date.now()
-    setPromos((data || []).filter(p => (!p.starts_at || new Date(p.starts_at).getTime() <= now) && (!p.ends_at || new Date(p.ends_at).getTime() >= now)))
+    setPromos((data || []).filter(p => !p.ends_at || new Date(p.ends_at).getTime() >= now))
   }, [])
   useEffect(() => {
     if (!supabase) return
@@ -131,13 +131,15 @@ export default function Homepage() {
     document.querySelectorAll('.living-reveal:not(.is-visible)').forEach(element => observer.observe(element))
     return () => observer.disconnect()
   }, [promos.length])
-  const automaticPromo = promos.find(p => !requiresPromoCode(p))
+  const automaticPromo = promos.find(p => !requiresPromoCode(p) && (!p.starts_at || new Date(p.starts_at).getTime() <= Date.now()))
+  const upcomingPromo = promos.find(p => !requiresPromoCode(p) && p.starts_at && new Date(p.starts_at).getTime() > Date.now())
   const couponPromo = useMemo(() => {
     const code = coupon.trim().toUpperCase()
     if (!code) return null
     return promos.find(p => requiresPromoCode(p) && String(p.promo_code || '').trim().toUpperCase() === code) || null
   }, [coupon, promos])
-  const activePromo = coupon.trim() ? couponPromo : automaticPromo
+  const activePromo = coupon.trim() ? couponPromo : (automaticPromo || upcomingPromo)
+  const promoStartsLater = Boolean(activePromo?.starts_at && new Date(activePromo.starts_at).getTime() > Date.now())
   const selected = plans.find(p => p.key === selectedPlan) || plans[2]
   const currentScene = storyScenes[scene] || storyScenes.kasir
   const SceneIcon = currentScene.icon
@@ -243,7 +245,7 @@ export default function Homepage() {
         {activePromo && <article className="living-pricing-promo living-promo-feature" aria-live="polite">
           <div className="living-promo-feature-mark"><Sparkles size={23}/><span>LIMITED<br/>OFFER</span></div>
           <div className="living-promo-feature-copy">
-            <div className="living-promo-kicker"><span className="living-live-dot"/> {requiresPromoCode(activePromo) ? 'VOUCHER TERSEDIA' : 'PROMO DARI NEXAPOS'} <span className="living-promo-kicker-line"/></div>
+            <div className="living-promo-kicker"><span className="living-live-dot"/> {promoStartsLater ? 'PROMO SEGERA HADIR' : requiresPromoCode(activePromo) ? 'VOUCHER TERSEDIA' : 'PROMO DARI NEXAPOS'} <span className="living-promo-kicker-line"/></div>
             <h3>{activePromo.title || 'Penawaran khusus NexaPos'}</h3>
             <p>{activePromo.description || 'Dapatkan harga khusus untuk masa akses NexaPos pilihanmu.'}</p>
             <div className="living-promo-details">
@@ -252,7 +254,7 @@ export default function Homepage() {
               {requiresPromoCode(activePromo) && activePromo.promo_code && <span><Ticket size={14}/> Kode: {activePromo.promo_code}</span>}
             </div>
           </div>
-          <div className="living-promo-feature-discount"><small>POTONGAN</small><strong>{promoDiscountLabel(activePromo)}</strong><span>{requiresPromoCode(activePromo) ? 'Gunakan kode promo' : 'Otomatis di harga paket'}</span></div>
+          <div className="living-promo-feature-discount"><small>POTONGAN</small><strong>{promoDiscountLabel(activePromo)}</strong><span>{promoStartsLater ? 'Harga promo ditampilkan sebelum mulai' : requiresPromoCode(activePromo) ? 'Gunakan kode promo' : 'Otomatis di harga paket'}</span></div>
         </article>}
         <div className="living-pricing-toolbar">
           <div><span className="living-eyebrow">PILIHAN MASA AKSES</span><p>Harga diperbarui mengikuti pengaturan Superadmin.</p></div>
@@ -269,7 +271,7 @@ export default function Homepage() {
         </article>)}</div>}
         <div className="living-plan-grid living-plan-grid-redesign">
           {plans.map((plan,index)=>{
-            const displayPromo=coupon.trim()?(couponPromo?{...couponPromo,requires_code:false}:null):automaticPromo;
+            const displayPromo=coupon.trim()?(couponPromo?{...couponPromo,requires_code:false}:null):(automaticPromo || upcomingPromo);
             const eligible=displayPromo ? eligiblePeriods(displayPromo) : [];
             const isEligible=!eligible.length||eligible.includes(String(plan.key||plan.plan_key||'').toLowerCase());
             const discount=isEligible?discountFor(plan,displayPromo):0;
