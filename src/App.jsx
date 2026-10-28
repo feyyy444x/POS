@@ -1297,7 +1297,7 @@ function PublicQueueScreen({display,error}){
   const templateLayouts = { 'nexa-cinema': 'split-left', 'nexa-showcase': 'media-top', 'nexa-queue': 'split-left', 'nexa-grid': 'queue-grid', 'nexa-overlay': 'overlay', 'nexa-carousel': 'carousel', 'nexa-smart-loop': 'smart-loop' }
   const configuredLayout = wasLegacyTemplate ? templateLayouts[selectedTemplate] : (cfg.layout_mode || templateLayouts[selectedTemplate] || 'split-left')
   // Keep media visible even when an older saved setting says queue-only.
-  const layout = (configuredLayout === 'queue-only' || selectedTemplate === 'nexa-queue') ? 'split-left' : configuredLayout === 'media-fullscreen' ? 'overlay' : configuredLayout === 'alternate' ? 'smart-loop' : configuredLayout
+  const layout = (configuredLayout === 'queue-only' || configuredLayout === 'queue-grid' || selectedTemplate === 'nexa-queue') ? 'split-left' : configuredLayout === 'media-fullscreen' ? 'overlay' : configuredLayout === 'alternate' ? 'smart-loop' : configuredLayout
   const selectedMedia=media.length?media[mediaIndex%media.length]:null
   const sourceUrl=selectedMedia?.source_url || (selectedMedia?.storage_path ? supabase?.storage.from('tv-media').getPublicUrl(selectedMedia.storage_path).data?.publicUrl || '' : '')
   const videoRefVolume=(element)=>{if(element){element.volume=Math.max(0,Math.min(1,Number(cfg.media_volume??35)/100));element.muted=Number(cfg.media_volume??35)===0}}
