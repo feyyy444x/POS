@@ -1287,9 +1287,10 @@ function PublicQueueScreen({display,error}){
   const activeCall=current.length>0
   // Without configured media, never use a media-only layout: keep the queue visible.
   const legacyTemplates = { 'modern-blue': 'nexa-cinema', 'minimal-light': 'nexa-showcase', 'premium-dark': 'nexa-overlay', 'queue-media': 'nexa-carousel', professional: 'nexa-grid' }
+  const wasLegacyTemplate = Boolean(legacyTemplates[cfg.template])
   const selectedTemplate = legacyTemplates[cfg.template] || cfg.template || 'nexa-cinema'
   const templateLayouts = { 'nexa-cinema': 'split-left', 'nexa-showcase': 'media-top', 'nexa-queue': 'queue-only', 'nexa-grid': 'queue-grid', 'nexa-overlay': 'overlay', 'nexa-carousel': 'carousel', 'nexa-smart-loop': 'smart-loop' }
-  const configuredLayout = cfg.layout_mode || templateLayouts[selectedTemplate] || 'split-left'
+  const configuredLayout = wasLegacyTemplate ? templateLayouts[selectedTemplate] : (cfg.layout_mode || templateLayouts[selectedTemplate] || 'split-left')
   const layout = selectedTemplate === 'nexa-queue' || configuredLayout === 'queue-only' ? 'queue-only' : configuredLayout === 'media-fullscreen' ? 'overlay' : configuredLayout === 'alternate' ? 'smart-loop' : configuredLayout
   const selectedMedia=media.length?media[mediaIndex%media.length]:null
   const sourceUrl=selectedMedia?.source_url||''
