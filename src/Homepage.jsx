@@ -78,7 +78,7 @@ export default function Homepage() {
         <div className="nx-hero-copy"><div className="nx-eyebrow"><span className="nx-live-dot"/> SOLUSI DIGITAL UNTUK USAHA ANDA</div>
           <h1>Kelola Bisnis Lebih Mudah <span>Bersama NexaPos.</span></h1>
           <p>Solusi kasir digital dan sistem antrian terintegrasi untuk membantu operasional usaha Anda menjadi lebih praktis, teratur, dan efisien.</p>
-          <div className="nx-hero-actions"><a className="nx-button" href="#harga">Lihat Pilihan Sewa <ArrowRight size={17}/></a><a className="nx-button nx-button-ghost" href="/login">Masuk ke Workspace</a></div>
+          <div className="nx-hero-actions"><a className="nx-button" href="#harga">Lihat Pilihan Sewa <ArrowRight size={17}/></a><a className="nx-button nx-button-ghost" href="/?screen=demo">Coba Demo Interaktif <ArrowRight size={16}/></a><a className="nx-button nx-button-ghost" href="/login">Masuk ke Workspace</a></div>
           <div className="nx-proof-row"><span><CheckCircle2 size={15}/> Kasir dan stok</span><span><CheckCircle2 size={15}/> Laporan usaha</span><span><CheckCircle2 size={15}/> Antrian terintegrasi</span></div>
         </div>
         <div className="nx-hero-visual" aria-label="Ilustrasi dashboard NexaPos">
