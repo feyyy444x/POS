@@ -102,7 +102,15 @@ export default function TvDisplaySettings({ store, membership, onNotice }) {
     setLoaded(true)
   }, [storeId, notify])
 
-  useEffect(() => { load() }, [load])
+  useEffect(() => {
+    if (!storeId || !supabase) return
+    load()
+    const channel = supabase.channel('tv-settings-live-' + storeId)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'store_tv_settings', filter: 'store_id=eq.' + storeId }, load)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'store_tv_media', filter: 'store_id=eq.' + storeId }, load)
+      .subscribe(status => { if (status === 'SUBSCRIBED') load() })
+    return () => { supabase.removeChannel(channel) }
+  }, [load, storeId])
 
   const setField = (key, value) => setDraft(prev => ({ ...prev, [key]: value }))
   const totalUploadBytes = useMemo(() => media.filter(item =>
