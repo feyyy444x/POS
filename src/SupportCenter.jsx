@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowLeft, ArrowRight, Headphones, MessageCircle, Send, X, ExternalLink, RefreshCw, Phone, Settings, Save, CheckCircle2 } from 'lucide-react'
 import { supabase } from './lib/supabase'
 
@@ -25,6 +25,9 @@ export default function SupportCenter({ session, onClose, isSuperAdmin = false, 
   const [channelError, setChannelError] = useState('')
   const [channelNotice, setChannelNotice] = useState('')
   const [realtimeStatus, setRealtimeStatus] = useState('Menyambungkan realtime…')
+  const [position, setPosition] = useState({ x: 0, y: 0 })
+  const modalRef = useRef(null)
+  const dragRef = useRef(null)
   const activeSession = session || guestSession
   const userId = activeSession?.user?.id
   const userEmail = activeSession?.user?.email || ''
@@ -217,9 +220,29 @@ export default function SupportCenter({ session, onClose, isSuperAdmin = false, 
     window.open('https://wa.me/' + whatsappNumber + '?text=' + encodeURIComponent(text), '_blank', 'noopener,noreferrer')
   }
 
+  const startDrag = event => {
+    if (embedded || event.target.closest('button')) return
+    event.preventDefault()
+    event.currentTarget.setPointerCapture?.(event.pointerId)
+    dragRef.current = { pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, originX: position.x, originY: position.y }
+  }
+  const moveDrag = event => {
+    const drag = dragRef.current
+    if (!drag || drag.pointerId !== event.pointerId) return
+    const rect = modalRef.current?.getBoundingClientRect()
+    if (!rect) return
+    const maxX = Math.max(0, (window.innerWidth - rect.width) / 2 - 8)
+    const maxY = Math.max(0, (window.innerHeight - rect.height) / 2 - 8)
+    setPosition({
+      x: Math.max(-maxX, Math.min(maxX, drag.originX + event.clientX - drag.startX)),
+      y: Math.max(-maxY, Math.min(maxY, drag.originY + event.clientY - drag.startY)),
+    })
+  }
+  const endDrag = event => { if (dragRef.current?.pointerId === event.pointerId) dragRef.current = null }
+
   return <div className={embedded ? 'support-embedded' : 'support-overlay'} role="dialog" aria-modal={!embedded} aria-label="Pusat Bantuan NexaPos" onMouseDown={e => { if (!embedded && e.target === e.currentTarget) onClose() }}>
-    <section className={'support-modal' + (embedded ? ' support-modal-embedded' : '')}>
-      <header className="support-modal-head"><div className="support-modal-brand"><span className="support-modal-icon"><Headphones size={20}/></span><div><strong>Pusat Bantuan</strong><small>NexaPos · dukungan pengguna</small></div></div><button className="icon-button" aria-label="Tutup pusat bantuan" onClick={onClose}><X size={18}/></button></header>
+    <section ref={modalRef} style={embedded ? undefined : { transform: `translate(${position.x}px, ${position.y}px)` }} className={'support-modal' + (embedded ? ' support-modal-embedded' : '')}>
+      <header className="support-modal-head" onPointerDown={startDrag} onPointerMove={moveDrag} onPointerUp={endDrag} onPointerCancel={endDrag}><div className="support-modal-brand"><span className="support-modal-icon"><Headphones size={20}/></span><div><strong>Pusat Bantuan</strong><small>NexaPos · dukungan pengguna</small></div></div><button className="icon-button" aria-label="Tutup pusat bantuan" onClick={onClose}><X size={18}/></button></header>
       {mode === 'settings' && isSuperAdmin && <div className="support-settings-view">
         <div className="support-settings-intro"><span className="eyebrow muted">KANAL DUKUNGAN</span><h2>Pengaturan pusat bantuan</h2><p>Nomor WhatsApp dan akun Telegram diatur di sini. Perubahan dikirim ke Supabase dan diperbarui otomatis pada website.</p><small><span className="support-realtime-dot" /> {realtimeStatus}</small></div>
         {channelLoading && <div className="support-settings-loading"><span className="spinner" /> Memuat pengaturan kanal…</div>}
