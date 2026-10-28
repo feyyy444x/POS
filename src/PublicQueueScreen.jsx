@@ -27,7 +27,7 @@ export default function PublicQueueScreen() {
     const [{ data: storeRow, error: storeError }, { data: settingsRow }, { data: queueRows, error: queueError }] = await Promise.all([
       supabase.from('stores').select('id,name,status,expires_at').eq('id', storeId).maybeSingle(),
       supabase.from('store_settings').select('store_id,store_name,queue_prefix,logo_url').eq('store_id', storeId).maybeSingle(),
-      supabase.from('queue_tickets').select('id,store_id,service_date,queue_number,customer_name,status,counter_label,created_at,called_at,completed_at').eq('store_id', storeId).eq('service_date', today()).order('queue_number', { ascending: true })
+      supabase.from('queue_tickets').select('id,store_id,service_date,queue_number,status,counter_label,created_at,called_at,completed_at').eq('store_id', storeId).eq('service_date', today()).order('queue_number', { ascending: true })
     ])
     if (storeError || queueError) setError('Informasi antrian belum dapat dimuat. Coba lagi atau hubungi petugas.')
     else if (!storeRow) setError('Toko tidak ditemukan atau tidak menyediakan tautan antrian ini.')
@@ -136,7 +136,7 @@ export default function PublicQueueScreen() {
         {current.length ? current.map((ticket, index) => <div style={styles.currentRow} key={ticket.id}><strong style={index === 0 ? styles.currentNumber : styles.nextNumber}>{numberLabel(prefix, ticket.queue_number)}</strong><span>{ticket.counter_label || 'Pengambilan Pesanan'}</span></div>) : <div style={styles.empty}>Belum ada nomor yang dipanggil.</div>}
       </div>
       <div style={styles.sectionLabel}>NOMOR MENUNGGU</div>
-      {tickets.filter(ticket => ticket.status === 'waiting').slice(0, 5).map(ticket => <div style={styles.nextRow} key={ticket.id}><span>{numberLabel(prefix, ticket.queue_number)}</span><span style={styles.muted}>{ticket.customer_name || 'Pelanggan'}</span></div>)}
+      {tickets.filter(ticket => ticket.status === 'waiting').slice(0, 5).map(ticket => <div style={styles.nextRow} key={ticket.id}><span>{numberLabel(prefix, ticket.queue_number)}</span><span style={styles.muted}>Menunggu dipanggil</span></div>)}
     </section>
     <footer style={styles.footer} className="no-print">Layanan antrian NexaPos · {tenantName}</footer>
   </main>
