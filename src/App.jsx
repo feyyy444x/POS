@@ -364,6 +364,9 @@ function App() {
 
   useEffect(()=>{const timer=setInterval(()=>setMonitoringNow(Date.now()),1000);return()=>clearInterval(timer)},[])
 
+  const monitoringBreakRows = monitoringBreaks.filter(row=>!row.ended_at).map(row=>{const shift=openCashierShifts.find(item=>item.id===row.shift_id);const member=shift?.member||teamMembers.find(item=>item.user_id===row.cashier_id);const elapsedMinutes=Math.max(0,Math.floor((monitoringNow-new Date(row.started_at).getTime())/60000));return {...row,displayName:member?.full_name?.trim()||member?.email||'Kasir '+String(row.cashier_id||'').slice(0,8),email:member?.email||'',elapsedMinutes,overdue:elapsedMinutes>=Number(breakSettings.max_break_minutes||15),overdueMinutes:Math.max(0,elapsedMinutes-Number(breakSettings.max_break_minutes||15))}})
+  const overdueBreakRows = monitoringBreakRows.filter(row=>row.overdue)
+
   // Audio is local to an admin/owner monitoring page; no external notification is sent.
   useEffect(()=>{
     if(page!=='monitoring'||!breakSettings.sound_enabled||!monitoringSoundReady)return
@@ -526,8 +529,6 @@ function App() {
     const member=shift.member
     return {...shift,displayName:member?.full_name?.trim()||member?.email||'Kasir '+String(shift.cashier_id||'').slice(0,8),transactionCount:cashierOrders.length,salesTotal:cashierOrders.reduce((sum,o)=>sum+Number(o.total||0),0)}
   }).filter(row=>!monitoringSearch.trim()||[row.displayName,row.member?.email,row.cashier_id].some(value=>String(value||'').toLocaleLowerCase('id-ID').includes(monitoringSearch.trim().toLocaleLowerCase('id-ID'))))
-  const monitoringBreakRows = monitoringBreaks.filter(row=>!row.ended_at).map(row=>{const shift=openCashierShifts.find(item=>item.id===row.shift_id);const member=shift?.member||teamMembers.find(item=>item.user_id===row.cashier_id);const elapsedMinutes=Math.max(0,Math.floor((monitoringNow-new Date(row.started_at).getTime())/60000));return {...row,displayName:member?.full_name?.trim()||member?.email||'Kasir '+String(row.cashier_id||'').slice(0,8),email:member?.email||'',elapsedMinutes,overdue:elapsedMinutes>=Number(breakSettings.max_break_minutes||15),overdueMinutes:Math.max(0,elapsedMinutes-Number(breakSettings.max_break_minutes||15))}})
-  const overdueBreakRows = monitoringBreakRows.filter(row=>row.overdue)
   const staleShiftRows = monitoringCashierRows.map(row=>({...row,elapsedHours:Math.max(0,Math.floor((monitoringNow-new Date(row.opened_at).getTime())/3600000))})).filter(row=>row.elapsedHours>=12)
   const monitoringSalesTotal = monitoringCashierRows.reduce((sum,row)=>sum+row.salesTotal,0)
   const monitoringTransactionTotal = monitoringCashierRows.reduce((sum,row)=>sum+row.transactionCount,0)
