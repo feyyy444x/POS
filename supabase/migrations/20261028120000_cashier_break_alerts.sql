@@ -103,6 +103,7 @@ create trigger prevent_closing_shift_during_break
 before update of closed_at on public.cashier_shifts
 for each row
 execute function public.prevent_closing_shift_during_break();
+revoke all on function public.prevent_closing_shift_during_break() from public, anon, authenticated;
 
 do $publication$
 begin
