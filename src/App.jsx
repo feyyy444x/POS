@@ -389,9 +389,8 @@ function App() {
     }
     const channel=supabase.channel('nexapos-team-'+store.id)
       .on('postgres_changes',{event:'*',schema:'public',table:'store_members',filter:'store_id=eq.'+store.id},refreshTeamLists)
-      .subscribe(status=>{if(status==='SUBSCRIBED')refreshTeamLists()})
     if(membership?.role==='owner')channel.on('postgres_changes',{event:'*',schema:'public',table:'store_invites',filter:'store_id=eq.'+store.id},refreshTeamLists)
-    channel.subscribe()
+    channel.subscribe(status=>{if(status==='SUBSCRIBED')refreshTeamLists()})
     return ()=>{cancelled=true;supabase.removeChannel(channel)}
   },[session?.user?.id,store?.id,membership?.role])
 
