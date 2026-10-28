@@ -419,3 +419,26 @@
  .living-promo-feature,.living-plan-redesign{animation:none!important}
  .living-promo-feature-mark,.living-pricing-redesign:before,.living-pricing-live i{animation:none!important}
 }
+
+
+/* Promo spotlight — follows the existing NexaPos kinetic/living visual system. */
+.living-promo-spotlight{position:relative;isolation:isolate;overflow:hidden;margin:0 auto;padding:clamp(24px,4vw,48px) clamp(22px,6vw,84px);background:var(--navy);color:#f4f8f3;border-top:1px solid #7fd4bb45;border-bottom:1px solid #7fd4bb45}
+.living-promo-spotlight:before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 85% 45%,#08b99622 0,transparent 42%),linear-gradient(105deg,#102d50 0%,#153d52 58%,#102d50 100%);z-index:-2}
+.living-promo-spotlight-orbit{position:absolute;right:8%;top:-190px;width:430px;height:430px;border:1px solid #8de5c51e;border-radius:50%;box-shadow:0 0 0 35px #8de5c508,0 0 0 75px #8de5c506;pointer-events:none;animation:living-orbit 65s linear infinite;z-index:-1}
+.living-promo-spotlight-label{display:flex;align-items:center;gap:9px;color:var(--mint-bright);font-size:9px;font-weight:800;letter-spacing:.16em}
+.living-promo-spotlight-label .living-live-dot{width:6px;height:6px}
+.living-promo-spotlight-main{display:grid;grid-template-columns:minmax(0,1fr) minmax(180px,.36fr);align-items:center;gap:30px;margin:20px 0 25px}
+.living-promo-spotlight-main .living-eyebrow{color:#8ed9c3;font-size:8px;letter-spacing:.16em}
+.living-promo-spotlight-main h2{margin:12px 0 9px;color:#f6faf5;font-size:clamp(28px,4vw,49px);line-height:1.04;letter-spacing:-.045em}
+.living-promo-spotlight-main p{margin:0;color:#c3d9d8;font-size:13px;line-height:1.8}
+.living-promo-spotlight-meta{display:flex;flex-wrap:wrap;gap:10px 20px;margin-top:20px}
+.living-promo-spotlight-meta span{display:inline-flex;align-items:center;gap:7px;color:#c5e7dc;font-size:10px}
+.living-promo-spotlight-meta svg{color:var(--mint-bright)}
+.living-promo-spotlight-value{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:175px;padding:24px;border:1px solid #8de5c53d;background:#f1f8f01a;box-shadow:0 20px 55px #00000012;backdrop-filter:blur(8px);animation:living-node-float 5.5s ease-in-out infinite}
+.living-promo-spotlight-value small{font-size:9px;font-weight:800;letter-spacing:.22em;color:#a5d9ca}
+.living-promo-spotlight-value strong{margin:8px 0;color:var(--mint-bright);font-size:clamp(54px,7vw,82px);line-height:1;letter-spacing:-.09em}
+.living-promo-spotlight-value span{font-size:10px;color:#d2e5df}
+.living-promo-spotlight>.living-cta{display:inline-flex;min-height:45px;padding:0 17px;background:var(--mint-bright);color:var(--navy);border-color:var(--mint-bright)}
+.living-promo-spotlight>.living-cta:hover{background:#d8f4e9;transform:translateY(-2px)}
+@media(max-width:700px){.living-promo-spotlight{padding:26px 22px}.living-promo-spotlight-main{grid-template-columns:1fr;gap:20px;margin:18px 0 22px}.living-promo-spotlight-value{min-height:120px;align-items:flex-start;padding:18px 20px}.living-promo-spotlight-value strong{font-size:58px}.living-promo-spotlight-meta{flex-direction:column;gap:9px}.living-promo-spotlight-orbit{right:-200px;top:0}}
+@media(prefers-reduced-motion:reduce){.living-promo-spotlight-orbit,.living-promo-spotlight-value{animation:none!important}}
