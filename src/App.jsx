@@ -924,9 +924,9 @@ function SuperAdminScreen({session,onSignOut}) {
     const matches=!q||[u.email,u.full_name,u.user_id,u.store_names,u.tenant_roles].some(v=>String(v||'').toLowerCase().includes(q))
     return matches&&(userStatus==='all'||(userStatus==='blocked'?u.is_banned:!u.is_banned))
   })
-  const navItems=[['dashboard','Ringkasan',LayoutDashboard],['stores','Toko / tenant',Store],['users','Manajemen user',Users],['disabled','Akun staf nonaktif',Ban],['support','Pusat bantuan',Headphones],['promotions','Promo & Diskon',Ticket],['subscription-plans','Langganan Homepage',CreditCard]]
+  const navItems=[['dashboard','Ringkasan',LayoutDashboard],['stores','Toko / tenant',Store],['users','Manajemen user',Users],['disabled','Akun staf nonaktif',Ban],['support','Pusat bantuan',Headphones],['promotions','Promo & Diskon',Ticket],['subscription-plans','Kelola Langganan & Harga',CreditCard]]
   const selectSection=(id)=>{setSection(id);setMobileNav(false)}
-  const pageTitle={dashboard:'Ringkasan platform',stores:'Manajemen toko',users:'Manajemen user',disabled:'Akun staf nonaktif',support:'Pusat bantuan',promotions:'Promo & Diskon', 'subscription-plans':'Langganan Homepage'}[section]
+  const pageTitle={dashboard:'Ringkasan platform',stores:'Manajemen toko',users:'Manajemen user',disabled:'Akun staf nonaktif',support:'Pusat bantuan',promotions:'Promo & Diskon', 'subscription-plans':'Kelola Langganan & Harga'}[section]
   if(section==='promotions') return <PromotionManager onBack={()=>setSection('dashboard')} onSignOut={onSignOut}/>
   if(section==='subscription-plans') return <SubscriptionPlanManager onBack={()=>setSection('dashboard')}/>
   return <div className="app-shell super-admin-shell">
