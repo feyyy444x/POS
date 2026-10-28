@@ -1138,3 +1138,11 @@ tbody tr:hover{background:#f7fbfd}
 .app-shell .table-wrap{border-radius:12px}
 .app-shell .panel+.panel{margin-top:16px}
 @media(max-width:760px){.app-shell .panel+.panel{margin-top:12px}.app-shell .panel-head{flex-wrap:wrap}}
+
+.receipt-note{margin:8px 0 4px;padding:7px 0;border-top:1px dashed #777;border-bottom:1px dashed #777;font-size:10px;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere;text-align:center}
+.tenant-expiry-banner{position:relative;display:flex;align-items:center;gap:12px;margin:0 0 16px;padding:13px 16px;border:1px solid;border-radius:13px;box-shadow:0 5px 16px rgba(22,34,58,.045)}
+.tenant-expiry-banner>div{display:flex;flex-direction:column;gap:3px;min-width:0}.tenant-expiry-banner strong{font-size:12px;line-height:1.45}.tenant-expiry-banner small{font-size:10px;line-height:1.5;opacity:.8}.tenant-expiry-icon{width:36px;height:36px;display:grid;place-items:center;flex:0 0 auto;border-radius:10px}
+.tenant-expiry-banner.healthy{background:#f0fbf5;border-color:#bdebd0;color:#166534}.tenant-expiry-banner.healthy .tenant-expiry-icon{background:#d7f7e5;color:#15803d}
+.tenant-expiry-banner.warning{background:#fffbeb;border-color:#f6d88b;color:#92400e}.tenant-expiry-banner.warning .tenant-expiry-icon{background:#fef0bf;color:#b45309}
+.tenant-expiry-banner.critical{background:#fff1f2;border-color:#fecdd3;color:#9f1239;box-shadow:0 5px 18px rgba(225,29,72,.08)}.tenant-expiry-banner.critical .tenant-expiry-icon{background:#ffe0e5;color:#be123c}
+@media(max-width:600px){.tenant-expiry-banner{padding:11px 12px;gap:10px}.tenant-expiry-banner strong{font-size:11px}}
