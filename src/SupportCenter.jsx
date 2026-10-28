@@ -143,8 +143,13 @@ export default function SupportCenter({ session, onClose, isSuperAdmin = false, 
     }
     const channel = supabase.channel('support-live-' + (userId || 'guest'))
       .on('postgres_changes', { event: '*', schema: 'public', table: 'support_messages' }, payload => {
-        if (!isSuperAdmin && payload.new?.user_id !== userId && payload.old?.user_id !== userId) return
-        refreshMessages()
+        const changedUserId = payload.new?.user_id || payload.old?.user_id
+        if (isSuperAdmin) {
+          if (mode === 'inbox') loadInbox()
+          else if (mode === 'chat' && activeUser?.user_id === changedUserId) loadMessages(activeUser.user_id)
+          return
+        }
+        if (changedUserId === userId && mode === 'chat') loadMessages(userId)
       })
       .subscribe(status => {
         setRealtimeStatus(status === 'SUBSCRIBED' ? 'Realtime tersambung' : status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' ? 'Realtime terputus, mencoba kembali…' : 'Menyambungkan realtime…')
