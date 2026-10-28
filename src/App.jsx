@@ -1294,9 +1294,10 @@ function PublicQueueScreen({display,error}){
   const legacyTemplates = { 'modern-blue': 'nexa-cinema', 'minimal-light': 'nexa-showcase', 'premium-dark': 'nexa-overlay', 'queue-media': 'nexa-carousel', professional: 'nexa-grid' }
   const wasLegacyTemplate = Boolean(legacyTemplates[cfg.template])
   const selectedTemplate = legacyTemplates[cfg.template] || cfg.template || 'nexa-cinema'
-  const templateLayouts = { 'nexa-cinema': 'split-left', 'nexa-showcase': 'media-top', 'nexa-queue': 'queue-only', 'nexa-grid': 'queue-grid', 'nexa-overlay': 'overlay', 'nexa-carousel': 'carousel', 'nexa-smart-loop': 'smart-loop' }
+  const templateLayouts = { 'nexa-cinema': 'split-left', 'nexa-showcase': 'media-top', 'nexa-queue': 'split-left', 'nexa-grid': 'queue-grid', 'nexa-overlay': 'overlay', 'nexa-carousel': 'carousel', 'nexa-smart-loop': 'smart-loop' }
   const configuredLayout = wasLegacyTemplate ? templateLayouts[selectedTemplate] : (cfg.layout_mode || templateLayouts[selectedTemplate] || 'split-left')
-  const layout = selectedTemplate === 'nexa-queue' || configuredLayout === 'queue-only' ? 'queue-only' : configuredLayout === 'media-fullscreen' ? 'overlay' : configuredLayout === 'alternate' ? 'smart-loop' : configuredLayout
+  // Keep media visible even when an older saved setting says queue-only.
+  const layout = (configuredLayout === 'queue-only' || selectedTemplate === 'nexa-queue') ? 'split-left' : configuredLayout === 'media-fullscreen' ? 'overlay' : configuredLayout === 'alternate' ? 'smart-loop' : configuredLayout
   const selectedMedia=media.length?media[mediaIndex%media.length]:null
   const sourceUrl=selectedMedia?.source_url||''
   const videoRefVolume=(element)=>{if(element){element.volume=Math.max(0,Math.min(1,Number(cfg.media_volume??35)/100));element.muted=Number(cfg.media_volume??35)===0}}
