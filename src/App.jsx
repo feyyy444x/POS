@@ -1299,7 +1299,7 @@ function PublicQueueScreen({display,error}){
   // Keep media visible even when an older saved setting says queue-only.
   const layout = (configuredLayout === 'queue-only' || selectedTemplate === 'nexa-queue') ? 'split-left' : configuredLayout === 'media-fullscreen' ? 'overlay' : configuredLayout === 'alternate' ? 'smart-loop' : configuredLayout
   const selectedMedia=media.length?media[mediaIndex%media.length]:null
-  const sourceUrl=selectedMedia?.source_url||''
+  const sourceUrl=selectedMedia?.source_url || (selectedMedia?.storage_path ? supabase?.storage.from('tv-media').getPublicUrl(selectedMedia.storage_path).data?.publicUrl || '' : '')
   const videoRefVolume=(element)=>{if(element){element.volume=Math.max(0,Math.min(1,Number(cfg.media_volume??35)/100));element.muted=Number(cfg.media_volume??35)===0}}
   const mediaEmbed=useMemo(()=>{
     if(!sourceUrl)return ''
