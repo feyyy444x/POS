@@ -4,7 +4,7 @@ import { supabase } from './lib/supabase'
 import './tv-display.css'
 
 const DEFAULTS = {
-  template: 'modern-blue',
+  template: 'nexa-cinema',
   layout_mode: 'split-left',
   theme_mode: 'light',
   primary_color: '#2563eb',
@@ -24,18 +24,23 @@ const DEFAULTS = {
 }
 
 const TEMPLATES = [
-  ['modern-blue', 'Modern Blue', 'Biru navy, putih, aksen teal'],
-  ['minimal-light', 'Minimalis', 'Terang dan bersih'],
-  ['premium-dark', 'Premium Dark', 'Gelap dan elegan'],
-  ['queue-media', 'Antrean + Media', 'Antrean dan promosi berdampingan'],
-  ['professional', 'Antrean Profesional', 'Nomor aktif dan antrean berikutnya'],
+  ['nexa-cinema', '01 — Nexa Cinema', 'Video besar di kiri, antrean di kanan'],
+  ['nexa-showcase', '02 — Nexa Showcase', 'Media di atas, antrean di bawah'],
+  ['nexa-queue', '03 — Nexa Queue', 'Khusus antrean, tanpa media'],
+  ['nexa-grid', '04 — Nexa Grid', 'Panel antrean dalam susunan grid'],
+  ['nexa-overlay', '05 — Nexa Overlay', 'Media dengan panel antrean overlay'],
+  ['nexa-carousel', '06 — Nexa Carousel', 'Playlist media bergantian, antrean tetap terlihat'],
+  ['nexa-smart-loop', '07 — Nexa Smart Loop', 'Media otomatis saat tidak ada antrean menunggu'],
 ]
 const LAYOUTS = [
-  ['split-left', 'Antrean kiri, media kanan'],
+  ['split-left', 'Media besar kiri, antrean kanan'],
   ['media-top', 'Media di atas, antrean di bawah'],
   ['media-bottom', 'Antrean di atas, media di bawah'],
-  ['media-fullscreen', 'Media layar penuh saat antrean kosong'],
-  ['alternate', 'Antrean dan media bergantian'],
+  ['queue-only', 'Antrean saja — tanpa media'],
+  ['queue-grid', 'Antrean grid + media'],
+  ['overlay', 'Media dengan panel antrean overlay'],
+  ['carousel', 'Playlist media + antrean tetap'],
+  ['smart-loop', 'Smart Loop — media dan antrean otomatis'],
 ]
 const mb = bytes => (Number(bytes || 0) / (1024 * 1024)).toFixed(1)
 
@@ -71,6 +76,7 @@ export default function TvDisplaySettings({ store, membership, onNotice }) {
   const [draft, setDraft] = useState(DEFAULTS)
   const [media, setMedia] = useState([])
   const [loaded, setLoaded] = useState(false)
+  const [previewNow, setPreviewNow] = useState(() => new Date())
   const [saving, setSaving] = useState(false)
   const [addingMedia, setAddingMedia] = useState(false)
   const [uploading, setUploading] = useState(false)
@@ -95,12 +101,22 @@ export default function TvDisplaySettings({ store, membership, onNotice }) {
     if (settingsError || mediaError) {
       notify('Pengaturan TV belum dapat dimuat. Pastikan migrasi TV Display sudah aktif pada proyek Supabase POS: ' + (settingsError?.message || mediaError?.message))
     } else {
-      setDraft({ ...DEFAULTS, ...(settingsRow || {}) })
+      const loadedSettings = { ...DEFAULTS, ...(settingsRow || {}) }
+      const legacyTemplates = { 'modern-blue': 'nexa-cinema', 'minimal-light': 'nexa-showcase', 'premium-dark': 'nexa-overlay', 'queue-media': 'nexa-carousel', professional: 'nexa-grid' }
+      loadedSettings.template = legacyTemplates[loadedSettings.template] || (TEMPLATES.some(([value]) => value === loadedSettings.template) ? loadedSettings.template : 'nexa-cinema')
+      if (loadedSettings.layout_mode === 'alternate') loadedSettings.layout_mode = 'smart-loop'
+      if (loadedSettings.layout_mode === 'media-fullscreen') loadedSettings.layout_mode = 'overlay'
+      setDraft(loadedSettings)
       setMedia(mediaRows || [])
       setLocalError('')
     }
     setLoaded(true)
   }, [storeId, notify])
+
+  useEffect(() => {
+    const timer = setInterval(() => setPreviewNow(new Date()), 1000)
+    return () => clearInterval(timer)
+  }, [])
 
   useEffect(() => {
     if (!storeId || !supabase) return
@@ -278,7 +294,7 @@ export default function TvDisplaySettings({ store, membership, onNotice }) {
   }
 
   const templateClass = draft.theme_mode === 'dark' ? 'tv-preview-dark' : 'tv-preview-light'
-  const previewLayout = media.length ? draft.layout_mode : 'split-left'
+  const previewLayout = draft.layout_mode || 'split-left'
   const isManagerText = canManage ? 'Owner/Admin dapat mengubah pengaturan' : 'Mode baca saja — pengaturan hanya dapat diubah Owner/Admin'
 
   if (!loaded) return <section className="page-section"><div className="panel tv-settings-loading"><RefreshCw className="spin" size={18}/> Memuat pengaturan TV…</div></section>
@@ -297,7 +313,7 @@ export default function TvDisplaySettings({ store, membership, onNotice }) {
           <label>Template dasar</label>
           <div className="tv-template-options">
             {TEMPLATES.map(([value, label, desc]) => <label key={value} className={'tv-template-option ' + (draft.template === value ? 'selected' : '')}>
-              <input type="radio" name="tv-template" value={value} checked={draft.template === value} onChange={() => setDraft(prev => ({ ...prev, template: value, primary_color: ({'modern-blue':'#2563eb','minimal-light':'#64748b','premium-dark':'#8b5cf6','queue-media':'#0ea5e9','professional':'#16a34a'})[value], ...(value === 'premium-dark' ? { theme_mode: 'dark' } : value === 'minimal-light' ? { theme_mode: 'light' } : {}) }))} disabled={!canManage}/>
+              <input type="radio" name="tv-template" value={value} checked={draft.template === value} onChange={() => setDraft(prev => ({ ...prev, template: value, layout_mode: ({'nexa-cinema':'split-left','nexa-showcase':'media-top','nexa-queue':'queue-only','nexa-grid':'queue-grid','nexa-overlay':'overlay','nexa-carousel':'carousel','nexa-smart-loop':'smart-loop'})[value] || 'split-left', primary_color: ({'nexa-cinema':'#2563eb','nexa-showcase':'#64748b','nexa-queue':'#0f766e','nexa-grid':'#16a34a','nexa-overlay':'#8b5cf6','nexa-carousel':'#0ea5e9','nexa-smart-loop':'#0891b2'})[value], ...(value === 'nexa-overlay' ? { theme_mode: 'dark' } : value === 'nexa-showcase' ? { theme_mode: 'light' } : {}) }))} disabled={!canManage}/>
               <span><strong>{label}</strong><small>{desc}</small></span>
             </label>)}
           </div>
@@ -349,16 +365,16 @@ export default function TvDisplaySettings({ store, membership, onNotice }) {
       <aside className="tv-preview-column">
         <div className="panel tv-preview-panel"><div className="panel-head"><div><h3><Palette size={17}/> Pratinjau tampilan</h3><p>Contoh perubahan sebelum disimpan.</p></div></div>
           <div className={'tv-preview tv-preview-template-' + draft.template + ' ' + templateClass} style={{'--tv-primary': draft.primary_color, '--tv-bg': draft.background_color, '--tv-text': draft.text_color, '--tv-number-size': draft.queue_number_size + 'px', '--tv-name-size': draft.customer_name_size + 'px', '--tv-counter-size': draft.counter_size + 'px', '--tv-next-size': draft.next_queue_size + 'px'}}>
-            <header><span className="tv-preview-brand">Nexa<span>Pos</span></span><span className="tv-preview-live">● LIVE</span></header>
+            <header><span className="tv-preview-brand">Nexa<span>Pos</span></span><span className="tv-preview-live">● LIVE</span><strong className="tv-preview-clock">{new Intl.DateTimeFormat('id-ID', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).format(previewNow)} WIB</strong></header>
             <div className={'tv-preview-body tv-layout-' + previewLayout}>
               <section className="tv-preview-queue"><small>NOMOR ANTRIAN DIPANGGIL</small><strong className="tv-preview-number">A012</strong><b className="tv-preview-customer">Pelanggan contoh</b><span className="tv-preview-counter">Kasir 1</span><div className="tv-preview-next"><small>ANTRIAN BERIKUTNYA</small><strong>A013　A014　A015</strong></div></section>
-              {media.length > 0 && <section className="tv-preview-media"><div className="tv-preview-media-blur"/>{media[0]?.media_type==='upload'?<div className="tv-preview-media-card"><Video size={24}/><strong>{media[0].title}</strong><small>Pratinjau video upload menunggu konfigurasi penyimpanan</small></div>:previewSource(media[0]).type==='video'?<><video className="tv-preview-media-backdrop" src={previewSource(media[0]).url} muted autoPlay loop playsInline/><video className="tv-preview-media-video" src={previewSource(media[0]).url} muted autoPlay loop playsInline/><span className="tv-preview-media-label">{media[0].title}</span></>:previewSource(media[0]).type==='embed'?<iframe title={media[0].title} src={previewSource(media[0]).url} allow="autoplay; encrypted-media; picture-in-picture" allowFullScreen/>:<a className="tv-preview-media-card" href={previewSource(media[0]).url||undefined} target="_blank" rel="noreferrer"><Video size={24}/><strong>{media[0]?.title || 'Media promosi'}</strong><small>Buka tautan untuk melihat media</small></a>}</section>}
+              {previewLayout !== 'queue-only' && <section className="tv-preview-media"><div className="tv-preview-media-blur"/>{!media.length ? <div className="tv-preview-media-card"><Video size={24}/><strong>Area media / video</strong><small>Tambahkan media untuk menampilkan promosi</small></div> : media[0]?.media_type==='upload'?<div className="tv-preview-media-card"><Video size={24}/><strong>{media[0].title}</strong><small>Video upload</small></div>:previewSource(media[0]).type==='video'?<><video className="tv-preview-media-backdrop" src={previewSource(media[0]).url} muted autoPlay loop playsInline/><video className="tv-preview-media-video" src={previewSource(media[0]).url} muted autoPlay loop playsInline/><span className="tv-preview-media-label">{media[0].title}</span></>:previewSource(media[0]).type==='embed'?<iframe title={media[0].title} src={previewSource(media[0]).url} allow="autoplay; encrypted-media; picture-in-picture" allowFullScreen/>:<a className="tv-preview-media-card" href={previewSource(media[0]).url||undefined} target="_blank" rel="noreferrer"><Video size={24}/><strong>{media[0]?.title || 'Media promosi'}</strong><small>Buka tautan untuk melihat media</small></a>}</section>}
             </div>
             <footer>Informasi antrean diperbarui otomatis</footer>
           </div>
           <div className="tv-preview-actions"><button className="btn btn-primary" type="button" onClick={save} disabled={!canManage || saving}><Check size={15}/> Simpan dan terapkan</button></div>
         </div>
-        <div className="panel tv-preview-help"><strong>Perilaku tampilan</strong><ul><li>Nomor yang dipanggil selalu menjadi prioritas.</li><li>Video 16:9 ditampilkan utuh secara default.</li><li>Video 9:16 memakai latar buram dari video yang sama.</li><li>Semua TV menggunakan pengaturan tenant yang sama.</li><li>Perubahan tidak mengubah transaksi atau riwayat antrean.</li></ul></div>
+        <div className="panel tv-preview-help"><strong>Perilaku tampilan</strong><ul><li>Nomor yang dipanggil selalu menjadi prioritas.</li><li>Video 16:9 ditampilkan utuh secara default.</li><li>Video 9:16 memakai latar buram dari video yang sama.</li><li>Jam WIB berjalan setiap detik; nama pelanggan, nomor antrean, dan konter tetap berada dalam kanvas 16:9.</li><li>Perubahan tidak mengubah transaksi atau riwayat antrean.</li></ul></div>
       </aside>
     </div>
   </section>
