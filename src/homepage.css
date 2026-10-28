@@ -304,3 +304,9 @@
  .living-home *, .living-home *::before, .living-home *::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}
  .living-reveal{opacity:1;transform:none}
 }
+
+.living-pricing-promo{gap:20px;padding:19px 22px;border:1px solid #b7dfd3;background:linear-gradient(105deg,#e8f8f1,#f4f8f1);align-items:flex-start}
+.living-pricing-promo>div{min-width:0;display:flex;flex-direction:column;gap:8px}
+.living-pricing-promo>div>b{line-height:1.7;font-size:12px}
+.living-promo-terms{font-size:9px;line-height:1.7;color:#55786f}
+@media(max-width:640px){.living-pricing-promo{padding:15px;gap:10px}.living-promo-badge{white-space:normal;text-align:right}}
