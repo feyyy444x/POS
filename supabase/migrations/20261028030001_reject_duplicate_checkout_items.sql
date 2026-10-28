@@ -17,6 +17,7 @@ declare
   v_total numeric(12,2); v_order public.orders; v_ticket public.queue_tickets; v_receipt text;
 begin
   if not private.is_store_member(p_store_id) then raise exception 'Not authorized for this store'; end if;
+  if not private.is_store_operational(p_store_id) then raise exception 'Toko tidak aktif atau masa aktivasinya telah habis'; end if;
   if jsonb_typeof(p_items) <> 'array' or jsonb_array_length(p_items) = 0 then raise exception 'Cart is empty'; end if;
   if p_payment_method not in ('cash','qris','card','transfer','other') then raise exception 'Invalid payment method'; end if;
 
