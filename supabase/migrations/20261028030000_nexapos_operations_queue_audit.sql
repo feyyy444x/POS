@@ -5,8 +5,9 @@ alter table public.queue_tickets
   add column if not exists called_by uuid references auth.users(id) on delete set null,
   add column if not exists called_by_name text;
 
-create index if not exists queue_tickets_store_active_idx
-  on public.queue_tickets(store_id, service_date, status, queue_number);
+-- Keep the existing store/date/status index; add indexes for the new audit foreign keys.
+create index if not exists queue_tickets_created_by_idx on public.queue_tickets(created_by);
+create index if not exists queue_tickets_called_by_idx on public.queue_tickets(called_by);
 
 create or replace function public.capture_queue_creator()
 returns trigger
@@ -35,6 +36,9 @@ drop trigger if exists queue_ticket_capture_creator on public.queue_tickets;
 create trigger queue_ticket_capture_creator
 before insert on public.queue_tickets
 for each row execute function public.capture_queue_creator();
+
+-- This function is for the trigger only, not a client-callable RPC.
+revoke all on function public.capture_queue_creator() from public, anon, authenticated;
 
 create or replace function public.call_queue_ticket(
   p_ticket_id uuid,
