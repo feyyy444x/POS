@@ -31,7 +31,13 @@ export default function SubscriptionPlanManager({ onBack }) {
     setLoading(false)
   }, [])
 
-  useEffect(() => { load() }, [load])
+  useEffect(() => {
+    load()
+    const channel = supabase.channel('admin-subscription-plans-live')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'site_subscription_plans' }, load)
+      .subscribe(status => { if (status === 'SUBSCRIBED') load() })
+    return () => { supabase.removeChannel(channel) }
+  }, [load])
   const update = (key, field, value) => setPlans(current => current.map(plan => plan.plan_key === key ? { ...plan, [field]: value } : plan))
 
   const save = async plan => {
