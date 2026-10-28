@@ -1,7 +1,7 @@
 # Deploy Preview Environment
 
-The current Netlify Deploy Preview configuration for PR #15 points to the primary Supabase project `POS` (`zoplanjzcizvjhorsldm`) because the owner explicitly requested that NexaPos work remain on this project.
+PR #15 Deploy Preview uses the primary Supabase project `POS` (`zoplanjzcizvjhorsldm`) by explicit owner request. Both `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` in Netlify's deploy-preview context must belong to this project.
 
-**Important:** this means the preview is not isolated from production data. Any actions performed in the preview can affect the primary POS database. Do not use it for destructive tests, test transactions, or schema changes. Keep production and branch-deploy settings unchanged unless explicitly approved.
+**Important:** this preview shares the primary POS database and is not isolated. Avoid destructive tests or fake customer transactions. Schema changes must be additive, reviewed, and applied to this project deliberately. The cashier break migration adds `cashier_break_settings` and `cashier_shift_breaks` with row-level security, per-store membership checks, realtime publication, and a database guard against closing a shift during an active break.
 
-Before troubleshooting authentication or PostgREST schema-cache errors, verify the deployed commit and confirm that both `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` in the deploy-preview context belong to the primary `POS` project.
+Production and branch-deploy environment contexts are kept separate from the deploy-preview configuration. Do not merge PR #15 into `main` as part of preview troubleshooting.
