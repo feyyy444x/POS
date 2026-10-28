@@ -1343,7 +1343,7 @@ function PublicQueueScreen({display,error}){
   const portraitClass = cfg.portrait_background === 'dark' ? 'tv-portrait-dark' : cfg.portrait_background === 'theme' ? 'tv-portrait-theme' : 'tv-portrait-blur'
   const mediaNode=layout!=='queue-only' ? <section className={'tv-media-panel '+portraitClass} key={selectedMedia?.id||'media-placeholder'}>
     {!selectedMedia ? <div className="tv-media-placeholder"><Video size={28}/><strong>Area media / video</strong><small>Tambahkan media melalui Edit Tampilan TV</small></div> :
-      selectedMedia.media_type==='upload'||/\.(mp4|webm|ogg)(\?.*)?$/i.test(sourceUrl)?<><video className="tv-media-backdrop" key={'bg-'+sourceUrl} src={sourceUrl} autoPlay loop muted playsInline aria-hidden="true"/><video className="tv-media-foreground" key={sourceUrl} src={sourceUrl} autoPlay loop playsInline ref={videoRefVolume} onError={()=>{}}/></>:
+      /\.(png|jpe?g|gif|webp|avif)(\?.*)?$/i.test(sourceUrl)?<img className="tv-media-image" src={sourceUrl} alt={selectedMedia.title}/>:selectedMedia.media_type==='upload'||/\.(mp4|webm|ogg)(\?.*)?$/i.test(sourceUrl)?<><video className="tv-media-backdrop" key={'bg-'+sourceUrl} src={sourceUrl} autoPlay loop muted playsInline aria-hidden="true"/><video className="tv-media-foreground" key={sourceUrl} src={sourceUrl} autoPlay loop playsInline ref={videoRefVolume} onError={()=>{}}/></>:
       mediaEmbed?<iframe title={selectedMedia.title} src={mediaEmbed} allow="autoplay; encrypted-media; picture-in-picture" allowFullScreen/>:
       <a className="tv-media-link-card" href={sourceUrl} target="_blank" rel="noreferrer"><Video size={28}/><strong>{selectedMedia.title}</strong><small>Buka media di platform asal</small></a>}
   </section>:null
