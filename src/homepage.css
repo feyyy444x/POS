@@ -413,3 +413,9 @@
  .living-promo-feature-discount>span{font-size:8px}
  .living-pricing-live{white-space:normal}
 }
+
+
+@media(prefers-reduced-motion:reduce){
+ .living-promo-feature,.living-plan-redesign{animation:none!important}
+ .living-promo-feature-mark,.living-pricing-redesign:before,.living-pricing-live i{animation:none!important}
+}
