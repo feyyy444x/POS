@@ -826,8 +826,12 @@ function SuperAdminScreen({session,onSignOut}) {
   const load=useCallback(async()=>{
     setLoading(true)
     const {data,error}=await supabase.from('stores').select('id,name,owner_name,owner_email,status,activated_at,expires_at,activation_days,created_at,deleted_at').order('created_at',{ascending:false})
-    if(error)setNotice(error.message)
-    else setTenants(data||[])
+    if(error){setNotice(error.message);setLoading(false);return}
+    const storeIds=(data||[]).map(tenant=>tenant.id)
+    const settingsResult=storeIds.length ? await supabase.from('store_settings').select('store_id,store_name').in('store_id',storeIds) : {data:[],error:null}
+    if(settingsResult.error)setNotice('Nama toko sebagian belum dapat disinkronkan: '+settingsResult.error.message)
+    const settingsByStore=new Map((settingsResult.data||[]).map(row=>[row.store_id,row.store_name]))
+    setTenants((data||[]).map(tenant=>({...tenant,name:String(settingsByStore.get(tenant.id)||'').trim()||tenant.name})))
     setLoading(false)
   },[])
   const loadUsers=useCallback(async()=>{
