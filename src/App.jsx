@@ -152,6 +152,8 @@ function App() {
   const [queue, setQueue] = useState([])
   const [loading, setLoading] = useState(false)
   const [notice, setNotice] = useState('')
+  const [syncStatus, setSyncStatus] = useState(() => typeof navigator !== 'undefined' && !navigator.onLine ? 'offline' : 'checking')
+  const [manualRefreshTick, setManualRefreshTick] = useState(0)
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('Semua')
   const [cart, setCart] = useState([])
@@ -280,6 +282,15 @@ function App() {
   }, [session, selectedStoreId, isSuperAdmin])
 
   useEffect(()=>{if(!session){setIsSuperAdmin(false);setAdminCheckReady(true);return}setAdminCheckReady(false);supabase.from('super_admins').select('user_id').eq('user_id',session.user.id).maybeSingle().then(({data})=>{setIsSuperAdmin(Boolean(data));setAdminCheckReady(true)})},[session])
+
+  useEffect(()=>{
+    const handleOnline=()=>setSyncStatus('checking')
+    const handleOffline=()=>setSyncStatus('offline')
+    window.addEventListener('online',handleOnline)
+    window.addEventListener('offline',handleOffline)
+    if(!navigator.onLine)setSyncStatus('offline')
+    return()=>{window.removeEventListener('online',handleOnline);window.removeEventListener('offline',handleOffline)}
+  },[])
 
   useEffect(()=>{if(!session){setPinStatus(null);return}let cancelled=false;setPinStatus(null);supabase.rpc('get_my_pin_status').then(({data,error})=>{if(cancelled)return;if(error)setPinStatus({error:error.message});else setPinStatus(data?.[0]||{has_pin:false,is_verified:false})});return()=>{cancelled=true}},[session?.user?.id,session?.access_token])
 
