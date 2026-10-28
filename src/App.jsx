@@ -246,12 +246,19 @@ function App() {
     setProducts(productData || []); setOrders(orderData || []); setQueue(queueData || [])
     const orderIds=(orderData||[]).map(o=>o.id)
     if(orderIds.length){const {data:itemRows}=await supabase.from('order_items').select('*').in('order_id',orderIds);setOrderItems(itemRows||[])}else setOrderItems([])
-    if (member.role === 'owner') {
-      const [{data: memberList},{data: inviteList}] = await Promise.all([
-        supabase.from('store_members').select('id,user_id,role,email,full_name,is_active,created_at').eq('store_id',member.store_id).order('created_at',{ascending:true}),
-        supabase.from('store_invites').select('id,email,full_name,role,created_at,expires_at,accepted_at').eq('store_id',member.store_id).order('created_at',{ascending:false})
-      ])
-      setTeamMembers(memberList || []); setTeamInvites(inviteList || [])
+    if (['owner','admin','manager'].includes(member.role)) {
+      const {data: memberList} = await supabase.from('store_members')
+        .select('id,user_id,role,email,full_name,is_active,created_at')
+        .eq('store_id',member.store_id).order('created_at',{ascending:true})
+      setTeamMembers(memberList || [])
+      if (member.role === 'owner') {
+        const {data: inviteList} = await supabase.from('store_invites')
+          .select('id,email,full_name,role,created_at,expires_at,accepted_at')
+          .eq('store_id',member.store_id).order('created_at',{ascending:false})
+        setTeamInvites(inviteList || [])
+      } else {
+        setTeamInvites([])
+      }
     } else { setTeamMembers([]); setTeamInvites([]) }
     setLoading(false)
   }, [session, selectedStoreId])
@@ -366,21 +373,25 @@ function App() {
 
   // Keep the Owner's member and invitation tables in sync through Supabase Realtime.
   useEffect(()=>{
-    if(!session?.user?.id||!store?.id||membership?.role!=='owner'||!supabase)return
+    if(!session?.user?.id||!store?.id||!supabase||!['owner','admin','manager'].includes(membership?.role))return
     let cancelled=false
     const refreshTeamLists=async()=>{
-      const [{data:members,error:membersError},{data:invites,error:invitesError}]=await Promise.all([
-        supabase.from('store_members').select('id,user_id,role,email,full_name,is_active,created_at').eq('store_id',store.id).order('created_at',{ascending:true}),
-        supabase.from('store_invites').select('id,email,full_name,role,created_at,expires_at,accepted_at').eq('store_id',store.id).order('created_at',{ascending:false})
-      ])
+      const memberQuery=supabase.from('store_members')
+        .select('id,user_id,role,email,full_name,is_active,created_at')
+        .eq('store_id',store.id).order('created_at',{ascending:true})
+      const inviteQuery=membership?.role==='owner'
+        ? supabase.from('store_invites').select('id,email,full_name,role,created_at,expires_at,accepted_at').eq('store_id',store.id).order('created_at',{ascending:false})
+        : Promise.resolve({data:null,error:null})
+      const [{data:members,error:membersError},{data:invites,error:invitesError}]=await Promise.all([memberQuery,inviteQuery])
       if(cancelled)return
       if(!membersError&&members)setTeamMembers(members)
-      if(!invitesError&&invites)setTeamInvites(invites)
+      if(membership?.role==='owner'&&!invitesError&&invites)setTeamInvites(invites)
     }
     const channel=supabase.channel('nexapos-team-'+store.id)
       .on('postgres_changes',{event:'*',schema:'public',table:'store_members',filter:'store_id=eq.'+store.id},refreshTeamLists)
-      .on('postgres_changes',{event:'*',schema:'public',table:'store_invites',filter:'store_id=eq.'+store.id},refreshTeamLists)
       .subscribe(status=>{if(status==='SUBSCRIBED')refreshTeamLists()})
+    if(membership?.role==='owner')channel.on('postgres_changes',{event:'*',schema:'public',table:'store_invites',filter:'store_id=eq.'+store.id},refreshTeamLists)
+    channel.subscribe()
     return ()=>{cancelled=true;supabase.removeChannel(channel)}
   },[session?.user?.id,store?.id,membership?.role])
 
