@@ -29,13 +29,15 @@ const storyScenes = {
   antrian: { index: '03', eyebrow: 'SAAT PELANGGAN MENUNGGU', title: 'Antrian ikut tersinkron.', description: 'Nomor antrian dikelola secara digital dan dapat ditampilkan di layar TV agar pelanggan tahu giliran mereka.', icon: Monitor, status: 'Layar antrian aktif', tag: 'LIVE QUEUE' },
 }
 function discountFor(plan, promo) {
-  if (!promo || promo.requires_code) return 0
-  const eligible = Array.isArray(promo.eligible_periods) ? promo.eligible_periods.map(value => String(value).toLowerCase()) : []
-  const key = String(plan?.key || plan?.plan_key || '').toLowerCase()
+  if (!promo || promo.is_active === false || promo.requires_code) return 0
+  const eligible = Array.isArray(promo.eligible_periods) ? promo.eligible_periods.map(value => String(value).trim().toLowerCase()) : []
+  const key = String(plan?.key || plan?.plan_key || '').trim().toLowerCase()
   if (eligible.length && !eligible.includes(key)) return 0
   const price = Math.max(0, Number(plan?.price || 0))
   const value = Math.max(0, Number(promo.discount_value || 0))
-  if (promo.discount_type === 'percent') return Math.min(price, Math.round(price * Math.min(value, 100) / 100))
+  const type = String(promo.discount_type || '').toLowerCase()
+  const isPercent = ['percent', 'percentage', 'percentual', 'persen'].includes(type)
+  if (isPercent) return Math.min(price, Math.round(price * Math.min(value, 100) / 100))
   return Math.min(price, value)
 }
 function Brand({ footer = false }) {
@@ -113,9 +115,9 @@ export default function Homepage() {
         }
       })
     }, { threshold: 0.12, rootMargin: '0px 0px -35px 0px' })
-    document.querySelectorAll('.living-reveal').forEach(element => observer.observe(element))
+    document.querySelectorAll('.living-reveal:not(.is-visible)').forEach(element => observer.observe(element))
     return () => observer.disconnect()
-  }, [])
+  }, [promos.length])
   const automaticPromo = promos.find(p => !p.requires_code)
   const couponPromo = useMemo(() => {
     const code = coupon.trim().toUpperCase()
@@ -221,7 +223,7 @@ export default function Homepage() {
 
       <section className="living-pricing" id="harga">
         <div className="living-section-head living-reveal"><div><span className="living-eyebrow">ACCESS THE SYSTEM</span><h2>Pilih durasi.<br/><em>Bangun ritme bisnismu.</em></h2></div><p>Semua pilihan masa sewa mendapatkan akses ke fitur aplikasi yang sama. Pilih durasi sesuai kebutuhan operasional Anda.</p></div>
-        {activePromo && <div className="living-pricing-promo"><div><span><Ticket size={14}/> {activePromo.title || 'PROMO AKTIF'}</span><b>{activePromo.description || 'Nikmati penawaran selama periode promo berlangsung.'}</b><small className="living-promo-terms">Potongan {activePromo.discount_type==='percent'?activePromo.discount_value+'%':money(activePromo.discount_value)} · Berlaku untuk: {(activePromo.eligible_periods||[]).map(period=>({daily:'Harian',weekly:'Mingguan',monthly:'Bulanan',yearly:'Tahunan'}[period]||period)).join(', ')||'Sesuai ketentuan'}{activePromo.requires_code&&activePromo.promo_code?` · Kode ${activePromo.promo_code}`:''}{activePromo.ends_at?` · Sampai ${new Date(activePromo.ends_at).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'})}`:''}</small></div><span className="living-promo-badge">{activePromo.requires_code?'KODE PROMO':'PROMO AKTIF'}</span></div>}
+        {activePromo && <div className="living-pricing-promo living-reveal"><div><span><Ticket size={14}/> {activePromo.title || 'PROMO AKTIF'}</span><b>{activePromo.description || 'Nikmati penawaran selama periode promo berlangsung.'}</b><small className="living-promo-terms">Potongan {activePromo.discount_type==='percent'?activePromo.discount_value+'%':money(activePromo.discount_value)} · Berlaku untuk: {(activePromo.eligible_periods||[]).map(period=>({daily:'Harian',weekly:'Mingguan',monthly:'Bulanan',yearly:'Tahunan'}[period]||period)).join(', ')||'Sesuai ketentuan'}{activePromo.requires_code&&activePromo.promo_code?` · Kode ${activePromo.promo_code}`:''}{activePromo.ends_at?` · Sampai ${new Date(activePromo.ends_at).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'})}`:''}</small></div><span className="living-promo-badge">{activePromo.requires_code?'KODE PROMO':'PROMO AKTIF'}</span></div>}
         <div className="living-coupon living-reveal"><label htmlFor="living-coupon">Punya kode promo?</label><div><Ticket size={17}/><input id="living-coupon" value={coupon} onChange={e=>setCoupon(e.target.value.toUpperCase())} placeholder="Masukkan kode promo"/>{coupon && <button onClick={()=>setCoupon('')} aria-label="Hapus kode kupon"><X size={15}/></button>}</div>{coupon && <small className={couponPromo?'is-valid':''}>{couponPromo?`Kode valid · ${couponPromo.title||'Promo NexaPos'}`:coupon?'Kode belum valid atau tidak sedang berlaku.':'Kode akan diverifikasi sebelum konfirmasi penyewaan.'}</small>}</div>
         {promos.some(p=>p.requires_code) && <div className="living-voucher-list">{promos.filter(p=>p.requires_code).map(p=><article className={couponPromo?.id===p.id?'is-active':''} key={p.id}><div><span><Ticket size={14}/>{p.title||'Voucher NexaPos'}</span><p>{p.description||'Masukkan kode voucher untuk melihat penawaran yang berlaku.'}</p><small>Potongan {p.discount_type==='percent'?p.discount_value+'%':money(p.discount_value)} · Berlaku untuk: {(p.eligible_periods||[]).map(period=>({daily:'Harian',weekly:'Mingguan',monthly:'Bulanan',yearly:'Tahunan'}[period]||period)).join(', ')||'Sesuai ketentuan'}</small></div><button type="button" onClick={()=>setCoupon(p.promo_code||'')} disabled={!p.promo_code}>{p.promo_code?'Gunakan kode '+p.promo_code:'Kode tidak tersedia'} <ArrowRight size={13}/></button></article>)}</div>}
         <div className="living-plan-grid">{plans.map(plan=>{const displayPromo=coupon.trim()?(couponPromo?{...couponPromo,requires_code:false}:null):automaticPromo;const discount=discountFor(plan,displayPromo);const finalPrice=plan.price-discount;return <article className={'living-plan'+(plan.popular?' is-popular':'')+(selectedPlan===plan.key?' is-selected':'')} key={plan.key} onClick={()=>setSelectedPlan(plan.key)}><div className="living-plan-top"><span>{plan.name}</span>{plan.popular&&<b>PALING DIPILIH</b>}</div><p>{plan.note}</p><div className="living-price">{discount>0&&<del>{money(plan.price)}</del>}<strong>{money(finalPrice)}</strong><small>/ {plan.duration}</small></div>{discount>0&&<span className="living-saving">Hemat {money(discount)}</span>}<ul>{(plan.features?.length?plan.features:['Akses workspace NexaPos','Fitur kasir dan produk','Pengelolaan antrian','Bantuan penggunaan']).map((feature,index)=><li key={index}><CheckCircle2 size={14}/>{feature}</li>)}</ul><button className="living-cta living-plan-cta" onClick={e=>{e.stopPropagation();contact(plan,displayPromo)}}>Tanyakan penyewaan <ArrowRight size={14}/></button></article>})}</div>
