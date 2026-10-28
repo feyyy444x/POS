@@ -276,7 +276,7 @@ function App() {
       supabase.from('orders').select('*').eq('store_id',member.store_id).order('created_at',{ascending:false}),
       supabase.from('queue_tickets').select('*').eq('store_id',member.store_id).eq('service_date',today()).order('queue_number',{ascending:false})
     ])
-    setStore(storeData || null); setSettings(settingData || {store_id:member.store_id,store_name:storeData?.name||member.store_name||'NexaPos Store',address:'',phone:'',receipt_footer:'Terima kasih telah berbelanja',queue_prefix:'A',currency:'IDR'})
+    setStore(storeData || null); setSettings(settingData || {store_id:member.store_id,store_name:storeData?.name||member.store_name||'NexaPos Store',address:'',phone:'',receipt_footer:'Terima kasih telah berbelanja',receipt_note:'',queue_prefix:'A',currency:'IDR'})
     setProducts(productData || []); setOrders(orderData || []); setQueue(queueData || [])
     const orderIds=(orderData||[]).map(o=>o.id)
     if(orderIds.length){const {data:itemRows}=await supabase.from('order_items').select('*').in('order_id',orderIds);setOrderItems(itemRows||[])}else setOrderItems([])
