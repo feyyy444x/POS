@@ -199,6 +199,22 @@ function App() {
     if (!session?.user || !supabase) return
     setLoading(true)
     setNotice('')
+    // Platform Super Admin is independent of tenant membership; never load tenant workspace data for this role.
+    if (isSuperAdmin) {
+      setMemberships([])
+      setMembership(null)
+      setSelectedStoreId('')
+      setStore(null)
+      setSettings(null)
+      setProducts([])
+      setOrders([])
+      setOrderItems([])
+      setQueue([])
+      setTeamMembers([])
+      setTeamInvites([])
+      setLoading(false)
+      return
+    }
     let memberRows = null
     let memberError = null
     // Auth/session and RLS can settle shortly after sign-in; retry both empty and transient-error responses.
@@ -261,7 +277,7 @@ function App() {
       }
     } else { setTeamMembers([]); setTeamInvites([]) }
     setLoading(false)
-  }, [session, selectedStoreId])
+  }, [session, selectedStoreId, isSuperAdmin])
 
   useEffect(()=>{if(!session){setIsSuperAdmin(false);setAdminCheckReady(true);return}setAdminCheckReady(false);supabase.from('super_admins').select('user_id').eq('user_id',session.user.id).maybeSingle().then(({data})=>{setIsSuperAdmin(Boolean(data));setAdminCheckReady(true)})},[session])
 
