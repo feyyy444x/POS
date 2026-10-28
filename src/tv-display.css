@@ -509,3 +509,28 @@ html:has(.tv-screen-custom), body:has(.tv-screen-custom), #root:has(.tv-screen-c
 @media (prefers-reduced-motion:reduce){
   .tv-screen-custom *, .tv-screen-custom *::before, .tv-screen-custom *::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}
 }
+
+@media (min-width:681px) and (max-aspect-ratio:4/3){
+  .tv-screen-custom{width:100vw;height:100dvh;max-height:none}
+  .tv-screen-custom .tv-content-custom,
+  .tv-screen-custom .tv-layout-split-left,
+  .tv-screen-custom .tv-layout-queue-grid,
+  .tv-screen-custom .tv-layout-queue-only,
+  .tv-screen-custom .tv-layout-media-top,
+  .tv-screen-custom .tv-layout-media-bottom,
+  .tv-screen-custom .tv-layout-carousel,
+  .tv-screen-custom .tv-layout-smart-loop,
+  .tv-screen-custom .tv-layout-alternate,
+  .tv-screen-custom .tv-layout-overlay{
+    display:grid;grid-template-columns:minmax(0,1fr);
+    grid-template-rows:minmax(0,.95fr) minmax(0,1.05fr) minmax(0,.85fr);
+    grid-template-areas:"current" "next" "media";gap:8px;min-height:0;overflow:hidden
+  }
+  .tv-screen-custom .tv-content-custom>.tv-current{grid-area:current;grid-column:1;grid-row:auto}
+  .tv-screen-custom .tv-content-custom>.tv-next{grid-area:next;grid-column:1;grid-row:auto}
+  .tv-screen-custom .tv-content-custom>.tv-media-panel{display:grid;position:relative;inset:auto;grid-area:media;grid-column:1;grid-row:auto;min-height:0;height:100%;opacity:1}
+  .tv-screen-custom .tv-layout-queue-only{grid-template-rows:minmax(0,.95fr) minmax(0,1.05fr) 0fr}
+  .tv-screen-custom .tv-layout-queue-only>.tv-media-panel{display:none}
+  .tv-screen-custom .tv-call-main>span{font-size:clamp(32px,min(5.5vw,7vh),82px)}
+  .tv-screen-custom .tv-customer-name{font-size:clamp(14px,min(1.7vw,2.5vh),26px)}
+}
