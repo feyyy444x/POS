@@ -1113,3 +1113,12 @@ tbody tr:hover{background:#f7fbfd}
 .tenant-expiry-banner.critical{background:#fff0f0;border-color:#f3c3c3;color:#b42318}.tenant-expiry-banner.critical .tenant-expiry-icon{background:#ffe0e0}
 .receipt-note{border-top:1px dashed #999;padding-top:7px;margin-top:9px!important;font-size:10px;line-height:1.5;white-space:pre-wrap}
 @media(max-width:760px){.tenant-expiry-banner{margin:12px 14px 0}.product-toolbar{align-items:stretch}.category-filter-label{justify-content:space-between}.category-filter{flex:1}.settings-form{padding:18px}}
+
+/* Predictable rhythm for every workspace page and its content wrappers */
+.page-section{display:flex;flex-direction:column;gap:18px}
+.page-section>.page-heading{margin-bottom:0}
+.page-section>.panel,.page-section>.product-toolbar,.page-section>.inventory-panel{margin-bottom:0}
+.page-section>.settings-grid{margin-top:0}
+.page-section .panel-head{gap:16px;align-items:flex-start}
+.page-section .panel-head>div{min-width:0}
+.page-section .table-wrap{border-radius:inherit}
