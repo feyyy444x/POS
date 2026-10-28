@@ -8,3 +8,6 @@
 .demo-table-panel,.demo-queue-panel,.demo-products-panel,.demo-cart-panel{border-radius:15px;box-shadow:0 5px 20px rgba(22,34,58,.035)}
 .demo-disabled-action{cursor:pointer;background:#f4fbf8;color:#087e65;border-color:#cfece2;transition:transform .16s,background .16s}
 .demo-disabled-action:hover{background:#e7f8f1;transform:translateY(-1px)}
+
+.demo-receipt-preview{max-width:520px;margin:18px 0;padding:18px;border:1px dashed #cbd2de;border-radius:10px;background:#fafbfc;color:#4c5268;text-align:center}
+.demo-receipt-preview strong{font-size:12px}.demo-receipt-preview p{font-size:10px;white-space:pre-wrap;margin:12px 0}.demo-receipt-preview small{font-size:9px;color:#7e8498}
