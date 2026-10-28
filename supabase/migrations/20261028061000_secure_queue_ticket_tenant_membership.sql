@@ -26,6 +26,10 @@ begin
     raise exception 'Toko tidak aktif atau masa aktivasinya telah habis';
   end if;
 
+  if char_length(coalesce(p_customer_name, '')) > 120 then
+    raise exception 'Nama pelanggan maksimal 120 karakter';
+  end if;
+
   if p_order_id is not null and not exists (
     select 1 from public.orders o
     where o.id = p_order_id and o.store_id = p_store_id
