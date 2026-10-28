@@ -156,7 +156,7 @@ export default function Homepage() {
           <div className="living-kicker"><span className="living-live-dot" /> ONE CONNECTED BUSINESS SYSTEM <span className="living-kicker-line" /></div>
           <h1>Bisnis bukan<br/>sekadar <span>transaksi.</span></h1>
           <p>Kasir, tim, produk, dan antrian. Semuanya bergerak dalam satu sistem yang saling terhubung.</p>
-          <div className="living-hero-actions"><a className="living-cta" href="#cerita">Rasakan alurnya <ArrowDown size={16}/></a><a className="living-text-link" href="/login">Sudah punya akun? <span>Masuk workspace <ArrowUpRight size={14}/></span></a></div>
+          <div className="living-hero-actions"><a className="living-cta" href="#cerita">Rasakan alurnya <ArrowDown size={16}/></a><a className="living-cta living-demo-cta" href="/?screen=demo">Coba Demo Interaktif <ArrowUpRight size={14}/></a><a className="living-text-link" href="/login">Sudah punya akun? <span>Masuk workspace <ArrowUpRight size={14}/></span></a></div>
           <div className="living-hero-index"><span>01 — THE LIVING SYSTEM</span><span>SCROLL TO EXPLORE ↓</span></div>
         </div>
         <div className="living-stage" aria-label="Ilustrasi alur NexaPos">
