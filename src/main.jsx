@@ -26,7 +26,11 @@ class AppErrorBoundary extends React.Component {
             <h1 style={{ marginTop: 0, fontSize: 24 }}>NexaPos mengalami error saat dibuka</h1>
             <p>Aplikasi gagal merender halaman. Pesan error untuk pemeriksaan:</p>
             <pre style={{ padding: 16, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', borderRadius: 8, background: '#f1f5f9' }}>{String(this.state.error?.message || this.state.error)}</pre>
-            <p>Data transaksi tidak dihapus oleh layar ini. Silakan kirim tangkapan layar pesan error ini ke tim pengembang.</p>
+            <details style={{ margin: '16px 0' }}>
+              <summary style={{ cursor: 'pointer', fontWeight: 600 }}>Detail teknis untuk pengembang</summary>
+              <pre style={{ marginTop: 12, padding: 16, maxHeight: '32vh', overflow: 'auto', whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', borderRadius: 8, background: '#0f172a', color: '#e2e8f0', fontSize: 12 }}>{String(this.state.error?.stack || 'Stack trace tidak tersedia')}</pre>
+            </details>
+            <p>Data transaksi tidak dihapus oleh layar ini. Detail teknis membantu menemukan sumber error.</p>
           </section>
         </main>
       )
