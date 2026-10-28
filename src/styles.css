@@ -1130,3 +1130,11 @@ tbody tr:hover{background:#f7fbfd}
 .page-section .panel-head{gap:16px;align-items:flex-start}
 .page-section .panel-head>div{min-width:0}
 .page-section .table-wrap{border-radius:inherit}
+
+/* Shared visual rhythm for all workspace cards/modules */
+.app-shell .panel{min-width:0;border-radius:16px;border-color:#e4e8ef;box-shadow:0 5px 18px rgba(22,34,58,.035)}
+.app-shell .panel-head{gap:14px;line-height:1.55}
+.app-shell .panel-head p{line-height:1.65;max-width:72ch}
+.app-shell .table-wrap{border-radius:12px}
+.app-shell .panel+.panel{margin-top:16px}
+@media(max-width:760px){.app-shell .panel+.panel{margin-top:12px}.app-shell .panel-head{flex-wrap:wrap}}
