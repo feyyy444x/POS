@@ -831,6 +831,7 @@ function App() {
       address: settings?.address || '',
       phone: settings?.phone || '',
       receipt_footer: settings?.receipt_footer || 'Terima kasih telah berbelanja',
+      receipt_note: settings?.receipt_note || '',
       queue_prefix: settings?.queue_prefix || 'A',
       currency: settings?.currency || 'IDR',
       logo_url: publicData.publicUrl,
