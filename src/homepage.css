@@ -310,3 +310,12 @@
 .living-pricing-promo>div>b{line-height:1.7;font-size:12px}
 .living-promo-terms{font-size:9px;line-height:1.7;color:#55786f}
 @media(max-width:640px){.living-pricing-promo{padding:15px;gap:10px}.living-promo-badge{white-space:normal;text-align:right}}
+
+.living-voucher-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:0 0 20px}
+.living-voucher-list article{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:15px 16px;border:1px solid #d3e2dc;background:#f7faf6;min-width:0}
+.living-voucher-list article.is-active{border-color:#078b78;background:#e9f8f1;box-shadow:inset 3px 0 #078b78}
+.living-voucher-list article>div{min-width:0}.living-voucher-list article>div>span{display:flex;align-items:center;gap:7px;font:800 11px Manrope;color:#193c43}.living-voucher-list article>div>span svg{color:#078b78;flex-shrink:0}
+.living-voucher-list article p{margin:6px 0;font-size:9px;line-height:1.6;color:#718489}.living-voucher-list article small{font-size:8px;color:#718489;line-height:1.5}
+.living-voucher-list article button{display:inline-flex;align-items:center;justify-content:center;gap:7px;flex-shrink:0;padding:9px 10px;border:1px solid #b9d9cd;background:#fff;color:#087e65;font-size:8px;font-weight:800;cursor:pointer}
+.living-voucher-list article button:disabled{opacity:.55;cursor:not-allowed}
+@media(max-width:760px){.living-voucher-list{grid-template-columns:1fr}.living-voucher-list article{align-items:flex-start}.living-voucher-list article button{max-width:125px;white-space:normal}}
