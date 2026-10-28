@@ -324,7 +324,7 @@ function App() {
       .on('postgres_changes',{event:'*',schema:'public',table:'cashier_shifts',filter:'store_id=eq.'+store.id},refreshShiftData)
       .subscribe()
     return()=>{cancelled=true;supabase.removeChannel(channel)}
-  },[store?.id,session?.user?.id,shiftReportDate])
+  },[store?.id,session?.user?.id,shiftReportDate,manualRefreshTick])
 
   // Owner/admin monitoring: active shifts are ordered by their actual opening time, never fixed cashier slots.
   useEffect(()=>{
@@ -343,7 +343,7 @@ function App() {
     refreshOpenShifts()
     const channel=supabase.channel('nexapos-open-shifts-'+store.id).on('postgres_changes',{event:'*',schema:'public',table:'cashier_shifts',filter:'store_id=eq.'+store.id},refreshOpenShifts).subscribe()
     return()=>{cancelled=true;supabase.removeChannel(channel)}
-  },[store?.id,membership?.role])
+  },[store?.id,membership?.role,manualRefreshTick])
 
   // Subscribe to membership changes for the signed-in user; no polling is needed.
   useEffect(()=>{
@@ -411,7 +411,7 @@ function App() {
     if(membership?.role==='owner')channel.on('postgres_changes',{event:'*',schema:'public',table:'store_invites',filter:'store_id=eq.'+store.id},refreshTeamLists)
     channel.subscribe(status=>{if(status==='SUBSCRIBED')refreshTeamLists()})
     return ()=>{cancelled=true;supabase.removeChannel(channel)}
-  },[session?.user?.id,store?.id,membership?.role])
+  },[session?.user?.id,store?.id,membership?.role,manualRefreshTick])
 
   useEffect(()=>{if(!notice)return;const timer=setTimeout(()=>setNotice(''),4500);return()=>clearTimeout(timer)},[notice])
 
