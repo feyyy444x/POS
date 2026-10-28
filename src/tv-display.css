@@ -141,7 +141,7 @@
   aspect-ratio:16/9;
   min-height:0!important;
   max-height:100vh;
-  margin-inline:auto;
+  margin:auto;
   padding:clamp(10px,1.15vw,24px);
   box-sizing:border-box;
   overflow:hidden;
