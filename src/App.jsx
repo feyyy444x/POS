@@ -9,6 +9,7 @@ import {
 import { isSupabaseConfigured, supabase } from './lib/supabase'
 import SupportCenter from './SupportCenter.jsx'
 import Homepage from './Homepage.jsx'
+import Demo from './Demo.jsx'
 import PromotionManager from './PromotionManager.jsx'
 import SubscriptionPlanManager from './SubscriptionPlanManager.jsx'
 import TvDisplaySettings from './TvDisplaySettings.jsx'
@@ -1388,5 +1389,6 @@ function SupportPortal() {
 export default function Root(){
   const screen=new URLSearchParams(window.location.search).get('screen')
   if(screen==='queue')return <QueueScreen/>
+  if(screen==='demo')return <Demo/>
   return <><App/><SupportPortal/></>
 }
