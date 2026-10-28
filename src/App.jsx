@@ -861,6 +861,7 @@ function SuperAdminScreen({session,onSignOut}) {
   useEffect(()=>{
     const channel=supabase.channel('nexapos-super-admin-live')
       .on('postgres_changes',{event:'*',schema:'public',table:'stores'},()=>{load();loadUsers()})
+      .on('postgres_changes',{event:'*',schema:'public',table:'store_settings'},()=>load())
       .on('postgres_changes',{event:'*',schema:'public',table:'store_members'},()=>{loadUsers();loadDisabledMembers()})
       .on('postgres_changes',{event:'*',schema:'public',table:'store_invites'},()=>loadUsers())
       .subscribe()
