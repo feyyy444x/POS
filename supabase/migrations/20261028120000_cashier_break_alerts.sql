@@ -74,7 +74,8 @@ create policy "cashiers end own breaks"
         and s.closed_at is null
     )
   );
-grant select, insert, update on public.cashier_shift_breaks to authenticated;
+grant select, insert on public.cashier_shift_breaks to authenticated;
+grant update (ended_at) on public.cashier_shift_breaks to authenticated;
 
 do $publication$
 begin
