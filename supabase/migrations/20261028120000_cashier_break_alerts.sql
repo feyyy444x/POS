@@ -77,6 +77,33 @@ create policy "cashiers end own breaks"
 grant select, insert on public.cashier_shift_breaks to authenticated;
 grant update (ended_at) on public.cashier_shift_breaks to authenticated;
 
+-- Enforce the break/close rule in the database as well as the UI, including RPC calls.
+create or replace function public.prevent_closing_shift_during_break()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $function$
+begin
+  if old.closed_at is null and new.closed_at is not null
+     and exists (
+       select 1
+       from public.cashier_shift_breaks b
+       where b.shift_id = old.id
+         and b.ended_at is null
+     ) then
+    raise exception 'Kasir harus menekan Kembali Bekerja sebelum menutup sesi.';
+  end if;
+  return new;
+end;
+$function$;
+
+drop trigger if exists prevent_closing_shift_during_break on public.cashier_shifts;
+create trigger prevent_closing_shift_during_break
+before update of closed_at on public.cashier_shifts
+for each row
+execute function public.prevent_closing_shift_during_break();
+
 do $publication$
 begin
   if exists (select 1 from pg_publication where pubname = 'supabase_realtime') then
