@@ -9,6 +9,7 @@ import SupportCenter from './SupportCenter.jsx'
 import './homepage.css'
 
 const money = (value) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value || 0))
+const fallbackPromo = { id: 'nexapos-new-customer-80', title: 'DISKON PELANGGAN BARU', description: 'DISKON BARU CUYYY', discount_type: 'percent', discount_value: 80, eligible_periods: ['daily', 'weekly', 'monthly', 'yearly'], requires_code: false, is_active: true, starts_at: '2026-10-29T11:40:00+00:00', ends_at: '2026-12-30T11:40:00+00:00' }
 const fallbackPlans = [
   { key: 'daily', name: 'Harian', duration: '1 hari', price: 3000, note: 'Coba alur kerja untuk kebutuhan harian' },
   { key: 'weekly', name: 'Mingguan', duration: '7 hari', price: 15000, note: 'Fleksibel untuk operasional mingguan' },
@@ -131,13 +132,14 @@ export default function Homepage() {
     document.querySelectorAll('.living-reveal:not(.is-visible)').forEach(element => observer.observe(element))
     return () => observer.disconnect()
   }, [promos.length])
-  const automaticPromo = promos.find(p => !requiresPromoCode(p) && (!p.starts_at || new Date(p.starts_at).getTime() <= Date.now()))
-  const upcomingPromo = promos.find(p => !requiresPromoCode(p) && p.starts_at && new Date(p.starts_at).getTime() > Date.now())
+  const availablePromos = promos.length ? promos : [fallbackPromo]
+  const automaticPromo = availablePromos.find(p => !requiresPromoCode(p) && (!p.starts_at || new Date(p.starts_at).getTime() <= Date.now()))
+  const upcomingPromo = availablePromos.find(p => !requiresPromoCode(p) && p.starts_at && new Date(p.starts_at).getTime() > Date.now())
   const couponPromo = useMemo(() => {
     const code = coupon.trim().toUpperCase()
     if (!code) return null
-    return promos.find(p => requiresPromoCode(p) && String(p.promo_code || '').trim().toUpperCase() === code) || null
-  }, [coupon, promos])
+    return availablePromos.find(p => requiresPromoCode(p) && String(p.promo_code || '').trim().toUpperCase() === code) || null
+  }, [coupon, availablePromos])
   const activePromo = coupon.trim() ? couponPromo : (automaticPromo || upcomingPromo)
   const promoStartsLater = Boolean(activePromo?.starts_at && new Date(activePromo.starts_at).getTime() > Date.now())
   const selected = plans.find(p => p.key === selectedPlan) || plans[2]
@@ -229,7 +231,7 @@ export default function Homepage() {
         <div className="living-bridge-map living-reveal"><div className="living-map-core"><img src="/nexapos-mark.svg" alt=""/><span>NexaPos</span></div><div className="living-map-item map-one"><ShoppingCart size={17}/><span>Transaksi</span></div><div className="living-map-item map-two"><Users size={17}/><span>Karyawan</span></div><div className="living-map-item map-three"><Monitor size={17}/><span>Antrian TV</span></div><div className="living-map-item map-four"><BarChart3 size={17}/><span>Laporan</span></div><div className="living-map-link link-one"/><div className="living-map-link link-two"/><div className="living-map-link link-three"/><div className="living-map-link link-four"/></div>
       </section>
 
-      {activePromo && <section className="living-promo"><div className="living-promo-symbol"><Sparkles size={20}/></div><div><span>PENAWARAN NEXAPOS</span><h2>{activePromo.title || 'Penawaran khusus NexaPos'}</h2><p>{activePromo.description || 'Hubungi tim kami untuk informasi penawaran yang sedang berlaku.'}</p></div><a className="living-cta living-cta-light" href="#harga">Lihat penawaran <ArrowRight size={15}/></a></section>}
+      {activePromo && <section className="living-promo-spotlight" aria-label="Promo NexaPos"><div className="living-promo-spotlight-orbit" aria-hidden="true"/><div className="living-promo-spotlight-label"><Sparkles size={16}/> PROMO KHUSUS PELANGGAN BARU <span className="living-live-dot"/></div><div className="living-promo-spotlight-main"><div><span className="living-eyebrow">PENAWARAN TERBATAS / NEXAPOS</span><h2>{activePromo.title || 'Penawaran khusus NexaPos'}</h2><p>{activePromo.description || 'Dapatkan harga khusus untuk masa akses NexaPos pilihanmu.'}</p><div className="living-promo-spotlight-meta"><span><CheckCircle2 size={14}/> Berlaku untuk semua paket</span><span><Activity size={14}/> Mulai 29 Oktober 2026 · 18.40 WIB</span></div></div><div className="living-promo-spotlight-value"><small>DISKON</small><strong>{promoDiscountLabel(activePromo)}</strong><span>{promoStartsLater ? 'Segera dimulai' : 'Potongan otomatis'}</span></div></div><a className="living-cta living-cta-light" href="#harga">Lihat harga setelah diskon <ArrowRight size={15}/></a></section>}
 
       <section className="living-features" id="fitur">
         <div className="living-section-head living-reveal"><div><span className="living-eyebrow">BUILT AROUND YOUR BUSINESS</span><h2>Semua bagian punya peran.<br/><em>Semuanya saling mendukung.</em></h2></div><p>Alat yang Anda perlukan untuk menjaga aktivitas bisnis tetap teratur, dari depan kasir hingga layar antrian.</p></div>
@@ -250,7 +252,7 @@ export default function Homepage() {
             <p>{activePromo.description || 'Dapatkan harga khusus untuk masa akses NexaPos pilihanmu.'}</p>
             <div className="living-promo-details">
               <span><CheckCircle2 size={14}/> Berlaku untuk {eligiblePeriods(activePromo).map(period=>({daily:'Harian',weekly:'Mingguan',monthly:'Bulanan',yearly:'Tahunan'}[period]||period)).join(', ')||'semua paket'}</span>
-              {activePromo.ends_at && <span><Activity size={14}/> Sampai {new Date(activePromo.ends_at).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})}</span>}
+              {activePromo.starts_at && <span><Activity size={14}/> Mulai 29 Oktober 2026 pukul 18.40 WIB</span>}{activePromo.ends_at && <span><Activity size={14}/> Berakhir {new Date(activePromo.ends_at).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric',timeZone:'Asia/Jakarta'})}</span>}
               {requiresPromoCode(activePromo) && activePromo.promo_code && <span><Ticket size={14}/> Kode: {activePromo.promo_code}</span>}
             </div>
           </div>
@@ -265,7 +267,7 @@ export default function Homepage() {
           <div><input id="living-coupon" value={coupon} onChange={e=>setCoupon(e.target.value.toUpperCase())} placeholder="Ketik kode voucher di sini"/>{coupon && <button type="button" onClick={()=>setCoupon('')} aria-label="Hapus kode kupon"><X size={15}/></button>}</div>
           {coupon && <small className={couponPromo?'is-valid':''}>{couponPromo?'✓ '+(couponPromo.title||'Voucher NexaPos')+' siap digunakan pada paket yang memenuhi syarat.':'Kode belum cocok atau masa promo sudah berakhir.'}</small>}
         </div>
-        {promos.some(p=>requiresPromoCode(p)) && <div className="living-voucher-list living-voucher-list-redesign">{promos.filter(p=>requiresPromoCode(p)).map(p=><article className={couponPromo?.id===p.id?'is-active':''} key={p.id}>
+        {availablePromos.some(p=>requiresPromoCode(p)) && <div className="living-voucher-list living-voucher-list-redesign">{availablePromos.filter(p=>requiresPromoCode(p)).map(p=><article className={couponPromo?.id===p.id?'is-active':''} key={p.id}>
           <div><span><Ticket size={14}/>{p.title||'Voucher NexaPos'}</span><p>{p.description||'Masukkan kode untuk menggunakan penawaran ini.'}</p><small>Potongan {promoDiscountLabel(p)} · {eligiblePeriods(p).map(period=>({daily:'Harian',weekly:'Mingguan',monthly:'Bulanan',yearly:'Tahunan'}[period]||period)).join(', ')||'Semua paket'}</small></div>
           <button type="button" onClick={()=>setCoupon(p.promo_code||'')} disabled={!p.promo_code}>{p.promo_code?'Pakai voucher':'Kode tidak tersedia'} <ArrowRight size={13}/></button>
         </article>)}</div>}
