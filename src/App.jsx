@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
-  Activity, ArrowDownRight, ArrowRight, ArrowLeft, KeyRound, BarChart3, Bell, Boxes, Check, CheckCircle2,
+  Activity, ArrowDownRight, ArrowRight, ArrowLeft, KeyRound, Copy, BarChart3, Bell, Boxes, Check, CheckCircle2,
   ChevronDown, CircleDollarSign, Clock3, CreditCard, FileText, Headphones, LayoutDashboard,
   LogOut, Menu, Minus, Monitor, Package, Plus, Printer, QrCode, RefreshCw, Search,
   Settings, ShieldCheck, ShoppingBag, ShoppingCart, SkipForward, Store, Ticket, Trash2,
@@ -176,6 +176,8 @@ function App() {
   const [teamMembers, setTeamMembers] = useState([])
   const [teamInvites, setTeamInvites] = useState([])
   const [teamSaving, setTeamSaving] = useState(false)
+  const [activationCodeCard, setActivationCodeCard] = useState(null)
+  const [activationCodeCopied, setActivationCodeCopied] = useState(false)
   const [productPage,setProductPage] = useState(1)
   const [posProductPage,setPosProductPage] = useState(1)
   const [queuePage,setQueuePage] = useState(1)
@@ -288,19 +290,15 @@ function App() {
     return()=>{cancelled=true;supabase.removeChannel(channel)}
   },[store?.id,session?.user?.id,shiftReportDate])
 
-  // Recover automatically when an Owner/Super Admin adds this account to a store after login.
+  // Subscribe to membership changes for the signed-in user; no polling is needed.
   useEffect(()=>{
-    if(!session?.user || store || loading) return
-    const refreshIfVisible = () => { if(document.visibilityState === 'visible') loadWorkspace() }
-    const timer = setInterval(refreshIfVisible, 5000)
-    window.addEventListener('focus', refreshIfVisible)
-    document.addEventListener('visibilitychange', refreshIfVisible)
-    return ()=>{
-      clearInterval(timer)
-      window.removeEventListener('focus', refreshIfVisible)
-      document.removeEventListener('visibilitychange', refreshIfVisible)
-    }
-  },[session?.user?.id,store?.id,loading,loadWorkspace])
+    const userId=session?.user?.id
+    if(!userId||!supabase)return
+    const channel=supabase.channel('nexapos-membership-'+userId)
+      .on('postgres_changes',{event:'*',schema:'public',table:'store_members',filter:'user_id=eq.'+userId},()=>loadWorkspace())
+      .subscribe()
+    return ()=>{supabase.removeChannel(channel)}
+  },[session?.user?.id,loadWorkspace])
 
   useEffect(()=>{
     if (!session || !membership?.store_id || !supabase) return
@@ -328,8 +326,6 @@ function App() {
       .on('postgres_changes',{event:'*',schema:'public',table:'order_items'},refreshOrderItems)
       .on('postgres_changes',{event:'*',schema:'public',table:'store_settings',filter:'store_id=eq.'+storeId},refreshSettings)
       .on('postgres_changes',{event:'*',schema:'public',table:'stores',filter:'id=eq.'+storeId},refreshTeam)
-      .on('postgres_changes',{event:'*',schema:'public',table:'store_members',filter:'store_id=eq.'+storeId},refreshTeam)
-      .on('postgres_changes',{event:'*',schema:'public',table:'store_invites',filter:'store_id=eq.'+storeId},refreshTeam)
       .subscribe((status)=>{
         if(status==='SUBSCRIBED'){
           refreshOrders(); refreshOrderItems(); refreshProducts(); refreshSettings(); refreshTeam(); refreshQueue()
@@ -347,6 +343,26 @@ function App() {
       supabase.removeChannel(channel)
     }
   },[session,membership?.store_id,membership?.role,loadWorkspace])
+
+  // Keep the Owner's member and invitation tables in sync through Supabase Realtime.
+  useEffect(()=>{
+    if(!session?.user?.id||!store?.id||membership?.role!=='owner'||!supabase)return
+    let cancelled=false
+    const refreshTeamLists=async()=>{
+      const [{data:members,error:membersError},{data:invites,error:invitesError}]=await Promise.all([
+        supabase.from('store_members').select('id,user_id,role,email,full_name,is_active,created_at').eq('store_id',store.id).order('created_at',{ascending:true}),
+        supabase.from('store_invites').select('id,email,full_name,role,created_at,expires_at,accepted_at').eq('store_id',store.id).order('created_at',{ascending:false})
+      ])
+      if(cancelled)return
+      if(!membersError&&members)setTeamMembers(members)
+      if(!invitesError&&invites)setTeamInvites(invites)
+    }
+    const channel=supabase.channel('nexapos-team-'+store.id)
+      .on('postgres_changes',{event:'*',schema:'public',table:'store_members',filter:'store_id=eq.'+store.id},refreshTeamLists)
+      .on('postgres_changes',{event:'*',schema:'public',table:'store_invites',filter:'store_id=eq.'+store.id},refreshTeamLists)
+      .subscribe(status=>{if(status==='SUBSCRIBED')refreshTeamLists()})
+    return ()=>{cancelled=true;supabase.removeChannel(channel)}
+  },[session?.user?.id,store?.id,membership?.role])
 
   useEffect(()=>{if(!notice)return;const timer=setTimeout(()=>setNotice(''),4500);return()=>clearTimeout(timer)},[notice])
 
@@ -482,7 +498,9 @@ function App() {
     setTeamSaving(false)
     if (error) { setNotice(error.message); return }
     event.currentTarget.reset()
-    setNotice('Undangan dibuat. Kode aktivasi sekali pakai: '+activationCode+'. Salin dan kirimkan secara pribadi kepada karyawan. Kode diperlukan untuk aktivasi.')
+    setActivationCodeCopied(false)
+    setActivationCodeCard({email:String(form.get('email')||'').trim(),code:activationCode,title:'Kode aktivasi karyawan'})
+    setNotice('Undangan berhasil dibuat. Salin kode aktivasi dan kirimkan secara pribadi kepada karyawan.')
     await loadWorkspace()
   }
 
@@ -511,8 +529,10 @@ function App() {
     const {error}=await supabase.rpc('owner_regenerate_store_invite',{p_invite_id:invite.id,p_activation_code:activationCode})
     setTeamSaving(false)
     if(error){setNotice(error.message);return}
+    setActivationCodeCopied(false)
+    setActivationCodeCard({email:invite.email,code:activationCode,title:'Kode aktivasi baru'})
+    setNotice('Kode aktivasi berhasil dibuat ulang. Kode lama sudah tidak berlaku.')
     await loadWorkspace()
-    setNotice('Kode aktivasi baru untuk '+invite.email+': '+activationCode+'. Salin dan kirim secara pribadi kepada karyawan. Kode hanya ditampilkan sekali.')
   }
 
   const deleteTeamInvite = async (invite) => {
@@ -646,6 +666,17 @@ function App() {
     <main className="main-area">
       <header className="topbar"><div className="topbar-left"><button className="mobile-menu icon-button" onClick={()=>setMobileNav(true)} aria-label="Buka sidebar"><Menu size={20}/></button><button className="topbar-back btn btn-outline" onClick={()=>setPage('dashboard')} aria-label="Kembali ke dashboard"><ArrowLeft size={17}/></button><div className="topbar-title-group"><div className="breadcrumb">Workspace <span>/</span> <strong>{titleMap[page]}</strong></div><div className="topbar-date"><span className="desktop-date">{new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</span><span className="mobile-date">{new Date().toLocaleDateString('id-ID',{day:'2-digit',month:'2-digit',year:'numeric'})}</span></div></div></div><div className="topbar-actions"><WibClock/><span className="live-status"><i/> LIVE SYNC</span><button className="icon-button refresh-btn" title="Refresh data" onClick={loadWorkspace}><RefreshCw size={17}/></button><span className="top-avatar">{initial(session.user.email)}</span></div></header>
       {notice&&<div className="toast"><CheckCircle2 size={17}/><span>{notice}</span><button onClick={()=>setNotice('')}><X size={15}/></button></div>}
+      {activationCodeCard&&<div role="presentation" onMouseDown={e=>{if(e.target===e.currentTarget){setActivationCodeCard(null);setActivationCodeCopied(false)}}} style={{position:'fixed',inset:0,zIndex:10000,background:'rgba(12,16,32,.48)',display:'flex',alignItems:'center',justifyContent:'center',padding:18}}>
+        <section role="dialog" aria-modal="true" aria-labelledby="activation-code-title" style={{position:'relative',width:'100%',maxWidth:390,background:'var(--panel,#fff)',color:'var(--ink,#1b2035)',borderRadius:18,padding:24,boxShadow:'0 24px 80px rgba(0,0,0,.24)',border:'1px solid var(--border,#e6e8f0)'}}>
+          <button type="button" aria-label="Tutup kartu kode aktivasi" title="Tutup" onClick={()=>{setActivationCodeCard(null);setActivationCodeCopied(false)}} style={{position:'absolute',top:12,right:12,width:34,height:34,borderRadius:10,border:'1px solid var(--border,#e6e8f0)',background:'transparent',color:'inherit',display:'grid',placeItems:'center',cursor:'pointer'}}><X size={17}/></button>
+          <div style={{width:44,height:44,borderRadius:13,display:'grid',placeItems:'center',background:'rgba(98,92,241,.12)',color:'var(--primary,#625cf1)',marginBottom:14}}><KeyRound size={21}/></div>
+          <h2 id="activation-code-title" style={{fontSize:19,margin:'0 42px 6px 0'}}>{activationCodeCard.title}</h2>
+          <p style={{fontSize:13,color:'var(--muted,#73798f)',lineHeight:1.6,margin:'0 0 16px'}}>Kirim kode ini secara pribadi kepada <strong>{activationCodeCard.email}</strong>. Kode hanya ditampilkan sekali.</p>
+          <div style={{border:'1px dashed var(--border,#cfd3e2)',background:'var(--surface,#f7f8fc)',borderRadius:12,padding:'14px 12px',fontFamily:'ui-monospace,SFMono-Regular,Menlo,monospace',fontSize:14,letterSpacing:'.035em',overflowWrap:'anywhere',textAlign:'center',userSelect:'all'}}>{activationCodeCard.code}</div>
+          <button type="button" className="btn btn-primary btn-wide" style={{marginTop:16,justifyContent:'center'}} onClick={async()=>{try{await navigator.clipboard.writeText(activationCodeCard.code);setActivationCodeCopied(true)}catch{setNotice('Browser tidak mengizinkan salin otomatis. Tekan lama kode untuk menyalinnya.')}}}><Copy size={16}/>{activationCodeCopied?'Kode tersalin':'Salin kode aktivasi'}</button>
+          <p style={{fontSize:11,color:'var(--muted,#73798f)',margin:'12px 0 0',lineHeight:1.5}}>Jangan bagikan kode ini di grup publik. Menutup kartu tidak akan menampilkan kode kembali.</p>
+        </section>
+      </div>}
       <div className="page-content">
         {page==='dashboard'&&<section className="page-section">
           <div className="page-heading"><div><span className="eyebrow muted">OVERVIEW / TODAY</span><h1>Selamat datang kembali <span className="wave">✦</span></h1><p>Berikut gambaran aktivitas toko Anda hari ini.</p></div><button className="btn btn-primary" onClick={()=>setPage('pos')}><Plus size={17}/> Transaksi baru</button></div>
