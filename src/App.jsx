@@ -258,7 +258,7 @@ function App() {
       supabase.from('store_settings').select('*').eq('store_id',member.store_id).maybeSingle(),
       supabase.from('products').select('*').eq('store_id',member.store_id).order('created_at',{ascending:false}),
       supabase.from('orders').select('*').eq('store_id',member.store_id).order('created_at',{ascending:false}),
-      supabase.from('queue_tickets').select('*').eq('store_id',member.store_id).eq('service_date',today()).order('queue_number',{ascending:true})
+      supabase.from('queue_tickets').select('*').eq('store_id',member.store_id).eq('service_date',today()).order('queue_number',{ascending:false})
     ])
     setStore(storeData || null); setSettings(settingData || {store_id:member.store_id,store_name:storeData?.name||member.store_name||'NexaPos Store',address:'',phone:'',receipt_footer:'Terima kasih telah berbelanja',queue_prefix:'A',currency:'IDR'})
     setProducts(productData || []); setOrders(orderData || []); setQueue(queueData || [])
@@ -370,7 +370,7 @@ function App() {
     const refreshProducts = () => supabase.from('products').select('*').eq('store_id',storeId).order('created_at',{ascending:false}).then(({data,error})=>{if(!error&&data)setProducts(data)})
     const refreshSettings = () => supabase.from('store_settings').select('*').eq('store_id',storeId).maybeSingle().then(({data,error})=>{if(!error&&data)setSettings(data)})
     const refreshTeam = () => loadWorkspace()
-    const refreshQueue = () => supabase.from('queue_tickets').select('*').eq('store_id',storeId).order('queue_number',{ascending:true}).then(({data,error})=>{if(!error&&data)setQueue(data)})
+    const refreshQueue = () => supabase.from('queue_tickets').select('*').eq('store_id',storeId).order('queue_number',{ascending:false}).then(({data,error})=>{if(!error&&data)setQueue(data)})
     const channel = supabase.channel('nexapos-live-'+storeId)
       .on('postgres_changes',{event:'*',schema:'public',table:'queue_tickets',filter:'store_id=eq.'+storeId},payload=>{
         if(payload.eventType==='DELETE') setQueue(prev=>prev.filter(t=>t.id!==payload.old.id))
