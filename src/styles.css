@@ -1096,6 +1096,14 @@ tbody tr:hover{background:#f7fbfd}
 /* Consistent workspace module wrappers and tenant identity/expiry affordances */
 .page-section>.panel,.page-section>.product-toolbar,.page-section>.inventory-panel,.page-section>.settings-grid>.panel,.settings-aside>.panel{border-radius:16px;border-color:#e4e8ef;box-shadow:0 5px 18px rgba(22,34,58,.035)}
 .page-section>.panel+.panel,.page-section>.product-toolbar+.panel{margin-top:18px}
+.page-section .panel{min-width:0}
+.page-section .panel-head{gap:14px;align-items:flex-start}
+.page-section .panel-head>div{min-width:0}
+.page-section .panel-head p{line-height:1.6;max-width:70ch}
+.page-section .panel-body{padding:20px}
+.page-section .table-wrap{margin-top:12px;border:1px solid #edf0f5;border-radius:12px;overflow:auto}
+.page-section .table-wrap table{margin:0}
+@media(max-width:760px){.page-section .panel-body{padding:14px}.page-section>.panel+.panel{margin-top:14px}}
 .settings-grid{gap:22px;align-items:start}
 .settings-form{gap:14px;padding:24px}
 .field-help{display:block;margin:-3px 0 9px;color:#8b91a4;font-size:10px;line-height:1.6}
