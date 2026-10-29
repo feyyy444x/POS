@@ -231,3 +231,15 @@ test('active Admin NexaPos is routed into the exact Super Admin workspace becaus
   assert.match(app, /if\(isSuperAdmin\)return <SuperAdminScreen session=\{session\} syncStatus=\{syncStatus\} setSyncStatus=\{setSyncStatus\} onSignOut=\{\(\)=>supabase\.auth\.signOut\(\)\} platformAdmin=\{isPlatformAdmin\} \/>/)
   assert.doesNotMatch(app, /staffData\?\.role\s*===\s*'admin'\s*&&\s*staffData\?\.is_active\s*===\s*true/)
 })
+
+
+test('Tim & Hak Akses represents Admin NexaPos as full Super Admin parity and only exposes enforced Customer Service permissions', () => {
+  assert.match(platformStaffManagerUi, /Admin NEXAPOS memiliki FULL AKSES setara Super Admin/)
+  assert.match(platformStaffManagerUi, /FULL AKSES — setara Super Admin/)
+  assert.match(platformStaffManagerUi, /Seluruh menu dan tindakan administrasi platform tersedia/)
+  assert.match(platformStaffManagerUi, /\['support', 'Pusat bantuan'/)
+  assert.doesNotMatch(platformStaffManagerUi, /\['users_read'/)
+  assert.match(platformStaffManagerUi, /member\.role === 'admin' \? 'FULL AKSES · Setara Super Admin'/)
+  assert.match(platformStaffEndpoint, /users: 'users', users_toggle_login: 'users'/)
+  assert.match(platformStaffEndpoint, /support_inbox: 'support', support_reply: 'support'/)
+})
