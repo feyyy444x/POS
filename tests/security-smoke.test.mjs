@@ -27,6 +27,7 @@ const storeControlCenterUi = await readFile(new URL('src/StoreControlCenter.jsx'
 const queueSettingsUi = await readFile(new URL('src/TvDisplaySettings.jsx', root), 'utf8')
 const publicQueueMigration = await readFile(new URL('supabase/migrations/20261029200000_simplify_public_queue_rpc.sql', root), 'utf8')
 const activationPackagesMigration = await readFile(new URL('supabase/migrations/20261029140000_activation_packages_pricing.sql', root), 'utf8')
+const ownerOrganizationsMigration = await readFile(new URL('supabase/migrations/20261030200000_owner_organizations_and_tenant_quotas.sql', root), 'utf8')
 
 test('Netlify headers include baseline browser security protections', () => {
   for (const directive of [
@@ -430,4 +431,24 @@ test('homepage pricing fallback matches package defaults and does not fabricate 
   assert.match(homepageUi, /const availablePromos = promos/)
   assert.match(homepageUi, /if \(error\) \{ setPromos\(\[\]\); return \}/)
   assert.match(homepageUi, /features: Array\.isArray\(plan\.features\) \? plan\.features : defaultFeatures/)
+})
+
+
+test('owner organizations and tenant quotas are enforced by the database, not only by the UI', () => {
+  assert.match(ownerOrganizationsMigration, /create table if not exists public\.owner_organizations/i)
+  assert.match(ownerOrganizationsMigration, /add column if not exists organization_id uuid/i)
+  assert.match(ownerOrganizationsMigration, /create or replace function public\.owner_create_store_tenant/i)
+  assert.match(ownerOrganizationsMigration, /v_count >= v_org\.activation_location_limit/i)
+  assert.match(ownerOrganizationsMigration, /for update/i)
+  assert.match(ownerOrganizationsMigration, /owner_user_id = v_user_id/i)
+  assert.match(ownerOrganizationsMigration, /grant execute on function public\.owner_create_store_tenant\(text\) to authenticated/i)
+  assert.match(app, /supabase\.rpc\('owner_create_store_tenant'/)
+  assert.match(app, /page==='tenants'&&membership\.role==='owner'/)
+})
+
+test('owner tenant management lists only stores linked to the authenticated owner organization', () => {
+  assert.match(app, /from\('owner_organizations'\)/)
+  assert.match(app, /eq\('owner_user_id', session\.user\.id\)/)
+  assert.match(app, /eq\('organization_id', organization\.id\)/)
+  assert.match(app, /ownerTenants\.filter\(item=>item\.status!=='deleted'&&!item\.deleted_at\)/)
 })
