@@ -16,7 +16,7 @@ export default async (request) => {
   const userId = String(payload?.userId || '')
   const password = String(payload?.password || '')
   if (!/^[0-9a-f-]{36}$/i.test(userId)) return json({ error: 'ID akun tidak valid.' }, 400)
-  if (password.length < 8 || password.length > 128) return json({ error: 'Password harus 8–128 karakter.' }, 400)
+  if (password.length < 6 || password.length > 128) return json({ error: 'Password harus 6–128 karakter.' }, 400)
 
   const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
