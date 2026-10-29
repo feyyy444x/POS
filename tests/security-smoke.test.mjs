@@ -380,6 +380,8 @@ test('queue settings contain no media upload or template controls and require ow
 })
 
 test('password minimum is six characters in profile forms and admin reset endpoint', async () => {
+  assert.match(app, /Masukkan password sementara baru \(minimal 6 karakter\)/)
+  assert.match(app, /if\(nextPassword\.length<6\)\{setNotice\('Password minimal 6 karakter\.'\);return\}/)
   const profileAndAuthForms = app
   const passwordReset = await readFile(new URL('../netlify/functions/manage-user-password.mjs', import.meta.url), 'utf8')
   assert.doesNotMatch(profileAndAuthForms, /minLength=\{8\}/)
