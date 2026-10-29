@@ -54,7 +54,7 @@ from (
     limit 1
   ) owner_member on true
 ) seed
-order by seed.org_email, seed.created_at desc
+order by seed.org_email, (seed.status = 'active') desc, seed.expires_at desc nulls last, seed.created_at desc
 on conflict (owner_email) do nothing;
 
 update public.stores s
