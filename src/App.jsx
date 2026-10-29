@@ -210,58 +210,70 @@ function App() {
   const listPageSize = 10
 
   // Preserve non-sensitive form drafts when mobile browsers suspend or reload the page.
-  // Drafts are scoped to the current path and signed-in user, and cleared when a form is reset.
+  // Drafts stay local to this browser and are scoped to the current page and signed-in user.
   useEffect(() => {
     const storagePrefix = 'nexapos-form-draft-v1:'
     const userScope = session?.user?.id || 'anonymous'
-    const storageKey = (form) => {
-      const forms = Array.from(document.forms)
-      const index = forms.indexOf(form)
-      const identity = form.dataset.draftKey || [
-        form.getAttribute('aria-label') || '',
-        form.getAttribute('name') || '',
-        form.className || '',
-        form.getAttribute('action') || '',
-        index
-      ].join('|')
-      return storagePrefix + encodeURIComponent(window.location.pathname) + ':' + encodeURIComponent(userScope) + ':' + encodeURIComponent(identity)
+    const formIdentity = (form) => {
+      if (form.dataset.draftKey) return form.dataset.draftKey
+      const heading = form.querySelector('h1, h2, h3, [role="heading"]')?.textContent?.trim() || ''
+      const formClass = typeof form.className === 'string' ? form.className : ''
+      const parentClass = typeof form.parentElement?.className === 'string' ? form.parentElement.className : ''
+      return [form.getAttribute('aria-label') || '', form.getAttribute('name') || '',
+        form.getAttribute('action') || '', heading, formClass, parentClass].join('|')
     }
+    const storageKey = (form) => storagePrefix
+      + encodeURIComponent(window.location.pathname) + ':'
+      + encodeURIComponent(userScope) + ':' + encodeURIComponent(formIdentity(form))
     const isSensitive = (field) => {
       const type = (field.type || '').toLowerCase()
-      const identity = [field.name, field.id, field.autocomplete, field.getAttribute('placeholder')].join(' ').toLowerCase()
-      return field.disabled || field.readOnly || ['password', 'hidden', 'file', 'submit', 'button', 'reset', 'image'].includes(type)
+      const label = field.labels ? Array.from(field.labels).map((item) => item.textContent || '').join(' ') : ''
+      const identity = [field.name, field.id, field.autocomplete, field.getAttribute('placeholder'),
+        field.getAttribute('aria-label'), label].join(' ').toLowerCase()
+      return field.disabled || field.readOnly
+        || ['password', 'hidden', 'file', 'submit', 'button', 'reset', 'image'].includes(type)
         || /password|passwd|pin|activation.?code|invite.?code|token|secret|cvv|cvc|credit.?card|otp|one.?time.?code/.test(identity)
     }
     const fieldsFor = (form) => Array.from(form.elements).filter((field) =>
-      field && typeof field.name === 'string' && field.name && !isSensitive(field)
-      && ['INPUT', 'TEXTAREA', 'SELECT'].includes(field.tagName)
+      field && ['INPUT', 'TEXTAREA', 'SELECT'].includes(field.tagName) && !isSensitive(field)
     )
+    const fieldIdentity = (form, field, index) => {
+      const label = field.labels ? Array.from(field.labels).map((item) => item.textContent || '').join(' ').trim() : ''
+      const base = field.name || field.id || field.getAttribute('aria-label')
+        || field.getAttribute('placeholder') || label || field.type || field.tagName
+      const siblings = fieldsFor(form).slice(0, index + 1).filter((item) => {
+        const itemLabel = item.labels ? Array.from(item.labels).map((entry) => entry.textContent || '').join(' ').trim() : ''
+        const itemBase = item.name || item.id || item.getAttribute('aria-label')
+          || item.getAttribute('placeholder') || itemLabel || item.type || item.tagName
+        return itemBase === base && (item.type || item.tagName) === (field.type || field.tagName)
+      }).length - 1
+      return String(base) + ':' + (field.type || field.tagName) + ':' + siblings
+    }
     const saveForm = (form) => {
       try {
-        const fields = fieldsFor(form).map((field) => ({
-          name: field.name,
-          type: field.type || field.tagName,
+        const fields = fieldsFor(form).map((field, index) => ({
+          key: fieldIdentity(form, field, index),
           value: field.type === 'checkbox' || field.type === 'radio' ? Boolean(field.checked) : field.value,
           checked: field.type === 'checkbox' || field.type === 'radio' ? Boolean(field.checked) : undefined
         }))
         if (fields.length) localStorage.setItem(storageKey(form), JSON.stringify({ savedAt: Date.now(), fields }))
-      } catch { /* Storage can be unavailable in private browsing; keep the app usable. */ }
+      } catch { /* Storage can be unavailable; keep the app usable. */ }
     }
     const restoreForm = (form) => {
       try {
-        const raw = localStorage.getItem(storageKey(form))
+        const key = storageKey(form)
+        const raw = localStorage.getItem(key)
         if (!raw) return
         const draft = JSON.parse(raw)
-        // Avoid resurrecting old entries after a long period or a stale browser session.
         if (!draft?.savedAt || Date.now() - draft.savedAt > 7 * 24 * 60 * 60 * 1000 || !Array.isArray(draft.fields)) {
-          localStorage.removeItem(storageKey(form))
+          localStorage.removeItem(key)
           return
         }
         const fields = fieldsFor(form)
         let restored = false
-        for (const saved of draft.fields) {
-          const field = fields.find((item) => item.name === saved.name && (item.type || item.tagName) === saved.type)
-          if (!field || field === document.activeElement) continue
+        fields.forEach((field, index) => {
+          const saved = draft.fields.find((item) => item.key === fieldIdentity(form, field, index))
+          if (!saved || field === document.activeElement) return
           if (field.type === 'checkbox' || field.type === 'radio') {
             field.checked = Boolean(saved.checked)
             field.dispatchEvent(new Event('change', { bubbles: true }))
@@ -275,7 +287,7 @@ function App() {
             field.dispatchEvent(new Event('change', { bubbles: true }))
           }
           restored = true
-        }
+        })
         if (restored) form.dataset.draftRestored = 'true'
       } catch { /* Ignore malformed or inaccessible drafts. */ }
     }
@@ -295,12 +307,10 @@ function App() {
       try { localStorage.removeItem(storageKey(form)) } catch {}
       delete form.dataset.draftRestored
     }
-    const onPageHide = () => restoreAllForms() // Persisted drafts are already written on each edit.
     document.addEventListener('input', onInput, true)
     document.addEventListener('change', onInput, true)
     document.addEventListener('reset', onReset, true)
     window.addEventListener('pageshow', restoreAllForms)
-    window.addEventListener('pagehide', onPageHide)
     const observer = new MutationObserver(() => restoreAllForms())
     if (document.body) observer.observe(document.body, { childList: true, subtree: true })
     restoreAllForms()
@@ -309,7 +319,6 @@ function App() {
       document.removeEventListener('change', onInput, true)
       document.removeEventListener('reset', onReset, true)
       window.removeEventListener('pageshow', restoreAllForms)
-      window.removeEventListener('pagehide', onPageHide)
       observer.disconnect()
     }
   }, [session?.user?.id])
