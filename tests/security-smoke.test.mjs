@@ -291,6 +291,7 @@ test('human handoff stops bot replies until Admin takes over or reactivates bot'
   assert.match(supportCenter, /set_support_conversation_status/)
   assert.match(supportCenter, /Hubungi Admin NexaPos/)
   assert.match(supportCenter, /Menunggu admin/)
+  assert.match(supportCenter, /table: 'support_conversations'/)
 })
 
 
