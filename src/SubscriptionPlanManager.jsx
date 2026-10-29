@@ -4,7 +4,7 @@ import { supabase } from './lib/supabase'
 import './admin-subscription-plans.css'
 
 const defaultDurations = [
-  { duration_key: 'daily', name: 'Harian', duration_days: 1, sort_order: 1, is_active: true },
+  { duration_key: 'daily', name: 'Harian', duration_days: 3, sort_order: 1, is_active: true },
   { duration_key: 'weekly', name: 'Mingguan', duration_days: 7, sort_order: 2, is_active: true },
   { duration_key: 'monthly', name: 'Bulanan', duration_days: 30, sort_order: 3, is_active: true },
   { duration_key: 'yearly', name: 'Tahunan', duration_days: 365, sort_order: 4, is_active: true },
@@ -12,10 +12,10 @@ const defaultDurations = [
 ]
 const featureDefaults = ['Semua fitur NexaPos', 'Kasir dan transaksi', 'Produk dan stok per cabang', 'Laporan operasional', 'Sistem antrian dan struk']
 const packageDefaults = [
-  { package_key: 'starter', name: 'Starter', location_limit: 1, note: 'Untuk satu lokasi usaha', prices: { daily: 5000, weekly: 15000, monthly: 49000, yearly: 490000, custom: 25000 }, features: featureDefaults, is_popular: false, is_active: true, sort_order: 1 },
-  { package_key: 'growth', name: 'Growth', location_limit: 3, note: 'Untuk bisnis yang mulai berkembang', prices: { daily: 10000, weekly: 30000, monthly: 99000, yearly: 990000, custom: 45000 }, features: featureDefaults, is_popular: false, is_active: true, sort_order: 2 },
-  { package_key: 'business', name: 'Business', location_limit: 5, note: 'Untuk bisnis dengan beberapa lokasi', prices: { daily: 15000, weekly: 50000, monthly: 179000, yearly: 1790000, custom: 75000 }, features: featureDefaults, is_popular: true, is_active: true, sort_order: 3 },
-  { package_key: 'enterprise', name: 'Enterprise', location_limit: 10, note: 'Untuk jaringan usaha yang lebih besar', prices: { daily: 25000, weekly: 85000, monthly: 299000, yearly: 2990000, custom: 125000 }, features: featureDefaults, is_popular: false, is_active: true, sort_order: 4 },
+  { package_key: 'starter', name: 'Starter', location_limit: 3, note: 'Untuk satu lokasi usaha', prices: { daily: 5000, weekly: 15000, monthly: 49000, yearly: 490000, custom: 25000 }, features: featureDefaults, is_popular: false, is_active: true, sort_order: 1 },
+  { package_key: 'growth', name: 'Growth', location_limit: 5, note: 'Untuk bisnis yang mulai berkembang', prices: { daily: 10000, weekly: 30000, monthly: 99000, yearly: 990000, custom: 45000 }, features: featureDefaults, is_popular: false, is_active: true, sort_order: 2 },
+  { package_key: 'business', name: 'Business', location_limit: 10, note: 'Untuk bisnis dengan beberapa lokasi', prices: { daily: 15000, weekly: 50000, monthly: 179000, yearly: 1790000, custom: 75000 }, features: featureDefaults, is_popular: true, is_active: true, sort_order: 3 },
+  { package_key: 'enterprise', name: 'Enterprise', location_limit: 15, note: 'Untuk jaringan usaha yang lebih besar', prices: { daily: 25000, weekly: 85000, monthly: 299000, yearly: 2990000, custom: 125000 }, features: featureDefaults, is_popular: false, is_active: true, sort_order: 4 },
 ]
 const money = value => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value || 0))
 
@@ -92,7 +92,7 @@ export default function SubscriptionPlanManager({ onBack }) {
 
   return <div className="app-shell super-admin-shell nx-plan-admin">
     <main className="main-area">
-      <header className="topbar"><div className="topbar-left"><button className="btn btn-outline btn-small nx-back-button" onClick={onBack}><ArrowLeft size={15}/> Kembali</button><div><div className="breadcrumb">Platform <span>/</span> <strong>Paket Aktivasi & Harga</strong></div><div className="topbar-date">Atur kuota cabang, harga setiap durasi, dan periode custom</div></div></div><div className="topbar-actions"><span className="role-chip"><ShieldCheck size={14}/> SUPER ADMIN</span><button className="btn btn-outline btn-small" onClick={load}><RefreshCw size={14}/> Muat ulang</button></div></header>
+      <header className="topbar"><div className="topbar-left"><button className="btn btn-outline btn-small nx-back-button" onClick={onBack}><ArrowLeft size={15}/> Kembali</button><div><div className="breadcrumb">Platform <span>/</span> <strong>Paket Aktivasi & Harga</strong></div><div className="topbar-date">Atur kuota tenant/lokasi, harga setiap durasi, dan periode custom</div></div></div><div className="topbar-actions"><span className="role-chip"><ShieldCheck size={14}/> SUPER ADMIN</span><button className="btn btn-outline btn-small" onClick={load}><RefreshCw size={14}/> Muat ulang</button></div></header>
       <div className="page-content"><section className="page-section">
         <div className="page-heading"><div><span className="eyebrow muted">KONTROL AKTIVASI</span><h1>Paket aktivasi <span className="heading-accent">NexaPos.</span></h1><p>Semua paket memiliki fitur yang sama. Perbedaannya adalah kuota lokasi dan harga berdasarkan masa aktif. Kode aktivasi tetap diterbitkan oleh Super Admin.</p></div><span className="date-pill"><CheckCircle2 size={14}/> Aktivasi manual</span></div>
         {!loading && !plansReady && !error && <div className="notice">Data paket belum tersedia. Pastikan keempat paket aktivasi sudah dibuat di database sebelum mengedit harga.</div>}{notice&&<div className="toast"><CheckCircle2 size={17}/><span>{notice}</span></div>}{error&&<div className="notice">{error}</div>}
