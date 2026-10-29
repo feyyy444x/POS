@@ -212,6 +212,7 @@ function App() {
   const [receipt, setReceipt] = useState(null)
   const [orderSuccessToast, setOrderSuccessToast] = useState(null)
   const orderSuccessAudioRef = useRef(null)
+  const checkoutRequestIdRef = useRef(null)
   const [payMethod, setPayMethod] = useState('cash')
   const [paidAmount, setPaidAmount] = useState('')
   const [discount, setDiscount] = useState('0')
@@ -898,6 +899,10 @@ function App() {
   const removeCartItem = id => setCart(prev=>prev.filter(i=>i.id!==id))
 
   const checkout = async () => {
+    if (!checkoutRequestIdRef.current) {
+      try { checkoutRequestIdRef.current = window.crypto.randomUUID() }
+      catch { setNotice('Perangkat ini tidak dapat membuat ID transaksi aman. Perbarui browser lalu coba lagi.'); return }
+    }
     if(!cart.length||!store)return
     // Prepare audio synchronously from the cashier's click; only play it after the server confirms success.
     try {
@@ -910,7 +915,7 @@ function App() {
     const paid=payMethod==='cash'?(Number(paidAmount)||0):total
     if(paid<total){setNotice('Nominal pembayaran masih kurang.');return}
     setQueueBusy(true)
-    const {data,error}=await supabase.rpc('complete_sale',{p_store_id:store.id,p_items:cart.map(i=>({product_id:i.id,quantity:i.quantity})),p_discount:safeDiscount,p_payment_method:payMethod,p_paid_amount:paid,p_customer_name:settings?.queue_enabled===false?null:(queueCustomer||null),p_create_queue:settings?.queue_enabled!==false})
+    const {data,error}=await supabase.rpc('complete_sale_idempotent',{p_store_id:store.id,p_items:cart.map(i=>({product_id:i.id,quantity:i.quantity})),p_discount:safeDiscount,p_payment_method:payMethod,p_paid_amount:paid,p_customer_name:settings?.queue_enabled===false?null:(queueCustomer||null),p_create_queue:settings?.queue_enabled!==false,p_request_id:checkoutRequestIdRef.current})
     setQueueBusy(false)
     if(error){setNotice(userFacingError(error));return}
     const {data: receiptItems} = await supabase.from('order_items').select('*').eq('order_id',data.order.id).order('id')
@@ -938,6 +943,7 @@ function App() {
         setTimeout(() => { try { gain.disconnect() } catch {} }, 600)
       }
     } catch { /* Browser audio restrictions must not interrupt checkout. */ }
+    checkoutRequestIdRef.current = null
     setCart([]);setPaidAmount('');setDiscount('0');setQueueCustomer('')
     await loadWorkspace()
     setPage('pos')
