@@ -154,6 +154,12 @@ test('queue timestamps cannot be edited after the corresponding status transitio
 test('internal platform Admin uses the Super Admin workspace and server-side PIN-gated privileges', () => {
   assert.match(app, /const isPlatformAdmin=!staffResult\.error&&staffData\?\.role==='admin'&&staffData\?\.is_active===true/)
   assert.match(app, /setIsSuperAdmin\(Boolean\(adminResult\.data\)\|\|isPlatformAdmin\)/)
+  assert.match(app, /setIsPlatformAdmin\(isPlatformAdmin\)/)
+  assert.match(app, /platformAdmin=\{isPlatformAdmin\}/)
+  assert.match(app, /platformAdmin \? 'Admin NEXAPOS' : 'Super Admin'/)
+  assert.match(app, /platformAdmin \? 'ADMIN NEXAPOS' : 'SUPER ADMIN'/)
+  assert.match(platformStaffManagerUi, /<option value="admin">Admin NEXAPOS<\/option>/)
+  assert.match(platformStaffManagerUi, /tampilan, menu, dan hak akses yang sama dengan Super Admin/)
   assert.match(app, /staffData\?\.role === 'admin' && staffData\?\.is_active === true/)
   assert.match(platformAdminParityMigration, /private\.is_pin_verified\(\)/)
   assert.match(platformAdminParityMigration, /platform_staff_roles/)
