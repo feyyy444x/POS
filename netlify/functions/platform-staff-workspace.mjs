@@ -4,7 +4,7 @@ const json = (body, status = 200) => new Response(JSON.stringify(body), {
   status, headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' },
 })
 const PERMISSION_BY_ACTION = {
-  users: 'users', stores: 'stores', reports: 'system_reports', support_inbox: 'support', support_reply: 'support', plans_list: 'plans', plans_save: 'plans', promotions_list: 'promotions', promotions_save: 'promotions', promotions_toggle: 'promotions', promotions_delete: 'promotions',
+  users: 'users', users_toggle_login: 'users', stores: 'stores', stores_toggle_status: 'stores', reports: 'system_reports', support_inbox: 'support', support_reply: 'support', plans_list: 'plans', plans_save: 'plans', promotions_list: 'promotions', promotions_save: 'promotions', promotions_toggle: 'promotions', promotions_delete: 'promotions',
 }
 export default async (request) => {
   if (request.method === 'OPTIONS') return new Response(null, { status: 204 })
@@ -90,6 +90,28 @@ export default async (request) => {
       const { data: staffRows } = await admin.from('platform_staff_roles').select('user_id,is_active')
       const staffIds = new Map((staffRows || []).map(row => [row.user_id, row.is_active]))
       return json({ data: users.map(u => ({ ...u, is_platform_staff: staffIds.has(u.id), platform_staff_active: staffIds.get(u.id) ?? null })) })
+    }
+    if (action === 'users_toggle_login') {
+      const targetId = String(payload?.userId || '')
+      if (!/^[0-9a-f-]{36}$/i.test(targetId) || typeof payload?.banned !== 'boolean') return json({ error: 'Perubahan status akun tidak valid.' }, 400)
+      if (targetId === authData.user.id) return json({ error: 'Akun yang sedang digunakan tidak dapat dinonaktifkan dari sini.' }, 403)
+      const { data: protectedAdmin } = await admin.from('super_admins').select('user_id').eq('user_id', targetId).maybeSingle()
+      const { data: protectedStaff } = await admin.from('platform_staff_roles').select('user_id').eq('user_id', targetId).maybeSingle()
+      if (protectedAdmin || protectedStaff) return json({ error: 'Akun Super Admin dan staf platform harus dikelola melalui pengaturan akses khusus.' }, 403)
+      const { error } = await admin.auth.admin.updateUserById(targetId, { ban_duration: payload.banned ? '876000h' : 'none' })
+      if (error) return json({ error: 'Status login akun belum berhasil diubah.' }, 500)
+      return json({ success: true })
+    }
+    if (action === 'stores_toggle_status') {
+      const storeId = String(payload?.storeId || '')
+      if (!/^[0-9a-f-]{36}$/i.test(storeId)) return json({ error: 'ID toko tidak valid.' }, 400)
+      const { data: store, error: storeError } = await admin.from('stores').select('id,status').eq('id', storeId).maybeSingle()
+      if (storeError || !store) return json({ error: 'Toko tidak ditemukan.' }, 404)
+      if (!['active','suspended'].includes(store.status)) return json({ error: 'Status toko ini tidak dapat diubah dengan tombol cepat.' }, 409)
+      const nextStatus = store.status === 'active' ? 'suspended' : 'active'
+      const { error } = await admin.from('stores').update({ status: nextStatus }).eq('id', storeId)
+      if (error) return json({ error: 'Status toko belum berhasil diubah.' }, 500)
+      return json({ success: true, status: nextStatus })
     }
     if (action === 'stores') {
       const { data, error } = await admin.from('stores')
