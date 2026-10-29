@@ -84,6 +84,8 @@ begin
   if tg_table_name = 'stores' then
     v_store_id := coalesce(nullif(v_after->>'id','')::uuid, nullif(v_before->>'id','')::uuid);
     v_org_id := coalesce(nullif(v_after->>'organization_id','')::uuid, nullif(v_before->>'organization_id','')::uuid);
+    -- A deleted store cannot be the FK target of its own post-delete audit record.
+    if tg_op = 'DELETE' then v_store_id := null; end if;
   elsif tg_table_name = 'owner_organizations' then
     v_org_id := coalesce(nullif(v_after->>'id','')::uuid, nullif(v_before->>'id','')::uuid);
   else
