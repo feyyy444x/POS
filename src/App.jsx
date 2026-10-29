@@ -14,6 +14,7 @@ import Demo from './Demo.jsx'
 import PromotionManager from './PromotionManager.jsx'
 import SubscriptionPlanManager from './SubscriptionPlanManager.jsx'
 import TvDisplaySettings from './TvDisplaySettings.jsx'
+import PlatformStaffManager from './PlatformStaffManager.jsx'
 
 const money = (value) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value || 0))
 const today = () => new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' })
@@ -1400,9 +1401,10 @@ function SuperAdminScreen({session,syncStatus,setSyncStatus,onSignOut}) {
     const matches=!q||[u.email,u.full_name,u.user_id,u.store_names,u.tenant_roles].some(v=>String(v||'').toLowerCase().includes(q))
     return matches&&(userStatus==='all'||(userStatus==='blocked'?u.is_banned:!u.is_banned))
   })
-  const navItems=[['dashboard','Ringkasan',LayoutDashboard],['stores','Toko / tenant',Store],['users','Manajemen user',Users],['disabled','Akun staf nonaktif',Ban],['support','Pusat bantuan',Headphones],['promotions','Promo & Diskon',Ticket],['subscription-plans','Kelola Langganan & Harga',CreditCard]]
+  const navItems=[['dashboard','Ringkasan',LayoutDashboard],['stores','Toko / tenant',Store],['users','Manajemen user',Users],['disabled','Akun staf nonaktif',Ban],['support','Pusat bantuan',Headphones],['platform-staff','Tim & Hak Akses',UserPlus],['promotions','Promo & Diskon',Ticket],['subscription-plans','Kelola Langganan & Harga',CreditCard]]
   const selectSection=(id)=>{setSection(id);setMobileNav(false)}
-  const pageTitle={dashboard:'Ringkasan platform',stores:'Manajemen toko',users:'Manajemen user',disabled:'Akun staf nonaktif',support:'Pusat bantuan',promotions:'Promo & Diskon', 'subscription-plans':'Kelola Langganan & Harga'}[section]
+  const pageTitle={dashboard:'Ringkasan platform',stores:'Manajemen toko',users:'Manajemen user',disabled:'Akun staf nonaktif',support:'Pusat bantuan','platform-staff':'Tim & Hak Akses',promotions:'Promo & Diskon', 'subscription-plans':'Kelola Langganan & Harga'}[section]
+  if(section==='platform-staff') return <div className="app-shell super-admin-shell"><aside className={"sidebar "+(mobileNav?'sidebar-open':'')}><div className="sidebar-brand"><Brand/></div><div className="store-switch"><span className="store-avatar"><ShieldCheck size={17}/></span><span className="store-copy"><strong>Super Admin</strong><small>Kontrol seluruh tenant</small></span></div><nav className="side-nav"><div className="nav-group"><div className="nav-section">PLATFORM</div>{navItems.map(([id,label,Icon])=><button key={id} className={"nav-link "+(section===id?'nav-active':'')} onClick={()=>selectSection(id)}><Icon size={18}/><span>{label}</span></button>)}</div></nav><div className="sidebar-bottom"><div className="user-card"><span className="user-avatar">{initial(session.user.email)}</span><span className="user-copy"><strong>{session.user.email}</strong><small>Super Admin</small></span><button className="icon-button" title="Keluar" onClick={onSignOut}><LogOut size={17}/></button></div></div></aside><main className="main-area"><header className="topbar"><div className="topbar-title-group"><div className="breadcrumb">Platform <span>/</span> <strong>Tim & Hak Akses</strong></div><div className="topbar-date">Kelola Admin dan Customer Service</div></div><div className="topbar-actions"><WibClock/><span className="role-chip"><ShieldCheck size={14}/> SUPER ADMIN</span></div></header><PlatformStaffManager/></main></div>;
   if(section==='promotions') return <PromotionManager onBack={()=>setSection('dashboard')} onSignOut={onSignOut}/>
   if(section==='subscription-plans') return <SubscriptionPlanManager onBack={()=>setSection('dashboard')}/>
   return <div className="app-shell super-admin-shell">
