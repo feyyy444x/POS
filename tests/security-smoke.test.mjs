@@ -31,6 +31,7 @@ const ownerOrganizationsMigration = await readFile(new URL('supabase/migrations/
 const auditLogsMigration = await readFile(new URL('supabase/migrations/20261030210000_platform_audit_logs.sql', root), 'utf8')
 const auditLogUi = await readFile(new URL('src/AuditLogPanel.jsx', root), 'utf8')
 const serverPromoQuoteMigration = await readFile(new URL('supabase/migrations/20261030220000_server_validate_activation_promotions.sql', root), 'utf8')
+const organizationReportsUi = await readFile(new URL('src/OrganizationReports.jsx', root), 'utf8')
 
 test('Netlify headers include baseline browser security protections', () => {
   for (const directive of [
@@ -499,4 +500,14 @@ test('workspace browser history restores prior pages without clearing current te
   assert.match(app, /nexapos-scroll-v1:/)
   assert.match(app, /Ada perubahan formulir yang belum dikonfirmasi/)
   assert.match(app, /window\.addEventListener\('beforeunload', onBeforeUnload\)/)
+})
+
+
+test('Owner consolidated reports aggregate only tenant IDs visible in the owner organization', () => {
+  assert.match(organizationReportsUi, /tenants\.filter\(t => t\.status !== 'deleted' && !t\.deleted_at\)\.map\(t => t\.id\)/)
+  assert.match(organizationReportsUi, /from\('orders'\)\.select\('\*'\)\.in\('store_id', tenantIds\)/)
+  assert.match(organizationReportsUi, /from\('products'\)\.select\('id,store_id,cost_price'\)\.in\('store_id', tenantIds\)/)
+  assert.match(organizationReportsUi, /paidOrders\.reduce/)
+  assert.match(app, /page==='reports-org'&&membership\.role==='owner'&&<OrganizationReports/)
+  assert.match(app, /\['reports-org','Laporan organisasi',Store\]/)
 })
