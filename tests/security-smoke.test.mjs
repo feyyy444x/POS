@@ -249,7 +249,7 @@ const supportCenter = await readFile(new URL('src/SupportCenter.jsx', root), 'ut
 test('free NexaPos support bot is FAQ-only and never calls a paid external AI provider', () => {
   assert.match(supportMigration, /CREATE TABLE IF NOT EXISTS public\.support_knowledge_base/)
   assert.match(supportMigration, /INSERT INTO public\.support_knowledge_base/)
-  assert.match(supportMigration, /v_answer := 'Maaf, saya belum memiliki jawaban terverifikasi/)
+  assert.match(supportHandoffMigration, /v_answer := 'Maaf, saya belum memiliki jawaban terverifikasi/)
   assert.doesNotMatch(supportMigration + supportHandoffMigration, /fetch\s*\(|https:\/\/api\.|OPENAI_API_KEY|GEMINI_API_KEY|ANTHROPIC_API_KEY/i)
   assert.match(supportCenter, /submit_support_message/)
   assert.match(supportCenter, /NexaPos Bot/)
