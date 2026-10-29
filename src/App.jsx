@@ -1383,9 +1383,9 @@ function SuperAdminScreen({session,syncStatus,setSyncStatus,onSignOut,platformAd
   }
   const resetUserPassword=async(user)=>{
     if(user.is_super_admin||user.user_id===session.user.id){setNotice('Akun Super Admin dilindungi dari reset password lewat menu ini.');return}
-    const nextPassword=prompt('Masukkan password sementara baru (minimal 8 karakter) untuk '+user.email)
+    const nextPassword=prompt('Masukkan password sementara baru (minimal 6 karakter) untuk '+user.email)
     if(!nextPassword)return
-    if(nextPassword.length<8){setNotice('Password minimal 8 karakter.');return}
+    if(nextPassword.length<6){setNotice('Password minimal 6 karakter.');return}
     if(!confirm('Ganti password akun '+user.email+'? Sampaikan password sementara secara aman kepada pemilik akun.'))return
     setUserActionId(user.user_id)
     try{
