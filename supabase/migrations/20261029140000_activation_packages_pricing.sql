@@ -50,7 +50,7 @@ grant insert, update, delete on public.site_activation_durations, public.site_ac
 
 insert into public.site_activation_durations (duration_key,name,duration_days,sort_order,is_active)
 values
-  ('daily','Harian',1,1,true),
+  ('daily','Harian',3,1,true),
   ('weekly','Mingguan',7,2,true),
   ('monthly','Bulanan',30,3,true),
   ('yearly','Tahunan',365,4,true),
@@ -59,10 +59,10 @@ on conflict (duration_key) do nothing;
 
 insert into public.site_activation_packages (package_key,name,location_limit,note,prices,features,is_popular,is_active,sort_order)
 values
-  ('starter','Starter',1,'Untuk satu lokasi usaha','{"daily":5000,"weekly":15000,"monthly":49000,"yearly":490000,"custom":25000}'::jsonb,array['Semua fitur NexaPos','Kasir dan transaksi','Produk dan stok per cabang','Laporan operasional','Sistem antrian dan struk']::text[],false,true,1),
-  ('growth','Growth',3,'Untuk bisnis yang mulai berkembang','{"daily":10000,"weekly":30000,"monthly":99000,"yearly":990000,"custom":45000}'::jsonb,array['Semua fitur NexaPos','Kasir dan transaksi','Produk dan stok per cabang','Laporan operasional','Sistem antrian dan struk']::text[],false,true,2),
-  ('business','Business',5,'Untuk bisnis dengan beberapa lokasi','{"daily":15000,"weekly":50000,"monthly":179000,"yearly":1790000,"custom":75000}'::jsonb,array['Semua fitur NexaPos','Kasir dan transaksi','Produk dan stok per cabang','Laporan operasional','Sistem antrian dan struk']::text[],true,true,3),
-  ('enterprise','Enterprise',10,'Untuk jaringan usaha yang lebih besar','{"daily":25000,"weekly":85000,"monthly":299000,"yearly":2990000,"custom":125000}'::jsonb,array['Semua fitur NexaPos','Kasir dan transaksi','Produk dan stok per cabang','Laporan operasional','Sistem antrian dan struk']::text[],false,true,4)
+  ('starter','Starter',3,'Untuk satu lokasi usaha','{"daily":5000,"weekly":15000,"monthly":49000,"yearly":490000,"custom":25000}'::jsonb,array['Semua fitur NexaPos','Kasir dan transaksi','Produk dan stok per cabang','Laporan operasional','Sistem antrian dan struk']::text[],false,true,1),
+  ('growth','Growth',5,'Untuk bisnis yang mulai berkembang','{"daily":10000,"weekly":30000,"monthly":99000,"yearly":990000,"custom":45000}'::jsonb,array['Semua fitur NexaPos','Kasir dan transaksi','Produk dan stok per cabang','Laporan operasional','Sistem antrian dan struk']::text[],false,true,2),
+  ('business','Business',10,'Untuk bisnis dengan beberapa lokasi','{"daily":15000,"weekly":50000,"monthly":179000,"yearly":1790000,"custom":75000}'::jsonb,array['Semua fitur NexaPos','Kasir dan transaksi','Produk dan stok per cabang','Laporan operasional','Sistem antrian dan struk']::text[],true,true,3),
+  ('enterprise','Enterprise',15,'Untuk jaringan usaha yang lebih besar','{"daily":25000,"weekly":85000,"monthly":299000,"yearly":2990000,"custom":125000}'::jsonb,array['Semua fitur NexaPos','Kasir dan transaksi','Produk dan stok per cabang','Laporan operasional','Sistem antrian dan struk']::text[],false,true,4)
 on conflict (package_key) do nothing;
 
 -- Keep public read-only behavior and prevent direct browser access to internal activation issuance.
