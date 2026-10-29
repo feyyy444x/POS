@@ -4,7 +4,7 @@ const json = (body, status = 200) => new Response(JSON.stringify(body), {
   status, headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' },
 })
 const PERMISSION_BY_ACTION = {
-  users: 'users', stores: 'stores', reports: 'system_reports', support_inbox: 'support', support_reply: 'support',
+  users: 'users', stores: 'stores', reports: 'system_reports', support_inbox: 'support', support_reply: 'support', plans_list: 'plans', plans_save: 'plans', promotions_list: 'promotions', promotions_save: 'promotions', promotions_toggle: 'promotions', promotions_delete: 'promotions',
 }
 export default async (request) => {
   if (request.method === 'OPTIONS') return new Response(null, { status: 204 })
@@ -34,6 +34,44 @@ export default async (request) => {
     if (superAdmin) return json({ error: 'Gunakan workspace Super Admin untuk akun ini.' }, 403)
     if (assignment.permissions?.[requiredPermission] !== true) return json({ error: 'Izin untuk bagian ini tidak diberikan.' }, 403)
 
+    if (action === 'plans_list') {
+      const { data, error } = await admin.from('site_subscription_plans').select('*').order('sort_order', { ascending: true })
+      if (error) return json({ error: 'Paket belum dapat dimuat.' }, 500)
+      return json({ data: data || [] })
+    }
+    if (action === 'plans_save') {
+      const p = payload?.plan
+      if (!p || !['daily','weekly','monthly','yearly'].includes(p.plan_key) || !String(p.name || '').trim() || !String(p.duration || '').trim() || !Number.isFinite(Number(p.price)) || Number(p.price) < 0 || !Array.isArray(p.features)) return json({ error: 'Data paket tidak valid.' }, 400)
+      const { error } = await admin.from('site_subscription_plans').upsert({ plan_key: p.plan_key, name: String(p.name).trim().slice(0,60), duration: String(p.duration).trim().slice(0,40), price: Number(p.price), note: String(p.note || '').slice(0,220), features: p.features.map(v=>String(v).trim()).filter(Boolean).slice(0,50), is_popular: Boolean(p.is_popular), is_active: Boolean(p.is_active), sort_order: Number(p.sort_order)||0, updated_at: new Date().toISOString(), updated_by: authData.user.id }, { onConflict: 'plan_key' })
+      if (error) return json({ error: 'Paket belum berhasil disimpan.' }, 500)
+      return json({ success: true })
+    }
+    if (action === 'promotions_list') {
+      const { data, error } = await admin.from('site_promotions').select('*').order('created_at', { ascending: false })
+      if (error) return json({ error: 'Promo belum dapat dimuat.' }, 500)
+      return json({ data: data || [] })
+    }
+    if (action === 'promotions_save') {
+      const p = payload?.promotion
+      if (!p || !String(p.title || '').trim() || !['percent','fixed'].includes(p.discount_type) || !Number.isFinite(Number(p.discount_value)) || Number(p.discount_value) <= 0 || (p.discount_type === 'percent' && Number(p.discount_value) > 100) || !Array.isArray(p.eligible_periods) || !p.eligible_periods.length || p.eligible_periods.some(v=>!['daily','weekly','monthly','yearly'].includes(v)) || (p.starts_at && p.ends_at && new Date(p.ends_at) <= new Date(p.starts_at)) || (p.requires_code && !String(p.promo_code || '').trim())) return json({ error: 'Data promo tidak valid.' }, 400)
+      const row = { title: String(p.title).trim().slice(0,160), description: String(p.description || '').slice(0,1000), discount_type: p.discount_type, discount_value: Number(p.discount_value), eligible_periods: p.eligible_periods, promo_code: p.requires_code ? String(p.promo_code).trim().toUpperCase().slice(0,64) : null, requires_code: Boolean(p.requires_code), starts_at: p.starts_at || null, ends_at: p.ends_at || null, is_active: Boolean(p.is_active), updated_at: new Date().toISOString() }
+      const query = p.id ? admin.from('site_promotions').update(row).eq('id', p.id) : admin.from('site_promotions').insert({ ...row, created_by: authData.user.id })
+      const { error } = await query
+      if (error) return json({ error: 'Promo belum berhasil disimpan.' }, 500)
+      return json({ success: true })
+    }
+    if (action === 'promotions_toggle') {
+      if (!payload?.id) return json({ error: 'ID promo diperlukan.' }, 400)
+      const { error } = await admin.from('site_promotions').update({ is_active: Boolean(payload.is_active), updated_at: new Date().toISOString() }).eq('id', payload.id)
+      if (error) return json({ error: 'Status promo belum berhasil diubah.' }, 500)
+      return json({ success: true })
+    }
+    if (action === 'promotions_delete') {
+      if (!payload?.id) return json({ error: 'ID promo diperlukan.' }, 400)
+      const { error } = await admin.from('site_promotions').delete().eq('id', payload.id)
+      if (error) return json({ error: 'Promo belum berhasil dihapus.' }, 500)
+      return json({ success: true })
+    }
     if (action === 'users') {
       const users = []
       for (let page = 1; page <= 100; page++) {
