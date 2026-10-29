@@ -17,3 +17,21 @@
 
 .demo-tv-preview{display:flex;flex-direction:column;align-items:center;gap:10px;max-width:720px;margin:20px 0;padding:32px 20px;border-radius:14px;background:radial-gradient(ellipse at top,#173b5c,#0b1425 70%);color:#fff;text-align:center;overflow:hidden}
 .demo-tv-preview>span{font-size:10px;letter-spacing:.18em;color:#7de3c5}.demo-tv-preview>strong{font-size:clamp(56px,12vw,96px);line-height:1;font-weight:800;letter-spacing:.04em}.demo-tv-preview>small{font-size:12px;color:#d6e1f1}.demo-tv-preview>div{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:12px}.demo-tv-preview>div>span{padding:8px 12px;border:1px solid #34516e;border-radius:8px;background:#14263a;color:#e5edf8;font-size:11px}
+
+
+/* Simulated receipt: no physical printer or production transaction is invoked. */
+.demo-receipt-overlay{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(8,13,27,.66);backdrop-filter:blur(8px)}
+.demo-receipt-dialog{position:relative;width:min(100%,420px);max-height:min(88vh,760px);overflow:auto;padding:28px;border:1px solid #e5e9f2;border-radius:18px;background:#fff;color:#182033;box-shadow:0 24px 80px #0003}
+.demo-receipt-dialog h2{margin:8px 0;font-size:24px;letter-spacing:-.04em}
+.demo-receipt-dialog>p{margin:8px 0;color:#68738a;font-size:12px}
+.demo-receipt-close{position:absolute;top:14px;right:14px;display:grid;place-items:center;width:34px;height:34px;border:1px solid #e5e9f2;border-radius:10px;background:#fff;color:#26334a;cursor:pointer}
+.demo-receipt-queue{padding:12px;border-radius:10px;background:#f1f5ff;color:#334a83!important}
+.demo-receipt-queue strong{font-size:18px}
+.demo-receipt-lines{display:grid;gap:10px;margin:20px 0;padding:16px 0;border-top:1px dashed #d7dce7;border-bottom:1px dashed #d7dce7}
+.demo-receipt-lines>div,.demo-receipt-total{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;font-size:13px}
+.demo-receipt-lines>div strong{white-space:nowrap}
+.demo-receipt-total{align-items:center;margin-bottom:18px;font-size:14px}
+.demo-receipt-total strong{font-size:21px}
+.demo-receipt-dialog>small{display:block;margin:12px 0 18px;color:#68738a;text-align:center}
+.demo-receipt-dialog .demo-checkout{width:100%;justify-content:center}
+@media(max-width:520px){.demo-receipt-dialog{padding:24px 18px;border-radius:15px}.demo-receipt-overlay{padding:12px}}
