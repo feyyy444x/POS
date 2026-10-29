@@ -71,6 +71,8 @@ export default function Homepage() {
   const [durations, setDurations] = useState(fallbackDurations)
   const [selectedDuration, setSelectedDuration] = useState('monthly')
   const [promos, setPromos] = useState([])
+  const [serverQuotes, setServerQuotes] = useState({})
+  const [quoteLoading, setQuoteLoading] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [coupon, setCoupon] = useState('')
   const [selectedPlan, setSelectedPlan] = useState('growth')
@@ -144,6 +146,29 @@ export default function Homepage() {
       supabase.removeChannel(durationChannel)
     }
   }, [])
+  // Server-calculated quotes are authoritative for all displayed package discounts.
+  useEffect(() => {
+    if (!supabase || !plans.length) { setServerQuotes({}); setQuoteLoading(false); return }
+    let cancelled = false
+    setServerQuotes({})
+    setQuoteLoading(true)
+    Promise.all(plans.map(async plan => {
+      const { data, error } = await supabase.rpc('get_activation_quote', {
+        p_package_key: plan.key,
+        p_duration_key: selectedDuration,
+        p_promo_code: coupon.trim() || null,
+      })
+      return [plan.key, !error && data?.ok ? data : null]
+    })).then(entries => {
+      if (!cancelled) setServerQuotes(Object.fromEntries(entries))
+    }).catch(() => {
+      if (!cancelled) setServerQuotes({})
+    }).finally(() => {
+      if (!cancelled) setQuoteLoading(false)
+    })
+    return () => { cancelled = true }
+  }, [plans, selectedDuration, coupon])
+
   useEffect(() => {
     if (typeof IntersectionObserver === 'undefined') return
     const observer = new IntersectionObserver(entries => {
@@ -169,7 +194,7 @@ export default function Homepage() {
   const selected = plans.find(p => p.key === selectedPlan) || plans[1]
   const currentScene = storyScenes[scene] || storyScenes.kasir
   const SceneIcon = currentScene.icon
-  const contact = (plan, promo) => {
+  const contact = (plan, promo, quote) => {
     const details = [
       'Halo Tim NexaPos, saya ingin menanyakan penyewaan layanan.',
       'Masa sewa: ' + plan.name + ' (' + plan.duration + ')',
@@ -177,7 +202,7 @@ export default function Homepage() {
       'Durasi: ' + (plan.duration || selectedDuration),
       'Harga normal: ' + money(plan.price),
       promo ? 'Promo: ' + (promo.title || promo.promo_code || 'Promo NexaPos') : '',
-      promo ? 'Perkiraan harga setelah diskon: ' + money(plan.price - discountFor(plan, { ...promo, requires_code: false }, selectedDuration)) : '',
+      promo ? 'Perkiraan harga setelah diskon: ' + money(Number(quote?.final_price ?? plan.price)) : '',
       coupon.trim() ? 'Kode kupon: ' + coupon.trim().toUpperCase() : '',
       'Mohon informasi mengenai proses aktivasi dan pembayaran. Terima kasih.'
     ].filter(Boolean).join('\n')
@@ -295,7 +320,7 @@ export default function Homepage() {
         <div className="living-coupon living-coupon-redesign">
           <label htmlFor="living-coupon"><Ticket size={15}/> Punya kode voucher?</label>
           <div><input id="living-coupon" value={coupon} onChange={e=>setCoupon(e.target.value.toUpperCase())} placeholder="Ketik kode voucher di sini"/>{coupon && <button type="button" onClick={()=>setCoupon('')} aria-label="Hapus kode kupon"><X size={15}/></button>}</div>
-          {coupon && <small className={couponPromo?'is-valid':''}>{couponPromo?'✓ '+(couponPromo.title||'Voucher NexaPos')+' siap digunakan pada paket yang memenuhi syarat.':'Kode belum cocok atau masa promo sudah berakhir.'}</small>}
+          {coupon && <small className={serverQuotes[selectedPlan]?.promo_id?'is-valid':''}>{quoteLoading?'Memeriksa voucher dan harga ke server…':serverQuotes[selectedPlan]?.promo_id?'✓ '+(serverQuotes[selectedPlan]?.promo_title||'Voucher NexaPos')+' valid untuk paket dan durasi ini.':'Kode tidak valid, tidak aktif, atau tidak berlaku untuk durasi yang dipilih.'}</small>}
         </div>
         {availablePromos.some(p=>requiresPromoCode(p)) && <div className="living-voucher-list living-voucher-list-redesign">{availablePromos.filter(p=>requiresPromoCode(p)).map(p=><article className={couponPromo?.id===p.id?'is-active':''} key={p.id}>
           <div><span><Ticket size={14}/>{p.title||'Voucher NexaPos'}</span><p>{p.description||'Masukkan kode untuk menggunakan penawaran ini.'}</p><small>Potongan {promoDiscountLabel(p)} · {eligiblePeriods(p).map(period=>durations.find(d=>d.duration_key===period)?.name||period).join(', ')||'Semua durasi'}</small></div>
@@ -306,11 +331,12 @@ export default function Homepage() {
             const duration=durations.find(d=>d.duration_key===selectedDuration) || durations[0]
             const basePrice=Math.max(0,Number(plan.prices?.[selectedDuration] ?? 0))
             const pricedPlan={...plan,price:basePrice,duration:duration?.name||selectedDuration,duration_days:Number(duration?.duration_days||0)}
-            const displayPromo=coupon.trim()?(couponPromo?{...couponPromo,requires_code:false}:null):automaticPromo
+            const serverQuote=serverQuotes[plan.key]
+            const displayPromo=serverQuote?.promo_id?{id:serverQuote.promo_id,title:serverQuote.promo_title,description:serverQuote.promo_description,discount_type:serverQuote.discount_type,discount_value:serverQuote.discount_value,eligible_periods:serverQuote.eligible_periods,promo_code:serverQuote.promo_code,requires_code:serverQuote.requires_code,starts_at:serverQuote.starts_at,ends_at:serverQuote.ends_at}:null
             const eligible=displayPromo ? eligiblePeriods(displayPromo) : []
-            const isEligible=!eligible.length||eligible.includes(selectedDuration)
-            const discount=isEligible?discountFor(pricedPlan,displayPromo,selectedDuration):0
-            const finalPrice=Math.max(0,basePrice-discount)
+            const isEligible=Boolean(displayPromo)
+            const discount=isEligible?Math.max(0,Number(serverQuote?.discount||0)):0
+            const finalPrice=Math.max(0,Number(serverQuote?.final_price ?? basePrice))
             const planFeatures=plan.features?.length?plan.features:defaultFeatures
             return <article className={'living-plan living-plan-redesign'+(plan.popular?' is-popular':'')+(selectedPlan===plan.key?' is-selected':'')} key={plan.key} style={{'--plan-index':index}} onClick={()=>setSelectedPlan(plan.key)}>
               <div className="living-plan-top"><span>{plan.name}</span>{plan.popular&&<b>REKOMENDASI</b>}</div>
@@ -322,7 +348,7 @@ export default function Homepage() {
               {displayPromo && !isEligible && <div className="living-plan-ineligible">Promo tidak berlaku untuk durasi ini</div>}
               <div className="living-plan-divider"/>
               <ul>{planFeatures.map((feature,featureIndex)=><li key={featureIndex}><CheckCircle2 size={14}/>{feature}</li>)}</ul>
-              <button className="living-cta living-plan-cta living-plan-cta-redesign" onClick={e=>{e.stopPropagation();contact(pricedPlan,displayPromo&&isEligible?displayPromo:null)}}>{discount>0?'Pilih paket promo':'Tanyakan paket'} <ArrowRight size={14}/></button>
+              <button className="living-cta living-plan-cta living-plan-cta-redesign" onClick={e=>{e.stopPropagation();contact(pricedPlan,displayPromo&&isEligible?displayPromo:null,serverQuote)}}>{discount>0?'Pilih paket promo':'Tanyakan paket'} <ArrowRight size={14}/></button>
               <span className="living-plan-footnote">Aktivasi kode dilakukan oleh Super Admin</span>
             </article>
           })}
