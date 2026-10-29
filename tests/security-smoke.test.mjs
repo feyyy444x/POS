@@ -337,3 +337,21 @@ test('Pusat Kendali Toko scopes operational reads to the selected store and labe
   assert.match(storeControlCenterUi, /Tidak tersedia pada data tenant saat ini/)
   assert.match(storeControlCenterUi, /Hak akses database mungkin membatasi sebagian data/)
 })
+
+
+test('form draft restoration is scoped to the signed-in user and active tenant', () => {
+  assert.match(app, /const tenantScope = store\?\.id \|\| selectedStoreId \|\| 'no-store'/)
+  assert.match(app, /encodeURIComponent\(tenantScope\)/)
+  assert.match(app, /const sameIdentityForms = Array\.from\(document\.forms\)/)
+})
+
+test('form draft restoration handles conditional fields without overwriting fields already restored', () => {
+  assert.match(app, /data-draft-restored-keys/)
+  assert.match(app, /restoredKeys\.has\(fieldKey\)/)
+  assert.match(app, /Array\.from\(document\.forms\)\.forEach\(restoreForm\)/)
+})
+
+test('form draft preservation excludes credentials, activation codes, PINs, and file inputs', () => {
+  assert.match(app, /\['password', 'hidden', 'file', 'submit', 'button', 'reset', 'image'\]/)
+  assert.match(app, /password\|passwd\|pin\|activation\.\?code\|invite\.\?code\|token\|secret/)
+})
