@@ -14,6 +14,7 @@ const privilegedRlsMigration = await readFile(new URL('supabase/migrations/20261
 const queueTimestampGuardMigration = await readFile(new URL('supabase/migrations/20261029153000_refine_queue_timestamp_guard.sql', root), 'utf8')
 const foreignKeyIndexesMigration = await readFile(new URL('supabase/migrations/20261029160000_add_missing_foreign_key_indexes.sql', root), 'utf8')
 const cashierAlertRlsMigration = await readFile(new URL('supabase/migrations/20261029161000_optimize_cashier_alert_rls.sql', root), 'utf8')
+const platformAdminParityMigration = await readFile(new URL('supabase/migrations/20261029163000_platform_admin_super_admin_parity.sql', root), 'utf8')
 
 test('Netlify headers include baseline browser security protections', () => {
   for (const directive of [
@@ -141,4 +142,14 @@ test('queue timestamps cannot be edited after the corresponding status transitio
   assert.match(queueTimestampGuardMigration, /NEW\.status IS DISTINCT FROM OLD\.status/)
   assert.match(queueTimestampGuardMigration, /Waktu pemanggilan hanya dapat berubah saat status antrean berubah/)
   assert.match(queueTimestampGuardMigration, /Waktu penyelesaian hanya dapat berubah saat antrean selesai atau dilewati/)
+})
+
+
+test('internal platform Admin uses the Super Admin workspace and server-side PIN-gated privileges', () => {
+  assert.match(app, /const isPlatformAdmin=!staffResult\.error&&staffData\?\.role==='admin'/)
+  assert.match(app, /setIsSuperAdmin\(Boolean\(adminResult\.data\)\|\|isPlatformAdmin\)/)
+  assert.match(platformAdminParityMigration, /private\.is_pin_verified\(\)/)
+  assert.match(platformAdminParityMigration, /platform_staff_roles/)
+  assert.match(platformAdminParityMigration, /role = 'admin'/)
+  assert.match(platformAdminParityMigration, /is_active = true/)
 })
