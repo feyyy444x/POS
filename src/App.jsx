@@ -182,6 +182,28 @@ function App() {
   const [monitoringNow, setMonitoringNow] = useState(Date.now())
   const [monitoringSoundReady, setMonitoringSoundReady] = useState(false)
   const lastBreakSoundRef = useRef({})
+
+  // Make browser Back/Forward follow in-app workspace navigation without dropping the cart or form drafts.
+  useEffect(() => {
+    const current = window.history.state || {}
+    if (!current.nexaposWorkspaceNav) {
+      window.history.replaceState({ ...current, nexaposWorkspaceNav: true, page }, '', window.location.href)
+    }
+    const onPopState = event => {
+      const state = event.state
+      if (state?.nexaposWorkspaceNav) setPage(state.page || 'dashboard')
+      else setPage('dashboard')
+    }
+    window.addEventListener('popstate', onPopState)
+    return () => window.removeEventListener('popstate', onPopState)
+  }, [])
+
+  useEffect(() => {
+    if (!authReady || isSuperAdmin) return
+    const current = window.history.state || {}
+    if (current.nexaposWorkspaceNav && current.page === page) return
+    window.history.pushState({ ...current, nexaposWorkspaceNav: true, page }, '', window.location.href)
+  }, [page, authReady, isSuperAdmin])
   const monitoringAudioContextRef = useRef(null)
   const [queueBusy, setQueueBusy] = useState(false)
   const [mobileNav, setMobileNav] = useState(false)
@@ -1282,6 +1304,32 @@ function SuperAdminScreen({session,syncStatus,setSyncStatus,onSignOut,platformAd
   const [selectedTenant,setSelectedTenant]=useState(null)
   const [sectionRestored,setSectionRestored]=useState(false)
   const [mobileNav,setMobileNav]=useState(false)
+
+  // Keep platform navigation in browser history, including the selected tenant control center.
+  useEffect(() => {
+    const current = window.history.state || {}
+    if (!current.nexaposSuperAdminNav) {
+      window.history.replaceState({ ...current, nexaposSuperAdminNav: true, superSection: section, superSelectedTenant: selectedTenant }, '', window.location.href)
+    }
+    const onPopState = event => {
+      const state = event.state
+      if (state?.nexaposSuperAdminNav) {
+        setSection(state.superSection || 'dashboard')
+        setSelectedTenant(state.superSelectedTenant || null)
+      } else {
+        setSection('dashboard')
+        setSelectedTenant(null)
+      }
+    }
+    window.addEventListener('popstate', onPopState)
+    return () => window.removeEventListener('popstate', onPopState)
+  }, [])
+
+  useEffect(() => {
+    const current = window.history.state || {}
+    if (current.nexaposSuperAdminNav && current.superSection === section && (current.superSelectedTenant?.id || null) === (selectedTenant?.id || null)) return
+    window.history.pushState({ ...current, nexaposSuperAdminNav: true, superSection: section, superSelectedTenant: selectedTenant }, '', window.location.href)
+  }, [section, selectedTenant?.id])
 
   // Restore the last Admin Super section per authenticated account after a reload.
   // Only navigation state is persisted; sensitive credentials and activation codes are never stored here.
