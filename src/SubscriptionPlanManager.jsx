@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { ArrowLeft, CheckCircle2, Eye, EyeOff, RefreshCw, Save, ShieldCheck } from 'lucide-react'
 import { supabase } from './lib/supabase'
+import { userFacingError } from './lib/userFacingError'
 import './admin-subscription-plans.css'
 
 const defaults = [
@@ -22,7 +23,7 @@ export default function SubscriptionPlanManager({ onBack }) {
     setLoading(true); setError('')
     const { data, error: queryError } = await supabase.from('site_subscription_plans').select('*').order('sort_order', { ascending: true })
     if (queryError) {
-      setError('Paket belum dapat dimuat. Pastikan migrasi homepage_subscription_editor sudah diterapkan di Supabase. ' + queryError.message)
+      setError(userFacingError(queryError, 'Paket belum dapat dimuat. Coba lagi atau hubungi admin jika masalah berlanjut.'))
       setPlans(defaults)
     } else {
       const byKey = new Map((data || []).map(plan => [plan.plan_key, plan]))
@@ -60,7 +61,7 @@ export default function SubscriptionPlanManager({ onBack }) {
     }
     const { error: saveError } = await supabase.from('site_subscription_plans').upsert(payload, { onConflict: 'plan_key' })
     setSavingKey('')
-    if (saveError) { setError(saveError.message); return }
+    if (saveError) { setError(userFacingError(saveError, 'Paket belum berhasil disimpan. Periksa koneksi lalu coba lagi.')); return }
     setNotice('Paket ' + payload.name + ' berhasil disimpan. Homepage akan mengikuti pengaturan ini.')
     await load()
   }
