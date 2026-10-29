@@ -28,3 +28,6 @@ jobs:
         run: node --test tests/security-smoke.test.mjs
       - name: Build production bundle
         run: npm run build
+      - name: Run deployed preview end-to-end smoke checks
+        run: node --test tests/e2e-preview.test.mjs
+        timeout-minutes: 3
