@@ -50,7 +50,7 @@ export default function PlatformStaffWorkspace({ session, staff, onSignOut }) {
         const action = target === 'support' ? 'support_inbox' : target
         const nextData = await request(action) || []
         setData(nextData)
-        if (target === 'support' && activeThread) setActiveThread(nextData.find(thread => thread.user_id === activeThread.user_id) || null)
+        if (target === 'support') setActiveThread(current => current ? (nextData.find(thread => thread.user_id === current.user_id) || null) : null)
       } else if (target === 'reports') {
         setReport(await request('reports'))
       }
@@ -58,7 +58,7 @@ export default function PlatformStaffWorkspace({ session, staff, onSignOut }) {
       setNotice(error.message || 'Bagian ini belum berhasil dimuat.')
       setData([])
     } finally { setLoading(false) }
-  }, [page, request, activeThread])
+  }, [page, request])
 
   useEffect(() => {
     if (['users', 'stores', 'support', 'reports'].includes(page)) loadPage(page)
