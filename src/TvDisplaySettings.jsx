@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Check, Copy, ExternalLink, Link2, Monitor, Palette, Plus, RefreshCw, Save, ShieldCheck, Trash2, Volume2, Video } from 'lucide-react'
 import { supabase } from './lib/supabase'
+import { userFacingError } from './lib/userFacingError'
 import './tv-display.css'
 
 const DEFAULTS = {
-  template: 'modern-blue',
+  template: 'nexa-cinema',
   layout_mode: 'split-left',
   theme_mode: 'light',
   primary_color: '#2563eb',
@@ -24,18 +25,23 @@ const DEFAULTS = {
 }
 
 const TEMPLATES = [
-  ['modern-blue', 'Modern Blue', 'Biru navy, putih, aksen teal'],
-  ['minimal-light', 'Minimalis', 'Terang dan bersih'],
-  ['premium-dark', 'Premium Dark', 'Gelap dan elegan'],
-  ['queue-media', 'Antrean + Media', 'Antrean dan promosi berdampingan'],
-  ['professional', 'Antrean Profesional', 'Nomor aktif dan antrean berikutnya'],
+  ['nexa-cinema', '01 — Nexa Cinema', 'Video besar di kiri, antrean di kanan'],
+  ['nexa-showcase', '02 — Nexa Showcase', 'Media di atas, antrean di bawah'],
+  ['nexa-queue', '03 — Nexa Queue', 'Khusus antrean, tanpa media'],
+  ['nexa-grid', '04 — Nexa Grid', 'Panel antrean dalam susunan grid'],
+  ['nexa-overlay', '05 — Nexa Overlay', 'Media dengan panel antrean overlay'],
+  ['nexa-carousel', '06 — Nexa Carousel', 'Playlist media bergantian, antrean tetap terlihat'],
+  ['nexa-smart-loop', '07 — Nexa Smart Loop', 'Media otomatis saat tidak ada antrean menunggu'],
 ]
 const LAYOUTS = [
-  ['split-left', 'Antrean kiri, media kanan'],
+  ['split-left', 'Media besar kiri, antrean kanan'],
   ['media-top', 'Media di atas, antrean di bawah'],
   ['media-bottom', 'Antrean di atas, media di bawah'],
-  ['media-fullscreen', 'Media layar penuh saat antrean kosong'],
-  ['alternate', 'Antrean dan media bergantian'],
+  ['queue-only', 'Antrean saja — tanpa media'],
+  ['queue-grid', 'Antrean grid + media'],
+  ['overlay', 'Media dengan panel antrean overlay'],
+  ['carousel', 'Playlist media + antrean tetap'],
+  ['smart-loop', 'Smart Loop — media dan antrean otomatis'],
 ]
 const mb = bytes => (Number(bytes || 0) / (1024 * 1024)).toFixed(1)
 
@@ -48,6 +54,7 @@ function randomToken() {
 function previewSource(item) {
   const url = item?.source_url || ''
   if (!url) return { type: 'placeholder', url: '' }
+  if (/\.(png|jpe?g|gif|webp|avif)(\?.*)?$/i.test(url)) return { type: 'image', url }
   if (/\.(mp4|webm|ogg)(\?.*)?$/i.test(url)) return { type: 'video', url }
   try {
     const parsed = new URL(url)
@@ -71,6 +78,7 @@ export default function TvDisplaySettings({ store, membership, onNotice }) {
   const [draft, setDraft] = useState(DEFAULTS)
   const [media, setMedia] = useState([])
   const [loaded, setLoaded] = useState(false)
+  const [previewNow, setPreviewNow] = useState(() => new Date())
   const [saving, setSaving] = useState(false)
   const [addingMedia, setAddingMedia] = useState(false)
   const [uploading, setUploading] = useState(false)
@@ -93,14 +101,24 @@ export default function TvDisplaySettings({ store, membership, onNotice }) {
       supabase.from('store_tv_media').select('*').eq('store_id', storeId).order('sort_order').order('created_at'),
     ])
     if (settingsError || mediaError) {
-      notify('Pengaturan TV belum dapat dimuat. Pastikan migrasi TV Display sudah aktif pada proyek Supabase POS: ' + (settingsError?.message || mediaError?.message))
+      notify(userFacingError(settingsError || mediaError, 'Pengaturan TV belum dapat dimuat. Coba lagi atau hubungi admin.'))
     } else {
-      setDraft({ ...DEFAULTS, ...(settingsRow || {}) })
+      const loadedSettings = { ...DEFAULTS, ...(settingsRow || {}) }
+      const legacyTemplates = { 'modern-blue': 'nexa-cinema', 'minimal-light': 'nexa-showcase', 'premium-dark': 'nexa-overlay', 'queue-media': 'nexa-carousel', professional: 'nexa-grid' }
+      loadedSettings.template = legacyTemplates[loadedSettings.template] || (TEMPLATES.some(([value]) => value === loadedSettings.template) ? loadedSettings.template : 'nexa-cinema')
+      if (loadedSettings.layout_mode === 'alternate') loadedSettings.layout_mode = 'smart-loop'
+      if (loadedSettings.layout_mode === 'media-fullscreen') loadedSettings.layout_mode = 'overlay'
+      setDraft(loadedSettings)
       setMedia(mediaRows || [])
       setLocalError('')
     }
     setLoaded(true)
   }, [storeId, notify])
+
+  useEffect(() => {
+    const timer = setInterval(() => setPreviewNow(new Date()), 1000)
+    return () => clearInterval(timer)
+  }, [])
 
   useEffect(() => {
     if (!storeId || !supabase) return
@@ -131,7 +149,7 @@ export default function TvDisplaySettings({ store, membership, onNotice }) {
     const payload = { ...draft, store_id: storeId, updated_at: new Date().toISOString() }
     const { error } = await supabase.from('store_tv_settings').upsert(payload)
     setSaving(false)
-    if (error) { notify('Pengaturan belum tersimpan: ' + error.message); return }
+    if (error) { notify(userFacingError(error, 'Pengaturan TV belum berhasil disimpan. Coba lagi.')); return }
     setDraft(payload)
     notify('Pengaturan TV berhasil disimpan. Semua TV akan mengikuti konfigurasi terbaru.')
   }
@@ -143,7 +161,7 @@ export default function TvDisplaySettings({ store, membership, onNotice }) {
     setSaving(true)
     const { error } = await supabase.from('store_tv_settings').upsert(payload)
     setSaving(false)
-    if (error) { notify('URL TV belum dapat dibuat: ' + error.message); return }
+    if (error) { notify(userFacingError(error, 'URL TV belum dapat dibuat. Coba lagi.')); return }
     setDraft(payload)
     notify('URL TV berhasil dibuat. Simpan atau salin URL ini; Anda dapat menggantinya kapan saja.')
   }
@@ -154,7 +172,7 @@ export default function TvDisplaySettings({ store, membership, onNotice }) {
     setSaving(true)
     const { error } = await supabase.from('store_tv_settings').upsert(payload)
     setSaving(false)
-    if (error) { notify('URL TV belum dapat dicabut: ' + error.message); return }
+    if (error) { notify(userFacingError(error, 'URL TV belum dapat dicabut. Coba lagi.')); return }
     setDraft(payload)
     notify('Akses URL TV lama sudah dicabut.')
   }
@@ -185,7 +203,7 @@ export default function TvDisplaySettings({ store, membership, onNotice }) {
       is_active: true,
     }).select('*').single()
     setAddingMedia(false)
-    if (error) { notify('Tautan media belum tersimpan: ' + error.message); return }
+    if (error) { notify(userFacingError(error, 'Tautan media belum berhasil disimpan. Coba lagi.')); return }
     setMedia(prev => [...prev, data])
     setTitle('')
     setSourceUrl('')
@@ -224,7 +242,7 @@ export default function TvDisplaySettings({ store, membership, onNotice }) {
         },
       })
       if (reserveError || reserveData?.error || !reserveData?.media?.id || !reserveData?.path || !reserveData?.token) {
-        throw new Error(reserveData?.error || reserveError?.message || 'Server upload belum siap. Coba lagi nanti.')
+        throw new Error(userFacingError(reserveData?.error || reserveError, 'Layanan upload belum siap. Coba lagi nanti.'))
       }
       reservation = reserveData
 
@@ -234,13 +252,13 @@ export default function TvDisplaySettings({ store, membership, onNotice }) {
         file,
         { contentType: file.type, upsert: false },
       )
-      if (uploadError) throw new Error('Upload gagal: ' + uploadError.message)
+      if (uploadError) throw new Error(userFacingError(uploadError, 'Upload video gagal. Periksa koneksi lalu coba lagi.'))
 
       const { data: completeData, error: completeError } = await supabase.functions.invoke('tv-media-upload', {
         body: { action: 'complete', store_id: storeId, media_id: reserveData.media.id },
       })
       if (completeError || completeData?.error || !completeData?.media?.id) {
-        throw new Error(completeData?.error || completeError?.message || 'Video belum berhasil diverifikasi.')
+        throw new Error(userFacingError(completeData?.error || completeError, 'Video belum berhasil diverifikasi. Coba lagi.'))
       }
 
       setMedia(prev => [...prev, completeData.media])
@@ -253,7 +271,7 @@ export default function TvDisplaySettings({ store, membership, onNotice }) {
       }
       // Refresh media/quota after a failed attempt so the editor reflects server cleanup.
       await load()
-      notify(error?.message || 'Upload video gagal.')
+      notify(userFacingError(error, 'Upload video gagal. Coba lagi.'))
     } finally {
       setUploading(false)
     }
@@ -266,19 +284,19 @@ export default function TvDisplaySettings({ store, membership, onNotice }) {
         body: { action: 'delete', store_id: storeId, media_id: item.id },
       })
       if (error || data?.error || !data?.ok) {
-        notify(data?.error || error?.message || 'Video belum dapat dihapus.')
+        notify(userFacingError(data?.error || error, 'Video belum dapat dihapus. Coba lagi.'))
         return
       }
     } else {
       const { error } = await supabase.from('store_tv_media').delete().eq('id', item.id).eq('store_id', storeId)
-      if (error) { notify('Tautan media belum dapat dihapus: ' + error.message); return }
+      if (error) { notify(userFacingError(error, 'Tautan media belum dapat dihapus. Coba lagi.')); return }
     }
     setMedia(prev => prev.filter(row => row.id !== item.id))
     notify(item.media_type === 'upload' ? 'Video dan metadata dihapus.' : 'Tautan dihapus dari NexaPos. Video sumber di platform asal tetap ada.')
   }
 
   const templateClass = draft.theme_mode === 'dark' ? 'tv-preview-dark' : 'tv-preview-light'
-  const previewLayout = media.length ? draft.layout_mode : 'split-left'
+  const previewLayout = draft.layout_mode || 'split-left'
   const isManagerText = canManage ? 'Owner/Admin dapat mengubah pengaturan' : 'Mode baca saja — pengaturan hanya dapat diubah Owner/Admin'
 
   if (!loaded) return <section className="page-section"><div className="panel tv-settings-loading"><RefreshCw className="spin" size={18}/> Memuat pengaturan TV…</div></section>
@@ -297,7 +315,7 @@ export default function TvDisplaySettings({ store, membership, onNotice }) {
           <label>Template dasar</label>
           <div className="tv-template-options">
             {TEMPLATES.map(([value, label, desc]) => <label key={value} className={'tv-template-option ' + (draft.template === value ? 'selected' : '')}>
-              <input type="radio" name="tv-template" value={value} checked={draft.template === value} onChange={() => setDraft(prev => ({ ...prev, template: value, primary_color: ({'modern-blue':'#2563eb','minimal-light':'#64748b','premium-dark':'#8b5cf6','queue-media':'#0ea5e9','professional':'#16a34a'})[value], ...(value === 'premium-dark' ? { theme_mode: 'dark' } : value === 'minimal-light' ? { theme_mode: 'light' } : {}) }))} disabled={!canManage}/>
+              <input type="radio" name="tv-template" value={value} checked={draft.template === value} onChange={() => setDraft(prev => ({ ...prev, template: value, layout_mode: ({'nexa-cinema':'split-left','nexa-showcase':'media-top','nexa-queue':'queue-only','nexa-grid':'queue-grid','nexa-overlay':'overlay','nexa-carousel':'carousel','nexa-smart-loop':'smart-loop'})[value] || 'split-left', primary_color: ({'nexa-cinema':'#2563eb','nexa-showcase':'#64748b','nexa-queue':'#0f766e','nexa-grid':'#16a34a','nexa-overlay':'#8b5cf6','nexa-carousel':'#0ea5e9','nexa-smart-loop':'#0891b2'})[value], ...(value === 'nexa-overlay' ? { theme_mode: 'dark' } : value === 'nexa-showcase' ? { theme_mode: 'light' } : {}) }))} disabled={!canManage}/>
               <span><strong>{label}</strong><small>{desc}</small></span>
             </label>)}
           </div>
@@ -338,7 +356,7 @@ export default function TvDisplaySettings({ store, membership, onNotice }) {
           <div className="panel-head"><div><h3><Volume2 size={17}/> Media dan promosi</h3><p>Tambahkan tautan promosi; media akan tetap ada sampai dihapus.</p></div></div>
           <form className="tv-media-add-form" onSubmit={addLink}>
             <label>Nama media</label><input className="text-input" value={title} onChange={e => setTitle(e.target.value)} placeholder="Contoh: Promo akhir bulan" maxLength={160} required disabled={!canManage}/>
-            <label>URL YouTube, TikTok, atau tautan video</label><input className="text-input" value={sourceUrl} onChange={e => setSourceUrl(e.target.value)} placeholder="https://..." type="url" required disabled={!canManage}/>
+            <label>URL gambar, video, YouTube, TikTok, atau tautan media</label><input className="text-input" value={sourceUrl} onChange={e => setSourceUrl(e.target.value)} placeholder="https://..." type="url" required disabled={!canManage}/>
             <button className="btn btn-primary" type="submit" disabled={!canManage || addingMedia}><Plus size={15}/>{addingMedia ? 'Menambahkan…' : 'Tambah tautan media'}</button>
           </form>
           <div className="tv-upload-pending"><Video size={17}/><div><strong>Upload video ke Supabase Storage</strong><p>MP4, WebM, atau OGG video. Maksimal 100 MB total untuk seluruh video upload tenant; tidak ada batas durasi 1 menit. Video disimpan sampai Anda menghapusnya.</p><label className="btn btn-outline tv-upload-button">{uploading ? 'Mengunggah video…' : 'Pilih dan upload video'}<input type="file" accept="video/mp4,video/webm,video/ogg" hidden disabled={!canManage || uploading} onChange={uploadVideo}/></label></div></div>
@@ -348,17 +366,17 @@ export default function TvDisplaySettings({ store, membership, onNotice }) {
       </div>
       <aside className="tv-preview-column">
         <div className="panel tv-preview-panel"><div className="panel-head"><div><h3><Palette size={17}/> Pratinjau tampilan</h3><p>Contoh perubahan sebelum disimpan.</p></div></div>
-          <div className={'tv-preview tv-preview-template-' + draft.template + ' ' + templateClass} style={{'--tv-primary': draft.primary_color, '--tv-bg': draft.background_color, '--tv-text': draft.text_color, '--tv-number-size': draft.queue_number_size + 'px', '--tv-name-size': draft.customer_name_size + 'px', '--tv-counter-size': draft.counter_size + 'px', '--tv-next-size': draft.next_queue_size + 'px'}}>
-            <header><span className="tv-preview-brand">Nexa<span>Pos</span></span><span className="tv-preview-live">● LIVE</span></header>
+          <div className={'tv-preview tv-preview-template-' + draft.template + ' ' + templateClass} style={{'--tv-primary': draft.primary_color, '--tv-bg': draft.background_color, '--tv-text': draft.text_color, '--tv-number-size': draft.queue_number_size + 'px', '--tv-name-size': draft.customer_name_size + 'px', '--tv-counter-size': draft.counter_size + 'px', '--tv-next-size': draft.next_queue_size + 'px', '--tv-media-fit': draft.media_fit === 'cover' ? 'cover' : draft.media_fit === 'original' ? 'none' : 'contain'}}>
+            <header><span className="tv-preview-brand">Nexa<span>Pos</span></span><span className="tv-preview-live">● LIVE</span><strong className="tv-preview-clock">{new Intl.DateTimeFormat('id-ID', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).format(previewNow)} WIB</strong></header>
             <div className={'tv-preview-body tv-layout-' + previewLayout}>
               <section className="tv-preview-queue"><small>NOMOR ANTRIAN DIPANGGIL</small><strong className="tv-preview-number">A012</strong><b className="tv-preview-customer">Pelanggan contoh</b><span className="tv-preview-counter">Kasir 1</span><div className="tv-preview-next"><small>ANTRIAN BERIKUTNYA</small><strong>A013　A014　A015</strong></div></section>
-              {media.length > 0 && <section className="tv-preview-media"><div className="tv-preview-media-blur"/>{media[0]?.media_type==='upload'?<div className="tv-preview-media-card"><Video size={24}/><strong>{media[0].title}</strong><small>Pratinjau video upload menunggu konfigurasi penyimpanan</small></div>:previewSource(media[0]).type==='video'?<><video className="tv-preview-media-backdrop" src={previewSource(media[0]).url} muted autoPlay loop playsInline/><video className="tv-preview-media-video" src={previewSource(media[0]).url} muted autoPlay loop playsInline/><span className="tv-preview-media-label">{media[0].title}</span></>:previewSource(media[0]).type==='embed'?<iframe title={media[0].title} src={previewSource(media[0]).url} allow="autoplay; encrypted-media; picture-in-picture" allowFullScreen/>:<a className="tv-preview-media-card" href={previewSource(media[0]).url||undefined} target="_blank" rel="noreferrer"><Video size={24}/><strong>{media[0]?.title || 'Media promosi'}</strong><small>Buka tautan untuk melihat media</small></a>}</section>}
+              {previewLayout !== 'queue-only' && <section className="tv-preview-media"><div className="tv-preview-media-blur"/>{!media.length ? <div className="tv-preview-media-card"><Video size={24}/><strong>Area media / video</strong><small>Tambahkan media untuk menampilkan promosi</small></div> : media[0]?.media_type==='upload'?<div className="tv-preview-media-card"><Video size={24}/><strong>{media[0].title}</strong><small>Video upload</small></div>:previewSource(media[0]).type==='image'?<img className="tv-preview-media-image" src={previewSource(media[0]).url} alt={media[0].title}/>:previewSource(media[0]).type==='video'?<><video className="tv-preview-media-backdrop" src={previewSource(media[0]).url} muted autoPlay loop playsInline/><video className="tv-preview-media-video" src={previewSource(media[0]).url} muted autoPlay loop playsInline/><span className="tv-preview-media-label">{media[0].title}</span></>:previewSource(media[0]).type==='embed'?<iframe title={media[0].title} src={previewSource(media[0]).url} allow="autoplay; encrypted-media; picture-in-picture" allowFullScreen/>:<a className="tv-preview-media-card" href={previewSource(media[0]).url||undefined} target="_blank" rel="noreferrer"><Video size={24}/><strong>{media[0]?.title || 'Media promosi'}</strong><small>Buka tautan untuk melihat media</small></a>}</section>}
             </div>
             <footer>Informasi antrean diperbarui otomatis</footer>
           </div>
           <div className="tv-preview-actions"><button className="btn btn-primary" type="button" onClick={save} disabled={!canManage || saving}><Check size={15}/> Simpan dan terapkan</button></div>
         </div>
-        <div className="panel tv-preview-help"><strong>Perilaku tampilan</strong><ul><li>Nomor yang dipanggil selalu menjadi prioritas.</li><li>Video 16:9 ditampilkan utuh secara default.</li><li>Video 9:16 memakai latar buram dari video yang sama.</li><li>Semua TV menggunakan pengaturan tenant yang sama.</li><li>Perubahan tidak mengubah transaksi atau riwayat antrean.</li></ul></div>
+        <div className="panel tv-preview-help"><strong>Perilaku tampilan</strong><ul><li>Nomor yang dipanggil selalu menjadi prioritas.</li><li>Video 16:9 ditampilkan utuh secara default.</li><li>Video 9:16 memakai latar buram dari video yang sama.</li><li>Jam WIB berjalan setiap detik; nama pelanggan, nomor antrean, dan konter tetap berada dalam kanvas 16:9.</li><li>Perubahan tidak mengubah transaksi atau riwayat antrean.</li></ul></div>
       </aside>
     </div>
   </section>

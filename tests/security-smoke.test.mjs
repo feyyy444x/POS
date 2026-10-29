@@ -1,0 +1,358 @@
+import test from 'node:test'
+import assert from 'node:assert/strict'
+import { readFile } from 'node:fs/promises'
+
+const root = new URL('../', import.meta.url)
+const headers = await readFile(new URL('public/_headers', root), 'utf8')
+const activation = await readFile(new URL('netlify/functions/activate-invitation.mjs', root), 'utf8')
+const createPlatformStaff = await readFile(new URL('netlify/functions/create-platform-staff.mjs', root), 'utf8')
+const app = await readFile(new URL('src/App.jsx', root), 'utf8')
+const appStyles = await readFile(new URL('src/styles.css', root), 'utf8')
+const queueMigration = await readFile(new URL('supabase/migrations/20261029140000_enforce_store_queue_enabled.sql', root), 'utf8')
+const writeHardeningMigration = await readFile(new URL('supabase/migrations/20261029150000_tighten_mutable_column_grants_and_queue_policy.sql', root), 'utf8')
+const queueCompatibilityMigration = await readFile(new URL('supabase/migrations/20261029151000_queue_update_compatibility_guard.sql', root), 'utf8')
+const privilegedRlsMigration = await readFile(new URL('supabase/migrations/20261029152000_require_pin_for_privileged_rls.sql', root), 'utf8')
+const queueTimestampGuardMigration = await readFile(new URL('supabase/migrations/20261029153000_refine_queue_timestamp_guard.sql', root), 'utf8')
+const foreignKeyIndexesMigration = await readFile(new URL('supabase/migrations/20261029160000_add_missing_foreign_key_indexes.sql', root), 'utf8')
+const platformStaffIndexesMigration = await readFile(new URL('supabase/migrations/20261029190000_add_platform_staff_actor_indexes.sql', root), 'utf8')
+const cashierAlertRlsMigration = await readFile(new URL('supabase/migrations/20261029161000_optimize_cashier_alert_rls.sql', root), 'utf8')
+const platformAdminParityMigration = await readFile(new URL('supabase/migrations/20261029163000_platform_admin_super_admin_parity.sql', root), 'utf8')
+const removeCustomerServiceRoleMigration = await readFile(new URL('supabase/migrations/20261029174500_remove_customer_service_platform_role.sql', root), 'utf8')
+const platformStaffEndpoint = await readFile(new URL('netlify/functions/platform-staff-workspace.mjs', root), 'utf8')
+const platformStaffManagerUi = await readFile(new URL('src/PlatformStaffManager.jsx', root), 'utf8')
+const promotionManagerUi = await readFile(new URL('src/PromotionManager.jsx', root), 'utf8')
+const subscriptionPlanManagerUi = await readFile(new URL('src/SubscriptionPlanManager.jsx', root), 'utf8')
+const storeControlCenterUi = await readFile(new URL('src/StoreControlCenter.jsx', root), 'utf8')
+
+test('Netlify headers include baseline browser security protections', () => {
+  for (const directive of [
+    'X-Content-Type-Options: nosniff',
+    'Referrer-Policy: strict-origin-when-cross-origin',
+    'X-Frame-Options: DENY',
+    'Permissions-Policy:',
+    'Cross-Origin-Opener-Policy: same-origin',
+    'Strict-Transport-Security:',
+  ]) {
+    assert.ok(headers.includes(directive), `Missing security header: ${directive}`)
+  }
+})
+
+test('tenant member list and invitation history render email addresses', () => {
+  assert.match(app, /m\.email&&<>.*member-email-visible.*\{m\.email\}/s)
+  assert.match(app, /<small className="member-email-visible">\{i\.email\}<\/small>/)
+  assert.match(appStyles, /\.member-email-visible\{[^}]*overflow-wrap:anywhere/)
+})
+
+test('invitation activation rejects unsupported methods and malformed credentials', () => {
+  assert.match(activation, /request\.method !== 'POST'/)
+  assert.match(activation, /password\.length < 6/)
+  assert.match(activation, /password\.length > 128/)
+  assert.match(activation, /\[a-f0-9\]\{32\}/)
+})
+
+test('invitation activation compares hashed codes in constant time and disables response caching', () => {
+  assert.match(activation, /timingSafeEqual/)
+  assert.match(activation, /createHash\('sha256'\)/)
+  assert.match(activation, /Cache-Control': 'no-store'/)
+})
+
+test('service-role credential is read only by the server-side Netlify function', () => {
+  assert.match(activation, /process\.env\.SUPABASE_SERVICE_ROLE_KEY/)
+  assert.doesNotMatch(activation, /VITE_SUPABASE_SERVICE_ROLE_KEY/)
+})
+
+
+test('invitation activation never resets an existing account password', () => {
+  assert.match(activation, /const existingAccount = Boolean\(user\)/)
+  assert.match(activation, /existing credentials/)
+  assert.doesNotMatch(activation, /auth\.admin\.updateUserById/)
+  assert.match(activation, /Use password|Gunakan password akun yang sudah ada/)
+})
+
+test('queue-off setting is authoritative in the database checkout and ticket RPCs', () => {
+  assert.match(queueMigration, /ADD COLUMN IF NOT EXISTS queue_enabled boolean NOT NULL DEFAULT true/)
+  assert.match(queueMigration, /SELECT coalesce\(ss\.queue_enabled, true\)/)
+  assert.match(queueMigration, /IF v_queue_enabled AND coalesce\(p_create_queue,true\) THEN/)
+  assert.match(queueMigration, /ss\.queue_enabled IS FALSE/)
+  assert.match(queueMigration, /IF NOT private\.is_store_member\(p_store_id\) THEN/)
+})
+
+test('checkout aggregates repeated product IDs and locks tenant-scoped stock rows', () => {
+  assert.match(queueMigration, /sum\(\(e\.value->>'quantity'\)::integer\)::integer AS qty/)
+  assert.match(queueMigration, /GROUP BY \(e\.value->>'product_id'\)::uuid/)
+  assert.match(queueMigration, /AND store_id=p_store_id AND is_active=true\s+FOR UPDATE/)
+  assert.match(queueMigration, /UPDATE public\.products\s+SET stock=stock-v_qty/)
+})
+
+test('cashier passes the queue switch to checkout and receipt only prints a returned ticket', () => {
+  assert.match(app, /p_create_queue:settings\?\.queue_enabled!==false/)
+  assert.match(app, /\{ticket&&<div className="receipt-queue"/)
+  assert.match(app, /settings\?\.queue_enabled===false\?null:/)
+})
+
+
+test('queue status updates use a guarded RPC instead of unrestricted table updates', () => {
+  assert.match(app, /supabase\.rpc\('update_queue_ticket_status'/)
+  assert.doesNotMatch(app, /from\('queue_tickets'\)\.update\(update\)/)
+  assert.match(writeHardeningMigration, /REVOKE ALL ON TABLE public\.queue_tickets FROM PUBLIC, anon, authenticated/)
+  assert.match(writeHardeningMigration, /private\.is_store_operational\(v_ticket\.store_id\)/)
+  assert.match(writeHardeningMigration, /IF NOT v_queue_enabled THEN/)
+  assert.match(writeHardeningMigration, /p_status = 'serving' AND v_ticket\.status <> 'called'/)
+  assert.match(writeHardeningMigration, /p_status = 'done' AND v_ticket\.status NOT IN \('called', 'serving'\)/)
+})
+
+test('cashier alert and break writes are limited to intended columns', () => {
+  assert.match(writeHardeningMigration, /GRANT UPDATE \(read_at\) ON TABLE public\.cashier_manual_alerts TO authenticated/)
+  assert.match(writeHardeningMigration, /GRANT INSERT \(store_id, cashier_id, sent_by, title, message\)/)
+  assert.match(writeHardeningMigration, /GRANT UPDATE \(ended_at\) ON TABLE public\.cashier_shift_breaks TO authenticated/)
+  assert.match(writeHardeningMigration, /GRANT INSERT \(store_id, shift_id, cashier_id\)/)
+  assert.match(writeHardeningMigration, /private\.is_store_member\(store_id\)/)
+})
+
+
+test('queue database guard preserves only valid status transitions and honors the queue switch', () => {
+  assert.match(queueCompatibilityMigration, /GRANT UPDATE \(status, called_at, completed_at\)/)
+  assert.match(queueCompatibilityMigration, /CREATE TRIGGER guard_queue_ticket_update/)
+  assert.match(queueCompatibilityMigration, /NEW\.store_id IS DISTINCT FROM OLD\.store_id/)
+  assert.match(queueCompatibilityMigration, /Perubahan status antrean tidak valid/)
+  assert.match(queueCompatibilityMigration, /IF NOT v_queue_enabled THEN/)
+  assert.match(queueCompatibilityMigration, /members update operational queue while enabled/)
+})
+
+
+test('privileged RLS mutations require PIN verification', () => {
+  assert.match(privilegedRlsMigration, /USING \(private\.is_super_admin\(\)\)/)
+  assert.match(privilegedRlsMigration, /WITH CHECK \(private\.is_super_admin\(\)\)/)
+  assert.match(privilegedRlsMigration, /private\.is_store_operational\(store_id\)/)
+  assert.match(privilegedRlsMigration, /support_messages_read_pin_verified/)
+  assert.match(privilegedRlsMigration, /support_messages_insert_pin_verified/)
+  assert.match(privilegedRlsMigration, /private\.is_pin_verified\(\)/)
+  assert.match(privilegedRlsMigration, /Anyone can view active site promotions/)
+})
+
+
+test('performance migrations cover flagged foreign keys and cache auth identity in alert policies', () => {
+  for (const indexName of [
+    'cashier_manual_alerts_cashier_id_idx',
+    'cashier_manual_alerts_sent_by_idx',
+    'site_promotions_created_by_idx',
+    'site_subscription_plans_updated_by_idx',
+    'store_invites_invited_by_idx',
+    'store_invites_store_id_idx',
+    'store_members_disabled_by_idx',
+    'support_messages_sender_id_idx',
+  ]) assert.match(foreignKeyIndexesMigration, new RegExp(indexName))
+  assert.match(cashierAlertRlsMigration, /cashier_id = \(select auth\.uid\(\)\)/)
+  assert.match(cashierAlertRlsMigration, /sent_by = \(select auth\.uid\(\)\)/)
+})
+
+test('queue timestamps cannot be edited after the corresponding status transition', () => {
+  assert.match(queueTimestampGuardMigration, /NEW\.status IS DISTINCT FROM OLD\.status/)
+  assert.match(queueTimestampGuardMigration, /Waktu pemanggilan hanya dapat berubah saat status antrean berubah/)
+  assert.match(queueTimestampGuardMigration, /Waktu penyelesaian hanya dapat berubah saat antrean selesai atau dilewati/)
+})
+
+
+test('internal platform Admin uses the Super Admin workspace and server-side PIN-gated privileges', () => {
+  assert.match(app, /const isPlatformAdmin=!staffResult\.error&&staffData\?\.role==='admin'/)
+  assert.match(app, /setIsSuperAdmin\(Boolean\(adminResult\.data\)\|\|isPlatformAdmin\)/)
+  assert.match(app, /setIsPlatformAdmin\(isPlatformAdmin\)/)
+  assert.match(app, /platformAdmin=\{isPlatformAdmin\}/)
+  assert.match(app, /platformAdmin \? 'Admin NEXAPOS' : 'Super Admin'/)
+  assert.match(app, /platformAdmin \? 'ADMIN NEXAPOS' : 'SUPER ADMIN'/)
+  assert.match(platformStaffManagerUi, /<div id="platform-staff-role" className="text-input" aria-readonly="true">Admin NEXAPOS — FULL AKSES<\/div>/)
+  assert.doesNotMatch(platformStaffManagerUi, /Customer Service|customer_service/)
+  assert.match(platformAdminParityMigration, /private\.is_pin_verified\(\)/)
+  assert.match(platformAdminParityMigration, /platform_staff_roles/)
+  assert.match(platformAdminParityMigration, /role = 'admin'/)
+  assert.match(platformAdminParityMigration, /is_active = true/)
+})
+
+
+test('platform Admin can create staff only with active role and verified PIN', () => {
+  assert.match(createPlatformStaff, /authClient\.rpc\('get_my_pin_status'\)/)
+  assert.match(createPlatformStaff, /pinStatus\?\.is_verified !== true/)
+  assert.match(createPlatformStaff, /staffRole\?\.role === 'admin'/)
+  assert.match(createPlatformStaff, /staffRole\?\.is_active === true/)
+  assert.match(createPlatformStaff, /if \(!authorized\) return json/)
+})
+
+
+test('platform staff endpoints and creation only accept the Admin role', () => {
+  assert.match(platformStaffEndpoint, /assignment\.role !== 'admin' && assignment\.permissions\?\./)
+  assert.match(platformStaffEndpoint, /assignment\.permissions\?\.\[requiredPermission\] !== true/)
+  assert.match(platformStaffEndpoint, /if \(!assignment \|\| !assignment\.is_active\)/)
+  assert.match(createPlatformStaff, /if \(role !== 'admin'\) return json/)
+  assert.doesNotMatch(createPlatformStaff, /customer_service|CS_KEYS/)
+})
+
+
+test('workspace data loaders surface query failures instead of presenting failed queries as empty data', () => {
+  assert.match(app, /error: storeLoadError/)
+  assert.match(app, /if \(storeLoadError \|\| !storeData\)/)
+  assert.match(app, /error: productLoadError/)
+  assert.match(app, /error: orderLoadError/)
+  assert.match(app, /error: queueLoadError/)
+  assert.match(app, /Sebagian data gagal dimuat/)
+  assert.match(app, /error:itemError/)
+  assert.match(platformStaffEndpoint, /failedSources/)
+  assert.match(platformStaffEndpoint, /Laporan tidak dapat dimuat lengkap/)
+  assert.match(platformStaffEndpoint, /store_count_limited/)
+  assert.match(platformStaffEndpoint, /order_count_limited/)
+})
+
+
+test('admin managers clear stale data on load failures and prevent editing fallback plan data', () => {
+  assert.match(platformStaffManagerUi, /if \(error\) \{\s*setStaff\(\[\]\)/)
+  assert.match(platformStaffManagerUi, /catch \(error\) \{\s*setStaff\(\[\]\)/)
+  assert.match(platformStaffManagerUi, /Status akses staf belum berhasil diubah/)
+  assert.match(platformStaffManagerUi, /Penugasan role belum berhasil dihapus/)
+  assert.match(promotionManagerUi, /if \(queryError\) \{\s*setPromos\(\[\]\)/)
+  assert.match(subscriptionPlanManagerUi, /if \(queryError\) \{\s*setPlans\(\[\]\)/)
+  assert.match(subscriptionPlanManagerUi, /setPlansReady\(missingKeys\.length === 0\)/)
+  assert.match(subscriptionPlanManagerUi, /disabled=\{!plansReady \|\| savingKey===plan\.plan_key\}/)
+  assert.match(subscriptionPlanManagerUi, /Data paket belum tersedia/)
+})
+
+
+test('Customer Service role and workspace are fully retired', () => {
+  assert.doesNotMatch(app, /PlatformStaffWorkspace|platformStaffRole/)
+  assert.doesNotMatch(platformStaffManagerUi, /Customer Service|customer_service/)
+  assert.match(removeCustomerServiceRoleMigration, /DELETE FROM public\.platform_staff_roles/)
+  assert.match(removeCustomerServiceRoleMigration, /role = 'customer_service'/)
+  assert.match(removeCustomerServiceRoleMigration, /CHECK \(role = 'admin'\)/)
+})
+
+
+test('active Admin NexaPos is routed into the exact Super Admin workspace', () => {
+  assert.match(app, /staffData\?\.role==='admin';setIsPlatformAdmin\(isPlatformAdmin\);setIsSuperAdmin\(Boolean\(adminResult\.data\)\|\|isPlatformAdmin\)/)
+  assert.match(app, /if\(isSuperAdmin\)return <SuperAdminScreen session=\{session\} syncStatus=\{syncStatus\} setSyncStatus=\{setSyncStatus\} onSignOut=\{\(\)=>supabase\.auth\.signOut\(\)\} platformAdmin=\{isPlatformAdmin\} ?\/>/)
+  assert.doesNotMatch(app, /PlatformStaffWorkspace|platformStaffRole/)
+})
+
+
+test('Tim & Hak Akses offers only full-access Admin NexaPos role', () => {
+  assert.match(platformStaffManagerUi, /Hanya ada satu role staf platform: Admin NEXAPOS/)
+  assert.match(platformStaffManagerUi, /FULL AKSES — setara Super Admin/)
+  assert.match(platformStaffManagerUi, /FULL AKSES · Setara Super Admin/)
+  assert.doesNotMatch(platformStaffManagerUi, /Customer Service|customer_service|CS_PERMISSIONS/)
+  assert.doesNotMatch(createPlatformStaff, /customer_service|CS_KEYS/)
+  assert.match(removeCustomerServiceRoleMigration, /platform_staff_roles_admin_only_check/)
+  assert.match(platformStaffEndpoint, /users: 'users', users_toggle_login: 'users'/)
+  assert.match(platformStaffEndpoint, /support_inbox: 'support', support_reply: 'support'/)
+})
+
+
+const supportMigration = await readFile(new URL('supabase/migrations/20261029183000_nexapos_free_ai_support.sql', root), 'utf8')
+const supportLockdownMigration = await readFile(new URL('supabase/migrations/20261029183500_lock_down_support_rpc.sql', root), 'utf8')
+const supportHandoffMigration = await readFile(new URL('supabase/migrations/20261029184000_refine_support_bot_handoff.sql', root), 'utf8')
+const supportHardenMigration = await readFile(new URL('supabase/migrations/20261029185000_harden_support_handoff_and_admin_reply.sql', root), 'utf8')
+const supportWritesMigration = await readFile(new URL('supabase/migrations/20261029185500_route_support_writes_through_rpc.sql', root), 'utf8')
+const supportCenter = await readFile(new URL('src/SupportCenter.jsx', root), 'utf8')
+
+test('free NexaPos support bot is FAQ-only and never calls a paid external AI provider', () => {
+  assert.match(supportMigration, /CREATE TABLE IF NOT EXISTS public\.support_knowledge_base/)
+  assert.match(supportMigration, /INSERT INTO public\.support_knowledge_base/)
+  assert.match(supportHandoffMigration, /v_answer := 'Maaf, saya belum memiliki jawaban terverifikasi/)
+  assert.doesNotMatch(supportMigration + supportHandoffMigration, /fetch\s*\(|https:\/\/api\.|OPENAI_API_KEY|GEMINI_API_KEY|ANTHROPIC_API_KEY/i)
+  assert.match(supportCenter, /submit_support_message/)
+  assert.match(supportCenter, /NexaPos Bot/)
+})
+
+test('support RPCs validate customer input, require authenticated sessions, and rate-limit messages', () => {
+  assert.match(supportMigration, /char_length\(v_message\) < 1 OR char_length\(v_message\) > 3000/)
+  assert.match(supportMigration, /v_is_anonymous boolean/)
+  assert.match(supportMigration, /NOT v_is_anonymous AND NOT private\.is_pin_verified\(\)/)
+  assert.match(supportMigration, /created_at > now\(\) - interval '1 hour'\) >= 40/)
+  assert.match(supportMigration, /CREATE OR REPLACE FUNCTION public\.submit_support_message/)
+  assert.match(supportLockdownMigration, /REVOKE ALL ON FUNCTION public\.submit_support_message\(text, text\) FROM PUBLIC, anon/)
+  assert.match(supportLockdownMigration, /GRANT EXECUTE ON FUNCTION public\.submit_support_message\(text, text\) TO authenticated/)
+})
+
+test('customer RLS isolates support messages and conversations while Admin NexaPos is PIN-gated', () => {
+  assert.match(supportMigration, /ALTER TABLE public\.support_conversations ENABLE ROW LEVEL SECURITY/)
+  assert.match(supportMigration, /ALTER TABLE public\.support_knowledge_base ENABLE ROW LEVEL SECURITY/)
+  assert.match(supportMigration, /user_id = \(SELECT auth\.uid\(\)\)/)
+  assert.match(supportMigration, /private\.is_super_admin\(\)/)
+  assert.match(supportMigration, /private\.is_pin_verified\(\)/)
+  assert.match(supportMigration, /USING \(private\.is_super_admin\(\)\)/)
+  assert.match(supportMigration, /WITH CHECK \(private\.is_super_admin\(\)\)/)
+  assert.match(supportMigration, /CREATE OR REPLACE FUNCTION public\.admin_reply_support_message/)
+  assert.match(supportMigration, /IF NOT private\.is_super_admin\(\) THEN RAISE EXCEPTION 'Admin NexaPos access required'/)
+})
+
+test('human handoff stops bot replies until Admin takes over or reactivates bot', () => {
+  assert.match(supportHandoffMigration, /komplain|keluhan|hubungi admin/)
+  assert.match(supportHandoffMigration, /'waiting_admin'/)
+  assert.match(supportMigration, /IF v_status IN \('waiting_admin', 'admin_active'\) THEN/)
+  assert.match(supportMigration, /CREATE OR REPLACE FUNCTION public\.request_support_handoff/)
+  assert.match(supportMigration, /CREATE OR REPLACE FUNCTION public\.set_support_conversation_status/)
+  assert.match(supportMigration, /p_status NOT IN \('ai_active', 'admin_active', 'resolved'\)/)
+  assert.match(supportCenter, /request_support_handoff/)
+  assert.match(supportCenter, /admin_reply_support_message/)
+  assert.match(supportCenter, /set_support_conversation_status/)
+  assert.match(supportCenter, /Hubungi Admin NexaPos/)
+  assert.match(supportCenter, /Menunggu admin/)
+  assert.match(supportCenter, /table: 'support_conversations'/)
+})
+
+
+test('handoff recognizes natural requests to speak with a human and validates admin targets', () => {
+  assert.match(supportHardenMigration, /bicara \(dengan\|sama\) \(admin\|manusia\|petugas\)/)
+  assert.match(supportHardenMigration, /IF NOT FOUND THEN RAISE EXCEPTION 'Percakapan tidak ditemukan'/)
+  assert.match(supportHardenMigration, /IF NOT private\.is_super_admin\(\) THEN RAISE EXCEPTION 'Admin NexaPos access required'/)
+})
+
+
+test('direct table inserts cannot bypass the support RPC validation and rate limit', () => {
+  assert.match(supportWritesMigration, /REVOKE INSERT ON TABLE public\.support_messages FROM PUBLIC, anon, authenticated/)
+  assert.match(supportWritesMigration, /GRANT SELECT ON TABLE public\.support_messages TO authenticated/)
+  assert.match(supportCenter, /supabase\.rpc\('submit_support_message'/)
+  assert.doesNotMatch(supportCenter, /from\('support_messages'\)\.insert\(/)
+})
+
+
+test('promotion editor preserves local wall-clock time when editing UTC timestamps', () => {
+  assert.match(promotionManagerUi, /const toLocalInput = \(value\) => \{/)
+  assert.match(promotionManagerUi, /date\.getFullYear\(\).*date\.getMonth\(\).*date\.getDate\(\).*date\.getHours\(\).*date\.getMinutes\(\)/s)
+  assert.match(promotionManagerUi, /const dateValue = \(value\) => value \? new Date\(value\)\.toISOString\(\) : null/)
+  assert.doesNotMatch(promotionManagerUi, /const toLocalInput = \(value\) => value \? new Date\(value\)\.toISOString\(\)\.slice\(0, 16\)/)
+})
+
+test('foreign-key index migration covers all staff and platform actor references flagged by the database advisor', () => {
+  assert.ok(platformStaffIndexesMigration.includes('create index if not exists platform_staff_roles_created_by_idx'))
+  assert.ok(platformStaffIndexesMigration.includes('on public.platform_staff_roles (created_by)'))
+  assert.ok(platformStaffIndexesMigration.includes('create index if not exists platform_staff_roles_updated_by_idx'))
+  assert.ok(platformStaffIndexesMigration.includes('on public.platform_staff_roles (updated_by)'))
+  assert.match(platformStaffIndexesMigration, /if not exists/i)
+})
+
+test('Pusat Kendali Toko scopes operational reads to the selected store and labels timeline limitations honestly', () => {
+  assert.match(app, /import StoreControlCenter from '\.\/StoreControlCenter\.jsx'/)
+  assert.match(app, /setSelectedTenant\(t\);setSection\('store-control'\)/)
+  assert.match(app, /section==='store-control'&&<StoreControlCenter tenant=\{selectedTenant\}/)
+  assert.match(storeControlCenterUi, /\.eq\('store_id', tenant\.id\)/)
+  assert.match(storeControlCenterUi, /\.in\('user_id', userIds\)/)
+  assert.match(storeControlCenterUi, /order\('created_at', \{ ascending: false \}\)\.limit\(12\)/)
+  assert.match(storeControlCenterUi, /bukan audit log lengkap untuk setiap perubahan admin/)
+  assert.match(storeControlCenterUi, /Tidak tersedia pada data tenant saat ini/)
+  assert.match(storeControlCenterUi, /Hak akses database mungkin membatasi sebagian data/)
+})
+
+
+test('form draft restoration is scoped to the signed-in user and active tenant', () => {
+  assert.match(app, /const tenantScope = store\?\.id \|\| selectedStoreId \|\| 'no-store'/)
+  assert.match(app, /encodeURIComponent\(tenantScope\)/)
+  assert.match(app, /const sameIdentityForms = Array\.from\(document\.forms\)/)
+})
+
+test('form draft restoration handles conditional fields without overwriting fields already restored', () => {
+  assert.match(app, /draftRestoredKeys/)
+  assert.match(app, /restoredKeys\.has\(fieldKey\)/)
+  assert.match(app, /Array\.from\(document\.forms\)\.forEach\(restoreForm\)/)
+})
+
+test('form draft preservation excludes credentials, activation codes, PINs, and file inputs', () => {
+  assert.match(app, /\['password', 'hidden', 'file', 'submit', 'button', 'reset', 'image'\]/)
+  assert.match(app, /password\|passwd\|pin\|activation\.\?code\|invite\.\?code\|token\|secret/)
+})

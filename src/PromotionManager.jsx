@@ -10,10 +10,27 @@ const periods = [
   { value: 'yearly', label: 'Tahunan' },
 ]
 const initialForm = () => ({ title: '', description: '', discount_type: 'percent', discount_value: '10', eligible_periods: ['monthly'], promo_code: '', requires_code: false, starts_at: '', ends_at: '', is_active: false })
-const toLocalInput = (value) => value ? new Date(value).toISOString().slice(0, 16) : ''
+const toLocalInput = (value) => {
+  if (!value) return ''
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return ''
+  const pad = part => String(part).padStart(2, '0')
+  return date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate()) + 'T' + pad(date.getHours()) + ':' + pad(date.getMinutes())
+}
 const dateValue = (value) => value ? new Date(value).toISOString() : null
+const promotionErrorMessage = (error) => {
+  const message = String(error?.message || error || '')
+  const normalized = message.toLowerCase()
+  if (normalized.includes('site_promotions_valid_dates') || normalized.includes('check constraint')) {
+    return 'Tanggal promo tidak valid. Tanggal berakhir harus setelah tanggal mulai. Periksa kembali tanggal yang kamu pilih.'
+  }
+  if (normalized.includes('site_promotions') && (normalized.includes('does not exist') || normalized.includes('schema cache') || normalized.includes('could not find the table') || normalized.includes('relation'))) {
+    return 'Pengaturan promo belum siap karena tabel promo belum tersedia di database. Minta administrator memeriksa dan menerapkan migrasi site_promotions.'
+  }
+  return 'Promo belum berhasil diproses. Periksa kembali data dan koneksi, lalu coba lagi.'
+}
 
-export default function PromotionManager({ onBack, onSignOut }) {
+export default function PromotionManager({ onBack, onSignOut, staffMode = false, session = null }) {
   const [promos, setPromos] = useState([])
   const [form, setForm] = useState(initialForm)
   const [editingId, setEditingId] = useState(null)
@@ -23,14 +40,21 @@ export default function PromotionManager({ onBack, onSignOut }) {
   const [error, setError] = useState('')
   const load = useCallback(async () => {
     setLoading(true); setError('')
-    const { data, error: queryError } = await supabase.from('site_promotions').select('*').order('created_at', { ascending: false })
-    if (queryError) setError(queryError.message)
-    else setPromos(data || [])
+    let data, queryError
+    if (staffMode) {
+      try { const response=await fetch('/.netlify/functions/platform-staff-workspace',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+(session?.access_token||'')},body:JSON.stringify({action:'promotions_list'})}); const result=await response.json(); if(!response.ok) throw new Error(result.error||'Promo belum dapat dimuat.'); data=result.data||[] }
+      catch (error) { queryError=error }
+    } else ({ data, error: queryError } = await supabase.from('site_promotions').select('*').order('created_at', { ascending: false }))
+    if (queryError) {
+      setPromos([])
+      setError(promotionErrorMessage(queryError))
+    } else setPromos(data || [])
     setLoading(false)
-  }, [])
+  }, [staffMode, session?.access_token])
   useEffect(() => {
     if (!supabase) return
     load()
+    if (staffMode) return
     const channel = supabase.channel('admin-promotions-live')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'site_promotions' }, load)
       .subscribe(status => { if (status === 'SUBSCRIBED') load() })
@@ -42,7 +66,7 @@ export default function PromotionManager({ onBack, onSignOut }) {
       document.removeEventListener('visibilitychange', refreshOnResume)
       supabase.removeChannel(channel)
     }
-  }, [load])
+  }, [load, staffMode])
   const update = (key, value) => setForm(current => ({ ...current, [key]: value }))
   const reset = () => { setForm(initialForm()); setEditingId(null); setNotice('') }
   const edit = (promo) => {
@@ -54,38 +78,49 @@ export default function PromotionManager({ onBack, onSignOut }) {
   const save = async (event) => {
     event.preventDefault(); setNotice(''); setError('')
     if (!form.eligible_periods.length) { setError('Pilih setidaknya satu masa sewa.'); return }
+    if (form.starts_at && form.ends_at && form.ends_at <= form.starts_at) { setError('Tanggal promo tidak valid. Tanggal berakhir harus setelah tanggal mulai. Periksa kembali tanggal yang kamu pilih.'); return }
     if (form.requires_code && !form.promo_code.trim()) { setError('Masukkan kode kupon untuk promo ini.'); return }
     if (form.discount_type === 'percent' && (Number(form.discount_value) <= 0 || Number(form.discount_value) > 100)) { setError('Diskon persentase harus lebih dari 0 dan maksimal 100%.'); return }
     if (Number(form.discount_value) <= 0) { setError('Nilai diskon harus lebih dari 0.'); return }
     setSaving(true)
     const payload = { title: form.title.trim() || 'Penawaran khusus NexaPos', description: form.description.trim(), discount_type: form.discount_type, discount_value: Number(form.discount_value), eligible_periods: form.eligible_periods, promo_code: form.requires_code ? form.promo_code.trim().toUpperCase() : null, requires_code: form.requires_code, starts_at: dateValue(form.starts_at), ends_at: dateValue(form.ends_at), is_active: form.is_active, updated_at: new Date().toISOString() }
-    const result = editingId
-      ? await supabase.from('site_promotions').update(payload).eq('id', editingId)
-      : await supabase.from('site_promotions').insert({ ...payload, created_by: (await supabase.auth.getUser()).data.user?.id || null })
+    let result = { error: null }
+    if (staffMode) {
+      try { const response=await fetch('/.netlify/functions/platform-staff-workspace',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+(session?.access_token||'')},body:JSON.stringify({action:'promotions_save',promotion:{...payload,id:editingId||undefined}})}); const resultBody=await response.json(); if(!response.ok) throw new Error(resultBody.error||'Promo belum berhasil disimpan.') }
+      catch (error) { result.error=error }
+    } else {
+      result = editingId
+        ? await supabase.from('site_promotions').update(payload).eq('id', editingId)
+        : await supabase.from('site_promotions').insert({ ...payload, created_by: (await supabase.auth.getUser()).data.user?.id || null })
+    }
     setSaving(false)
-    if (result.error) { setError(result.error.message); return }
+    if (result.error) { setError(promotionErrorMessage(result.error)); return }
     setNotice(editingId ? 'Promo berhasil diperbarui.' : 'Promo berhasil dibuat.')
     reset()
     await load()
   }
   const toggle = async (promo) => {
     setError(''); setNotice('')
-    const { error: updateError } = await supabase.from('site_promotions').update({ is_active: !promo.is_active, updated_at: new Date().toISOString() }).eq('id', promo.id)
-    if (updateError) setError(updateError.message)
+    let updateError = null
+    if (staffMode) { try { const response=await fetch('/.netlify/functions/platform-staff-workspace',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+(session?.access_token||'')},body:JSON.stringify({action:'promotions_toggle',id:promo.id,is_active:!promo.is_active})}); const result=await response.json(); if(!response.ok) throw new Error(result.error||'Status promo belum berhasil diubah.') } catch(error) { updateError=error } }
+    else ({ error: updateError } = await supabase.from('site_promotions').update({ is_active: !promo.is_active, updated_at: new Date().toISOString() }).eq('id', promo.id))
+    if (updateError) setError(promotionErrorMessage(updateError))
     else { setNotice(!promo.is_active ? 'Promo diaktifkan.' : 'Promo dinonaktifkan.'); await load() }
   }
   const remove = async (promo) => {
     if (!window.confirm('Hapus promo "' + promo.title + '"?')) return
-    const { error: deleteError } = await supabase.from('site_promotions').delete().eq('id', promo.id)
-    if (deleteError) setError(deleteError.message)
+    let deleteError = null
+    if (staffMode) { try { const response=await fetch('/.netlify/functions/platform-staff-workspace',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+(session?.access_token||'')},body:JSON.stringify({action:'promotions_delete',id:promo.id})}); const result=await response.json(); if(!response.ok) throw new Error(result.error||'Promo belum berhasil dihapus.') } catch(error) { deleteError=error } }
+    else ({ error: deleteError } = await supabase.from('site_promotions').delete().eq('id', promo.id))
+    if (deleteError) setError(promotionErrorMessage(deleteError))
     else { setNotice('Promo dihapus.'); if (editingId === promo.id) reset(); await load() }
   }
   return <div className="app-shell super-admin-shell">
-    <aside className="sidebar"><div className="sidebar-brand"><div className="brand"><span className="brand-mark">N</span><span>Nexa<span className="brand-accent">Pos</span><small>SMART COMMERCE</small></span></div></div><div className="store-switch"><span className="store-avatar"><ShieldCheck size={17}/></span><span className="store-copy"><strong>Super Admin</strong><small>Kontrol seluruh tenant</small></span></div><nav className="side-nav"><div className="nav-group"><div className="nav-section">PLATFORM</div><button className="nav-link" onClick={onBack}><ArrowLeft size={18}/><span>Kembali ke ringkasan</span></button><button className="nav-link nav-active"><Ticket size={18}/><span>Promo & Diskon</span></button></div></nav><div className="sidebar-bottom"><div className="user-card"><span className="user-avatar">N</span><span className="user-copy"><strong>Super Admin</strong><small>Pengaturan promo</small></span><button className="icon-button" onClick={onSignOut} title="Keluar"><X size={17}/></button></div></div></aside>
-    <main className="main-area"><header className="topbar"><div className="topbar-left"><button className="btn btn-outline btn-small nx-back-button" onClick={onBack}><ArrowLeft size={15}/> Kembali</button><div><div className="breadcrumb">Platform <span>/</span> <strong>Promo & Diskon</strong></div><div className="topbar-date">Atur penawaran yang tampil di homepage NexaPos</div></div></div><div className="topbar-actions"><span className="role-chip"><ShieldCheck size={14}/> SUPER ADMIN</span><button className="icon-button" onClick={load} title="Muat ulang"><RefreshCw size={17}/></button></div></header>
+    <aside className="sidebar"><div className="sidebar-brand"><div className="brand"><span className="brand-mark">N</span><span>Nexa<span className="brand-accent">Pos</span><small>SMART COMMERCE</small></span></div></div><div className="store-switch"><span className="store-avatar"><ShieldCheck size={17}/></span><span className="store-copy"><strong>{staffMode ? 'Staf NexaPos' : 'Super Admin'}</strong><small>{staffMode ? 'Akses sesuai izin' : 'Kontrol seluruh tenant'}</small></span></div><nav className="side-nav"><div className="nav-group"><div className="nav-section">PLATFORM</div><button className="nav-link" onClick={onBack}><ArrowLeft size={18}/><span>Kembali ke ringkasan</span></button><button className="nav-link nav-active"><Ticket size={18}/><span>Promo & Diskon</span></button></div></nav><div className="sidebar-bottom"><div className="user-card"><span className="user-avatar">N</span><span className="user-copy"><strong>Super Admin</strong><small>Pengaturan promo</small></span><button className="icon-button" onClick={onSignOut} title="Keluar"><X size={17}/></button></div></div></aside>
+    <main className="main-area"><header className="topbar"><div className="topbar-left"><button className="btn btn-outline btn-small nx-back-button" onClick={onBack}><ArrowLeft size={15}/> Kembali</button><div><div className="breadcrumb">Platform <span>/</span> <strong>Promo & Diskon</strong></div><div className="topbar-date">Atur penawaran yang tampil di homepage NexaPos</div></div></div><div className="topbar-actions"><span className="role-chip"><ShieldCheck size={14}/> {staffMode ? 'STAF PLATFORM' : 'SUPER ADMIN'}</span><button className="icon-button" onClick={load} title="Muat ulang"><RefreshCw size={17}/></button></div></header>
       <div className="page-content"><div className="page-heading"><div><span className="eyebrow muted">PLATFORM / PROMOTIONS</span><h1>Promo <span className="heading-accent">& diskon.</span></h1><p>Semua pelanggan tetap mendapatkan fitur yang sama. Promosi hanya mengubah harga untuk masa sewa yang dipilih.</p></div><span className="date-pill"><Ticket size={14}/>{promos.length} promo</span></div>
         {notice&&<div className="toast"><Check size={17}/><span>{notice}</span><button onClick={()=>setNotice('')}><X size={15}/></button></div>}
-        {error&&<div className="notice">{error}{error.includes('site_promotions')||error.toLowerCase().includes('relation')?' — Terapkan migrasi site_promotions di database sebelum menggunakan pengaturan promo.':''}</div>}
+        {error&&<div className="notice" role="alert">{error}</div>}
         <div className="panel settings-form" style={{ marginBottom: 20 }}><div className="panel-head"><div><h3><CirclePercent size={17}/>{editingId?'Edit promosi':'Buat promosi baru'}</h3><p>Promo akan ditampilkan di homepage ketika status dan jadwalnya memenuhi syarat.</p></div>{editingId&&<button className="btn btn-outline btn-small" onClick={reset}><X size={14}/> Batal edit</button>}</div>
           <form onSubmit={save}><label>Nama promo</label><input className="text-input" value={form.title} onChange={e=>update('title',e.target.value)} placeholder="Contoh: Promo Pelanggan Baru" required/><label>Deskripsi singkat</label><textarea className="text-input" rows="2" value={form.description} onChange={e=>update('description',e.target.value)} placeholder="Jelaskan penawaran dengan bahasa yang sopan dan jelas."/><div className="form-row"><div><label>Jenis diskon</label><select className="text-input" value={form.discount_type} onChange={e=>update('discount_type',e.target.value)}><option value="percent">Persentase (%)</option><option value="fixed">Potongan nominal (Rp)</option></select></div><div><label>Nilai diskon {form.discount_type==='percent'?'(%)':'(Rp)'}</label><input className="text-input" type="number" min="1" max={form.discount_type==='percent'?'100':undefined} step="1" value={form.discount_value} onChange={e=>update('discount_value',e.target.value)} required/></div></div>
             <label>Masa sewa yang berlaku</label><div className="nx-admin-periods">{periods.map(p=><label key={p.value}><input type="checkbox" checked={form.eligible_periods.includes(p.value)} onChange={e=>update('eligible_periods',e.target.checked? [...form.eligible_periods,p.value]:form.eligible_periods.filter(v=>v!==p.value))}/>{p.label}</label>)}</div>

@@ -16,10 +16,10 @@ export default async (request) => {
   const password = String(payload?.password || '')
   const activationCode = String(payload?.activationCode || '').trim().toLowerCase()
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json({ error: 'Masukkan alamat email yang valid.' }, 400)
-  if (password.length < 8 || password.length > 128) return json({ error: 'Password harus terdiri dari 8 sampai 128 karakter.' }, 400)
+  if (password.length < 6 || password.length > 128) return json({ error: 'Password harus terdiri dari 6 sampai 128 karakter.' }, 400)
   if (!/^[a-f0-9]{32}$/.test(activationCode)) return json({ error: 'Masukkan kode aktivasi 32 karakter dari Owner toko.' }, 400)
 
-  const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
+  const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
   if (!supabaseUrl || !serviceRoleKey) {
     console.error('Invitation activation is missing SUPABASE_URL/VITE_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY.')
@@ -80,6 +80,7 @@ export default async (request) => {
       if (user || data.users.length < 1000) break
     }
 
+    const existingAccount = Boolean(user)
     if (user) {
       const { data: protectedAdmin, error: protectedError } = await admin
         .from('super_admins')
@@ -92,16 +93,8 @@ export default async (request) => {
       }
       if (protectedAdmin) return json({ error: 'Akun Super Admin tidak dapat diaktifkan melalui undangan tenant.' }, 403)
 
-      const { data: updated, error: updateError } = await admin.auth.admin.updateUserById(user.id, {
-        password,
-        email_confirm: true,
-        user_metadata: { ...(user.user_metadata || {}), full_name: validInvites[0].full_name || user.user_metadata?.full_name || '' },
-      })
-      if (updateError) {
-        console.error('Could not set invited user password:', updateError.message)
-        return json({ error: 'Password belum berhasil disimpan. Silakan coba lagi.' }, 500)
-      }
-      user = updated.user
+      // A tenant invitation must never act as a password-reset mechanism for an existing account.
+      // Keep the existing credentials and only attach the membership after the invitation code is validated.
     } else {
       const { data, error } = await admin.auth.admin.createUser({
         email,
@@ -144,7 +137,7 @@ export default async (request) => {
       return json({ error: 'Akun sudah dibuat, tetapi status undangan belum selesai diperbarui. Coba aktivasi kembali.' }, 500)
     }
 
-    return json({ success: true, message: 'Undangan valid. Akun siap digunakan untuk login.' })
+    return json({ success: true, message: existingAccount ? 'Undangan diterima. Gunakan password akun yang sudah ada untuk login.' : 'Undangan valid. Akun siap digunakan untuk login.' })
   } catch (error) {
     console.error('Unexpected invitation activation failure:', error?.message || error)
     return json({ error: 'Aktivasi gagal karena kesalahan sistem. Silakan coba lagi.' }, 500)
