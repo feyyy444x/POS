@@ -58,7 +58,7 @@ export default function PlatformStaffManager() {
     setSaving(true)
     try {
       if (!editing && createAccount) {
-        if (password.length < 10) throw new Error('Password awal minimal 10 karakter.')
+        if (password.length < 6) throw new Error('Password awal minimal 6 karakter.')
         const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
         if (sessionError || !sessionData?.session?.access_token) throw new Error('Sesi Super Admin berakhir. Silakan login ulang.')
         const response = await fetch('/.netlify/functions/create-platform-staff', {
@@ -118,7 +118,7 @@ export default function PlatformStaffManager() {
           <input id="platform-staff-email" className="text-input" type="email" value={email} onChange={event => setEmail(event.target.value)} placeholder="nama@contoh.com" required disabled={Boolean(editing)} autoComplete="email" />
           {!editing && createAccount && <>
             <label htmlFor="platform-staff-password">Password awal</label>
-            <input id="platform-staff-password" className="text-input" type="password" value={password} onChange={event => setPassword(event.target.value)} placeholder="Minimal 10 karakter" required minLength={10} autoComplete="new-password" />
+            <input id="platform-staff-password" className="text-input" type="password" value={password} onChange={event => setPassword(event.target.value)} placeholder="Minimal 6 karakter" required minLength={6} autoComplete="new-password" />
             <small>Berikan password ini kepada staf secara pribadi. Staf dapat menggantinya setelah masuk.</small>
           </>}
           <label htmlFor="platform-staff-role">Role</label>
