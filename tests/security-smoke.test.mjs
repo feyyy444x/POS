@@ -16,8 +16,8 @@ const queueTimestampGuardMigration = await readFile(new URL('supabase/migrations
 const foreignKeyIndexesMigration = await readFile(new URL('supabase/migrations/20261029160000_add_missing_foreign_key_indexes.sql', root), 'utf8')
 const cashierAlertRlsMigration = await readFile(new URL('supabase/migrations/20261029161000_optimize_cashier_alert_rls.sql', root), 'utf8')
 const platformAdminParityMigration = await readFile(new URL('supabase/migrations/20261029163000_platform_admin_super_admin_parity.sql', root), 'utf8')
+const removeCustomerServiceRoleMigration = await readFile(new URL('supabase/migrations/20261029174500_remove_customer_service_platform_role.sql', root), 'utf8')
 const platformStaffEndpoint = await readFile(new URL('netlify/functions/platform-staff-workspace.mjs', root), 'utf8')
-const platformStaffWorkspaceUi = await readFile(new URL('src/PlatformStaffWorkspace.jsx', root), 'utf8')
 const platformStaffManagerUi = await readFile(new URL('src/PlatformStaffManager.jsx', root), 'utf8')
 const promotionManagerUi = await readFile(new URL('src/PromotionManager.jsx', root), 'utf8')
 const subscriptionPlanManagerUi = await readFile(new URL('src/SubscriptionPlanManager.jsx', root), 'utf8')
@@ -152,16 +152,15 @@ test('queue timestamps cannot be edited after the corresponding status transitio
 
 
 test('internal platform Admin uses the Super Admin workspace and server-side PIN-gated privileges', () => {
-  assert.match(app, /const isPlatformAdmin=!staffResult\.error&&staffData\?\.role==='admin'&&staffData\?\.is_active===true/)
-  assert.match(app, /setIsSuperAdmin\(Boolean\(adminResult\.data\)\|\|isPlatformAdmin\)/)
-  assert.match(app, /setIsPlatformAdmin\(isPlatformAdmin\)/)
-  assert.match(app, /platformAdmin=\{isPlatformAdmin\}/)
-  assert.match(app, /platformAdmin \? 'Admin NEXAPOS' : 'Super Admin'/)
-  assert.match(app, /platformAdmin \? 'ADMIN NEXAPOS' : 'SUPER ADMIN'/)
-  assert.match(platformStaffManagerUi, /<option value="admin">Admin NEXAPOS<\/option>/)
-  assert.match(platformStaffManagerUi, /tampilan, menu, dan hak akses yang sama dengan Super Admin/)
-  assert.match(app, /staffData\?\.role === 'admin' && staffData\?\.is_active === true/)
-  assert.match(platformAdminParityMigration, /private\.is_pin_verified\(\)/)
+  assert.match(app, /const isPlatformAdmin=!staffResult\\.error&&staffData\\?\\.role==='admin'/)
+  assert.match(app, /setIsSuperAdmin\\(Boolean\\(adminResult\\.data\\)\\|\\|isPlatformAdmin\\)/)
+  assert.match(app, /setIsPlatformAdmin\\(isPlatformAdmin\\)/)
+  assert.match(app, /platformAdmin=\\{isPlatformAdmin\\}/)
+  assert.match(app, /platformAdmin \\? 'Admin NEXAPOS' : 'Super Admin'/)
+  assert.match(app, /platformAdmin \\? 'ADMIN NEXAPOS' : 'SUPER ADMIN'/)
+  assert.match(platformStaffManagerUi, /<div id="platform-staff-role" className="text-input" aria-readonly="true">Admin NEXAPOS — FULL AKSES<\\/div>/)
+  assert.doesNotMatch(platformStaffManagerUi, /Customer Service|customer_service/)
+  assert.match(platformAdminParityMigration, /private\\.is_pin_verified\\(\\)/)
   assert.match(platformAdminParityMigration, /platform_staff_roles/)
   assert.match(platformAdminParityMigration, /role = 'admin'/)
   assert.match(platformAdminParityMigration, /is_active = true/)
@@ -177,10 +176,12 @@ test('platform Admin can create staff only with active role and verified PIN', (
 })
 
 
-test('platform Admin receives full internal endpoint access while Customer Service remains permission-scoped', () => {
-  assert.match(platformStaffEndpoint, /assignment\.role !== 'admin' && assignment\.permissions\?\./)
-  assert.match(platformStaffEndpoint, /assignment\.permissions\?\.\[requiredPermission\] !== true/)
-  assert.match(platformStaffEndpoint, /if \(!assignment \|\| !assignment\.is_active\)/)
+test('platform staff endpoints and creation only accept the Admin role', () => {
+  assert.match(platformStaffEndpoint, /assignment\\.role !== 'admin' && assignment\\.permissions\\?\\./)
+  assert.match(platformStaffEndpoint, /assignment\\.permissions\\?\\.\\[requiredPermission\\] !== true/)
+  assert.match(platformStaffEndpoint, /if \\(!assignment \\|\\| !assignment\\.is_active\\)/)
+  assert.match(createPlatformStaff, /if \\(role !== 'admin'\\) return json/)
+  assert.doesNotMatch(createPlatformStaff, /customer_service|CS_KEYS/)
 })
 
 
@@ -196,8 +197,6 @@ test('workspace data loaders surface query failures instead of presenting failed
   assert.match(platformStaffEndpoint, /Laporan tidak dapat dimuat lengkap/)
   assert.match(platformStaffEndpoint, /store_count_limited/)
   assert.match(platformStaffEndpoint, /order_count_limited/)
-  assert.match(platformStaffWorkspaceUi, /if \(target === 'reports'\) setReport\(null\)/)
-  assert.match(platformStaffWorkspaceUi, /Sebagian angka mencapai batas pembacaan laporan/)
 })
 
 
@@ -214,32 +213,29 @@ test('admin managers clear stale data on load failures and prevent editing fallb
 })
 
 
-test('internal platform staff uses the shared admin shell while navigation remains permission-scoped', () => {
-  assert.match(platformStaffWorkspaceUi, /className="app-shell super-admin-shell"/)
-  assert.match(platformStaffWorkspaceUi, /brand-mark-image/)
-  assert.match(platformStaffWorkspaceUi, /className="nav-section">PLATFORM/)
-  assert.match(platformStaffWorkspaceUi, /className="mobile-menu icon-button"/)
-  assert.match(platformStaffWorkspaceUi, /visibleItems\.map\(item/)
-  assert.match(platformStaffWorkspaceUi, /permissions\.support === true/)
-  assert.match(platformStaffWorkspaceUi, /permissions\.plans === true/)
-  assert.match(platformStaffWorkspaceUi, /permissions\.promotions === true/)
+test('Customer Service role and workspace are fully retired', () => {
+  assert.doesNotMatch(app, /PlatformStaffWorkspace|platformStaffRole/)
+  assert.doesNotMatch(platformStaffManagerUi, /Customer Service|customer_service/)
+  assert.match(removeCustomerServiceRoleMigration, /DELETE FROM public\\.platform_staff_roles/)
+  assert.match(removeCustomerServiceRoleMigration, /role = 'customer_service'/)
+  assert.match(removeCustomerServiceRoleMigration, /CHECK \\(role = 'admin'\\)/)
 })
 
 
-test('active Admin NexaPos is routed into the exact Super Admin workspace because the role RPC only returns active assignments', () => {
-  assert.match(app, /staffData\?\.role==='admin';setIsPlatformAdmin\(isPlatformAdmin\);setIsSuperAdmin\(Boolean\(adminResult\.data\)\|\|isPlatformAdmin\)/)
-  assert.match(app, /if\(isSuperAdmin\)return <SuperAdminScreen session=\{session\} syncStatus=\{syncStatus\} setSyncStatus=\{setSyncStatus\} onSignOut=\{\(\)=>supabase\.auth\.signOut\(\)\} platformAdmin=\{isPlatformAdmin\} \/>/)
-  assert.doesNotMatch(app, /staffData\?\.role\s*===\s*'admin'\s*&&\s*staffData\?\.is_active\s*===\s*true/)
+test('active Admin NexaPos is routed into the exact Super Admin workspace', () => {
+  assert.match(app, /staffData\\?\\.role==='admin';setIsPlatformAdmin\\(isPlatformAdmin\\);setIsSuperAdmin\\(Boolean\\(adminResult\\.data\\)\\|\\|isPlatformAdmin\\)/)
+  assert.match(app, /if\\(isSuperAdmin\\)return <SuperAdminScreen session=\\{session\\} syncStatus=\\{syncStatus\\} setSyncStatus=\\{setSyncStatus\\} onSignOut=\\{\\(\\)=>supabase\\.auth\\.signOut\\(\\)\\} platformAdmin=\\{isPlatformAdmin\\} \\/>/)
+  assert.doesNotMatch(app, /PlatformStaffWorkspace|platformStaffRole/)
 })
 
 
-test('Tim & Hak Akses represents Admin NexaPos as full Super Admin parity and only exposes enforced Customer Service permissions', () => {
-  assert.match(platformStaffManagerUi, /Admin NEXAPOS memiliki FULL AKSES setara Super Admin/)
+test('Tim & Hak Akses offers only full-access Admin NexaPos role', () => {
+  assert.match(platformStaffManagerUi, /Hanya ada satu role staf platform: Admin NEXAPOS/)
   assert.match(platformStaffManagerUi, /FULL AKSES — setara Super Admin/)
-  assert.match(platformStaffManagerUi, /Seluruh menu dan tindakan administrasi platform tersedia/)
-  assert.match(platformStaffManagerUi, /\['support', 'Pusat bantuan'/)
-  assert.doesNotMatch(platformStaffManagerUi, /\['users_read'/)
-  assert.match(platformStaffManagerUi, /member\.role === 'admin' \? 'FULL AKSES · Setara Super Admin'/)
+  assert.match(platformStaffManagerUi, /member\\.role === 'admin' \\? 'FULL AKSES · Setara Super Admin'/)
+  assert.doesNotMatch(platformStaffManagerUi, /Customer Service|customer_service|CS_PERMISSIONS/)
+  assert.doesNotMatch(createPlatformStaff, /customer_service|CS_KEYS/)
+  assert.match(removeCustomerServiceRoleMigration, /platform_staff_roles_admin_only_check/)
   assert.match(platformStaffEndpoint, /users: 'users', users_toggle_login: 'users'/)
   assert.match(platformStaffEndpoint, /support_inbox: 'support', support_reply: 'support'/)
 })
