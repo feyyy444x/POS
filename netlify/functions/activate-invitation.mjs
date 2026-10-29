@@ -80,6 +80,7 @@ export default async (request) => {
       if (user || data.users.length < 1000) break
     }
 
+    const existingAccount = Boolean(user)
     if (user) {
       const { data: protectedAdmin, error: protectedError } = await admin
         .from('super_admins')
@@ -92,16 +93,8 @@ export default async (request) => {
       }
       if (protectedAdmin) return json({ error: 'Akun Super Admin tidak dapat diaktifkan melalui undangan tenant.' }, 403)
 
-      const { data: updated, error: updateError } = await admin.auth.admin.updateUserById(user.id, {
-        password,
-        email_confirm: true,
-        user_metadata: { ...(user.user_metadata || {}), full_name: validInvites[0].full_name || user.user_metadata?.full_name || '' },
-      })
-      if (updateError) {
-        console.error('Could not set invited user password:', updateError.message)
-        return json({ error: 'Password belum berhasil disimpan. Silakan coba lagi.' }, 500)
-      }
-      user = updated.user
+      // A tenant invitation must never act as a password-reset mechanism for an existing account.
+      // Keep the existing credentials and only attach the membership after the invitation code is validated.
     } else {
       const { data, error } = await admin.auth.admin.createUser({
         email,
@@ -144,7 +137,7 @@ export default async (request) => {
       return json({ error: 'Akun sudah dibuat, tetapi status undangan belum selesai diperbarui. Coba aktivasi kembali.' }, 500)
     }
 
-    return json({ success: true, message: 'Undangan valid. Akun siap digunakan untuk login.' })
+    return json({ success: true, message: existingAccount ? 'Undangan diterima. Gunakan password akun yang sudah ada untuk login.' : 'Undangan valid. Akun siap digunakan untuk login.' })
   } catch (error) {
     console.error('Unexpected invitation activation failure:', error?.message || error)
     return json({ error: 'Aktivasi gagal karena kesalahan sistem. Silakan coba lagi.' }, 500)
