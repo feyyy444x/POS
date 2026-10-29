@@ -21,9 +21,12 @@ export default async (request) => {
   const anonKey = process.env.VITE_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_ANON_KEY
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
   if (!url || !anonKey || !serviceKey) return json({ error: 'Layanan internal belum dikonfigurasi di server.' }, 503)
-  const auth = createClient(url, anonKey, { auth: { autoRefreshToken: false, persistSession: false } })
+  const auth = createClient(url, anonKey, { auth: { autoRefreshToken: false, persistSession: false }, global: { headers: { Authorization: 'Bearer ' + token } } })
   const { data: authData, error: authError } = await auth.auth.getUser(token)
   if (authError || !authData?.user) return json({ error: 'Sesi tidak valid. Silakan login ulang.' }, 401)
+  const { data: pinRows, error: pinError } = await auth.rpc('get_my_pin_status')
+  const pinStatus = Array.isArray(pinRows) ? pinRows[0] : pinRows
+  if (pinError || (pinStatus?.has_pin && !pinStatus?.is_verified)) return json({ error: 'Verifikasi PIN diperlukan sebelum menggunakan workspace internal.' }, 403)
   const admin = createClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } })
   try {
     const { data: assignment, error: roleError } = await admin.from('platform_staff_roles')
