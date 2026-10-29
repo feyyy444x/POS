@@ -86,4 +86,4 @@ revoke all on function public.complete_sale_idempotent(uuid, jsonb, numeric, tex
 grant execute on function public.complete_sale_idempotent(uuid, jsonb, numeric, text, numeric, text, boolean, uuid) to authenticated;
 
 -- Route clients through the idempotent wrapper; only the wrapper may call the underlying sale function.
-revoke execute on function public.complete_sale(uuid, jsonb, numeric, text, numeric, text, boolean) from authenticated;
+revoke all on function public.complete_sale(uuid, jsonb, numeric, text, numeric, text, boolean) from public, anon, authenticated;
