@@ -25,6 +25,7 @@ const subscriptionPlanManagerUi = await readFile(new URL('src/SubscriptionPlanMa
 const storeControlCenterUi = await readFile(new URL('src/StoreControlCenter.jsx', root), 'utf8')
 const queueSettingsUi = await readFile(new URL('src/TvDisplaySettings.jsx', root), 'utf8')
 const publicQueueMigration = await readFile(new URL('supabase/migrations/20261029200000_simplify_public_queue_rpc.sql', root), 'utf8')
+const activationPackagesMigration = await readFile(new URL('supabase/migrations/20261029140000_activation_packages_pricing.sql', root), 'utf8')
 
 test('Netlify headers include baseline browser security protections', () => {
   for (const directive of [
@@ -383,4 +384,31 @@ test('password minimum is six characters in profile forms and admin reset endpoi
   assert.doesNotMatch(profileAndAuthForms, /minLength=\{8\}/)
   assert.match(profileAndAuthForms, /minLength=\{6\}/)
   assert.match(passwordReset, /password\.length < 6/)
+})
+
+
+test('activation package defaults match the NexaPos master specification', () => {
+  assert.match(activationPackagesMigration, /\('daily','Harian',3,1,true\)/)
+  assert.match(activationPackagesMigration, /\('weekly','Mingguan',7,2,true\)/)
+  assert.match(activationPackagesMigration, /\('monthly','Bulanan',30,3,true\)/)
+  assert.match(activationPackagesMigration, /\('yearly','Tahunan',365,4,true\)/)
+  assert.match(activationPackagesMigration, /\('starter','Starter',3,/)
+  assert.match(activationPackagesMigration, /\('growth','Growth',5,/)
+  assert.match(activationPackagesMigration, /\('business','Business',10,/)
+  assert.match(activationPackagesMigration, /\('enterprise','Enterprise',15,/)
+})
+
+test('activation package administration is protected and validates active packages and duration bounds', () => {
+  assert.match(activationPackagesMigration, /enable row level security/i)
+  assert.match(activationPackagesMigration, /private\.is_super_admin\(\)/)
+  assert.match(activationPackagesMigration, /p_duration_days < 1 or p_duration_days > 36500/i)
+  assert.match(activationPackagesMigration, /where package_key = p_package_key and is_active = true/i)
+  assert.match(app, /supabase\.rpc\('activate_store_tenant',\{p_store_id:tenant\.id,p_duration_days:days,p_package_key:activationPackage\}\)/)
+})
+
+test('Super Admin can configure custom activation durations and package-specific pricing', () => {
+  assert.match(subscriptionPlanManagerUi, /supabase\.from\('site_activation_durations'\)\.upsert/)
+  assert.match(subscriptionPlanManagerUi, /const addCustomDuration = async/)
+  assert.match(subscriptionPlanManagerUi, /updatePrice\(plan\.package_key,duration\.duration_key/)
+  assert.match(subscriptionPlanManagerUi, /supabase\.from\('site_activation_packages'\)\.upsert/)
 })
