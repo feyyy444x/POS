@@ -17,12 +17,12 @@ const fallbackPlans = [
   { key: 'yearly', name: 'Tahunan', duration: '365 hari', price: 300000, note: 'Lebih praktis untuk penggunaan jangka panjang' },
 ]
 const features = [
-  { number: '01', icon: ShoppingCart, title: 'Transaksi yang mengalir', text: 'Layani pelanggan, catat pembayaran, dan simpan setiap transaksi dengan alur kasir yang praktis.' },
-  { number: '02', icon: Users, title: 'Tim yang terhubung', text: 'Beberapa akun karyawan dapat bekerja bersamaan, dengan identitas transaksi masing-masing.' },
-  { number: '03', icon: Monitor, title: 'Antrian ikut bergerak', text: 'Nomor antrian tersinkron dan dapat ditampilkan di layar TV untuk membantu alur layanan.' },
-  { number: '04', icon: Package, title: 'Produk selalu tertata', text: 'Atur katalog, harga, stok, dan informasi produk dalam satu workspace.' },
-  { number: '05', icon: BarChart3, title: 'Gambaran lebih jelas', text: 'Lihat catatan transaksi dan laporan operasional untuk membantu mengambil keputusan.' },
-  { number: '06', icon: Printer, title: 'Siap untuk struk thermal', text: 'Cetak struk melalui printer thermal yang kompatibel dengan perangkat dan browser Anda.' },
+  { number: '01', icon: ShoppingCart, title: 'Kasir untuk kerja sehari-hari', text: 'Pilih produk, hitung total, proses pembayaran, dan catat transaksi dalam satu alur yang praktis.' },
+  { number: '02', icon: Users, title: 'Banyak kasir, satu toko', text: 'Beberapa akun karyawan dapat melayani pelanggan secara bersamaan. Setiap transaksi tetap tercatat sesuai akun yang mengerjakannya.' },
+  { number: '03', icon: Monitor, title: 'Antrian sesuai kebutuhan', text: 'Aktifkan sistem antrian saat dibutuhkan dan tampilkan nomor panggilan di layar TV. Saat dinonaktifkan, nomor antrian tidak perlu muncul pada struk.' },
+  { number: '04', icon: Package, title: 'Produk dan stok terkelola', text: 'Kelola katalog, kategori, harga, dan informasi stok agar tim punya acuan produk yang lebih rapi.' },
+  { number: '05', icon: BarChart3, title: 'Riwayat dan laporan operasional', text: 'Telusuri catatan transaksi dan pantau ringkasan penjualan untuk membantu memahami aktivitas toko.' },
+  { number: '06', icon: Printer, title: 'Struk untuk kebutuhan toko', text: 'Gunakan alur cetak struk melalui printer thermal yang kompatibel dengan perangkat dan browser yang dipakai.' },
 ]
 const storyScenes = {
   kasir: { index: '01', eyebrow: 'SAAT TRANSAKSI DIMULAI', title: 'Satu transaksi. Data langsung tercatat.', description: 'Kasir memilih produk, memproses pembayaran, dan menyelesaikan transaksi dari satu alur kerja.', icon: ShoppingCart, status: 'Transaksi tersimpan', tag: 'POS WORKSPACE' },
@@ -177,9 +177,9 @@ export default function Homepage() {
         <div className="living-hero-orbit orbit-small" aria-hidden="true" />
         <div className="living-hero-copy">
           <div className="living-kicker"><span className="living-live-dot" /> ONE CONNECTED BUSINESS SYSTEM <span className="living-kicker-line" /></div>
-          <h1>Bisnis bukan<br/>sekadar <span>transaksi.</span></h1>
-          <p>Kasir, tim, produk, dan antrian. Semuanya bergerak dalam satu sistem yang saling terhubung.</p>
-          <div className="living-hero-actions"><a className="living-cta" href="#cerita">Rasakan alurnya <ArrowDown size={16}/></a><a className="living-cta living-demo-cta" href="/?screen=demo">Coba Demo Interaktif <ArrowUpRight size={14}/></a><a className="living-text-link" href="/login">Sudah punya akun? <span>Masuk workspace <ArrowUpRight size={14}/></span></a></div>
+          <h1>Satu workspace.<br/><span>Kendali operasional.</span></h1>
+          <p>Kelola transaksi kasir, produk dan stok, aktivitas karyawan, laporan penjualan, serta sistem antrian dalam satu workspace NexaPos.</p>
+          <div className="living-hero-actions"><a className="living-cta" href="#cerita">Jelajahi cara kerja <ArrowDown size={16}/></a><a className="living-cta living-demo-cta" href="/?screen=demo">Coba Demo Interaktif <ArrowUpRight size={14}/></a><a className="living-text-link" href="/login">Sudah punya akun? <span>Masuk workspace <ArrowUpRight size={14}/></span></a></div>
           <div className="living-hero-index"><span>01 — THE LIVING SYSTEM</span><span>SCROLL TO EXPLORE ↓</span></div>
         </div>
         <div className="living-stage" aria-label="Ilustrasi alur NexaPos">
@@ -199,11 +199,11 @@ export default function Homepage() {
       <section className="living-manifesto living-reveal">
         <div className="living-manifesto-index">NEXAPOS / 2026</div>
         <div className="living-manifesto-copy"><span>SEBUAH USAHA ADALAH ALUR YANG SALING TERHUBUNG.</span><h2>Ketika satu hal bergerak,<br/><em>semuanya ikut bergerak.</em></h2></div>
-        <div className="living-manifesto-note">Bukan sekadar aplikasi kasir. Sebuah ruang kerja untuk menghubungkan aktivitas penting dalam bisnis sehari-hari.</div>
+        <div className="living-manifesto-note">Bukan hanya untuk mencatat pembayaran. NexaPos menghubungkan aktivitas kasir, akun karyawan, produk, laporan, dan antrian dalam satu ruang kerja.</div>
       </section>
 
       <section className="living-story" id="cerita">
-        <div className="living-story-intro living-reveal"><span className="living-eyebrow">THE SYSTEM IN MOTION / 01—03</span><h2>Ikuti alurnya.<br/><span>Lihat semuanya terhubung.</span></h2><p>Pilih satu bagian untuk melihat bagaimana NexaPos membantu aktivitas bisnis berjalan dalam satu alur.</p></div>
+        <div className="living-story-intro living-reveal"><span className="living-eyebrow">THE SYSTEM IN MOTION / 01—03</span><h2>Ikuti alurnya.<br/><span>Lihat semuanya terhubung.</span></h2><p>Pilih bagian yang ingin Anda kenali—mulai dari transaksi, kerja tim, hingga alur antrian.</p></div>
         <div className="living-story-layout">
           <div className="living-story-tabs" role="tablist" aria-label="Pilih alur bisnis">
             {Object.entries(storyScenes).map(([key,item]) => {
@@ -227,14 +227,14 @@ export default function Homepage() {
 
       <section className="living-bridge">
         <div className="living-bridge-line" aria-hidden="true" />
-        <div className="living-bridge-copy living-reveal"><span className="living-eyebrow">FROM ONE ACTION TO THE NEXT</span><h2>Lebih sedikit proses terpisah.<br/><em>Lebih banyak hal yang terhubung.</em></h2><p>Alur operasional yang rapi membantu tim melayani pelanggan, mencatat transaksi, dan mengelola antrian tanpa kehilangan gambaran besar.</p><a className="living-inline-link" href="#fitur">Jelajahi ekosistem <ArrowRight size={15}/></a></div>
+        <div className="living-bridge-copy living-reveal"><span className="living-eyebrow">FROM ONE ACTION TO THE NEXT</span><h2>Lebih sedikit proses terpisah.<br/><em>Lebih banyak hal yang terhubung.</em></h2><p>Hubungkan pekerjaan kasir, pencatatan transaksi, pengelolaan produk, dan layanan antrian tanpa kehilangan gambaran aktivitas toko.</p><a className="living-inline-link" href="#fitur">Jelajahi ekosistem <ArrowRight size={15}/></a></div>
         <div className="living-bridge-map living-reveal"><div className="living-map-core"><img src="/nexapos-mark.svg" alt=""/><span>NexaPos</span></div><div className="living-map-item map-one"><ShoppingCart size={17}/><span>Transaksi</span></div><div className="living-map-item map-two"><Users size={17}/><span>Karyawan</span></div><div className="living-map-item map-three"><Monitor size={17}/><span>Antrian TV</span></div><div className="living-map-item map-four"><BarChart3 size={17}/><span>Laporan</span></div><div className="living-map-link link-one"/><div className="living-map-link link-two"/><div className="living-map-link link-three"/><div className="living-map-link link-four"/></div>
       </section>
 
       {activePromo && <section className="living-promo-spotlight" aria-label="Promo NexaPos"><div className="living-promo-spotlight-orbit" aria-hidden="true"/><div className="living-promo-spotlight-label"><Sparkles size={16}/> PROMO KHUSUS PELANGGAN BARU <span className="living-live-dot"/></div><div className="living-promo-spotlight-main"><div><span className="living-eyebrow">PENAWARAN TERBATAS / NEXAPOS</span><h2>{activePromo.title || 'Penawaran khusus NexaPos'}</h2><p>{activePromo.description || 'Dapatkan harga khusus untuk masa akses NexaPos pilihanmu.'}</p><div className="living-promo-spotlight-meta"><span><CheckCircle2 size={14}/> Berlaku untuk semua paket</span><span><Activity size={14}/> Mulai 29 Oktober 2026 · 18.40 WIB</span></div></div><div className="living-promo-spotlight-value"><small>DISKON</small><strong>{promoDiscountLabel(activePromo)}</strong><span>{promoStartsLater ? 'Segera dimulai' : 'Potongan otomatis'}</span></div></div><a className="living-cta living-cta-light" href="#harga">Lihat harga setelah diskon <ArrowRight size={15}/></a></section>}
 
       <section className="living-features" id="fitur">
-        <div className="living-section-head living-reveal"><div><span className="living-eyebrow">BUILT AROUND YOUR BUSINESS</span><h2>Semua bagian punya peran.<br/><em>Semuanya saling mendukung.</em></h2></div><p>Alat yang Anda perlukan untuk menjaga aktivitas bisnis tetap teratur, dari depan kasir hingga layar antrian.</p></div>
+        <div className="living-section-head living-reveal"><div><span className="living-eyebrow">BUILT AROUND YOUR BUSINESS</span><h2>Semua bagian punya peran.<br/><em>Semuanya saling mendukung.</em></h2></div><p>Kenali fitur utama NexaPos untuk transaksi harian, kerja beberapa akun kasir, pengelolaan produk, laporan, dan layanan antrian.</p></div>
         <div className="living-feature-list">{features.map(({number,icon:Icon,title,text},index)=><article className="living-feature-row living-reveal" key={number}><span className="living-feature-number">{number}</span><span className="living-feature-icon"><Icon size={23}/></span><div className="living-feature-copy"><h3>{title}</h3><p>{text}</p></div><span className="living-feature-meta">{index===0?'POINT OF SALE':index===1?'MULTI-ACCOUNT':index===2?'QUEUE DISPLAY':index===3?'CATALOGUE':index===4?'REPORTING':'THERMAL PRINT'}</span><ArrowUpRight className="living-feature-arrow" size={20}/></article>)}</div>
       </section>
 
@@ -242,7 +242,7 @@ export default function Homepage() {
       <section className="living-pricing living-pricing-redesign" id="harga">
         <div className="living-section-head living-reveal">
           <div><span className="living-eyebrow">PILIH AKSES NEXAPOS / 04</span><h2>Satu sistem untuk bisnismu.<br/><em>Pilih masa aksesnya.</em></h2></div>
-          <p>Kasir multi-akun, pengelolaan produk dan stok, pencatatan transaksi, laporan operasional, serta layar antrian digital dalam satu workspace. Pilih durasi yang sesuai dengan ritme usahamu.</p>
+          <p>Gunakan satu workspace untuk transaksi kasir, akun karyawan yang bekerja bersamaan, katalog dan stok, laporan operasional, serta sistem antrian yang bisa disesuaikan dengan kebutuhan toko.</p>
         </div>
         {activePromo && <article className="living-pricing-promo living-promo-feature" aria-live="polite">
           <div className="living-promo-feature-mark"><Sparkles size={23}/><span>LIMITED<br/>OFFER</span></div>
@@ -297,10 +297,10 @@ export default function Homepage() {
         <p className="living-pricing-note">Harga dan informasi promo mengikuti pengaturan aktif di Superadmin. Ketentuan akhir, proses pembayaran, dan aktivasi akan dikonfirmasi oleh tim NexaPos sebelum penyewaan.</p>
       </section>
 
-      <section className="living-faq" id="faq"><div className="living-section-head living-reveal"><div><span className="living-eyebrow">GOOD TO KNOW</span><h2>Sebelum mulai,<br/><em>ini yang perlu diketahui.</em></h2></div><p>Jawaban ringkas untuk membantu Anda memahami cara memulai menggunakan NexaPos.</p></div><div className="living-faq-list">{[{q:'Apakah semua masa sewa mendapatkan fitur yang sama?',a:'Ya. Seluruh pilihan masa sewa mendapatkan fitur aplikasi yang sama. Perbedaannya hanya pada jangka waktu penggunaan.'},{q:'Bagaimana cara mulai menyewa NexaPos?',a:'Pilih masa sewa yang sesuai, lalu hubungi tim NexaPos melalui Telegram untuk memperoleh informasi proses pembayaran dan aktivasi.'},{q:'Apakah NexaPos mendukung printer thermal?',a:'NexaPos menyediakan alur cetak struk untuk printer thermal yang kompatibel dengan perangkat dan browser yang digunakan.'},{q:'Apakah beberapa karyawan dapat menggunakan akun masing-masing?',a:'NexaPos dirancang untuk mendukung beberapa akun karyawan dalam satu toko, dengan identitas transaksi yang mengikuti akun yang digunakan dan hak akses masing-masing.'},{q:'Bagaimana jika masa sewa berakhir?',a:'Akses tenant perlu diperpanjang oleh pengelola layanan. Silakan hubungi tim NexaPos untuk konfirmasi masa aktif dan perpanjangan.'}].map((item,i)=><div className={'living-faq-item'+(faqOpen===i?' is-open':'')} key={item.q}><button onClick={()=>setFaqOpen(faqOpen===i?-1:i)} aria-expanded={faqOpen===i}><span><small>0{i+1}</small>{item.q}</span><ChevronDown size={17}/></button>{faqOpen===i&&<p>{item.a}</p>}</div>)}</div></section>
+      <section className="living-faq" id="faq"><div className="living-section-head living-reveal"><div><span className="living-eyebrow">GOOD TO KNOW</span><h2>Sebelum mulai,<br/><em>ini yang perlu diketahui.</em></h2></div><p>Jawaban ringkas untuk membantu Anda memahami cara memulai menggunakan NexaPos.</p></div><div className="living-faq-list">{[{q:'Apakah semua masa sewa mendapatkan fitur yang sama?',a:'Paket masa akses ditujukan untuk menggunakan fitur aplikasi yang sama. Perbedaannya ada pada jangka waktu akses; detail paket akan dikonfirmasi oleh tim NexaPos.'},{q:'Bagaimana cara mulai menyewa NexaPos?',a:'Pilih masa sewa yang sesuai, lalu hubungi tim NexaPos melalui Telegram untuk memperoleh informasi proses pembayaran dan aktivasi.'},{q:'Apakah NexaPos mendukung printer thermal?',a:'NexaPos menyediakan alur cetak struk untuk printer thermal yang kompatibel dengan perangkat dan browser yang digunakan.'},{q:'Bisakah beberapa kasir bekerja bersamaan?',a:'NexaPos dirancang untuk mendukung beberapa akun karyawan dalam satu toko. Setiap transaksi mengikuti akun yang digunakan, sesuai hak aksesnya.'},{q:'Bagaimana jika masa akses berakhir?',a:'Hubungi tim NexaPos untuk memeriksa status masa akses dan memperoleh informasi perpanjangan.'}].map((item,i)=><div className={'living-faq-item'+(faqOpen===i?' is-open':'')} key={item.q}><button onClick={()=>setFaqOpen(faqOpen===i?-1:i)} aria-expanded={faqOpen===i}><span><small>0{i+1}</small>{item.q}</span><ChevronDown size={17}/></button>{faqOpen===i&&<p>{item.a}</p>}</div>)}</div></section>
 
       <section className="living-final">
-        <div className="living-final-orbit" aria-hidden="true"/><div className="living-final-copy living-reveal"><span className="living-eyebrow">THE NEXT MOVE IS YOURS</span><h2>Bisnis bergerak.<br/><em>Pastikan sistemnya ikut.</em></h2><p>Kenali NexaPos dan temukan alur kerja yang lebih terhubung untuk bisnis Anda.</p></div>
+        <div className="living-final-orbit" aria-hidden="true"/><div className="living-final-copy living-reveal"><span className="living-eyebrow">THE NEXT MOVE IS YOURS</span><h2>Bisnis bergerak.<br/><em>Pastikan sistemnya ikut.</em></h2><p>Jelajahi alur kerja NexaPos dan lihat bagaimana kasir, tim, produk, laporan, serta antrian dapat mendukung operasional toko.</p></div>
         <div className="living-final-actions"><a className="living-cta living-cta-light" href="#harga">Pilih paket sewa <ArrowRight size={16}/></a><a className="living-final-login" href="/login">Sudah punya akun? Login workspace <ArrowUpRight size={14}/></a></div>
       </section>
     </main>
