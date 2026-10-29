@@ -28,15 +28,28 @@ export default function OrganizationReports({ organization, tenants = [] }) {
     }
     setLoading(true)
     setError('')
-    const ordersResult = await supabase.from('orders').select('*')
-      .in('store_id', tenantIds).order('created_at', { ascending: false }).limit(3000)
-    if (ordersResult.error) {
+    const startBoundary = new Date(startDate + 'T00:00:00+07:00').toISOString()
+    const endExclusiveDate = new Date(endDate + 'T00:00:00+07:00')
+    endExclusiveDate.setUTCDate(endExclusiveDate.getUTCDate() + 1)
+    const endBoundary = endExclusiveDate.toISOString()
+    const nextOrders = []
+    let ordersError = null
+    for (let offset = 0; offset < 10000; offset += 1000) {
+      const { data, error: queryError } = await supabase.from('orders').select('*')
+        .in('store_id', tenantIds)
+        .gte('created_at', startBoundary).lt('created_at', endBoundary)
+        .order('created_at', { ascending: false }).range(offset, offset + 999)
+      if (queryError) { ordersError = queryError; break }
+      nextOrders.push(...(data || []))
+      if ((data || []).length < 1000) break
+    }
+    if (ordersError) {
       setOrders([]); setItems([]); setProducts([])
       setError('Laporan organisasi gagal dimuat. Pastikan akses Owner dan kebijakan RLS tenant sudah benar.')
       setLoading(false)
       return
     }
-    const nextOrders = ordersResult.data || []
+    setError(nextOrders.length >= 10000 ? 'Rentang tanggal memuat setidaknya 10.000 transaksi. Persempit rentang tanggal untuk memastikan laporan lengkap.' : '')
     setOrders(nextOrders)
     const orderIds = nextOrders.map(order => order.id)
     const itemBatches = []
@@ -61,7 +74,7 @@ export default function OrganizationReports({ organization, tenants = [] }) {
       setError('Data harga modal produk tidak dapat dimuat; total modal belum dapat dihitung.')
     } else setProducts(productResults.flatMap(result => result.data || []))
     setLoading(false)
-  }, [organization?.id, tenantIdsKey])
+  }, [organization?.id, tenantIdsKey, startDate, endDate])
 
   useEffect(() => {
     load()
@@ -112,7 +125,7 @@ export default function OrganizationReports({ organization, tenants = [] }) {
 
   return <section className="page-section">
     <div className="page-heading"><div><span className="eyebrow muted">OWNER WORKSPACE / CONSOLIDATED REPORT</span><h1>Laporan <span className="heading-accent">organisasi.</span></h1><p>Ringkasan lintas tenant yang terhubung ke organisasi Owner. Setiap transaksi tetap menyimpan identitas tenant dan kasir.</p></div><button className="btn btn-outline" onClick={downloadCsv} disabled={loading || filtered.length === 0}><ArrowDownRight size={16}/> Unduh CSV</button></div>
-    <div className="panel report-filter-panel"><div className="panel-head"><div><h3><CalendarDays size={17}/> Filter laporan organisasi</h3><p>Rentang tanggal dan pencarian berlaku untuk seluruh tenant yang dapat diakses Owner.</p></div><button className="btn btn-outline btn-small" onClick={load} disabled={loading}>{loading?<span className="spinner"/>:<RefreshCw size={14}/>} Muat ulang</button></div><div className="report-filter-grid"><label>Dari tanggal<input className="text-input" type="date" max={today()} value={startDate} onChange={event=>setStartDate(event.target.value)}/></label><label>Sampai tanggal<input className="text-input" type="date" min={startDate} max={today()} value={endDate} onChange={event=>setEndDate(event.target.value)}/></label><label>Cari transaksi / tenant<input className="text-input" type="search" value={search} onChange={event=>setSearch(event.target.value)} placeholder="No. struk, metode, kasir, tenant…"/></label></div></div>
+    <div className="panel report-filter-panel"><div className="panel-head"><div><h3><CalendarDays size={17}/> Filter laporan organisasi</h3><p>Rentang tanggal dan pencarian berlaku untuk seluruh tenant yang dapat diakses Owner.</p></div><button className="btn btn-outline btn-small" onClick={load} disabled={loading}>{loading?<span className="spinner"/>:<RefreshCw size={14}/>} Muat ulang</button></div><div className="report-filter-grid"><label>Dari tanggal<input className="text-input" type="date" max={today()} value={startDate} onChange={event=>{setStartDate(event.target.value);if(endDate<event.target.value)setEndDate(event.target.value)}}/></label><label>Sampai tanggal<input className="text-input" type="date" min={startDate} max={today()} value={endDate} onChange={event=>setEndDate(event.target.value)}/></label><label>Cari transaksi / tenant<input className="text-input" type="search" value={search} onChange={event=>setSearch(event.target.value)} placeholder="No. struk, metode, kasir, tenant…"/></label></div></div>
     {error && <div className="notice">{error}</div>}
     <div className="stats-grid report-finance-stats"><div className="stat-card"><span className="stat-icon tone-violet"><Wallet size={18}/></span><div><small>Total penjualan lintas tenant</small><strong>{money(revenue)}</strong><small>{paidOrders.length} transaksi lunas</small></div></div><div className="stat-card"><span className="stat-icon tone-blue"><BarChart3 size={18}/></span><div><small>Perkiraan modal produk</small><strong>{money(capital)}</strong><small>Harga modal × unit terjual</small></div></div><div className="stat-card"><span className="stat-icon tone-orange"><Store size={18}/></span><div><small>Tenant tercakup</small><strong>{tenantIds.length}</strong><small>Dari organisasi Owner</small></div></div><div className="stat-card"><span className="stat-icon tone-green"><BarChart3 size={18}/></span><div><small>Unit terjual</small><strong>{units.toLocaleString('id-ID')}</strong><small>Seluruh tenant terpilih</small></div></div></div>
     <div className="panel report-panel"><div className="panel-head"><div><h3><Store size={17}/> Ringkasan per tenant</h3><p>Perbandingan transaksi lunas pada rentang yang dipilih.</p></div></div>{loading?<div className="empty-state"><span className="spinner spinner-large"/></div>:<div className="table-wrap"><table><thead><tr><th>Tenant</th><th>Transaksi lunas</th><th>Total penjualan</th></tr></thead><tbody>{tenantTotals.map(row=><tr key={row.id}><td><strong>{row.name}</strong></td><td>{row.count.toLocaleString('id-ID')}</td><td className="strong">{money(row.total)}</td></tr>)}</tbody></table></div>}</div>
