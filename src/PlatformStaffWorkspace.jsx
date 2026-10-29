@@ -25,6 +25,7 @@ export default function PlatformStaffWorkspace({ session, staff, onSignOut }) {
   const [activeThread, setActiveThread] = useState(null)
   const [reply, setReply] = useState('')
   const [sending, setSending] = useState(false)
+  const [mobileNav, setMobileNav] = useState(false)
   const permissions = staff?.permissions || {}
   const visibleItems = useMemo(() => items.filter(item => !item.permission || permissions[item.permission] === true), [permissions])
   const title = visibleItems.find(item => item.key === page)?.label || 'Ringkasan'
@@ -100,14 +101,15 @@ export default function PlatformStaffWorkspace({ session, staff, onSignOut }) {
   }
 
   return <div className="app-shell super-admin-shell">
-    <aside className="sidebar">
-      <div className="sidebar-brand"><div className="brand"><span className="brand-mark">N</span><span>Nexa<span className="brand-accent">Pos</span><small>SMART COMMERCE</small></span></div></div>
-      <div className="store-switch"><span className="store-avatar"><ShieldCheck size={17}/></span><span className="store-copy"><strong>{staff?.role === 'admin' ? 'Admin NEXAPOS' : 'Customer Service'}</strong><small>Workspace internal</small></span></div>
-      <nav className="side-nav"><div className="nav-group"><div className="nav-section">WORKSPACE PLATFORM</div>{visibleItems.map(item => {const Icon=item.icon;return <button key={item.key} className={'nav-link '+(page===item.key?'nav-active':'')} onClick={()=>{setPage(item.key);setActiveThread(null)}}><Icon size={18}/><span>{item.label}</span></button>})}</div></nav>
+    <aside className={`sidebar ${mobileNav?'sidebar-open':''}`}>
+      <div className="sidebar-brand"><div className="brand"><span className="brand-mark brand-mark-image"><img className="brand-logo-image" src="/nexapos-mark.svg" alt=""/></span><span>Nexa<span className="brand-accent">Pos</span><small>SMART COMMERCE</small></span></div></div>
+      <div className="store-switch"><span className="store-avatar"><ShieldCheck size={17}/></span><span className="store-copy"><strong>Platform NexaPos</strong><small>Workspace internal</small></span></div>
+      <nav className="side-nav"><div className="nav-group"><div className="nav-section">PLATFORM</div>{visibleItems.map(item => {const Icon=item.icon;return <button key={item.key} className={'nav-link '+(page===item.key?'nav-active':'')} onClick={()=>{setPage(item.key);setActiveThread(null);setMobileNav(false)}}><Icon size={18}/><span>{item.label}</span></button>})}</div></nav>
       <div className="sidebar-bottom"><div className="user-card"><span className="user-avatar">{(session?.user?.email||'N').slice(0,1).toUpperCase()}</span><span className="user-copy"><strong>{session?.user?.email}</strong><small>{staff?.role === 'admin' ? 'Admin NEXAPOS' : 'Customer Service'}</small></span><button className="icon-button" title="Keluar" onClick={onSignOut}><LogOut size={17}/></button></div></div>
     </aside>
+    {mobileNav&&<button className="mobile-scrim" onClick={()=>setMobileNav(false)} aria-label="Tutup menu"/>}
     <main className="main-area">
-      <header className="topbar"><div className="topbar-title-group"><div className="breadcrumb">Workspace platform <span>/</span> <strong>{title}</strong></div><div className="topbar-date">Data dan tindakan diperiksa kembali oleh server berdasarkan izin akun</div></div><div className="topbar-actions"><span className="role-chip"><ShieldCheck size={14}/> {staff?.role === 'admin' ? 'ADMIN NEXAPOS' : 'CUSTOMER SERVICE'}</span><button className="btn btn-outline btn-small" onClick={onSignOut}><LogOut size={14}/> Keluar</button></div></header>
+      <header className="topbar"><div className="topbar-left"><button className="mobile-menu icon-button" onClick={()=>setMobileNav(true)} aria-label="Buka sidebar"><Menu size={20}/></button><div className="topbar-title-group"><div className="breadcrumb">Platform <span>/</span> <strong>{title}</strong></div><div className="topbar-date"><span className="desktop-date">Manajemen platform dan layanan pelanggan</span><span className="mobile-date">{new Date().toLocaleDateString("id-ID",{day:"2-digit",month:"2-digit",year:"numeric"})}</span></div></div></div><div className="topbar-actions"><WibClock/><span className="role-chip"><ShieldCheck size={14}/> {staff?.role === 'admin' ? 'ADMIN NEXAPOS' : 'CUSTOMER SERVICE'}</span></div></header>
       <div className="page-content"><section className="page-section">
         <div className="page-heading"><div><span className="eyebrow muted">NEXAPOS / INTERNAL</span><h1>{page === 'dashboard' ? <>Workspace <span className="heading-accent">platform.</span></> : <>{title} <span className="heading-accent">.</span></>}</h1><p>{page === 'dashboard' ? 'Pilih pekerjaan yang sesuai dengan izin akun Anda.' : 'Data internal ditampilkan melalui endpoint yang memverifikasi sesi, role, dan izin setiap permintaan.'}</p></div>{['users','stores','support','reports'].includes(page) && <button className="btn btn-outline" onClick={()=>loadPage(page)} disabled={loading}><RefreshCw size={15}/> Muat ulang</button>}</div>
         {notice && <div className="notice" role="status">{notice}</div>}
