@@ -32,6 +32,7 @@ const auditLogsMigration = await readFile(new URL('supabase/migrations/202610302
 const auditLogUi = await readFile(new URL('src/AuditLogPanel.jsx', root), 'utf8')
 const serverPromoQuoteMigration = await readFile(new URL('supabase/migrations/20261030220000_server_validate_activation_promotions.sql', root), 'utf8')
 const idempotentCheckoutMigration = await readFile(new URL('supabase/migrations/20261030230000_idempotent_checkout.sql', root), 'utf8')
+const tenantRoleMigration = await readFile(new URL('supabase/migrations/20261030240000_standardize_tenant_roles.sql', root), 'utf8')
 const organizationReportsUi = await readFile(new URL('src/OrganizationReports.jsx', root), 'utf8')
 
 test('Netlify headers include baseline browser security protections', () => {
@@ -530,4 +531,14 @@ test('checkout retries use a tenant-scoped idempotency key to prevent duplicate 
   assert.match(app, /p_request_id:checkoutRequestIdRef\.current/)
   assert.match(app, /checkoutRequestIdRef\.current = null/)
   assert.doesNotMatch(app, /supabase\.rpc\('complete_sale',/)
+})
+
+
+test('tenant roles are standardized and legacy manager memberships retain access as Admin Tenant', () => {
+  assert.match(tenantRoleMigration, /update public\.store_members set role = 'admin' where role = 'manager'/i)
+  assert.match(tenantRoleMigration, /check \(role in \('owner','admin','cashier'\)\)/i)
+  assert.match(tenantRoleMigration, /m\.role in \('owner','admin'\)/i)
+  assert.match(tenantRoleMigration, /p_target_role not in \('admin','cashier'\)/i)
+  assert.doesNotMatch(app, /\['owner','admin','manager'\]/)
+  assert.doesNotMatch(app, /Pilih admin, manager, atau cashier/)
 })
