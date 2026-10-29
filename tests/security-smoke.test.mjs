@@ -65,7 +65,7 @@ test('cashier passes the queue switch to checkout and receipt only prints a retu
 test('queue status updates use a guarded RPC instead of unrestricted table updates', () => {
   assert.match(app, /supabase\.rpc\('update_queue_ticket_status'/)
   assert.doesNotMatch(app, /from\('queue_tickets'\)\.update\(update\)/)
-  assert.match(writeHardeningMigration, /REVOKE INSERT, UPDATE ON TABLE public\.queue_tickets FROM PUBLIC, anon, authenticated/)
+  assert.match(writeHardeningMigration, /REVOKE ALL ON TABLE public\.queue_tickets FROM PUBLIC, anon, authenticated/)
   assert.match(writeHardeningMigration, /private\.is_store_operational\(v_ticket\.store_id\)/)
   assert.match(writeHardeningMigration, /IF NOT v_queue_enabled THEN/)
   assert.match(writeHardeningMigration, /p_status = 'serving' AND v_ticket\.status <> 'called'/)
