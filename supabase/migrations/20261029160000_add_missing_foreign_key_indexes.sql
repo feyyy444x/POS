@@ -25,3 +25,10 @@ create index if not exists store_members_disabled_by_idx
 
 create index if not exists support_messages_sender_id_idx
   on public.support_messages (sender_id);
+
+-- The platform-staff actor references are also foreign keys and need covering indexes.
+create index if not exists platform_staff_roles_created_by_idx
+  on public.platform_staff_roles (created_by);
+
+create index if not exists platform_staff_roles_updated_by_idx
+  on public.platform_staff_roles (updated_by);
