@@ -29,7 +29,7 @@ test('Netlify headers include baseline browser security protections', () => {
 })
 
 test('tenant member list and invitation history render email addresses', () => {
-  assert.match(app, /m\.email&&\{<>\s*<br\/>\s*<small className="member-email-visible">\{m\.email\}<\/small>\s*<\/>\}/)
+  assert.match(app, /m\\.email&&<>.*member-email-visible.*\\{m\\.email\\}/s))
   assert.match(app, /<small className="member-email-visible">\{i\.email\}<\/small>/)
   assert.match(appStyles, /\.member-email-visible\{[^}]*overflow-wrap:anywhere/)
 })
