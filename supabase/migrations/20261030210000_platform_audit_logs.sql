@@ -74,11 +74,11 @@ begin
   -- Never persist hashes or bearer tokens in audit payloads.
   if v_before is not null then
     v_before := v_before - 'activation_code_hash' - 'pin_hash' - 'password'
-      - 'public_token' - 'access_token' - 'refresh_token' - 'token' - 'secret';
+      - 'public_token' - 'access_token' - 'refresh_token' - 'token' - 'secret' - 'customer_name';
   end if;
   if v_after is not null then
     v_after := v_after - 'activation_code_hash' - 'pin_hash' - 'password'
-      - 'public_token' - 'access_token' - 'refresh_token' - 'token' - 'secret';
+      - 'public_token' - 'access_token' - 'refresh_token' - 'token' - 'secret' - 'customer_name';
   end if;
 
   if tg_table_name = 'stores' then
