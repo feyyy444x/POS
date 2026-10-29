@@ -24,12 +24,7 @@ class AppErrorBoundary extends React.Component {
         <main style={{ minHeight: '100vh', padding: 24, boxSizing: 'border-box', background: '#f8fafc', color: '#0f172a', fontFamily: 'system-ui, sans-serif' }}>
           <section style={{ maxWidth: 760, margin: '8vh auto', padding: 24, border: '1px solid #fecaca', borderRadius: 16, background: '#fff' }}>
             <h1 style={{ marginTop: 0, fontSize: 24 }}>NexaPos mengalami error saat dibuka</h1>
-            <p>Aplikasi gagal merender halaman. Pesan error untuk pemeriksaan:</p>
-            <pre style={{ padding: 16, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', borderRadius: 8, background: '#f1f5f9' }}>{String(this.state.error?.message || this.state.error)}</pre>
-            <details style={{ margin: '16px 0' }}>
-              <summary style={{ cursor: 'pointer', fontWeight: 600 }}>Detail teknis untuk pengembang</summary>
-              <pre style={{ marginTop: 12, padding: 16, maxHeight: '32vh', overflow: 'auto', whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', borderRadius: 8, background: '#0f172a', color: '#e2e8f0', fontSize: 12 }}>{String(this.state.error?.stack || 'Stack trace tidak tersedia')}</pre>
-            </details>
+            <p>Aplikasi mengalami kendala saat menampilkan halaman. Muat ulang halaman atau coba lagi beberapa saat.</p>
             <p>Data transaksi tidak dihapus oleh layar ini. Detail teknis membantu menemukan sumber error.</p>
           </section>
         </main>
