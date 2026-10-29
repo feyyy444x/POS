@@ -18,9 +18,10 @@ export default function SubscriptionPlanManager({ onBack, staffMode = false, ses
   const [savingKey, setSavingKey] = useState('')
   const [notice, setNotice] = useState('')
   const [error, setError] = useState('')
+  const [plansReady, setPlansReady] = useState(false)
 
   const load = useCallback(async () => {
-    setLoading(true); setError('')
+    setLoading(true); setError(''); setPlansReady(false)
     let data, queryError
     if (staffMode) {
       try { const response = await fetch('/.netlify/functions/platform-staff-workspace', { method:'POST', headers:{'Content-Type':'application/json', Authorization:'Bearer '+(session?.access_token||'')}, body:JSON.stringify({action:'plans_list'}) }); const result=await response.json(); if(!response.ok) throw new Error(result.error||'Paket belum dapat dimuat.'); data=result.data||[] }
@@ -28,12 +29,14 @@ export default function SubscriptionPlanManager({ onBack, staffMode = false, ses
     } else ({ data, error: queryError } = await supabase.from('site_subscription_plans').select('*').order('sort_order', { ascending: true }))
     if (queryError) {
       setPlans([])
+      setPlansReady(false)
       setError(userFacingError(queryError, 'Paket belum dapat dimuat. Coba lagi atau hubungi admin jika masalah berlanjut.'))
     } else {
       setPlans(data || [])
       const expectedKeys = defaults.map(plan => plan.plan_key)
       const missingKeys = expectedKeys.filter(key => !(data || []).some(plan => plan.plan_key === key))
       if (missingKeys.length) setError('Data paket belum lengkap. Paket yang belum ditemukan: ' + missingKeys.join(', ') + '. Periksa database sebelum mengubah harga.')
+      setPlansReady(missingKeys.length === 0)
     }
     setLoading(false)
   }, [staffMode, session?.access_token])
@@ -86,6 +89,7 @@ export default function SubscriptionPlanManager({ onBack, staffMode = false, ses
           {notice && <div className="toast"><CheckCircle2 size={17}/><span>{notice}</span></div>}
           {error && <div className="notice">{error}</div>}
           {loading && <div className="empty-state"><span className="spinner spinner-large"/></div>}
+          {!loading && plans.length === 0 && <div className="empty-state"><ShieldCheck size={22}/><strong>Data paket belum tersedia</strong><p>Harga tidak dapat diubah sampai data paket berhasil dimuat dari database.</p></div>}
           <div className="nx-subscription-admin-grid">
             {plans.map(plan => <article className="panel nx-subscription-admin-card" key={plan.plan_key}>
               <div className="panel-head"><div><h3>{plan.name || plan.plan_key}</h3><p>Kunci paket: <code>{plan.plan_key}</code></p></div><span className={'status-pill '+(plan.is_active?'status-paid':'status-inactive')}>{plan.is_active?'Tampil':'Disembunyikan'}</span></div>
@@ -99,7 +103,7 @@ export default function SubscriptionPlanManager({ onBack, staffMode = false, ses
                 <label className="nx-subscription-toggle"><input type="checkbox" checked={Boolean(plan.is_popular)} onChange={e=>update(plan.plan_key,'is_popular',e.target.checked)}/> Paket populer</label>
               </div>
               <label>Urutan tampil<input className="text-input" type="number" min="1" max="99" value={plan.sort_order} onChange={e=>update(plan.plan_key,'sort_order',e.target.value)}/></label>
-              <button className="btn btn-primary btn-wide" disabled={savingKey===plan.plan_key} onClick={()=>save(plan)}>{savingKey===plan.plan_key?<span className="spinner"/>:<Save size={16}/>} Simpan paket</button>
+              <button className="btn btn-primary btn-wide" disabled={!plansReady || savingKey===plan.plan_key} onClick={()=>save(plan)}>{savingKey===plan.plan_key?<span className="spinner"/>:<Save size={16}/>} Simpan paket</button>
             </article>)}
           </div>
           <p className="nx-subscription-admin-footnote">Perubahan tidak mengubah transaksi atau masa aktif tenant. Paket yang disembunyikan tidak tampil di homepage publik. Pengelolaan paket dibatasi oleh izin server untuk akun yang sedang masuk.</p>
