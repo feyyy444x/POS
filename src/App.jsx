@@ -15,7 +15,6 @@ import PromotionManager from './PromotionManager.jsx'
 import SubscriptionPlanManager from './SubscriptionPlanManager.jsx'
 import TvDisplaySettings from './TvDisplaySettings.jsx'
 import PlatformStaffManager from './PlatformStaffManager.jsx'
-import PlatformStaffWorkspace from './PlatformStaffWorkspace.jsx'
 
 const money = (value) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value || 0))
 const today = () => new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' })
@@ -139,7 +138,6 @@ function App() {
   const [pinStatus, setPinStatus] = useState(null)
   const [isSuperAdmin, setIsSuperAdmin] = useState(false)
   const [isPlatformAdmin, setIsPlatformAdmin] = useState(false)
-  const [platformStaffRole, setPlatformStaffRole] = useState(null)
   const [store, setStore] = useState(null)
   const [membership, setMembership] = useState(null)
   const [memberships, setMemberships] = useState([])
@@ -346,7 +344,7 @@ function App() {
     setLoading(true)
     setNotice('')
     // Platform staff accounts are independent of tenant membership; never send them through tenant onboarding.
-    if (isSuperAdmin || platformStaffRole) {
+    if (isSuperAdmin) {
       setMemberships([])
       setMembership(null)
       setSelectedStoreId('')
@@ -447,9 +445,9 @@ function App() {
     } else { setTeamMembers([]); setTeamInvites([]) }
     setNotice(loadIssues.length ? 'Sebagian data gagal dimuat: ' + loadIssues.join(' · ') : '')
     setLoading(false)
-  }, [session, selectedStoreId, isSuperAdmin, platformStaffRole])
+  }, [session, selectedStoreId, isSuperAdmin])
 
-  useEffect(()=>{if(!session){setIsSuperAdmin(false);setIsPlatformAdmin(false);setPlatformStaffRole(null);setAdminCheckReady(true);return}let cancelled=false;setAdminCheckReady(false);Promise.all([supabase.from('super_admins').select('user_id').eq('user_id',session.user.id).maybeSingle(),supabase.rpc('get_my_platform_staff_role')]).then(([adminResult,staffResult])=>{if(cancelled)return;const staffData=Array.isArray(staffResult.data)?staffResult.data[0]:staffResult.data;const isPlatformAdmin=!staffResult.error&&staffData?.role==='admin';setIsPlatformAdmin(isPlatformAdmin);setIsSuperAdmin(Boolean(adminResult.data)||isPlatformAdmin);setPlatformStaffRole(!adminResult.data&&!isPlatformAdmin&&!staffResult.error&&staffData?.role==='admin'&&staffData?.is_active!==false?staffData:null);setAdminCheckReady(true)}).catch(()=>{if(!cancelled){setIsSuperAdmin(false);setIsPlatformAdmin(false);setPlatformStaffRole(null);setAdminCheckReady(true)}});return()=>{cancelled=true}},[session?.user?.id,session?.access_token])
+  useEffect(()=>{if(!session){setIsSuperAdmin(false);setIsPlatformAdmin(false);setAdminCheckReady(true);return}let cancelled=false;setAdminCheckReady(false);Promise.all([supabase.from('super_admins').select('user_id').eq('user_id',session.user.id).maybeSingle(),supabase.rpc('get_my_platform_staff_role')]).then(([adminResult,staffResult])=>{if(cancelled)return;const staffData=Array.isArray(staffResult.data)?staffResult.data[0]:staffResult.data;const isPlatformAdmin=!staffResult.error&&staffData?.role==='admin';setIsPlatformAdmin(isPlatformAdmin);setIsSuperAdmin(Boolean(adminResult.data)||isPlatformAdmin);setAdminCheckReady(true)}).catch(()=>{if(!cancelled){setIsSuperAdmin(false);setIsPlatformAdmin(false);setAdminCheckReady(true)}});return()=>{cancelled=true}},[session?.user?.id,session?.access_token])
 
   useEffect(()=>{
     const handleOnline=()=>setSyncStatus('checking')
@@ -1081,7 +1079,7 @@ function App() {
   if(pinStatus.error)return <div className="loading-screen"><p>Modul keamanan PIN belum siap: {pinStatus.error}</p><p>Terapkan migrasi PIN sebelum memakai versi ini.</p><button className="btn btn-outline" onClick={()=>supabase.auth.signOut()}>Keluar</button></div>
   if(!pinStatus.has_pin||!pinStatus.is_verified)return <PinGate session={session} status={pinStatus} onReady={setPinStatus} onSignOut={()=>supabase.auth.signOut()}/>
   if(isSuperAdmin)return <SuperAdminScreen session={session} syncStatus={syncStatus} setSyncStatus={setSyncStatus} onSignOut={()=>supabase.auth.signOut()} platformAdmin={isPlatformAdmin}/>
-  if(platformStaffRole)return <PlatformStaffWorkspace session={session} staff={platformStaffRole} onSignOut={()=>supabase.auth.signOut()}/>
+  
   if(loading&&!store)return <div className="loading-screen"><span className="spinner spinner-large"/><span>Memeriksa keanggotaan toko…</span></div>
   if(!store)return <div className="loading-screen"><span className="spinner spinner-large"/><p>{notice||'Akun ini belum terhubung ke toko. Minta Owner atau Super Admin mengirim undangan.'}</p><button className="btn btn-outline" onClick={loadWorkspace} disabled={loading}><RefreshCw size={14}/> {loading?'Memeriksa toko…':'Cek koneksi toko'}</button><button className="btn btn-ghost" onClick={()=>supabase.auth.signOut()}>Keluar</button></div>
   const effectiveStoreStatus = store.status === 'active' && store.expires_at && new Date(store.expires_at) <= new Date() ? 'expired' : (store.status || 'active')
