@@ -16,7 +16,6 @@ export default function SupportCenter({ session, onClose, isSuperAdmin = false, 
   const [activeUser, setActiveUser] = useState(null)
   const [draft, setDraft] = useState('')
   const [guestName, setGuestName] = useState('')
-  const [guestEmail, setGuestEmail] = useState('')
   const [guestReady, setGuestReady] = useState(false)
   const [guestSession, setGuestSession] = useState(null)
   const [busy, setBusy] = useState(false)
@@ -35,7 +34,7 @@ export default function SupportCenter({ session, onClose, isSuperAdmin = false, 
   const userId = activeSession?.user?.id
   const userEmail = activeSession?.user?.email || ''
   const isGuest = !session?.user && !isSuperAdmin
-  const guestIdentity = `${guestName.trim()} <${guestEmail.trim()}>`
+  const guestIdentity = guestName.trim()
   const currentTelegramUsername = String(channelSettings.telegram_username || '').replace(/^@/, '').trim()
   const whatsappNumber = String(channelSettings.whatsapp_number || '').replace(/\D/g, '')
 
@@ -190,8 +189,8 @@ export default function SupportCenter({ session, onClose, isSuperAdmin = false, 
   const continueAsGuest = async event => {
     event.preventDefault()
     setError('')
-    if (!guestName.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail.trim())) {
-      setError('Masukkan nama dan alamat email yang valid.')
+    if (!guestName.trim()) {
+      setError('Masukkan nama Anda untuk melanjutkan ke live chat.')
       return
     }
     if (!supabase) { setError('Layanan live chat belum dikonfigurasi.'); return }
@@ -298,7 +297,7 @@ export default function SupportCenter({ session, onClose, isSuperAdmin = false, 
           <div className="support-settings-actions"><button className="btn btn-primary" disabled={channelBusy || channelLoading}>{channelBusy ? <span className="spinner" /> : <Save size={15}/>} Simpan pengaturan</button><button type="button" className="btn btn-outline" onClick={() => { setMode('inbox'); setChannelNotice('') }}><MessageCircle size={15}/> Inbox live chat</button><button type="button" className="btn btn-outline" onClick={() => setMode('choices')}>Pratinjau kanal</button></div>
         </form>
       </div>}
-      {mode === 'guest-form' && isGuest && <div className="support-choices"><span className="eyebrow muted">LIVE CHAT TAMU</span><h2>Sebelum memulai</h2><p>Silakan isi nama dan email agar tim NexaPos dapat mengenali percakapan dan menindaklanjuti pertanyaan Anda.</p><form className="support-guest-form" onSubmit={continueAsGuest}><label htmlFor="guest-chat-name">Nama</label><input id="guest-chat-name" value={guestName} onChange={e=>setGuestName(e.target.value)} placeholder="Nama Anda" autoComplete="name" maxLength={100} required/><label htmlFor="guest-chat-email">Alamat email</label><input id="guest-chat-email" type="email" value={guestEmail} onChange={e=>setGuestEmail(e.target.value)} placeholder="nama@email.com" autoComplete="email" maxLength={254} required/><button className="btn btn-primary" disabled={busy}>{busy?<span className="spinner"/>:<MessageCircle size={16}/>} Lanjutkan ke live chat</button>{error&&<p className="support-error">{error}</p>}</form></div>}
+      {mode === 'guest-form' && isGuest && <div className="support-choices"><span className="eyebrow muted">LIVE CHAT TAMU</span><h2>Sebelum memulai</h2><p>Silakan isi nama dan email agar tim NexaPos dapat mengenali percakapan dan menindaklanjuti pertanyaan Anda.</p><form className="support-guest-form" onSubmit={continueAsGuest}><label htmlFor="guest-chat-name">Nama</label><input id="guest-chat-name" value={guestName} onChange={e=>setGuestName(e.target.value)} placeholder="Nama Anda" autoComplete="name" maxLength={100} required/><button className="btn btn-primary" disabled={busy}>{busy?<span className="spinner"/>:<MessageCircle size={16}/>} Lanjutkan ke live chat</button>{error&&<p className="support-error">{error}</p>}</form></div>}
       {mode === 'choices' && <div className="support-choices"><span className="eyebrow muted">BAGAIMANA KAMI BISA MEMBANTU?</span><h2>Hubungi tim dukungan</h2><p>Pilih kanal bantuan yang paling nyaman untuk Anda.</p>
         <button className="support-choice" onClick={() => setMode(isSuperAdmin ? 'inbox' : isGuest ? 'guest-form' : 'chat')}><span className="support-choice-icon support-chat-icon"><MessageCircle size={21}/></span><span><strong>{isSuperAdmin ? 'Inbox live chat' : 'Live chat'}</strong><small>{isSuperAdmin ? 'Baca dan balas pesan tenant' : 'Kirim pesan langsung kepada tim NexaPos'}</small></span><ArrowRight size={17}/></button>
         <button className="support-choice" onClick={openWhatsApp} disabled={!channelSettings.whatsapp_enabled || !whatsappNumber}><span className="support-choice-icon support-whatsapp-icon"><Phone size={20}/></span><span><strong>WhatsApp</strong><small>{channelSettings.whatsapp_enabled && whatsappNumber ? 'Chat melalui WhatsApp' : 'WhatsApp belum dikonfigurasi admin'}</small></span><ExternalLink size={16}/></button>
