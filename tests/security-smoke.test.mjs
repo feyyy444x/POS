@@ -11,6 +11,8 @@ const writeHardeningMigration = await readFile(new URL('supabase/migrations/2026
 const queueCompatibilityMigration = await readFile(new URL('supabase/migrations/20261029151000_queue_update_compatibility_guard.sql', root), 'utf8')
 const privilegedRlsMigration = await readFile(new URL('supabase/migrations/20261029152000_require_pin_for_privileged_rls.sql', root), 'utf8')
 const queueTimestampGuardMigration = await readFile(new URL('supabase/migrations/20261029153000_refine_queue_timestamp_guard.sql', root), 'utf8')
+const foreignKeyIndexesMigration = await readFile(new URL('supabase/migrations/20261029160000_add_missing_foreign_key_indexes.sql', root), 'utf8')
+const cashierAlertRlsMigration = await readFile(new URL('supabase/migrations/20261029161000_optimize_cashier_alert_rls.sql', root), 'utf8')
 
 test('Netlify headers include baseline browser security protections', () => {
   for (const directive of [
@@ -112,6 +114,21 @@ test('privileged RLS mutations require PIN verification', () => {
   assert.match(privilegedRlsMigration, /Anyone can view active site promotions/)
 })
 
+
+test('performance migrations cover flagged foreign keys and cache auth identity in alert policies', () => {
+  for (const indexName of [
+    'cashier_manual_alerts_cashier_id_idx',
+    'cashier_manual_alerts_sent_by_idx',
+    'site_promotions_created_by_idx',
+    'site_subscription_plans_updated_by_idx',
+    'store_invites_invited_by_idx',
+    'store_invites_store_id_idx',
+    'store_members_disabled_by_idx',
+    'support_messages_sender_id_idx',
+  ]) assert.match(foreignKeyIndexesMigration, new RegExp(indexName))
+  assert.match(cashierAlertRlsMigration, /cashier_id = \(select auth\.uid\(\)\)/)
+  assert.match(cashierAlertRlsMigration, /sent_by = \(select auth\.uid\(\)\)/)
+})
 
 test('queue timestamps cannot be edited after the corresponding status transition', () => {
   assert.match(queueTimestampGuardMigration, /NEW\.status IS DISTINCT FROM OLD\.status/)
