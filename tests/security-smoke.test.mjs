@@ -311,6 +311,13 @@ test('direct table inserts cannot bypass the support RPC validation and rate lim
 })
 
 
+test('promotion editor preserves local wall-clock time when editing UTC timestamps', () => {
+  assert.match(promotionManagerUi, /const toLocalInput = \(value\) => \{/)
+  assert.match(promotionManagerUi, /date\.getFullYear\(\).*date\.getMonth\(\).*date\.getDate\(\).*date\.getHours\(\).*date\.getMinutes\(\)/s)
+  assert.match(promotionManagerUi, /const dateValue = \(value\) => value \? new Date\(value\)\.toISOString\(\) : null/)
+  assert.doesNotMatch(promotionManagerUi, /const toLocalInput = \(value\) => value \? new Date\(value\)\.toISOString\(\)\.slice\(0, 16\)/)
+})
+
 test('foreign-key index migration covers all staff and platform actor references flagged by the database advisor', () => {
   assert.ok(foreignKeyIndexesMigration.includes('create index if not exists platform_staff_roles_created_by_idx'))
   assert.ok(foreignKeyIndexesMigration.includes('on public.platform_staff_roles (created_by)'))
