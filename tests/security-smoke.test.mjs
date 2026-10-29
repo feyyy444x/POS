@@ -6,6 +6,7 @@ const root = new URL('../', import.meta.url)
 const headers = await readFile(new URL('public/_headers', root), 'utf8')
 const activation = await readFile(new URL('netlify/functions/activate-invitation.mjs', root), 'utf8')
 const app = await readFile(new URL('src/App.jsx', root), 'utf8')
+const appStyles = await readFile(new URL('src/styles.css', root), 'utf8')
 const queueMigration = await readFile(new URL('supabase/migrations/20261029140000_enforce_store_queue_enabled.sql', root), 'utf8')
 const writeHardeningMigration = await readFile(new URL('supabase/migrations/20261029150000_tighten_mutable_column_grants_and_queue_policy.sql', root), 'utf8')
 const queueCompatibilityMigration = await readFile(new URL('supabase/migrations/20261029151000_queue_update_compatibility_guard.sql', root), 'utf8')
@@ -30,6 +31,7 @@ test('Netlify headers include baseline browser security protections', () => {
 test('tenant member list and invitation history render email addresses', () => {
   assert.match(app, /m\.email&&\{<>\s*<br\/>\s*<small className="member-email-visible">\{m\.email\}<\/small>\s*<\/>\}/)
   assert.match(app, /<small className="member-email-visible">\{i\.email\}<\/small>/)
+  assert.match(appStyles, /\.member-email-visible\{[^}]*overflow-wrap:anywhere/)
 })
 
 test('invitation activation rejects unsupported methods and malformed credentials', () => {
