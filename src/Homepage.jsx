@@ -83,7 +83,7 @@ export default function Homepage() {
     const { data, error } = await supabase.from('site_promotions')
       .select('id,title,description,discount_type,discount_value,eligible_periods,promo_code,requires_code,starts_at,ends_at,is_active')
       .eq('is_active', true)
-    if (error) return
+    if (error) { setPromos([]); return }
     const now = Date.now()
     setPromos((data || []).filter(p => (!p.starts_at || new Date(p.starts_at).getTime() <= now) && (!p.ends_at || new Date(p.ends_at).getTime() >= now)))
   }, [])
