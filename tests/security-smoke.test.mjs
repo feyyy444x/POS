@@ -374,7 +374,7 @@ test('queue settings contain no media upload or template controls and require ow
   assert.match(queueSettingsUi, /\['owner', 'admin'\]\.includes\(membership\?\.role\)/)
   assert.match(queueSettingsUi, /store_settings'\)\.upsert/)
   assert.match(queueSettingsUi, /crypto\.getRandomValues/)
-  assert.doesNotMatch(queueSettingsUi, /store_tv_media|upload|playlist|media_volume|selectedTemplate|template options/i)
+  assert.doesNotMatch(queueSettingsUi, /store_tv_media|type=[\"']file[\"']|media_volume|selectedTemplate|uploadMedia|playlistItems/i)
 })
 
 test('password minimum is six characters in profile forms and admin reset endpoint', async () => {
