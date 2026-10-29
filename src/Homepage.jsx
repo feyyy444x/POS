@@ -19,7 +19,7 @@ const fallbackPlans = [
 const features = [
   { number: '01', icon: ShoppingCart, title: 'Kasir untuk kerja sehari-hari', text: 'Pilih produk, hitung total, proses pembayaran, dan catat transaksi dalam satu alur yang praktis.' },
   { number: '02', icon: Users, title: 'Banyak kasir, satu toko', text: 'Beberapa akun karyawan dapat melayani pelanggan secara bersamaan. Setiap transaksi tetap tercatat sesuai akun yang mengerjakannya.' },
-  { number: '03', icon: Monitor, title: 'Antrian sesuai kebutuhan', text: 'Aktifkan sistem antrian saat dibutuhkan dan tampilkan nomor panggilan di layar TV. Saat dinonaktifkan, nomor antrian tidak perlu muncul pada struk.' },
+  { number: '03', icon: Monitor, title: 'Alur antrian lebih jelas', text: 'Kelola nomor antrian secara digital dan tampilkan panggilan di layar TV untuk membantu pelanggan mengetahui giliran layanan.' },
   { number: '04', icon: Package, title: 'Produk dan stok terkelola', text: 'Kelola katalog, kategori, harga, dan informasi stok agar tim punya acuan produk yang lebih rapi.' },
   { number: '05', icon: BarChart3, title: 'Riwayat dan laporan operasional', text: 'Telusuri catatan transaksi dan pantau ringkasan penjualan untuk membantu memahami aktivitas toko.' },
   { number: '06', icon: Printer, title: 'Struk untuk kebutuhan toko', text: 'Gunakan alur cetak struk melalui printer thermal yang kompatibel dengan perangkat dan browser yang dipakai.' },
