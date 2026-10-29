@@ -40,7 +40,24 @@ export default function Demo() {
   const addDemoProduct = () => { const id=Math.max(0,...localProducts.map(p=>p.id))+1; setLocalProducts(current=>[...current,{id,name:'Produk Demo '+id,category:'Makanan',price:10000,stock:10,icon:'🧁',color:'bread'}]); simulate('Tambah produk demo') }
   const editDemoProduct = (product) => { const name=window.prompt('Nama produk demo',product.name); if(name?.trim()){setLocalProducts(current=>current.map(p=>p.id===product.id?{...p,name:name.trim()}:p));simulate('Edit produk demo')} }
   const deleteDemoProduct = (product) => { if(window.confirm('Hapus '+product.name+' dari data demo saja?')){setLocalProducts(current=>current.filter(p=>p.id!==product.id));setCart(current=>current.filter(item=>item.id!==product.id));simulate('Hapus produk demo')} }
-  const checkoutDemo = () => { if(!cartItems.length){simulate('Keranjang kosong');return} const completedItems=cartItems.map(item=>({...item})); const completedTotal=total; const receiptNumber='D-'+String(transactions+1).padStart(4,'0'); setDemoSales(value=>value+completedTotal);setTransactions(value=>value+1);setLocalProducts(current=>current.map(product=>{const item=completedItems.find(cartItem=>cartItem.id===product.id);return item?{...product,stock:Math.max(0,Number(product.stock||0)-item.qty)}:product}));if(queueEnabled){const nextNumber='A'+String(nextQueueNumber().padStart(3,'0');setQueueRows(current=>[...current,[nextNumber,'Menunggu']])}setLastReceipt({number:receiptNumber,total:completedTotal,items:completedItems,queueNumber:queueEnabled?'A'+String(Math.max(0,...queueRows.map(row=>Number(String(row[0]).replace(/\\D/g,'')))+1).padStart(3,'0'):null,createdAt:new Date().toLocaleString('id-ID')});setCart([]);simulate('Checkout demo '+money(completedTotal)) }
+  const nextQueueNumber = () => Math.max(0, ...queueRows.map(row => Number(String(row[0]).slice(1)) || 0)) + 1
+  const checkoutDemo = () => {
+    if (!cartItems.length) { simulate('Keranjang kosong'); return }
+    const completedItems = cartItems.map(item => ({ ...item }))
+    const completedTotal = total
+    const receiptNumber = 'D-' + String(transactions + 1).padStart(4, '0')
+    const queueNumber = queueEnabled ? 'A' + String(nextQueueNumber()).padStart(3, '0') : null
+    setDemoSales(value => value + completedTotal)
+    setTransactions(value => value + 1)
+    setLocalProducts(current => current.map(product => {
+      const item = completedItems.find(cartItem => cartItem.id === product.id)
+      return item ? { ...product, stock: Math.max(0, Number(product.stock || 0) - item.qty) } : product
+    }))
+    if (queueNumber) setQueueRows(current => [...current, [queueNumber, 'Menunggu']])
+    setLastReceipt({ number: receiptNumber, total: completedTotal, items: completedItems, queueNumber, createdAt: new Date().toLocaleString('id-ID') })
+    setCart([])
+    simulate('Checkout demo ' + money(completedTotal))
+  }
   const nextQueueNumber = () => Math.max(0, ...queueRows.map(row => Number(String(row[0]).replace(/\\D/g, '')))) + 1
   const callNextDemo = () => { const nextIndex=queueRows.findIndex(row=>row[1]==='Menunggu');if(nextIndex<0){simulate('Tidak ada antrian menunggu');return}setQueueRows(current=>current.map((row,index)=>index===nextIndex?[row[0],'Dipanggil']:row[1]==='Dipanggil'?[row[0],'Selesai']:row));simulate('Panggil antrian demo') }
   return <main className="nx-demo">
