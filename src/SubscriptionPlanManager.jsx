@@ -12,7 +12,7 @@ const defaults = [
 ]
 const money = value => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value || 0))
 
-export default function SubscriptionPlanManager({ onBack }) {
+export default function SubscriptionPlanManager({ onBack, staffMode = false, session = null }) {
   const [plans, setPlans] = useState([])
   const [loading, setLoading] = useState(true)
   const [savingKey, setSavingKey] = useState('')
@@ -21,7 +21,11 @@ export default function SubscriptionPlanManager({ onBack }) {
 
   const load = useCallback(async () => {
     setLoading(true); setError('')
-    const { data, error: queryError } = await supabase.from('site_subscription_plans').select('*').order('sort_order', { ascending: true })
+    let data, queryError
+    if (staffMode) {
+      try { const response = await fetch('/.netlify/functions/platform-staff-workspace', { method:'POST', headers:{'Content-Type':'application/json', Authorization:'Bearer '+(session?.access_token||'')}, body:JSON.stringify({action:'plans_list'}) }); const result=await response.json(); if(!response.ok) throw new Error(result.error||'Paket belum dapat dimuat.'); data=result.data||[] }
+      catch (error) { queryError=error }
+    } else ({ data, error: queryError } = await supabase.from('site_subscription_plans').select('*').order('sort_order', { ascending: true }))
     if (queryError) {
       setError(userFacingError(queryError, 'Paket belum dapat dimuat. Coba lagi atau hubungi admin jika masalah berlanjut.'))
       setPlans(defaults)
@@ -34,11 +38,12 @@ export default function SubscriptionPlanManager({ onBack }) {
 
   useEffect(() => {
     load()
+    if (staffMode) return
     const channel = supabase.channel('admin-subscription-plans-live')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'site_subscription_plans' }, load)
       .subscribe(status => { if (status === 'SUBSCRIBED') load() })
     return () => { supabase.removeChannel(channel) }
-  }, [load])
+  }, [load, staffMode])
   const update = (key, field, value) => setPlans(current => current.map(plan => plan.plan_key === key ? { ...plan, [field]: value } : plan))
 
   const save = async plan => {
@@ -59,7 +64,11 @@ export default function SubscriptionPlanManager({ onBack }) {
     if (!payload.name || !payload.duration || !Number.isFinite(payload.price) || payload.price < 0) {
       setError('Nama, durasi, dan harga harus valid.'); setSavingKey(''); return
     }
-    const { error: saveError } = await supabase.from('site_subscription_plans').upsert(payload, { onConflict: 'plan_key' })
+    let saveError = null
+    if (staffMode) {
+      try { const response=await fetch('/.netlify/functions/platform-staff-workspace',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+(session?.access_token||'')},body:JSON.stringify({action:'plans_save',plan:payload})}); const result=await response.json(); if(!response.ok) throw new Error(result.error||'Paket belum berhasil disimpan.') }
+      catch (error) { saveError=error }
+    } else ({ error: saveError } = await supabase.from('site_subscription_plans').upsert(payload, { onConflict: 'plan_key' }))
     setSavingKey('')
     if (saveError) { setError(userFacingError(saveError, 'Paket belum berhasil disimpan. Periksa koneksi lalu coba lagi.')); return }
     setNotice('Paket ' + payload.name + ' berhasil disimpan. Homepage akan mengikuti pengaturan ini.')
@@ -68,7 +77,7 @@ export default function SubscriptionPlanManager({ onBack }) {
 
   return <div className="app-shell super-admin-shell nx-plan-admin">
     <main className="main-area">
-      <header className="topbar"><div className="topbar-left"><button className="btn btn-outline btn-small nx-back-button" onClick={onBack}><ArrowLeft size={15}/> Kembali</button><div><div className="breadcrumb">Homepage <span>/</span> <strong>Langganan & paket</strong></div><div className="topbar-date">Atur harga, deskripsi, fitur dan ikon centang paket publik</div></div></div><div className="topbar-actions"><span className="role-chip"><ShieldCheck size={14}/> SUPER ADMIN</span><button className="btn btn-outline btn-small" onClick={load}><RefreshCw size={14}/> Muat ulang</button></div></header>
+      <header className="topbar"><div className="topbar-left"><button className="btn btn-outline btn-small nx-back-button" onClick={onBack}><ArrowLeft size={15}/> Kembali</button><div><div className="breadcrumb">Homepage <span>/</span> <strong>Langganan & paket</strong></div><div className="topbar-date">Atur harga, deskripsi, fitur dan ikon centang paket publik</div></div></div><div className="topbar-actions"><span className="role-chip"><ShieldCheck size={14}/> {staffMode ? 'STAF PLATFORM' : 'SUPER ADMIN'}</span><button className="btn btn-outline btn-small" onClick={load}><RefreshCw size={14}/> Muat ulang</button></div></header>
       <div className="page-content">
         <section className="page-section">
           <div className="page-heading"><div><span className="eyebrow muted">PENGELOLAAN HOMEPAGE</span><h1>Langganan <span className="heading-accent">homepage.</span></h1><p>Harga, deskripsi dan daftar fitur yang disimpan di sini akan digunakan oleh kartu paket homepage. Ikon centang hijau tetap konsisten dan bukan emoji perangkat.</p></div><span className="date-pill"><CheckCircle2 size={14}/> Ikon centang dipertahankan</span></div>
@@ -91,7 +100,7 @@ export default function SubscriptionPlanManager({ onBack }) {
               <button className="btn btn-primary btn-wide" disabled={savingKey===plan.plan_key} onClick={()=>save(plan)}>{savingKey===plan.plan_key?<span className="spinner"/>:<Save size={16}/>} Simpan paket</button>
             </article>)}
           </div>
-          <p className="nx-subscription-admin-footnote">Perubahan tidak mengubah transaksi atau masa aktif tenant. Paket yang disembunyikan tidak tampil di homepage publik. Pengelolaan paket tersedia hanya untuk Super Admin.</p>
+          <p className="nx-subscription-admin-footnote">Perubahan tidak mengubah transaksi atau masa aktif tenant. Paket yang disembunyikan tidak tampil di homepage publik. Pengelolaan paket dibatasi oleh izin server untuk akun yang sedang masuk.</p>
         </section>
       </div>
     </main>
