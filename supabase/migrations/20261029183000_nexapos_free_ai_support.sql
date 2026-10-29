@@ -91,7 +91,7 @@ VALUES
 ('umum','Terima kasih','Sama-sama! Kalau masih ada pertanyaan seputar NexaPos, tulis saja di sini. Anda juga bisa meminta bantuan Admin NexaPos kapan saja melalui tombol Hubungi Admin.',['terima kasih','makasih','thanks'],2)
 ON CONFLICT DO NOTHING;
 
-CREATE OR REPLACE FUNCTION public.submit_support_message(p_message text)
+CREATE OR REPLACE FUNCTION public.submit_support_message(p_message text, p_display_identity text DEFAULT NULL)
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -118,7 +118,7 @@ BEGIN
     RAISE EXCEPTION 'Batas pesan sementara tercapai. Coba lagi nanti atau hubungi Admin.';
   END IF;
 
-  SELECT coalesce(u.email, nullif(u.raw_user_meta_data ->> 'email', ''), '')
+  SELECT coalesce(nullif(trim(p_display_identity), ''), u.email, nullif(u.raw_user_meta_data ->> 'email', ''), '')
     INTO v_email FROM auth.users u WHERE u.id = v_user_id;
 
   INSERT INTO public.support_conversations(user_id, status, updated_at, last_message_at)
@@ -247,11 +247,11 @@ BEGIN
 END;
 $function$;
 
-REVOKE ALL ON FUNCTION public.submit_support_message(text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.submit_support_message(text, text) FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.request_support_handoff() FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.admin_reply_support_message(uuid, text) FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.set_support_conversation_status(uuid, text) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.submit_support_message(text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.submit_support_message(text, text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.request_support_handoff() TO authenticated;
 GRANT EXECUTE ON FUNCTION public.admin_reply_support_message(uuid, text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.set_support_conversation_status(uuid, text) TO authenticated;
