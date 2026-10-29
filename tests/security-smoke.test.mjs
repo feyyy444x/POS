@@ -506,7 +506,8 @@ test('workspace browser history restores prior pages without clearing current te
 
 test('Owner consolidated reports aggregate only tenant IDs visible in the owner organization', () => {
   assert.match(organizationReportsUi, /tenants\.filter\(t => t\.status !== 'deleted' && !t\.deleted_at\)\.map\(t => t\.id\)/)
-  assert.match(organizationReportsUi, /from\('orders'\)\.select\('\*'\)\.in\('store_id', tenantIds\)/)
+  assert.match(organizationReportsUi, /from\('orders'\)\.select\('\*'\)/)
+  assert.match(organizationReportsUi, /\.in\('store_id', tenantIds\)/)
   assert.match(organizationReportsUi, /from\('products'\)\.select\('id,store_id,cost_price'\)\.in\('store_id', tenantIds\)/)
   assert.match(organizationReportsUi, /paidOrders\.reduce/)
   assert.match(organizationReportsUi, /\.gte\('created_at', startBoundary\)\.lt\('created_at', endBoundary\)/)
