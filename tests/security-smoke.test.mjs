@@ -156,11 +156,11 @@ test('internal platform Admin uses the Super Admin workspace and server-side PIN
   assert.match(app, /setIsSuperAdmin\(Boolean\(adminResult\.data\)\|\|isPlatformAdmin\)/)
   assert.match(app, /setIsPlatformAdmin\(isPlatformAdmin\)/)
   assert.match(app, /platformAdmin=\{isPlatformAdmin\}/)
-  assert.match(app, /platformAdmin \\? 'Admin NEXAPOS' : 'Super Admin'/)
-  assert.match(app, /platformAdmin \\? 'ADMIN NEXAPOS' : 'SUPER ADMIN'/)
+  assert.match(app, /platformAdmin \? 'Admin NEXAPOS' : 'Super Admin'/)
+  assert.match(app, /platformAdmin \? 'ADMIN NEXAPOS' : 'SUPER ADMIN'/)
   assert.match(platformStaffManagerUi, /<div id="platform-staff-role" className="text-input" aria-readonly="true">Admin NEXAPOS — FULL AKSES<\/div>/)
   assert.doesNotMatch(platformStaffManagerUi, /Customer Service|customer_service/)
-  assert.match(platformAdminParityMigration, /private\\.is_pin_verified\\(\\)/)
+  assert.match(platformAdminParityMigration, /private\.is_pin_verified\(\)/)
   assert.match(platformAdminParityMigration, /platform_staff_roles/)
   assert.match(platformAdminParityMigration, /role = 'admin'/)
   assert.match(platformAdminParityMigration, /is_active = true/)
@@ -179,7 +179,7 @@ test('platform Admin can create staff only with active role and verified PIN', (
 test('platform staff endpoints and creation only accept the Admin role', () => {
   assert.match(platformStaffEndpoint, /assignment\.role !== 'admin' && assignment\.permissions\?\./)
   assert.match(platformStaffEndpoint, /assignment\.permissions\?\.\[requiredPermission\] !== true/)
-  assert.match(platformStaffEndpoint, /if \\(!assignment \\|\\| !assignment\\.is_active\\)/)
+  assert.match(platformStaffEndpoint, /if \(!assignment \|\| !assignment\.is_active\)/)
   assert.match(createPlatformStaff, /if \(role !== 'admin'\) return json/)
   assert.doesNotMatch(createPlatformStaff, /customer_service|CS_KEYS/)
 })
@@ -216,9 +216,9 @@ test('admin managers clear stale data on load failures and prevent editing fallb
 test('Customer Service role and workspace are fully retired', () => {
   assert.doesNotMatch(app, /PlatformStaffWorkspace|platformStaffRole/)
   assert.doesNotMatch(platformStaffManagerUi, /Customer Service|customer_service/)
-  assert.match(removeCustomerServiceRoleMigration, /DELETE FROM public\\.platform_staff_roles/)
+  assert.match(removeCustomerServiceRoleMigration, /DELETE FROM public\.platform_staff_roles/)
   assert.match(removeCustomerServiceRoleMigration, /role = 'customer_service'/)
-  assert.match(removeCustomerServiceRoleMigration, /CHECK \\(role = 'admin'\\)/)
+  assert.match(removeCustomerServiceRoleMigration, /CHECK \(role = 'admin'\)/)
 })
 
 
