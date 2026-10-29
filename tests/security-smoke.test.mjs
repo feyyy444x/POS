@@ -27,6 +27,11 @@ test('Netlify headers include baseline browser security protections', () => {
   }
 })
 
+test('tenant member list and invitation history render email addresses', () => {
+  assert.match(app, /m\.email&&\{<>\s*<br\/>\s*<small className="member-email-visible">\{m\.email\}<\/small>\s*<\/>\}/)
+  assert.match(app, /<small className="member-email-visible">\{i\.email\}<\/small>/)
+})
+
 test('invitation activation rejects unsupported methods and malformed credentials', () => {
   assert.match(activation, /request\.method !== 'POST'/)
   assert.match(activation, /password\.length < 8/)
