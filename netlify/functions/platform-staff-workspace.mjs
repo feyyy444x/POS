@@ -4,7 +4,7 @@ const json = (body, status = 200) => new Response(JSON.stringify(body), {
   status, headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' },
 })
 const PERMISSION_BY_ACTION = {
-  users: 'users', stores: 'stores', reports: 'system_reports', support_inbox: 'support',
+  users: 'users', stores: 'stores', reports: 'system_reports', support_inbox: 'support', support_reply: 'support',
 }
 export default async (request) => {
   if (request.method === 'OPTIONS') return new Response(null, { status: 204 })
@@ -83,6 +83,16 @@ export default async (request) => {
           orders: ordersResult.error ? 'Data transaksi tidak tersedia' : null,
         },
       } })
+    }
+    if (action === 'support_reply') {
+      const targetUserId = String(payload?.userId || '')
+      const message = String(payload?.message || '').trim()
+      if (!/^[0-9a-f-]{36}$/i.test(targetUserId) || !message || message.length > 5000) return json({ error: 'Balasan tidak valid. Maksimal 5.000 karakter.' }, 400)
+      const { data: target, error: targetError } = await admin.auth.admin.getUserById(targetUserId)
+      if (targetError || !target?.user) return json({ error: 'Akun pelanggan tidak ditemukan.' }, 404)
+      const { error } = await admin.from('support_messages').insert({ user_id: targetUserId, sender_id: authData.user.id, user_email: target.user.email || '', sender_role: 'support', message })
+      if (error) return json({ error: 'Balasan belum berhasil dikirim.' }, 500)
+      return json({ success: true })
     }
     if (action === 'support_inbox') {
       const { data, error } = await admin.from('support_messages').select('id,user_id,user_email,sender_id,sender_role,message,created_at')
