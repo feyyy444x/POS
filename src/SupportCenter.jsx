@@ -164,6 +164,15 @@ export default function SupportCenter({ session, onClose, isSuperAdmin = false, 
         }
         if (changedUserId === userId && mode === 'chat') loadMessages(userId)
       })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'support_conversations' }, payload => {
+        const changedUserId = payload.new?.user_id || payload.old?.user_id
+        if (isSuperAdmin) {
+          if (mode === 'inbox') loadInbox()
+          else if (mode === 'chat' && activeUser?.user_id === changedUserId) loadMessages(activeUser.user_id)
+          return
+        }
+        if (changedUserId === userId && mode === 'chat') loadMessages(userId)
+      })
       .subscribe(status => {
         setRealtimeStatus(status === 'SUBSCRIBED' ? 'Realtime tersambung' : status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' ? 'Realtime terputus, mencoba kembali…' : 'Menyambungkan realtime…')
         if (status === 'SUBSCRIBED') refreshMessages()
