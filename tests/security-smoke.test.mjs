@@ -245,6 +245,7 @@ const supportMigration = await readFile(new URL('supabase/migrations/20261029183
 const supportLockdownMigration = await readFile(new URL('supabase/migrations/20261029183500_lock_down_support_rpc.sql', root), 'utf8')
 const supportHandoffMigration = await readFile(new URL('supabase/migrations/20261029184000_refine_support_bot_handoff.sql', root), 'utf8')
 const supportHardenMigration = await readFile(new URL('supabase/migrations/20261029185000_harden_support_handoff_and_admin_reply.sql', root), 'utf8')
+const supportWritesMigration = await readFile(new URL('supabase/migrations/20261029185500_route_support_writes_through_rpc.sql', root), 'utf8')
 const supportCenter = await readFile(new URL('src/SupportCenter.jsx', root), 'utf8')
 
 test('free NexaPos support bot is FAQ-only and never calls a paid external AI provider', () => {
@@ -297,4 +298,12 @@ test('handoff recognizes natural requests to speak with a human and validates ad
   assert.match(supportHardenMigration, /bicara \(dengan\|sama\) \(admin\|manusia\|petugas\)/)
   assert.match(supportHardenMigration, /IF NOT FOUND THEN RAISE EXCEPTION 'Percakapan tidak ditemukan'/)
   assert.match(supportHardenMigration, /IF NOT private\.is_super_admin\(\) THEN RAISE EXCEPTION 'Admin NexaPos access required'/)
+})
+
+
+test('direct table inserts cannot bypass the support RPC validation and rate limit', () => {
+  assert.match(supportWritesMigration, /REVOKE INSERT ON TABLE public\.support_messages FROM PUBLIC, anon, authenticated/)
+  assert.match(supportWritesMigration, /GRANT SELECT ON TABLE public\.support_messages TO authenticated/)
+  assert.match(supportCenter, /supabase\.rpc\('submit_support_message'/)
+  assert.doesNotMatch(supportCenter, /from\('support_messages'\)\.insert\(/)
 })
