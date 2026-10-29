@@ -1331,3 +1331,19 @@ tbody tr:hover{background:#f7fbfd}
 .platform-staff-page .notice{line-height:1.7;overflow-wrap:anywhere;margin:0 0 20px}
 @media(max-width:1100px){.staff-layout{grid-template-columns:minmax(0,1fr)}.staff-layout .panel{padding:22px}.platform-staff-page{padding:24px}}
 @media(max-width:640px){.platform-staff-page{padding:18px 14px 32px}.platform-staff-page .page-heading{flex-direction:column;align-items:stretch;gap:14px;margin-bottom:18px}.platform-staff-page .page-heading>.btn{align-self:flex-start}.staff-layout{gap:16px}.staff-layout .panel{padding:16px;border-radius:15px}.staff-layout .panel-heading{gap:11px;margin-bottom:19px}.staff-layout .panel-icon{flex-basis:38px;width:38px;height:38px}.staff-table th,.staff-table td{padding:14px 12px}.staff-form-actions{flex-direction:column}.staff-form-actions .btn{width:100%}.staff-table{min-width:510px}}
+
+
+/* NexaPos free FAQ support and human handoff */
+.support-status{display:inline-flex;align-self:flex-start;width:max-content;max-width:100%;margin-top:5px;padding:4px 8px;border-radius:999px;background:#eef1f7;color:#5c6278;font-size:10px;font-style:normal;font-weight:700;line-height:1.3}
+.support-status-ai_active{background:#e4f8f2;color:#087d64}
+.support-status-waiting_admin{background:#fff4d8;color:#91631a}
+.support-status-admin_active{background:#e8efff;color:#3656a8}
+.support-status-resolved{background:#edf0f4;color:#707588}
+.support-handoff-note{display:flex;align-items:flex-start;gap:8px;padding:10px 12px;margin:0 0 10px;border:1px solid #d9eee8;border-radius:11px;background:#f1fbf7;color:#286f5e;font-size:11px;line-height:1.5}
+.support-handoff-note svg{flex-shrink:0;margin-top:1px}
+.support-admin-actions{display:flex;flex-wrap:wrap;gap:6px;padding:0 0 10px}
+.support-human-button{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:9px;padding:10px 12px;border:1px solid #d8eee7;border-radius:10px;background:#f2fbf8;color:#087d64;font-size:11px;font-weight:700;transition:background .15s,border-color .15s}
+.support-human-button:hover:not(:disabled){background:#e4f8f2;border-color:#9bdcca}
+.support-inbox-item .support-status{margin-top:2px}
+.support-inbox-item em{font-style:normal}
+@media(max-width:520px){.support-admin-actions .btn{flex:1}.support-inbox-item time{display:none}}
