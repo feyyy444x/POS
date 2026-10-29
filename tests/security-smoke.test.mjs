@@ -5,6 +5,7 @@ import { readFile } from 'node:fs/promises'
 const root = new URL('../', import.meta.url)
 const headers = await readFile(new URL('public/_headers', root), 'utf8')
 const activation = await readFile(new URL('netlify/functions/activate-invitation.mjs', root), 'utf8')
+const createPlatformStaff = await readFile(new URL('netlify/functions/create-platform-staff.mjs', root), 'utf8')
 const app = await readFile(new URL('src/App.jsx', root), 'utf8')
 const appStyles = await readFile(new URL('src/styles.css', root), 'utf8')
 const queueMigration = await readFile(new URL('supabase/migrations/20261029140000_enforce_store_queue_enabled.sql', root), 'utf8')
@@ -152,4 +153,13 @@ test('internal platform Admin uses the Super Admin workspace and server-side PIN
   assert.match(platformAdminParityMigration, /platform_staff_roles/)
   assert.match(platformAdminParityMigration, /role = 'admin'/)
   assert.match(platformAdminParityMigration, /is_active = true/)
+})
+
+
+test('platform Admin can create staff only with active role and verified PIN', () => {
+  assert.match(createPlatformStaff, /authClient\.rpc\('get_my_pin_status'\)/)
+  assert.match(createPlatformStaff, /pinStatus\?\.is_verified !== true/)
+  assert.match(createPlatformStaff, /staffRole\?\.role === 'admin'/)
+  assert.match(createPlatformStaff, /staffRole\?\.is_active === true/)
+  assert.match(createPlatformStaff, /if \(!authorized\) return json/)
 })
