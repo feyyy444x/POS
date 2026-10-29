@@ -35,7 +35,7 @@ export default async (request) => {
     if (!assignment || !assignment.is_active) return json({ error: 'Akun staf tidak aktif.' }, 403)
     const { data: superAdmin } = await admin.from('super_admins').select('user_id').eq('user_id', authData.user.id).maybeSingle()
     if (superAdmin) return json({ error: 'Gunakan workspace Super Admin untuk akun ini.' }, 403)
-    if (assignment.permissions?.[requiredPermission] !== true) return json({ error: 'Izin untuk bagian ini tidak diberikan.' }, 403)
+    if (assignment.role !== 'admin' && assignment.permissions?.[requiredPermission] !== true) return json({ error: 'Izin untuk bagian ini tidak diberikan.' }, 403)
 
     if (action === 'plans_list') {
       const { data, error } = await admin.from('site_subscription_plans').select('*').order('sort_order', { ascending: true })
