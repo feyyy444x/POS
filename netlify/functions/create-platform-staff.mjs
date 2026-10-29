@@ -25,7 +25,7 @@ export default async (request) => {
   const permissions = payload?.permissions
 
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json({ error: 'Masukkan alamat email yang valid.' }, 400)
-  if (password.length < 10 || password.length > 128) return json({ error: 'Password harus terdiri dari 10 sampai 128 karakter.' }, 400)
+  if (password.length < 6 || password.length > 128) return json({ error: 'Password harus terdiri dari 6 sampai 128 karakter.' }, 400)
   if (!['admin', 'customer_service'].includes(role)) return json({ error: 'Role tidak valid.' }, 400)
   if (!permissions || typeof permissions !== 'object' || Array.isArray(permissions)) return json({ error: 'Hak akses tidak valid.' }, 400)
   const allowedKeys = role === 'admin' ? ADMIN_KEYS : CS_KEYS
