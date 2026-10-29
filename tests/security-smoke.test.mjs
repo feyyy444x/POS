@@ -446,6 +446,7 @@ test('owner organizations and tenant quotas are enforced by the database, not on
   assert.match(ownerOrganizationsMigration, /v_count >= v_org\.activation_location_limit/i)
   assert.match(ownerOrganizationsMigration, /for update/i)
   assert.match(ownerOrganizationsMigration, /owner_user_id = v_user_id/i)
+  assert.match(ownerOrganizationsMigration, /private\.is_pin_verified\(\)/i)
   assert.match(ownerOrganizationsMigration, /grant execute on function public\.owner_create_store_tenant\(text\) to authenticated/i)
   assert.match(app, /supabase\.rpc\('owner_create_store_tenant'/)
   assert.match(app, /page==='tenants'&&membership\.role==='owner'/)
