@@ -67,11 +67,18 @@ on conflict (package_key) do nothing;
 
 -- Keep public read-only behavior and prevent direct browser access to internal activation issuance.
 
--- Store the selected activation package and its branch/location allowance.
+-- Store the selected activation package and its tenant/location allowance.
 alter table public.stores
   add column if not exists activation_package_key text not null default 'starter',
-  add column if not exists activation_location_limit integer not null default 1
+  add column if not exists activation_location_limit integer not null default 3
     check (activation_location_limit between 1 and 1000);
+
+-- Backfill existing tenants to the quota of their selected package.
+update public.stores s
+set activation_location_limit = p.location_limit
+from public.site_activation_packages p
+where p.package_key = s.activation_package_key
+  and s.activation_location_limit = 1;
 
 do $$
 begin
