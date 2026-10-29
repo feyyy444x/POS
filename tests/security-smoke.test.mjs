@@ -280,7 +280,7 @@ test('customer RLS isolates support messages and conversations while Admin NexaP
 })
 
 test('human handoff stops bot replies until Admin takes over or reactivates bot', () => {
-  assert.match(supportHandoffMigration, /komplain\|keluhan\|hubungi admin/)
+  assert.match(supportHandoffMigration, /komplain|keluhan|hubungi admin/)
   assert.match(supportHandoffMigration, /'waiting_admin'/)
   assert.match(supportMigration, /IF v_status IN \('waiting_admin', 'admin_active'\) THEN/)
   assert.match(supportMigration, /CREATE OR REPLACE FUNCTION public\.request_support_handoff/)
@@ -295,7 +295,7 @@ test('human handoff stops bot replies until Admin takes over or reactivates bot'
 
 
 test('handoff recognizes natural requests to speak with a human and validates admin targets', () => {
-  assert.match(supportHardenMigration, /bicara \(dengan\|sama\) \(admin\|manusia\|petugas\)/)
+  assert.match(supportHardenMigration, /bicara \(dengan|sama\) \(admin|manusia|petugas\)/)
   assert.match(supportHardenMigration, /IF NOT FOUND THEN RAISE EXCEPTION 'Percakapan tidak ditemukan'/)
   assert.match(supportHardenMigration, /IF NOT private\.is_super_admin\(\) THEN RAISE EXCEPTION 'Admin NexaPos access required'/)
 })
