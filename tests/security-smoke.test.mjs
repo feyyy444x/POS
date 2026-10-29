@@ -212,3 +212,15 @@ test('admin managers clear stale data on load failures and prevent editing fallb
   assert.match(subscriptionPlanManagerUi, /disabled=\{!plansReady \|\| savingKey===plan\.plan_key\}/)
   assert.match(subscriptionPlanManagerUi, /Data paket belum tersedia/)
 })
+
+
+test('internal platform staff uses the shared admin shell while navigation remains permission-scoped', () => {
+  assert.match(platformStaffWorkspaceUi, /className="app-shell super-admin-shell"/)
+  assert.match(platformStaffWorkspaceUi, /brand-mark-image/)
+  assert.match(platformStaffWorkspaceUi, /className="nav-section">PLATFORM/)
+  assert.match(platformStaffWorkspaceUi, /className="mobile-menu icon-button"/)
+  assert.match(platformStaffWorkspaceUi, /visibleItems\.map\(item/)
+  assert.match(platformStaffWorkspaceUi, /permissions\.support === true/)
+  assert.match(platformStaffWorkspaceUi, /permissions\.plans === true/)
+  assert.match(platformStaffWorkspaceUi, /permissions\.promotions === true/)
+})
