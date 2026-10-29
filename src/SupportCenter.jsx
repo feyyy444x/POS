@@ -120,7 +120,7 @@ export default function SupportCenter({ session, onClose, isSuperAdmin = false, 
   const loadInbox = useCallback(async () => {
     if (!isSuperAdmin || !supabase) return
     const { data, error: queryError } = await supabase.from('support_messages').select('*').order('created_at', { ascending: false }).limit(500)
-    if (queryError) { setError(queryError.message); return }
+    if (queryError) { setError(userFacingError(queryError, 'Kotak masuk bantuan belum dapat dimuat. Coba lagi.')); return }
     const grouped = new Map()
     for (const message of data || []) {
       if (!grouped.has(message.user_id)) grouped.set(message.user_id, { user_id: message.user_id, email: message.user_email || 'Pengguna', latest: message, count: 0 })
