@@ -1283,3 +1283,51 @@ tbody tr:hover{background:#f7fbfd}
     border-radius: 10px;
   }
 }
+
+
+/* Platform staff management: roomy tables and wrapping text on desktop and mobile. */
+.platform-staff-page{padding:30px 34px 48px;max-width:1500px;margin:0 auto}
+.platform-staff-page .page-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:22px;margin-bottom:24px}
+.platform-staff-page .page-heading h1{font-size:clamp(24px,3vw,32px);line-height:1.22;margin:8px 0 9px;overflow-wrap:anywhere}
+.platform-staff-page .page-heading p{color:var(--muted);font-size:13px;line-height:1.7;margin:0;max-width:680px}
+.staff-layout{display:grid;grid-template-columns:minmax(280px,.8fr) minmax(0,1.2fr);gap:24px;align-items:start}
+.staff-layout .panel{min-width:0;padding:24px;border:1px solid var(--line);border-radius:18px;background:var(--surface);box-shadow:0 8px 28px rgba(25,30,55,.035)}
+.staff-layout .panel-heading{display:flex;align-items:flex-start;gap:14px;margin-bottom:24px}
+.staff-layout .panel-icon{flex:0 0 42px;width:42px;height:42px;border-radius:13px;display:grid;place-items:center;background:#e4f8f2;color:var(--purple)}
+.staff-layout .panel-heading h2{font-size:18px;line-height:1.35;margin:0 0 5px;overflow-wrap:anywhere}
+.staff-layout .panel-heading p{font-size:12px;line-height:1.65;color:var(--muted);margin:0;overflow-wrap:anywhere}
+.staff-form{display:flex;flex-direction:column;gap:10px;min-width:0}
+.staff-form label{margin:2px 0 0}
+.staff-form .text-input{width:100%;max-width:100%;min-height:45px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);padding:11px 13px;outline-offset:2px}
+.permission-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:10px;padding-top:16px;border-top:1px solid var(--line);font-size:13px}
+.permission-heading span{font-size:11px;color:var(--muted);white-space:nowrap}
+.permission-list{display:flex;flex-direction:column;gap:9px;margin-top:2px}
+.permission-option{display:flex!important;align-items:flex-start;gap:12px;padding:13px 14px;border:1px solid var(--line);border-radius:12px;background:#fff;cursor:pointer;min-width:0}
+.permission-option input{flex:0 0 auto;width:17px;height:17px;margin:3px 0 0;accent-color:var(--purple)}
+.permission-copy{display:flex;flex-direction:column;gap:5px;min-width:0}
+.permission-copy strong{font-size:12px;line-height:1.5;color:var(--ink);overflow-wrap:anywhere}
+.permission-copy small{font-size:11px;line-height:1.65;color:var(--muted);font-weight:400;overflow-wrap:anywhere}
+.staff-safety-note,.staff-note{display:flex;align-items:flex-start;gap:10px;padding:13px 14px;border-radius:12px;background:#f1fbf7;color:#356d5d;font-size:11px;line-height:1.7;overflow-wrap:anywhere}
+.staff-safety-note svg,.staff-note svg{flex:0 0 auto;margin-top:1px}
+.staff-form-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}
+.staff-form-actions .btn{min-height:42px;white-space:normal}
+.staff-table-wrap{width:100%;max-width:100%;overflow-x:auto;border:1px solid var(--line);border-radius:13px;-webkit-overflow-scrolling:touch}
+.staff-table{width:100%;min-width:550px;border-collapse:separate;border-spacing:0;table-layout:auto}
+.staff-table th,.staff-table td{padding:16px 15px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line);font-size:12px;line-height:1.65;overflow-wrap:anywhere}
+.staff-table th{background:#f8f9fc;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:800;white-space:nowrap}
+.staff-table tbody tr:last-child td{border-bottom:0}
+.staff-table td:first-child{min-width:150px}
+.staff-person{display:flex;flex-direction:column;gap:6px;min-width:0}
+.staff-person strong{font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+.staff-person small,.staff-permission-count{font-size:10px;color:var(--muted);line-height:1.6;overflow-wrap:anywhere;display:block;margin-top:6px}
+.staff-role-pill,.staff-status{display:inline-flex;max-width:100%;align-items:center;border-radius:999px;padding:5px 9px;font-size:10px;line-height:1.45;font-weight:700;white-space:normal;overflow-wrap:anywhere}
+.staff-role-pill{background:#eef2ff;color:#4b51a6}
+.staff-status.is-active{background:#e5f8ef;color:#18764d}
+.staff-status.is-inactive{background:#fff2e5;color:#9a5b17}
+.staff-actions{display:flex;flex-wrap:wrap;align-items:center;gap:7px;min-width:150px}
+.staff-actions .btn{white-space:normal;line-height:1.4}
+.staff-list-panel .empty-state{padding:30px 18px;min-height:180px}
+.staff-note{margin-top:18px;background:#f7f8fc;color:#686d83}
+.platform-staff-page .notice{line-height:1.7;overflow-wrap:anywhere;margin:0 0 20px}
+@media(max-width:1100px){.staff-layout{grid-template-columns:minmax(0,1fr)}.staff-layout .panel{padding:22px}.platform-staff-page{padding:24px}}
+@media(max-width:640px){.platform-staff-page{padding:18px 14px 32px}.platform-staff-page .page-heading{flex-direction:column;align-items:stretch;gap:14px;margin-bottom:18px}.platform-staff-page .page-heading>.btn{align-self:flex-start}.staff-layout{gap:16px}.staff-layout .panel{padding:16px;border-radius:15px}.staff-layout .panel-heading{gap:11px;margin-bottom:19px}.staff-layout .panel-icon{flex-basis:38px;width:38px;height:38px}.staff-table th,.staff-table td{padding:14px 12px}.staff-form-actions{flex-direction:column}.staff-form-actions .btn{width:100%}.staff-table{min-width:510px}}
