@@ -5,8 +5,7 @@
 -- Queue tickets are created by create_queue_ticket()/complete_sale() and changed
 -- by call_queue_ticket()/update_queue_ticket_status(), never by arbitrary row UPDATE.
 DROP POLICY IF EXISTS "members update operational queue" ON public.queue_tickets;
-REVOKE INSERT, UPDATE ON TABLE public.queue_tickets FROM PUBLIC, anon, authenticated;
-REVOKE UPDATE ON TABLE public.queue_tickets FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON TABLE public.queue_tickets FROM PUBLIC, anon, authenticated;
 GRANT SELECT, DELETE ON TABLE public.queue_tickets TO authenticated;
 
 CREATE OR REPLACE FUNCTION public.update_queue_ticket_status(
@@ -25,7 +24,7 @@ BEGIN
     RAISE EXCEPTION 'Authentication required';
   END IF;
 
-  IF p_status NOT IN ('serving', 'done', 'skipped') THEN
+  IF p_status IS NULL OR p_status NOT IN ('serving', 'done', 'skipped') THEN
     RAISE EXCEPTION 'Status antrean tidak valid';
   END IF;
 
@@ -83,7 +82,8 @@ CREATE POLICY "cashier marks own alert read"
   USING (cashier_id = (SELECT auth.uid()) AND private.is_store_member(store_id))
   WITH CHECK (cashier_id = (SELECT auth.uid()) AND private.is_store_member(store_id));
 
-REVOKE INSERT, UPDATE ON TABLE public.cashier_manual_alerts FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON TABLE public.cashier_manual_alerts FROM PUBLIC, anon, authenticated;
+GRANT SELECT ON TABLE public.cashier_manual_alerts TO authenticated;
 GRANT INSERT (store_id, cashier_id, sent_by, title, message)
   ON TABLE public.cashier_manual_alerts TO authenticated;
 GRANT UPDATE (read_at) ON TABLE public.cashier_manual_alerts TO authenticated;
@@ -127,7 +127,8 @@ CREATE POLICY "cashiers end own breaks"
     )
   );
 
-REVOKE INSERT, UPDATE ON TABLE public.cashier_shift_breaks FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON TABLE public.cashier_shift_breaks FROM PUBLIC, anon, authenticated;
+GRANT SELECT ON TABLE public.cashier_shift_breaks TO authenticated;
 GRANT INSERT (store_id, shift_id, cashier_id)
   ON TABLE public.cashier_shift_breaks TO authenticated;
 GRANT UPDATE (ended_at) ON TABLE public.cashier_shift_breaks TO authenticated;
