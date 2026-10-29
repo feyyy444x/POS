@@ -300,7 +300,10 @@ function App() {
           value: field.type === 'checkbox' || field.type === 'radio' ? Boolean(field.checked) : field.value,
           checked: field.type === 'checkbox' || field.type === 'radio' ? Boolean(field.checked) : undefined
         }))
-        if (fields.length) localStorage.setItem(storageKey(form), JSON.stringify({ savedAt: Date.now(), fields }))
+        if (fields.length) {
+          localStorage.setItem(storageKey(form), JSON.stringify({ savedAt: Date.now(), fields }))
+          form.dataset.nexaposDirty = 'true'
+        }
       } catch { /* Storage can be unavailable; keep the app usable. */ }
     }
     const restoreForm = (form) => {
@@ -352,10 +355,28 @@ function App() {
       if (!(form instanceof HTMLFormElement)) return
       try { localStorage.removeItem(storageKey(form)) } catch {}
       delete form.dataset.draftRestored
+      delete form.dataset.nexaposDirty
     }
     document.addEventListener('input', onInput, true)
     document.addEventListener('change', onInput, true)
     document.addEventListener('reset', onReset, true)
+    const hasUnsavedDraft = () => Array.from(document.forms).some(form => form.dataset.nexaposDirty === 'true')
+    const onNavigationClick = event => {
+      const target = event.target?.closest?.('.nav-link, .nx-back-button, .admin-shortcut, [data-nexapos-nav]')
+      if (!target || target.closest('form') || !hasUnsavedDraft()) return
+      if (!window.confirm('Ada perubahan formulir yang belum dikonfirmasi. Draft non-sensitif disimpan di perangkat ini. Tetap pindah halaman?')) {
+        event.preventDefault()
+        event.stopPropagation()
+        event.stopImmediatePropagation?.()
+      }
+    }
+    const onBeforeUnload = event => {
+      if (!hasUnsavedDraft()) return
+      event.preventDefault()
+      event.returnValue = ''
+    }
+    document.addEventListener('click', onNavigationClick, true)
+    window.addEventListener('beforeunload', onBeforeUnload)
     window.addEventListener('pageshow', restoreAllForms)
     const observer = new MutationObserver(() => restoreAllForms())
     if (document.body) observer.observe(document.body, { childList: true, subtree: true })
@@ -364,6 +385,8 @@ function App() {
       document.removeEventListener('input', onInput, true)
       document.removeEventListener('change', onInput, true)
       document.removeEventListener('reset', onReset, true)
+      document.removeEventListener('click', onNavigationClick, true)
+      window.removeEventListener('beforeunload', onBeforeUnload)
       window.removeEventListener('pageshow', restoreAllForms)
       observer.disconnect()
     }
