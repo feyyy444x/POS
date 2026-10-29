@@ -312,11 +312,11 @@ test('direct table inserts cannot bypass the support RPC validation and rate lim
 
 
 test('foreign-key index migration covers all staff and platform actor references flagged by the database advisor', () => {
-  assert.match(foreignKeyIndexesMigration, /create index if not exists platform_staff_roles_created_by_idx\\s+on public\\.platform_staff_roles \\(created_by\\)/i)
-  assert.match(foreignKeyIndexesMigration, /create index if not exists platform_staff_roles_updated_by_idx\\s+on public\\.platform_staff_roles \\(updated_by\\)/i)
+  assert.ok(foreignKeyIndexesMigration.includes('create index if not exists platform_staff_roles_created_by_idx'))
+  assert.ok(foreignKeyIndexesMigration.includes('on public.platform_staff_roles (created_by)'))
+  assert.ok(foreignKeyIndexesMigration.includes('create index if not exists platform_staff_roles_updated_by_idx'))
+  assert.ok(foreignKeyIndexesMigration.includes('on public.platform_staff_roles (updated_by)'))
   assert.match(foreignKeyIndexesMigration, /if not exists/i)
-})
-
 test('Pusat Kendali Toko scopes operational reads to the selected store and labels timeline limitations honestly', () => {
   assert.match(app, /import StoreControlCenter from '\.\/StoreControlCenter\.jsx'/)
   assert.match(app, /setSelectedTenant\(t\);setSection\('store-control'\)/)
