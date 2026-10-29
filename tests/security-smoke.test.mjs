@@ -224,3 +224,10 @@ test('internal platform staff uses the shared admin shell while navigation remai
   assert.match(platformStaffWorkspaceUi, /permissions\.plans === true/)
   assert.match(platformStaffWorkspaceUi, /permissions\.promotions === true/)
 })
+
+
+test('active Admin NexaPos is routed into the exact Super Admin workspace because the role RPC only returns active assignments', () => {
+  assert.match(app, /staffData\?\.role==='admin';setIsPlatformAdmin\(isPlatformAdmin\);setIsSuperAdmin\(Boolean\(adminResult\.data\)\|\|isPlatformAdmin\)/)
+  assert.match(app, /if\(isSuperAdmin\)return <SuperAdminScreen session=\{session\} syncStatus=\{syncStatus\} setSyncStatus=\{setSyncStatus\} onSignOut=\{\(\)=>supabase\.auth\.signOut\(\)\} platformAdmin=\{isPlatformAdmin\} \/>/)
+  assert.doesNotMatch(app, /staffData\?\.role\s*===\s*'admin'\s*&&\s*staffData\?\.is_active\s*===\s*true/)
+})
