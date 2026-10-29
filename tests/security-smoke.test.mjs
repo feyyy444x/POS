@@ -425,4 +425,5 @@ test('homepage pricing fallback matches package defaults and does not fabricate 
   assert.match(homepageUi, /p\.starts_at.*p\.ends_at/)
   assert.match(homepageUi, /const availablePromos = promos/)
   assert.match(homepageUi, /if \(error\) \{ setPromos\(\[\]\); return \}/)
+  assert.match(homepageUi, /features: Array\.isArray\(plan\.features\) \? plan\.features : defaultFeatures/)
 })
