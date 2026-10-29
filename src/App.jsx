@@ -226,9 +226,19 @@ function App() {
       return [form.getAttribute('aria-label') || '', form.getAttribute('name') || '',
         form.getAttribute('action') || '', heading, formClass, parentClass].join('|')
     }
-    const storageKey = (form) => storagePrefix
-      + encodeURIComponent(window.location.pathname) + ':'
-      + encodeURIComponent(userScope) + ':' + encodeURIComponent(formIdentity(form))
+    const tenantScope = store?.id || selectedStoreId || 'no-store'
+    const storageKey = (form) => {
+      const identity = formIdentity(form)
+      // Forms with identical markup need a stable per-page occurrence key, otherwise one
+      // form can restore another form's draft after a refresh.
+      const sameIdentityForms = Array.from(document.forms).filter((candidate) => formIdentity(candidate) === identity)
+      const occurrence = Math.max(0, sameIdentityForms.indexOf(form))
+      return storagePrefix
+        + encodeURIComponent(window.location.pathname) + ':'
+        + encodeURIComponent(userScope) + ':'
+        + encodeURIComponent(tenantScope) + ':'
+        + encodeURIComponent(identity) + ':' + occurrence
+    }
     const isSensitive = (field) => {
       const type = (field.type || '').toLowerCase()
       const label = field.labels ? Array.from(field.labels).map((item) => item.textContent || '').join(' ') : ''
@@ -273,11 +283,15 @@ function App() {
           localStorage.removeItem(key)
           return
         }
+        // Track restored fields rather than the whole form: forms often reveal additional
+        // inputs conditionally, after the first render or after a user changes a section.
+        const restoredKeys = new Set((form.dataset.draftRestoredKeys || '').split(',').filter(Boolean))
         const fields = fieldsFor(form)
-        let restored = false
         fields.forEach((field, index) => {
-          const saved = draft.fields.find((item) => item.key === fieldIdentity(form, field, index))
-          if (!saved || field === document.activeElement) return
+          const fieldKey = fieldIdentity(form, field, index)
+          if (restoredKeys.has(fieldKey) || field === document.activeElement) return
+          const saved = draft.fields.find((item) => item.key === fieldKey)
+          if (!saved) return
           if (field.type === 'checkbox' || field.type === 'radio') {
             field.checked = Boolean(saved.checked)
             field.dispatchEvent(new Event('change', { bubbles: true }))
@@ -290,15 +304,13 @@ function App() {
             field.dispatchEvent(new Event('input', { bubbles: true }))
             field.dispatchEvent(new Event('change', { bubbles: true }))
           }
-          restored = true
+          restoredKeys.add(fieldKey)
         })
-        if (restored) form.dataset.draftRestored = 'true'
+        if (restoredKeys.size) form.dataset.draftRestoredKeys = Array.from(restoredKeys).join(',')
       } catch { /* Ignore malformed or inaccessible drafts. */ }
     }
     const restoreAllForms = () => {
-      Array.from(document.forms).forEach((form) => {
-        if (form.dataset.draftRestored !== 'true') restoreForm(form)
-      })
+      Array.from(document.forms).forEach(restoreForm)
     }
     const onInput = (event) => {
       const field = event.target
