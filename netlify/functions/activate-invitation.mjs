@@ -16,7 +16,7 @@ export default async (request) => {
   const password = String(payload?.password || '')
   const activationCode = String(payload?.activationCode || '').trim().toLowerCase()
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json({ error: 'Masukkan alamat email yang valid.' }, 400)
-  if (password.length < 8 || password.length > 128) return json({ error: 'Password harus terdiri dari 8 sampai 128 karakter.' }, 400)
+  if (password.length < 6 || password.length > 128) return json({ error: 'Password harus terdiri dari 6 sampai 128 karakter.' }, 400)
   if (!/^[a-f0-9]{32}$/.test(activationCode)) return json({ error: 'Masukkan kode aktivasi 32 karakter dari Owner toko.' }, 400)
 
   const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL
