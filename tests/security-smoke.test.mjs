@@ -2,8 +2,11 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 
-const headers = await readFile(new URL('../_headers', import.meta.url), 'utf8')
-const activation = await readFile(new URL('../netlify/functions/activate-invitation.mjs', import.meta.url), 'utf8')
+const root = new URL('../', import.meta.url)
+const headers = await readFile(new URL('_headers', root), 'utf8')
+const activation = await readFile(new URL('netlify/functions/activate-invitation.mjs', root), 'utf8')
+const app = await readFile(new URL('src/App.jsx', root), 'utf8')
+const queueMigration = await readFile(new URL('supabase/migrations/20261029140000_enforce_store_queue_enabled.sql', root), 'utf8')
 
 test('Netlify headers include baseline browser security protections', () => {
   for (const directive of [
@@ -34,4 +37,25 @@ test('invitation activation compares hashed codes in constant time and disables 
 test('service-role credential is read only by the server-side Netlify function', () => {
   assert.match(activation, /process\.env\.SUPABASE_SERVICE_ROLE_KEY/)
   assert.doesNotMatch(activation, /VITE_SUPABASE_SERVICE_ROLE_KEY/)
+})
+
+test('queue-off setting is authoritative in the database checkout and ticket RPCs', () => {
+  assert.match(queueMigration, /ADD COLUMN IF NOT EXISTS queue_enabled boolean NOT NULL DEFAULT true/)
+  assert.match(queueMigration, /SELECT coalesce\(ss\.queue_enabled, true\)/)
+  assert.match(queueMigration, /IF v_queue_enabled AND coalesce\(p_create_queue,true\) THEN/)
+  assert.match(queueMigration, /ss\.queue_enabled IS FALSE/)
+  assert.match(queueMigration, /IF NOT private\.is_store_member\(p_store_id\) THEN/)
+})
+
+test('checkout aggregates repeated product IDs and locks tenant-scoped stock rows', () => {
+  assert.match(queueMigration, /sum\(\(e\.value->>'quantity'\)::integer\)::integer AS qty/)
+  assert.match(queueMigration, /GROUP BY \(e\.value->>'product_id'\)::uuid/)
+  assert.match(queueMigration, /AND store_id=p_store_id AND is_active=true\s+FOR UPDATE/)
+  assert.match(queueMigration, /UPDATE public\.products\s+SET stock=stock-v_qty/)
+})
+
+test('cashier passes the queue switch to checkout and receipt only prints a returned ticket', () => {
+  assert.match(app, /p_create_queue:settings\?\.queue_enabled!==false/)
+  assert.match(app, /\{ticket&&<div className="receipt-queue"/)
+  assert.match(app, /settings\?\.queue_enabled===false\?null:/)
 })
