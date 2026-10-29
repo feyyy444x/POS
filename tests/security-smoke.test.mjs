@@ -18,6 +18,9 @@ const cashierAlertRlsMigration = await readFile(new URL('supabase/migrations/202
 const platformAdminParityMigration = await readFile(new URL('supabase/migrations/20261029163000_platform_admin_super_admin_parity.sql', root), 'utf8')
 const platformStaffEndpoint = await readFile(new URL('netlify/functions/platform-staff-workspace.mjs', root), 'utf8')
 const platformStaffWorkspaceUi = await readFile(new URL('src/PlatformStaffWorkspace.jsx', root), 'utf8')
+const platformStaffManagerUi = await readFile(new URL('src/PlatformStaffManager.jsx', root), 'utf8')
+const promotionManagerUi = await readFile(new URL('src/PromotionManager.jsx', root), 'utf8')
+const subscriptionPlanManagerUi = await readFile(new URL('src/SubscriptionPlanManager.jsx', root), 'utf8')
 
 test('Netlify headers include baseline browser security protections', () => {
   for (const directive of [
@@ -189,4 +192,17 @@ test('workspace data loaders surface query failures instead of presenting failed
   assert.match(platformStaffEndpoint, /order_count_limited/)
   assert.match(platformStaffWorkspaceUi, /if \(target === 'reports'\) setReport\(null\)/)
   assert.match(platformStaffWorkspaceUi, /Sebagian angka mencapai batas pembacaan laporan/)
+})
+
+
+test('admin managers clear stale data on load failures and prevent editing fallback plan data', () => {
+  assert.match(platformStaffManagerUi, /if \(error\) \{\s*setStaff\(\[\]\)/)
+  assert.match(platformStaffManagerUi, /catch \(error\) \{\s*setStaff\(\[\]\)/)
+  assert.match(platformStaffManagerUi, /Status akses staf belum berhasil diubah/)
+  assert.match(platformStaffManagerUi, /Penugasan role belum berhasil dihapus/)
+  assert.match(promotionManagerUi, /if \(queryError\) \{\s*setPromos\(\[\]\)/)
+  assert.match(subscriptionPlanManagerUi, /if \(queryError\) \{\s*setPlans\(\[\]\)/)
+  assert.match(subscriptionPlanManagerUi, /setPlansReady\(missingKeys\.length === 0\)/)
+  assert.match(subscriptionPlanManagerUi, /disabled=\{!plansReady \|\| savingKey===plan\.plan_key\}/)
+  assert.match(subscriptionPlanManagerUi, /Data paket belum tersedia/)
 })
