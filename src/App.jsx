@@ -1583,8 +1583,12 @@ function SupportPortal() {
       setIsSuperAdmin(false)
       return
     }
-    supabase.from('super_admins').select('user_id').eq('user_id', userId).maybeSingle().then(({data}) => {
-      if (!cancelled) setIsSuperAdmin(Boolean(data))
+    Promise.all([
+      supabase.from('super_admins').select('user_id').eq('user_id', userId).maybeSingle(),
+      supabase.rpc('get_my_platform_staff_role'),
+    ]).then(([adminResult, staffResult]) => {
+      const staffData = Array.isArray(staffResult.data) ? staffResult.data[0] : staffResult.data
+      if (!cancelled) setIsSuperAdmin(Boolean(adminResult.data) || (!staffResult.error && staffData?.role === 'admin'))
     })
     return () => { cancelled = true }
   }, [session?.user?.id, session?.access_token])
