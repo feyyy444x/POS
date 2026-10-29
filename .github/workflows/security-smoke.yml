@@ -1,6 +1,7 @@
 name: Security smoke checks
 
 on:
+  workflow_dispatch:
   pull_request:
     branches: [main]
   push:
@@ -20,7 +21,9 @@ jobs:
         with:
           node-version: 22
       - name: Install dependencies
-        run: npm install --no-audit --no-fund
+        run: npm install --no-fund
+      - name: Audit dependencies for high or critical vulnerabilities
+        run: npm audit --audit-level=high
       - name: Run static security regression checks
         run: node --test tests/security-smoke.test.mjs
       - name: Build production bundle
