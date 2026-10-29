@@ -346,7 +346,7 @@ test('form draft restoration is scoped to the signed-in user and active tenant',
 })
 
 test('form draft restoration handles conditional fields without overwriting fields already restored', () => {
-  assert.match(app, /data-draft-restored-keys/)
+  assert.match(app, /draftRestoredKeys/)
   assert.match(app, /restoredKeys\.has\(fieldKey\)/)
   assert.match(app, /Array\.from\(document\.forms\)\.forEach\(restoreForm\)/)
 })
