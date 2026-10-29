@@ -416,6 +416,8 @@ test('Super Admin can configure custom activation durations and package-specific
 
 
 test('homepage pricing fallback matches package defaults and does not fabricate promotions', () => {
+  assert.doesNotMatch(homepageUi, /\bupcomingPromo\b/)
+
   assert.match(homepageUi, /duration_key: 'daily', name: 'Harian', duration_days: 3/)
   assert.match(homepageUi, /key: 'starter', name: 'Starter', location_limit: 3/)
   assert.match(homepageUi, /key: 'growth', name: 'Growth', location_limit: 5/)
