@@ -18,8 +18,6 @@ export default function PlatformStaffManager() {
   const [email, setEmail] = useState('')
   const [fullName, setFullName] = useState('')
   const [password, setPassword] = useState('')
-  const [role, setRole] = useState('admin')
-  const [permissions, setPermissions] = useState(() => defaultPermissions())
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [notice, setNotice] = useState('')
@@ -49,14 +47,12 @@ export default function PlatformStaffManager() {
 
   const resetForm = () => {
     setEditing(null); setEmail(''); setFullName(''); setPassword('')
-    setRole('admin'); setPermissions(defaultPermissions()); setCreateAccount(true)
+    setCreateAccount(true)
   }
   const beginEdit = member => {
     setEditing(member); setEmail(member.email || ''); setFullName(member.full_name || '')
-    setPassword(''); setRole('admin')
-    setPermissions(defaultPermissions())
+    setPassword('')
   }
-  const changeRole = () => { setRole('admin'); setPermissions(defaultPermissions()) }
 
   const save = async event => {
     event.preventDefault()
@@ -71,7 +67,7 @@ export default function PlatformStaffManager() {
         const response = await fetch('/.netlify/functions/create-platform-staff', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + sessionData.session.access_token },
-          body: JSON.stringify({ email: email.trim(), fullName: fullName.trim(), password, role, permissions }),
+          body: JSON.stringify({ email: email.trim(), fullName: fullName.trim(), password, role: 'admin', permissions: defaultPermissions() }),
         })
         const result = await response.json().catch(() => ({}))
         if (!response.ok) throw new Error(result.error || 'Akun staf belum berhasil dibuat.')
@@ -116,8 +112,6 @@ export default function PlatformStaffManager() {
       setNotice(userFacingError(error, 'Penugasan role belum berhasil dihapus.'))
     }
   }
-  const available = ADMIN_PERMISSIONS
-
   return <div className="page-content platform-staff-page">
     <div className="page-heading">
       <div><span className="eyebrow muted">AKSES INTERNAL NEXAPOS</span><h1>Manajemen Tim & Hak Akses</h1><p><strong>Hanya ada satu role staf platform: Admin NEXAPOS dengan FULL AKSES setara Super Admin.</strong></p></div>
