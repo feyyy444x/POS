@@ -28,11 +28,9 @@ export default function OrganizationReports({ organization, tenants = [] }) {
     }
     setLoading(true)
     setError('')
-    const [ordersResult, productsResult] = await Promise.all([
-      supabase.from('orders').select('*').in('store_id', tenantIds).order('created_at', { ascending: false }).limit(3000),
-      supabase.from('products').select('id,store_id,cost_price').in('store_id', tenantIds),
-    ])
-    if (ordersResult.error || productsResult.error) {
+    const ordersResult = await supabase.from('orders').select('*')
+      .in('store_id', tenantIds).order('created_at', { ascending: false }).limit(3000)
+    if (ordersResult.error) {
       setOrders([]); setItems([]); setProducts([])
       setError('Laporan organisasi gagal dimuat. Pastikan akses Owner dan kebijakan RLS tenant sudah benar.')
       setLoading(false)
@@ -40,15 +38,28 @@ export default function OrganizationReports({ organization, tenants = [] }) {
     }
     const nextOrders = ordersResult.data || []
     setOrders(nextOrders)
-    setProducts(productsResult.data || [])
     const orderIds = nextOrders.map(order => order.id)
-    if (orderIds.length) {
-      const { data, error: itemsError } = await supabase.from('order_items').select('*').in('order_id', orderIds)
-      if (itemsError) {
-        setItems([])
-        setError('Item transaksi tidak dapat dimuat; total unit dan modal belum dapat dihitung.')
-      } else setItems(data || [])
-    } else setItems([])
+    const itemBatches = []
+    for (let index = 0; index < orderIds.length; index += 200) itemBatches.push(orderIds.slice(index, index + 200))
+    const itemResults = await Promise.all(itemBatches.map(ids => supabase.from('order_items').select('*').in('order_id', ids)))
+    const failedItems = itemResults.find(result => result.error)
+    if (failedItems) {
+      setItems([]); setProducts([])
+      setError('Item transaksi tidak dapat dimuat; total unit dan modal belum dapat dihitung.')
+      setLoading(false)
+      return
+    }
+    const nextItems = itemResults.flatMap(result => result.data || [])
+    setItems(nextItems)
+    const productIds = [...new Set(nextItems.map(item => item.product_id).filter(Boolean))]
+    const productBatches = []
+    for (let index = 0; index < productIds.length; index += 200) productBatches.push(productIds.slice(index, index + 200))
+    const productResults = await Promise.all(productBatches.map(ids => supabase.from('products').select('id,store_id,cost_price').in('id', ids)))
+    const failedProducts = productResults.find(result => result.error)
+    if (failedProducts) {
+      setProducts([])
+      setError('Data harga modal produk tidak dapat dimuat; total modal belum dapat dihitung.')
+    } else setProducts(productResults.flatMap(result => result.data || []))
     setLoading(false)
   }, [organization?.id, tenantIdsKey])
 
