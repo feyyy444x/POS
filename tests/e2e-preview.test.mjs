@@ -32,12 +32,26 @@ test('deployed preview serves the NexaPos entry page and application bundle', as
 })
 
 test('deployed preview sends baseline browser security headers', async () => {
-  const response = await getReachableApp()
-  assert.match(response.headers.get('x-content-type-options') || '', /nosniff/i)
-  assert.match(response.headers.get('x-frame-options') || '', /deny|sameorigin/i)
-  assert.match(response.headers.get('referrer-policy') || '', /strict-origin-when-cross-origin|no-referrer/i)
-  assert.match(response.headers.get('strict-transport-security') || '', /max-age=\d+/i)
-  assert.match(response.headers.get('permissions-policy') || '', /camera=\(\)/i)
+  const requiredHeaders = [
+    ['x-content-type-options', /nosniff/i],
+    ['x-frame-options', /deny|sameorigin/i],
+    ['referrer-policy', /strict-origin-when-cross-origin|no-referrer/i],
+    ['strict-transport-security', /max-age=\d+/i],
+    ['permissions-policy', /camera=\(\)/i],
+  ]
+  let response
+  let missing = requiredHeaders.map(([name]) => name)
+  // Netlify deploy previews update asynchronously after the GitHub push. Poll for
+  // the new deployment rather than failing immediately against the previous build.
+  for (let attempt = 0; attempt < 9; attempt += 1) {
+    response = await getReachableApp()
+    missing = requiredHeaders
+      .filter(([name, pattern]) => !pattern.test(response.headers.get(name) || ''))
+      .map(([name]) => name)
+    if (missing.length === 0) break
+    if (attempt < 8) await new Promise(resolve => setTimeout(resolve, 10000))
+  }
+  assert.deepEqual(missing, [], `Preview is missing browser security headers: ${missing.join(', ')}`)
 })
 
 test('activation endpoint rejects GET without touching invitation data', async () => {
