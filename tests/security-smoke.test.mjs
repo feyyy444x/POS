@@ -31,6 +31,7 @@ const ownerOrganizationsMigration = await readFile(new URL('supabase/migrations/
 const auditLogsMigration = await readFile(new URL('supabase/migrations/20261030210000_platform_audit_logs.sql', root), 'utf8')
 const auditLogUi = await readFile(new URL('src/AuditLogPanel.jsx', root), 'utf8')
 const serverPromoQuoteMigration = await readFile(new URL('supabase/migrations/20261030220000_server_validate_activation_promotions.sql', root), 'utf8')
+const idempotentCheckoutMigration = await readFile(new URL('supabase/migrations/20261030230000_idempotent_checkout.sql', root), 'utf8')
 const organizationReportsUi = await readFile(new URL('src/OrganizationReports.jsx', root), 'utf8')
 
 test('Netlify headers include baseline browser security protections', () => {
@@ -513,4 +514,17 @@ test('Owner consolidated reports aggregate only tenant IDs visible in the owner 
   assert.match(organizationReportsUi, /order_item.*select/)
   assert.match(app, /page==='reports-org'&&membership\.role==='owner'&&<OrganizationReports/)
   assert.match(app, /\['reports-org','Laporan organisasi',Store\]/)
+})
+
+
+test('checkout retries use a tenant-scoped idempotency key to prevent duplicate sales after reconnect', () => {
+  assert.match(idempotentCheckoutMigration, /add column if not exists idempotency_key uuid/i)
+  assert.match(idempotentCheckoutMigration, /unique index if not exists orders_store_idempotency_key_uidx/i)
+  assert.match(idempotentCheckoutMigration, /pg_advisory_xact_lock\(hashtextextended\(/i)
+  assert.match(idempotentCheckoutMigration, /where store_id = p_store_id and idempotency_key = p_request_id/i)
+  assert.match(idempotentCheckoutMigration, /revoke all on function public\.complete_sale\(uuid, jsonb, numeric, text, numeric, text, boolean\) from public, anon, authenticated/i)
+  assert.match(app, /supabase\.rpc\('complete_sale_idempotent'/)
+  assert.match(app, /p_request_id:checkoutRequestIdRef\.current/)
+  assert.match(app, /checkoutRequestIdRef\.current = null/)
+  assert.doesNotMatch(app, /supabase\.rpc\('complete_sale',/)
 })
