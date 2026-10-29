@@ -488,6 +488,7 @@ test('activation discounts and vouchers are calculated against active server-sid
   assert.match(homepageUi, /supabase\.rpc\('get_activation_quote'/)
   assert.match(homepageUi, /serverQuotes\[plan\.key\]/)
   assert.match(homepageUi, /serverQuotes\[selectedPlan\]\?\.promo_id/)
+  assert.doesNotMatch(homepageUi, /function discountFor\(/)
 })
 
 test('workspace browser history restores prior pages without clearing current tenant state', () => {
