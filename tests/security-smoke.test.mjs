@@ -9,6 +9,7 @@ const app = await readFile(new URL('src/App.jsx', root), 'utf8')
 const queueMigration = await readFile(new URL('supabase/migrations/20261029140000_enforce_store_queue_enabled.sql', root), 'utf8')
 const writeHardeningMigration = await readFile(new URL('supabase/migrations/20261029150000_tighten_mutable_column_grants_and_queue_policy.sql', root), 'utf8')
 const queueCompatibilityMigration = await readFile(new URL('supabase/migrations/20261029151000_queue_update_compatibility_guard.sql', root), 'utf8')
+const privilegedRlsMigration = await readFile(new URL('supabase/migrations/20261029152000_require_pin_for_privileged_rls.sql', root), 'utf8')
 
 test('Netlify headers include baseline browser security protections', () => {
   for (const directive of [
@@ -89,4 +90,15 @@ test('queue database guard preserves only valid status transitions and honors th
   assert.match(queueCompatibilityMigration, /Perubahan status antrean tidak valid/)
   assert.match(queueCompatibilityMigration, /IF NOT v_queue_enabled THEN/)
   assert.match(queueCompatibilityMigration, /members update operational queue while enabled/)
+})
+
+
+test('privileged RLS mutations require PIN verification', () => {
+  assert.match(privilegedRlsMigration, /USING \(private\.is_super_admin\(\)\)/)
+  assert.match(privilegedRlsMigration, /WITH CHECK \(private\.is_super_admin\(\)\)/)
+  assert.match(privilegedRlsMigration, /private\.is_store_operational\(store_id\)/)
+  assert.match(privilegedRlsMigration, /support_messages_read_pin_verified/)
+  assert.match(privilegedRlsMigration, /support_messages_insert_pin_verified/)
+  assert.match(privilegedRlsMigration, /private\.is_pin_verified\(\)/)
+  assert.match(privilegedRlsMigration, /Anyone can view active site promotions/)
 })
