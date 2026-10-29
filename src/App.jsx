@@ -148,6 +148,7 @@ function App() {
   const [ownerTenantName, setOwnerTenantName] = useState('')
   const [ownerTenantBusy, setOwnerTenantBusy] = useState(false)
   const [selectedStoreId, setSelectedStoreId] = useState('')
+  const [selectedStoreReady, setSelectedStoreReady] = useState(false)
   const [settings, setSettings] = useState(null)
   const [page, setPage] = useState('dashboard')
   const [products, setProducts] = useState([])
@@ -530,9 +531,71 @@ function App() {
 
   useEffect(()=>{if(!session){setPinStatus(null);return}let cancelled=false;setPinStatus(null);supabase.rpc('get_my_pin_status').then(({data,error})=>{if(cancelled)return;if(error)setPinStatus({error:userFacingError(error, 'Status PIN belum dapat dimuat. Coba lagi.')} );else setPinStatus(data?.[0]||{has_pin:false,is_verified:false})});return()=>{cancelled=true}},[session?.user?.id,session?.access_token])
 
-  useEffect(()=>{setSelectedStoreId('')},[session?.user?.id])
+  useEffect(() => {
+    if (!session?.user?.id) {
+      setSelectedStoreId('')
+      setSelectedStoreReady(false)
+      return
+    }
+    try {
+      const savedStore = localStorage.getItem('nexapos-selected-store-v1:' + session.user.id)
+      setSelectedStoreId(savedStore || '')
+    } catch {
+      setSelectedStoreId('')
+    }
+    setSelectedStoreReady(true)
+  }, [session?.user?.id])
 
-  useEffect(()=>{if(!session)return;loadWorkspace()},[session,loadWorkspace])
+  useEffect(() => {
+    if (!session?.user?.id || !selectedStoreId) return
+    try { localStorage.setItem('nexapos-selected-store-v1:' + session.user.id, selectedStoreId) } catch {}
+  }, [session?.user?.id, selectedStoreId])
+
+  useEffect(() => {
+    if (!session || !selectedStoreReady) return
+    loadWorkspace()
+  }, [session, loadWorkspace, selectedStoreReady])
+
+  // Preserve the active workspace page and its scroll position across reloads and app switching.
+  useEffect(() => {
+    if (!session?.user?.id || !selectedStoreReady || isSuperAdmin) return
+    const key = selectedStoreId
+      ? 'nexapos-workspace-page-v1:' + session.user.id + ':' + selectedStoreId
+      : ''
+    if (!key) return
+    const allowed = new Set(['dashboard','pos','products','queue','monitoring','reports','attendance','cashier','settings','profile','tv-settings','team','tenants','audit'])
+    try {
+      const saved = localStorage.getItem(key)
+      if (saved && allowed.has(saved) && (!['team','tenants','audit'].includes(saved) || membership?.role === 'owner')) setPage(saved)
+    } catch {}
+  }, [session?.user?.id, selectedStoreId, selectedStoreReady, isSuperAdmin, membership?.role])
+
+  useEffect(() => {
+    if (!session?.user?.id || !selectedStoreId || isSuperAdmin) return
+    if (['team','tenants','audit'].includes(page) && membership?.role !== 'owner') return
+    try { localStorage.setItem('nexapos-workspace-page-v1:' + session.user.id + ':' + selectedStoreId, page) } catch {}
+  }, [page, session?.user?.id, selectedStoreId, isSuperAdmin, membership?.role])
+
+  useEffect(() => {
+    if (!session?.user?.id || !store?.id) return
+    const key = 'nexapos-scroll-v1:' + session.user.id + ':' + store.id + ':' + page
+    const restore = () => {
+      try {
+        const saved = Number(localStorage.getItem(key) || 0)
+        if (saved > 0) window.requestAnimationFrame(() => window.scrollTo({ top: saved, behavior: 'auto' }))
+      } catch {}
+    }
+    const save = () => { try { localStorage.setItem(key, String(window.scrollY)) } catch {} }
+    const saveWhenHidden = () => { if (document.visibilityState === 'hidden') save() }
+    restore()
+    window.addEventListener('pagehide', save)
+    document.addEventListener('visibilitychange', saveWhenHidden)
+    return () => {
+      save()
+      window.removeEventListener('pagehide', save)
+      document.removeEventListener('visibilitychange', saveWhenHidden)
+    }
+  }, [page, store?.id, session?.user?.id])
 
   // Load the cashier's open shift and the selected day's shift ledger.
   useEffect(()=>{
