@@ -21,6 +21,7 @@ const platformStaffEndpoint = await readFile(new URL('netlify/functions/platform
 const platformStaffManagerUi = await readFile(new URL('src/PlatformStaffManager.jsx', root), 'utf8')
 const promotionManagerUi = await readFile(new URL('src/PromotionManager.jsx', root), 'utf8')
 const subscriptionPlanManagerUi = await readFile(new URL('src/SubscriptionPlanManager.jsx', root), 'utf8')
+const storeControlCenterUi = await readFile(new URL('src/StoreControlCenter.jsx', root), 'utf8')
 
 test('Netlify headers include baseline browser security protections', () => {
   for (const directive of [
@@ -307,4 +308,17 @@ test('direct table inserts cannot bypass the support RPC validation and rate lim
   assert.match(supportWritesMigration, /GRANT SELECT ON TABLE public\.support_messages TO authenticated/)
   assert.match(supportCenter, /supabase\.rpc\('submit_support_message'/)
   assert.doesNotMatch(supportCenter, /from\('support_messages'\)\.insert\(/)
+})
+
+
+test('Pusat Kendali Toko scopes operational reads to the selected store and labels timeline limitations honestly', () => {
+  assert.match(app, /import StoreControlCenter from '\.\/StoreControlCenter\.jsx'/)
+  assert.match(app, /setSelectedTenant\(t\);setSection\('store-control'\)/)
+  assert.match(app, /section==='store-control'&&<StoreControlCenter tenant=\{selectedTenant\}/)
+  assert.match(storeControlCenterUi, /\.eq\('store_id', tenant\.id\)/)
+  assert.match(storeControlCenterUi, /\.in\('user_id', userIds\)/)
+  assert.match(storeControlCenterUi, /order\('created_at', \{ ascending: false \}\)\.limit\(12\)/)
+  assert.match(storeControlCenterUi, /bukan audit log lengkap untuk setiap perubahan admin/)
+  assert.match(storeControlCenterUi, /Tidak tersedia pada data tenant saat ini/)
+  assert.match(storeControlCenterUi, /Hak akses database mungkin membatasi sebagian data/)
 })
