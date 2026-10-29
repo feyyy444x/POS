@@ -12,8 +12,7 @@ const ADMIN_PERMISSIONS = [
   ['system_reports', 'Laporan sistem', 'Melihat laporan dan masalah sistem'],
 ]
 const CS_PERMISSIONS = [
-  ['support', 'Pusat bantuan', 'Melihat dan menangani keluhan pelanggan'],
-  ['users_read', 'Informasi akun terbatas', 'Melihat status akun untuk membantu pelanggan'],
+  ['support', 'Pusat bantuan', 'Melihat dan menangani keluhan pelanggan serta membalas dengan identitas staf yang sedang login'],
 ]
 const defaultPermissions = role => Object.fromEntries((role === 'admin' ? ADMIN_PERMISSIONS : CS_PERMISSIONS).map(([key]) => [key, true]))
 
@@ -124,7 +123,7 @@ export default function PlatformStaffManager() {
 
   return <div className="page-content platform-staff-page">
     <div className="page-heading">
-      <div><span className="eyebrow muted">AKSES INTERNAL NEXAPOS</span><h1>Manajemen Tim & Hak Akses</h1><p>Admin NEXAPOS memakai tampilan, menu, dan hak akses yang sama dengan Super Admin. Customer Service tetap dibatasi sesuai tugasnya.</p></div>
+      <div><span className="eyebrow muted">AKSES INTERNAL NEXAPOS</span><h1>Manajemen Tim & Hak Akses</h1><p><strong>Admin NEXAPOS memiliki FULL AKSES setara Super Admin.</strong> Customer Service memakai workspace platform yang sama, tetapi hanya dapat menjalankan fitur yang diizinkan.</p></div>
       <button className="btn btn-outline" type="button" onClick={load} disabled={loading}><RefreshCw size={15}/> Muat ulang</button>
     </div>
     {notice && <div className="notice" role="status">{notice}</div>}
@@ -146,13 +145,13 @@ export default function PlatformStaffManager() {
           <select id="platform-staff-role" className="text-input" value={role} onChange={event => changeRole(event.target.value)}>
             <option value="admin">Admin NEXAPOS</option><option value="customer_service">Customer Service</option>
           </select>
-          <div className="permission-heading"><strong>Hak akses</strong><span>{role === 'admin' ? 'Setara Super Admin' : Object.values(permissions).filter(Boolean).length + ' dipilih'}</span></div>
-          <div className="permission-list">
+          <div className="permission-heading"><strong>Hak akses</strong><span>{role === 'admin' ? 'FULL AKSES' : Object.values(permissions).filter(Boolean).length + ' izin aktif'}</span></div>
+          {role === 'admin' ? <div className="permission-option" role="status"><span className="permission-copy"><strong>FULL AKSES — setara Super Admin</strong><small>Seluruh menu dan tindakan administrasi platform tersedia. Tidak dibatasi hanya pada daftar izin di bawah.</small></span></div> : <div className="permission-list">
             {available.map(([key, title, description]) => <label className="permission-option" key={key}>
-              <input type="checkbox" checked={role === 'admin' ? true : Boolean(permissions[key])} disabled={role === 'admin'} onChange={event => setPermissions(current => ({ ...current, [key]: event.target.checked }))}/>
+              <input type="checkbox" checked={Boolean(permissions[key])} onChange={event => setPermissions(current => ({ ...current, [key]: event.target.checked }))}/>
               <span className="permission-copy"><strong>{title}</strong><small>{description}</small></span>
             </label>)}
-          </div>
+          </div>}
           <div className="staff-safety-note"><ShieldCheck size={17}/><span>{role === 'admin' ? 'Admin NEXAPOS mendapat akses dan tampilan yang sama dengan Super Admin setelah verifikasi PIN. Role Admin toko/tenant tidak terpengaruh.' : 'Customer Service hanya dapat menggunakan fitur yang izinnya diberikan. Role staf tidak dapat mengambil alih Owner.'}</span></div>
           <div className="staff-form-actions"><button className="btn btn-primary" type="submit" disabled={saving}>{saving ? 'Menyimpan…' : editing ? 'Simpan perubahan' : createAccount ? 'Buat akun & tambahkan staf' : 'Tambahkan staf'} <Check size={15}/></button>{editing && <button className="btn btn-outline" type="button" onClick={resetForm}>Batal</button>}</div>
         </form>
@@ -161,7 +160,7 @@ export default function PlatformStaffManager() {
         <div className="panel-heading"><span className="panel-icon"><Users size={19}/></span><div><h2>Tim internal</h2><p>{staff.length} penugasan role</p></div></div>
         {loading ? <div className="empty-state"><RefreshCw size={20}/><p>Memuat anggota tim…</p></div> : staff.length === 0 ? <div className="empty-state"><Users size={23}/><strong>Belum ada staf</strong><p>Buat akun Admin atau Customer Service untuk mulai membagi tugas.</p></div> :
           <div className="staff-table-wrap"><table className="staff-table"><thead><tr><th>Anggota</th><th>Role</th><th>Status</th><th>Aksi</th></tr></thead><tbody>
-            {staff.map(member => <tr key={member.user_id}><td><div className="staff-person"><strong>{member.full_name || member.email}</strong><small>{member.email}</small></div></td><td><span className="staff-role-pill">{member.role === 'admin' ? 'Admin' : 'Customer Service'}</span><small className="staff-permission-count">{Object.values(member.permissions || {}).filter(Boolean).length} izin dipilih</small></td><td><span className={'staff-status '+(member.is_active ? 'is-active' : 'is-inactive')}>{member.is_active ? 'Aktif' : 'Nonaktif'}</span></td><td><div className="staff-actions"><button className="btn btn-small btn-outline" type="button" onClick={() => beginEdit(member)}>Ubah</button><button className="btn btn-small btn-outline" type="button" onClick={() => toggleActive(member)}>{member.is_active ? 'Nonaktifkan' : 'Aktifkan'}</button><button className="icon-button" type="button" title="Hapus penugasan role" aria-label={'Hapus role '+member.email} onClick={() => remove(member)}><Trash2 size={15}/></button></div></td></tr>)}
+            {staff.map(member => <tr key={member.user_id}><td><div className="staff-person"><strong>{member.full_name || member.email}</strong><small>{member.email}</small></div></td><td><span className="staff-role-pill">{member.role === 'admin' ? 'Admin NEXAPOS' : 'Customer Service'}</span><small className="staff-permission-count">{member.role === 'admin' ? 'FULL AKSES · Setara Super Admin' : (Object.values(member.permissions || {}).filter(Boolean).length ? 'Akses: Pusat bantuan' : 'Tidak ada izin fitur aktif')}</small></td><td><span className={'staff-status '+(member.is_active ? 'is-active' : 'is-inactive')}>{member.is_active ? 'Aktif' : 'Nonaktif'}</span></td><td><div className="staff-actions"><button className="btn btn-small btn-outline" type="button" onClick={() => beginEdit(member)}>Ubah</button><button className="btn btn-small btn-outline" type="button" onClick={() => toggleActive(member)}>{member.is_active ? 'Nonaktifkan' : 'Aktifkan'}</button><button className="icon-button" type="button" title="Hapus penugasan role" aria-label={'Hapus role '+member.email} onClick={() => remove(member)}><Trash2 size={15}/></button></div></td></tr>)}
           </tbody></table></div>}
         <div className="staff-note"><Headphones size={16}/><span>Customer Service difokuskan ke pusat bantuan dan informasi akun yang diperlukan.</span></div>
       </section>
