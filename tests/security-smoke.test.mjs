@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 
 const root = new URL('../', import.meta.url)
-const headers = await readFile(new URL('_headers', root), 'utf8')
+const headers = await readFile(new URL('public/_headers', root), 'utf8')
 const activation = await readFile(new URL('netlify/functions/activate-invitation.mjs', root), 'utf8')
 const app = await readFile(new URL('src/App.jsx', root), 'utf8')
 const queueMigration = await readFile(new URL('supabase/migrations/20261029140000_enforce_store_queue_enabled.sql', root), 'utf8')
@@ -41,6 +41,14 @@ test('invitation activation compares hashed codes in constant time and disables 
 test('service-role credential is read only by the server-side Netlify function', () => {
   assert.match(activation, /process\.env\.SUPABASE_SERVICE_ROLE_KEY/)
   assert.doesNotMatch(activation, /VITE_SUPABASE_SERVICE_ROLE_KEY/)
+})
+
+
+test('invitation activation never resets an existing account password', () => {
+  assert.match(activation, /const existingAccount = Boolean\(user\)/)
+  assert.match(activation, /existing credentials/)
+  assert.doesNotMatch(activation, /auth\.admin\.updateUserById/)
+  assert.match(activation, /Use password|Gunakan password akun yang sudah ada/)
 })
 
 test('queue-off setting is authoritative in the database checkout and ticket RPCs', () => {
