@@ -28,6 +28,8 @@ const queueSettingsUi = await readFile(new URL('src/TvDisplaySettings.jsx', root
 const publicQueueMigration = await readFile(new URL('supabase/migrations/20261029200000_simplify_public_queue_rpc.sql', root), 'utf8')
 const activationPackagesMigration = await readFile(new URL('supabase/migrations/20261029140000_activation_packages_pricing.sql', root), 'utf8')
 const ownerOrganizationsMigration = await readFile(new URL('supabase/migrations/20261030200000_owner_organizations_and_tenant_quotas.sql', root), 'utf8')
+const auditLogsMigration = await readFile(new URL('supabase/migrations/20261030210000_platform_audit_logs.sql', root), 'utf8')
+const auditLogUi = await readFile(new URL('src/AuditLogPanel.jsx', root), 'utf8')
 
 test('Netlify headers include baseline browser security protections', () => {
   for (const directive of [
@@ -451,4 +453,18 @@ test('owner tenant management lists only stores linked to the authenticated owne
   assert.match(app, /eq\('owner_user_id', session\.user\.id\)/)
   assert.match(app, /eq\('organization_id', organization\.id\)/)
   assert.match(app, /ownerTenants\.filter\(item=>item\.status!=='deleted'&&!item\.deleted_at\)/)
+})
+
+
+test('audit events are recorded server-side with scoped read policies and redacted secrets', () => {
+  assert.match(auditLogsMigration, /create table if not exists public\.platform_audit_logs/i)
+  assert.match(auditLogsMigration, /create or replace function private\.capture_nexapos_audit_event/i)
+  assert.match(auditLogsMigration, /v_before := v_before - 'activation_code_hash' - 'pin_hash'/)
+  assert.match(auditLogsMigration, /v_after := v_after - 'activation_code_hash' - 'pin_hash'/)
+  assert.match(auditLogsMigration, /Owner reads organization audit logs/)
+  assert.match(auditLogsMigration, /Super Admin reads platform audit logs/)
+  assert.match(auditLogsMigration, /revoke all on public\.platform_audit_logs from public, anon/i)
+  assert.match(auditLogUi, /from\('platform_audit_logs'\)/)
+  assert.match(app, /section==='audit'&&<AuditLogPanel scope="platform"\/>/)
+  assert.match(app, /page==='audit'&&membership\.role==='owner'&&<AuditLogPanel scope="organization"/)
 })
