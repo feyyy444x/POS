@@ -291,7 +291,7 @@ begin
   where id = v_org.id;
 
   update public.stores
-  set status = 'active',
+  set status = case when status = 'suspended' then 'suspended' else 'active' end,
       activated_at = now(),
       expires_at = v_expiry,
       activation_days = p_duration_days,
@@ -398,15 +398,11 @@ begin
     raise exception 'Tenant tidak ditemukan atau sudah diarsipkan';
   end if;
 
-  update public.owner_organizations
-  set status = p_status, updated_at = now()
-  where id = v_store.organization_id;
-
+  -- Suspension/archive is tenant-scoped; it must not disable sibling tenants in the organization.
   update public.stores
   set status = p_status,
       deleted_at = case when p_status = 'deleted' then now() else null end
-  where organization_id = v_store.organization_id
-    and status <> 'deleted';
+  where id = p_store_id;
 
   select * into v_store from public.stores where id = p_store_id;
   return v_store;
