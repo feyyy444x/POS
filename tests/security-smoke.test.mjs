@@ -16,6 +16,7 @@ const queueTimestampGuardMigration = await readFile(new URL('supabase/migrations
 const foreignKeyIndexesMigration = await readFile(new URL('supabase/migrations/20261029160000_add_missing_foreign_key_indexes.sql', root), 'utf8')
 const cashierAlertRlsMigration = await readFile(new URL('supabase/migrations/20261029161000_optimize_cashier_alert_rls.sql', root), 'utf8')
 const platformAdminParityMigration = await readFile(new URL('supabase/migrations/20261029163000_platform_admin_super_admin_parity.sql', root), 'utf8')
+const platformStaffEndpoint = await readFile(new URL('netlify/functions/platform-staff-workspace.mjs', root), 'utf8')
 
 test('Netlify headers include baseline browser security protections', () => {
   for (const directive of [
@@ -162,4 +163,11 @@ test('platform Admin can create staff only with active role and verified PIN', (
   assert.match(createPlatformStaff, /staffRole\?\.role === 'admin'/)
   assert.match(createPlatformStaff, /staffRole\?\.is_active === true/)
   assert.match(createPlatformStaff, /if \(!authorized\) return json/)
+})
+
+
+test('platform Admin receives full internal endpoint access while Customer Service remains permission-scoped', () => {
+  assert.match(platformStaffEndpoint, /assignment\.role !== 'admin' && assignment\.permissions\?\./)
+  assert.match(platformStaffEndpoint, /assignment\.permissions\?\[requiredPermission\] !== true/)
+  assert.match(platformStaffEndpoint, /if \(!assignment \|\| !assignment\.is_active\)/)
 })
