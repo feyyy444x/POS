@@ -714,10 +714,7 @@ function App() {
       }
       return
     }
-    const update={status}
-    if(status==='serving')update.called_at=ticket.called_at||new Date().toISOString()
-    if(status==='done'||status==='skipped')update.completed_at=new Date().toISOString()
-    const {error}=await supabase.from('queue_tickets').update(update).eq('id',ticket.id).eq('store_id',store.id)
+    const {error}=await supabase.rpc('update_queue_ticket_status',{p_ticket_id:ticket.id,p_status:status})
     if(error)setNotice(error.message);else await loadWorkspace()
   }
 
