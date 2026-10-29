@@ -9,20 +9,19 @@ import SupportCenter from './SupportCenter.jsx'
 import './homepage.css'
 
 const money = (value) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value || 0))
-const fallbackPromo = { id: 'nexapos-new-customer-80', title: 'DISKON PELANGGAN BARU', description: 'DISKON BARU CUYYY', discount_type: 'percent', discount_value: 80, eligible_periods: ['daily', 'weekly', 'monthly', 'yearly'], requires_code: false, is_active: true, starts_at: '2026-10-29T11:40:00+00:00', ends_at: '2026-12-30T11:40:00+00:00' }
 const fallbackDurations = [
-  { duration_key: 'daily', name: 'Harian', duration_days: 1, sort_order: 1, is_active: true },
+  { duration_key: 'daily', name: 'Harian', duration_days: 3, sort_order: 1, is_active: true },
   { duration_key: 'weekly', name: 'Mingguan', duration_days: 7, sort_order: 2, is_active: true },
   { duration_key: 'monthly', name: 'Bulanan', duration_days: 30, sort_order: 3, is_active: true },
   { duration_key: 'yearly', name: 'Tahunan', duration_days: 365, sort_order: 4, is_active: true },
   { duration_key: 'custom', name: 'Custom', duration_days: 15, sort_order: 5, is_active: true },
 ]
-const defaultFeatures = ['Semua fitur NexaPos', 'Kasir dan transaksi', 'Produk dan stok per cabang', 'Laporan operasional', 'Sistem antrian dan struk']
+const defaultFeatures = ['Semua fitur NexaPos', 'Kasir dan transaksi', 'Produk dan stok terpisah per tenant/lokasi', 'Laporan operasional', 'Sistem antrian dan struk']
 const fallbackPlans = [
-  { key: 'starter', name: 'Starter', location_limit: 1, note: 'Untuk satu lokasi usaha', prices: { daily: 5000, weekly: 15000, monthly: 49000, yearly: 490000, custom: 25000 }, features: defaultFeatures, popular: false, sort_order: 1 },
-  { key: 'growth', name: 'Growth', location_limit: 3, note: 'Untuk bisnis yang mulai berkembang', prices: { daily: 10000, weekly: 30000, monthly: 99000, yearly: 990000, custom: 45000 }, features: defaultFeatures, popular: false, sort_order: 2 },
-  { key: 'business', name: 'Business', location_limit: 5, note: 'Untuk bisnis dengan beberapa lokasi', prices: { daily: 15000, weekly: 50000, monthly: 179000, yearly: 1790000, custom: 75000 }, features: defaultFeatures, popular: true, sort_order: 3 },
-  { key: 'enterprise', name: 'Enterprise', location_limit: 10, note: 'Untuk jaringan usaha yang lebih besar', prices: { daily: 25000, weekly: 85000, monthly: 299000, yearly: 2990000, custom: 125000 }, features: defaultFeatures, popular: false, sort_order: 4 },
+  { key: 'starter', name: 'Starter', location_limit: 3, note: 'Untuk satu lokasi usaha', prices: { daily: 5000, weekly: 15000, monthly: 49000, yearly: 490000, custom: 25000 }, features: defaultFeatures, popular: false, sort_order: 1 },
+  { key: 'growth', name: 'Growth', location_limit: 5, note: 'Untuk bisnis yang mulai berkembang', prices: { daily: 10000, weekly: 30000, monthly: 99000, yearly: 990000, custom: 45000 }, features: defaultFeatures, popular: false, sort_order: 2 },
+  { key: 'business', name: 'Business', location_limit: 10, note: 'Untuk bisnis dengan beberapa lokasi', prices: { daily: 15000, weekly: 50000, monthly: 179000, yearly: 1790000, custom: 75000 }, features: defaultFeatures, popular: true, sort_order: 3 },
+  { key: 'enterprise', name: 'Enterprise', location_limit: 15, note: 'Untuk jaringan usaha yang lebih besar', prices: { daily: 25000, weekly: 85000, monthly: 299000, yearly: 2990000, custom: 125000 }, features: defaultFeatures, popular: false, sort_order: 4 },
 ]
 const features = [
   { number: '01', icon: ShoppingCart, title: 'Kasir untuk kerja sehari-hari', text: 'Pilih produk, hitung total, proses pembayaran, dan catat transaksi dalam satu alur yang praktis.' },
@@ -86,7 +85,7 @@ export default function Homepage() {
       .eq('is_active', true)
     if (error) return
     const now = Date.now()
-    setPromos((data || []).filter(p => !p.ends_at || new Date(p.ends_at).getTime() >= now))
+    setPromos((data || []).filter(p => (!p.starts_at || new Date(p.starts_at).getTime() <= now) && (!p.ends_at || new Date(p.ends_at).getTime() >= now)))
   }, [])
   useEffect(() => {
     if (!supabase) return
@@ -158,15 +157,14 @@ export default function Homepage() {
     document.querySelectorAll('.living-reveal:not(.is-visible)').forEach(element => observer.observe(element))
     return () => observer.disconnect()
   }, [promos.length])
-  const availablePromos = promos.length ? promos : [fallbackPromo]
+  const availablePromos = promos
   const automaticPromo = availablePromos.find(p => !requiresPromoCode(p) && (!p.starts_at || new Date(p.starts_at).getTime() <= Date.now()))
-  const upcomingPromo = availablePromos.find(p => !requiresPromoCode(p) && p.starts_at && new Date(p.starts_at).getTime() > Date.now())
   const couponPromo = useMemo(() => {
     const code = coupon.trim().toUpperCase()
     if (!code) return null
     return availablePromos.find(p => requiresPromoCode(p) && String(p.promo_code || '').trim().toUpperCase() === code) || null
   }, [coupon, availablePromos])
-  const activePromo = coupon.trim() ? couponPromo : (automaticPromo || upcomingPromo)
+  const activePromo = coupon.trim() ? couponPromo : automaticPromo
   const promoStartsLater = Boolean(activePromo?.starts_at && new Date(activePromo.starts_at).getTime() > Date.now())
   const selected = plans.find(p => p.key === selectedPlan) || plans[1]
   const currentScene = storyScenes[scene] || storyScenes.kasir
