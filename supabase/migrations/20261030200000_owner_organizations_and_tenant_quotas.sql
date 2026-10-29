@@ -211,12 +211,13 @@ begin
   if v_org.owner_user_id is not null and v_org.owner_user_id <> new.user_id then
     raise exception 'Organisasi ini sudah terhubung ke akun Owner lain';
   end if;
-  if v_email is not null and lower(v_org.owner_email) <> v_email then
+  if v_org.owner_user_id is null and v_email is not null and lower(v_org.owner_email) <> v_email then
     raise exception 'Email akun tidak cocok dengan Owner organisasi';
   end if;
 
   update public.owner_organizations
   set owner_user_id = new.user_id,
+      owner_email = case when owner_user_id is null then coalesce(v_email, owner_email) else owner_email end,
       owner_name = coalesce(nullif(trim(new.full_name), ''), owner_name),
       updated_at = now()
   where id = v_org.id;
