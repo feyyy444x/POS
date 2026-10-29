@@ -137,6 +137,7 @@ function App() {
   const [adminCheckReady, setAdminCheckReady] = useState(false)
   const [pinStatus, setPinStatus] = useState(null)
   const [isSuperAdmin, setIsSuperAdmin] = useState(false)
+  const [platformStaffRole, setPlatformStaffRole] = useState(null)
   const [store, setStore] = useState(null)
   const [membership, setMembership] = useState(null)
   const [memberships, setMemberships] = useState([])
@@ -342,8 +343,8 @@ function App() {
     if (!session?.user || !supabase) return
     setLoading(true)
     setNotice('')
-    // Platform Super Admin is independent of tenant membership; never load tenant workspace data for this role.
-    if (isSuperAdmin) {
+    // Platform staff accounts are independent of tenant membership; never send them through tenant onboarding.
+    if (isSuperAdmin || platformStaffRole) {
       setMemberships([])
       setMembership(null)
       setSelectedStoreId('')
@@ -420,9 +421,9 @@ function App() {
       }
     } else { setTeamMembers([]); setTeamInvites([]) }
     setLoading(false)
-  }, [session, selectedStoreId, isSuperAdmin])
+  }, [session, selectedStoreId, isSuperAdmin, platformStaffRole])
 
-  useEffect(()=>{if(!session){setIsSuperAdmin(false);setAdminCheckReady(true);return}setAdminCheckReady(false);supabase.from('super_admins').select('user_id').eq('user_id',session.user.id).maybeSingle().then(({data})=>{setIsSuperAdmin(Boolean(data));setAdminCheckReady(true)})},[session])
+  useEffect(()=>{if(!session){setIsSuperAdmin(false);setPlatformStaffRole(null);setAdminCheckReady(true);return}let cancelled=false;setAdminCheckReady(false);Promise.all([supabase.from('super_admins').select('user_id').eq('user_id',session.user.id).maybeSingle(),supabase.rpc('get_my_platform_staff_role')]).then(([adminResult,staffResult])=>{if(cancelled)return;setIsSuperAdmin(Boolean(adminResult.data));const staffData=Array.isArray(staffResult.data)?staffResult.data[0]:staffResult.data;setPlatformStaffRole(!adminResult.data&&!staffResult.error&&staffData?.role&&staffData?.is_active!==false?staffData:null);setAdminCheckReady(true)}).catch(()=>{if(!cancelled){setIsSuperAdmin(false);setPlatformStaffRole(null);setAdminCheckReady(true)}});return()=>{cancelled=true}},[session?.user?.id,session?.access_token])
 
   useEffect(()=>{
     const handleOnline=()=>setSyncStatus('checking')
@@ -1054,6 +1055,7 @@ function App() {
   if(pinStatus.error)return <div className="loading-screen"><p>Modul keamanan PIN belum siap: {pinStatus.error}</p><p>Terapkan migrasi PIN sebelum memakai versi ini.</p><button className="btn btn-outline" onClick={()=>supabase.auth.signOut()}>Keluar</button></div>
   if(!pinStatus.has_pin||!pinStatus.is_verified)return <PinGate session={session} status={pinStatus} onReady={setPinStatus} onSignOut={()=>supabase.auth.signOut()}/>
   if(isSuperAdmin)return <SuperAdminScreen session={session} syncStatus={syncStatus} setSyncStatus={setSyncStatus} onSignOut={()=>supabase.auth.signOut()}/>
+  if(platformStaffRole)return <main className="auth-shell"><div className="auth-left"><Brand/><div className="auth-hero"><span className="eyebrow"><span className="pulse-dot"/> NEXAPOS INTERNAL ACCESS</span><h1>Selamat datang<br/><span>di workspace.</span></h1><p>Akun internal berhasil dikenali. Anda tidak perlu terhubung ke toko untuk menggunakan role platform.</p></div><div className="auth-footer">© {new Date().getFullYear()} NexaPos</div></div><div className="auth-right"><section className="auth-card"><div className="auth-card-icon"><ShieldCheck size={23}/></div><span className="eyebrow muted">AKUN STAF PLATFORM</span><h2>{platformStaffRole.role==='admin'?'Admin NexaPos':'Customer Service NexaPos'}</h2><p className="subtle">Login berhasil sebagai staf internal: {session.user.email}</p><div className="notice notice-success">Role dan akun terdeteksi. Akun ini tidak membutuhkan keanggotaan toko.</div><h3>Hak akses akun</h3><div className="permission-list">{Object.entries(platformStaffRole.permissions||{}).filter(([,enabled])=>enabled===true).map(([key])=><div className="permission-option" key={key}><CheckCircle2 size={17}/><span className="permission-copy"><strong>{({'users':'Manajemen pengguna','stores':'Manajemen toko','support':'Pusat bantuan','promotions':'Promo & diskon','plans':'Paket & harga','system_reports':'Laporan sistem','users_read':'Informasi akun terbatas'})[key]||key}</strong><small>Izin diberikan oleh Super Admin</small></span></div>)}</div><p className="subtle">Menu operasional untuk tiap izin sedang disiapkan agar staf hanya dapat mengakses fitur yang diizinkan. Akses tenant dan kasir tidak diberikan otomatis.</p><button className="btn btn-primary btn-wide" onClick={()=>supabase.auth.signOut()}>Keluar dari akun <LogOut size={17}/></button></section></div></main>
   if(loading&&!store)return <div className="loading-screen"><span className="spinner spinner-large"/><span>Memeriksa keanggotaan toko…</span></div>
   if(!store)return <div className="loading-screen"><span className="spinner spinner-large"/><p>{notice||'Akun ini belum terhubung ke toko. Minta Owner atau Super Admin mengirim undangan.'}</p><button className="btn btn-outline" onClick={loadWorkspace} disabled={loading}><RefreshCw size={14}/> {loading?'Memeriksa toko…':'Cek koneksi toko'}</button><button className="btn btn-ghost" onClick={()=>supabase.auth.signOut()}>Keluar</button></div>
   const effectiveStoreStatus = store.status === 'active' && store.expires_at && new Date(store.expires_at) <= new Date() ? 'expired' : (store.status || 'active')
