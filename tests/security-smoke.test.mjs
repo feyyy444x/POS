@@ -459,7 +459,9 @@ test('owner organizations and tenant quotas are enforced by the database, not on
 test('owner tenant management lists only stores linked to the authenticated owner organization', () => {
   assert.match(app, /from\('owner_organizations'\)/)
   assert.match(app, /eq\('owner_user_id', session\.user\.id\)/)
-  assert.match(app, /eq\('organization_id', organization\.id\)/)
+  assert.match(app, /rpc\('owner_list_organization_tenants'\)/)
+  assert.match(ownerOrganizationsMigration, /where s\.organization_id = v_org_id/i)
+  assert.match(ownerOrganizationsMigration, /has_membership boolean/i)
   assert.match(app, /ownerTenants\.filter\(item=>item\.status!=='deleted'&&!item\.deleted_at\)/)
 })
 
