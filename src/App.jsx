@@ -177,6 +177,8 @@ function App() {
   const [queueBusy, setQueueBusy] = useState(false)
   const [mobileNav, setMobileNav] = useState(false)
   const [receipt, setReceipt] = useState(null)
+  const [orderSuccessToast, setOrderSuccessToast] = useState(null)
+  const orderSuccessAudioRef = useRef(null)
   const [payMethod, setPayMethod] = useState('cash')
   const [paidAmount, setPaidAmount] = useState('')
   const [discount, setDiscount] = useState('0')
@@ -206,6 +208,12 @@ function App() {
   const [teamMemberPage,setTeamMemberPage] = useState(1)
   const [teamInvitePage,setTeamInvitePage] = useState(1)
   const listPageSize = 10
+
+  useEffect(() => {
+    if (!orderSuccessToast) return
+    const timeout = setTimeout(() => setOrderSuccessToast(null), 3800)
+    return () => clearTimeout(timeout)
+  }, [orderSuccessToast])
 
   useEffect(() => {
     if (!supabase) { setAuthReady(true); return }
@@ -593,6 +601,12 @@ function App() {
 
   const checkout = async () => {
     if(!cart.length||!store)return
+    // Prepare audio synchronously from the cashier's click; only play it after the server confirms success.
+    try {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext
+      if (AudioContextClass && !orderSuccessAudioRef.current) orderSuccessAudioRef.current = new AudioContextClass()
+      if (orderSuccessAudioRef.current?.state === 'suspended') orderSuccessAudioRef.current.resume().catch(() => {})
+    } catch { /* Audio may be unavailable; the visual confirmation still works. */ }
     if(shiftBreak){setNotice('Transaksi dinonaktifkan saat istirahat. Tekan Kembali Bekerja untuk melayani pelanggan.');return}
     if(!activeShift){setNotice('Buka shift kasir terlebih dahulu sebelum memproses transaksi.');setPage('cashier');return}
     const paid=payMethod==='cash'?(Number(paidAmount)||0):total
@@ -603,10 +617,32 @@ function App() {
     if(error){setNotice(error.message);return}
     const {data: receiptItems} = await supabase.from('order_items').select('*').eq('order_id',data.order.id).order('id')
     setReceipt({...data,items:receiptItems||[]})
+    const successfulOrder = data?.order || data
+    const orderNumber = successfulOrder.receipt_number || (successfulOrder.id ? String(successfulOrder.id).slice(0, 8).toUpperCase() : 'Pesanan baru')
+    setOrderSuccessToast({number:orderNumber,total:Number(successfulOrder.total ?? total)})
+    try {
+      const audio = orderSuccessAudioRef.current
+      if (audio && audio.state === 'running') {
+        const now = audio.currentTime
+        const gain = audio.createGain()
+        gain.gain.setValueAtTime(0.0001, now)
+        gain.gain.exponentialRampToValueAtTime(0.12, now + 0.015)
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.42)
+        gain.connect(audio.destination)
+        ;[880, 1175].forEach((frequency, index) => {
+          const oscillator = audio.createOscillator()
+          oscillator.type = 'sine'
+          oscillator.frequency.setValueAtTime(frequency, now + index * 0.11)
+          oscillator.connect(gain)
+          oscillator.start(now + index * 0.11)
+          oscillator.stop(now + index * 0.11 + 0.16)
+        })
+        setTimeout(() => { try { gain.disconnect() } catch {} }, 600)
+      }
+    } catch { /* Browser audio restrictions must not interrupt checkout. */ }
     setCart([]);setPaidAmount('');setDiscount('0');setQueueCustomer('')
     await loadWorkspace()
     setPage('pos')
-    setNotice('Transaksi berhasil. Struk siap dicetak.')
   }
 
   const openCashierShift=async(event)=>{
@@ -923,6 +959,7 @@ function App() {
       {page==='dashboard'&&store?.expires_at&&tenantDaysRemaining!==null&&<div className={`tenant-expiry-banner ${tenantExpiryTone}`}><span className="tenant-expiry-icon"><CalendarDays size={18}/></span><div><strong>{tenantDaysRemaining<0?'Masa aktif toko telah berakhir':tenantDaysRemaining===0?'Masa aktif toko berakhir hari ini':`Masa aktif toko tersisa ${tenantDaysRemaining} hari`}</strong><small>{tenantDaysRemaining<0?'Hubungi Super Admin untuk mengaktifkan kembali toko.':`Berlaku sampai ${new Date(store.expires_at).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric',timeZone:'Asia/Jakarta'})}`}</small></div></div>}
       {cashierAlerts.length>0&&<div role="alert" aria-live="assertive" style={{position:'relative',zIndex:20,margin:'0 0 14px',padding:'14px 16px',border:'2px solid #dc2626',borderRadius:14,background:'#fff1f2',color:'#991b1b',display:'flex',alignItems:'flex-start',gap:12}}><Bell size={21}/><div style={{flex:1}}>{cashierAlerts.map(alert=><div key={alert.id} style={{marginTop:6}}><strong>{alert.title||'Peringatan dari Admin'}</strong><div style={{marginTop:4}}>{alert.message}</div><div style={{fontSize:12,opacity:.8,marginTop:3}}>{new Date(alert.created_at).toLocaleString('id-ID',{timeZone:'Asia/Jakarta'})}</div><button type="button" className="btn btn-small btn-outline" style={{marginTop:8}} onClick={()=>acknowledgeCashierAlert(alert)}>Saya mengerti</button></div>)}</div></div>}
       {notice&&<div className="toast"><CheckCircle2 size={17}/><span>{notice}</span><button onClick={()=>setNotice('')}><X size={15}/></button></div>}
+      {orderSuccessToast&&<div role="status" aria-live="polite" className="order-success-toast" style={{position:'fixed',top:76,right:12,zIndex:12000,width:'min(360px, calc(100vw - 24px))',display:'flex',alignItems:'flex-start',gap:11,padding:'14px 15px',background:'var(--panel,#fff)',color:'var(--ink,#202338)',border:'1px solid #b9edce',borderRadius:15,boxShadow:'0 16px 42px rgba(18,35,31,.18)'}}><CheckCircle2 size={22} style={{color:'#16945f',flexShrink:0,marginTop:1}}/><div style={{flex:1,minWidth:0}}><strong style={{display:'block',fontSize:13,marginBottom:4}}>Pesanan berhasil dibuat!</strong><span style={{display:'block',fontSize:12,opacity:.78,overflowWrap:'anywhere'}}>No. {orderSuccessToast.number}</span><strong style={{display:'block',fontSize:13,marginTop:5}}>{money(orderSuccessToast.total)}</strong></div><button type="button" aria-label="Tutup notifikasi pesanan berhasil" onClick={()=>setOrderSuccessToast(null)} style={{border:0,background:'transparent',color:'inherit',padding:2,display:'grid',placeItems:'center',flexShrink:0}}><X size={16}/></button></div>}
       {activationCodeCard&&<div role="presentation" onMouseDown={e=>{if(e.target===e.currentTarget){setActivationCodeCard(null);setActivationCodeCopied(false)}}} style={{position:'fixed',inset:0,zIndex:10000,background:'rgba(12,16,32,.48)',display:'flex',alignItems:'center',justifyContent:'center',padding:18}}>
         <section role="dialog" aria-modal="true" aria-labelledby="activation-code-title" style={{position:'relative',width:'100%',maxWidth:390,background:'var(--panel,#fff)',color:'var(--ink,#1b2035)',borderRadius:18,padding:24,boxShadow:'0 24px 80px rgba(0,0,0,.24)',border:'1px solid var(--border,#e6e8f0)'}}>
           <button type="button" aria-label="Tutup kartu kode aktivasi" title="Tutup" onClick={()=>{setActivationCodeCard(null);setActivationCodeCopied(false)}} style={{position:'absolute',top:12,right:12,width:34,height:34,borderRadius:10,border:'1px solid var(--border,#e6e8f0)',background:'transparent',color:'inherit',display:'grid',placeItems:'center',cursor:'pointer'}}><X size={17}/></button>
