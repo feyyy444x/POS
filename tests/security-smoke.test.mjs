@@ -13,7 +13,8 @@ const writeHardeningMigration = await readFile(new URL('supabase/migrations/2026
 const queueCompatibilityMigration = await readFile(new URL('supabase/migrations/20261029151000_queue_update_compatibility_guard.sql', root), 'utf8')
 const privilegedRlsMigration = await readFile(new URL('supabase/migrations/20261029152000_require_pin_for_privileged_rls.sql', root), 'utf8')
 const queueTimestampGuardMigration = await readFile(new URL('supabase/migrations/20261029153000_refine_queue_timestamp_guard.sql', root), 'utf8')
-const foreignKeyIndexesMigration = await readFile(new URL('supabase/migrations/20261029190000_add_platform_staff_actor_indexes.sql', root), 'utf8')
+const foreignKeyIndexesMigration = await readFile(new URL('supabase/migrations/20261029160000_add_missing_foreign_key_indexes.sql', root), 'utf8')
+const platformStaffIndexesMigration = await readFile(new URL('supabase/migrations/20261029190000_add_platform_staff_actor_indexes.sql', root), 'utf8')
 const cashierAlertRlsMigration = await readFile(new URL('supabase/migrations/20261029161000_optimize_cashier_alert_rls.sql', root), 'utf8')
 const platformAdminParityMigration = await readFile(new URL('supabase/migrations/20261029163000_platform_admin_super_admin_parity.sql', root), 'utf8')
 const removeCustomerServiceRoleMigration = await readFile(new URL('supabase/migrations/20261029174500_remove_customer_service_platform_role.sql', root), 'utf8')
@@ -319,11 +320,11 @@ test('promotion editor preserves local wall-clock time when editing UTC timestam
 })
 
 test('foreign-key index migration covers all staff and platform actor references flagged by the database advisor', () => {
-  assert.ok(foreignKeyIndexesMigration.includes('create index if not exists platform_staff_roles_created_by_idx'))
-  assert.ok(foreignKeyIndexesMigration.includes('on public.platform_staff_roles (created_by)'))
-  assert.ok(foreignKeyIndexesMigration.includes('create index if not exists platform_staff_roles_updated_by_idx'))
-  assert.ok(foreignKeyIndexesMigration.includes('on public.platform_staff_roles (updated_by)'))
-  assert.match(foreignKeyIndexesMigration, /if not exists/i)
+  assert.ok(platformStaffIndexesMigration.includes('create index if not exists platform_staff_roles_created_by_idx'))
+  assert.ok(platformStaffIndexesMigration.includes('on public.platform_staff_roles (created_by)'))
+  assert.ok(platformStaffIndexesMigration.includes('create index if not exists platform_staff_roles_updated_by_idx'))
+  assert.ok(platformStaffIndexesMigration.includes('on public.platform_staff_roles (updated_by)'))
+  assert.match(platformStaffIndexesMigration, /if not exists/i)
 })
 
 test('Pusat Kendali Toko scopes operational reads to the selected store and labels timeline limitations honestly', () => {
