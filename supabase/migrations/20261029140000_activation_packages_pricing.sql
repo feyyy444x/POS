@@ -66,3 +66,88 @@ values
 on conflict (package_key) do nothing;
 
 -- Keep public read-only behavior and prevent direct browser access to internal activation issuance.
+
+-- Store the selected activation package and its branch/location allowance.
+alter table public.stores
+  add column if not exists activation_package_key text not null default 'starter',
+  add column if not exists activation_location_limit integer not null default 1
+    check (activation_location_limit between 1 and 1000);
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint
+    where conname = 'stores_activation_package_key_fkey'
+      and conrelid = 'public.stores'::regclass
+  ) then
+    alter table public.stores
+      add constraint stores_activation_package_key_fkey
+      foreign key (activation_package_key)
+      references public.site_activation_packages(package_key);
+  end if;
+end $$;
+
+-- Keep the existing two-argument RPC compatible while making the package-aware
+-- three-argument function the path used by the Super Admin UI.
+create or replace function public.activate_store_tenant(
+  p_store_id uuid,
+  p_duration_days integer,
+  p_package_key text
+)
+returns public.stores
+language plpgsql
+security definer
+set search_path to ''
+as $function$
+declare
+  v_store public.stores;
+  v_location_limit integer;
+begin
+  if not private.is_super_admin() then
+    raise exception 'Super Admin access required';
+  end if;
+  if p_duration_days is null or p_duration_days < 1 or p_duration_days > 36500 then
+    raise exception 'Durasi harus 1 sampai 36500 hari';
+  end if;
+  select location_limit into v_location_limit
+  from public.site_activation_packages
+  where package_key = p_package_key and is_active = true;
+  if not found then
+    raise exception 'Paket aktivasi tidak ditemukan atau sedang nonaktif';
+  end if;
+
+  update public.stores
+  set status = 'active',
+      activated_at = now(),
+      expires_at = now() + make_interval(days => p_duration_days),
+      activation_days = p_duration_days,
+      activation_package_key = p_package_key,
+      activation_location_limit = v_location_limit,
+      deleted_at = null
+  where id = p_store_id and status <> 'deleted'
+  returning * into v_store;
+  if not found then
+    raise exception 'Tenant tidak ditemukan atau sudah diarsipkan';
+  end if;
+  return v_store;
+end;
+$function$;
+
+create or replace function public.activate_store_tenant(
+  p_store_id uuid,
+  p_duration_days integer
+)
+returns public.stores
+language plpgsql
+security definer
+set search_path to ''
+as $function$
+begin
+  return public.activate_store_tenant(p_store_id, p_duration_days, 'starter');
+end;
+$function$;
+
+revoke all on function public.activate_store_tenant(uuid, integer, text) from public, anon;
+revoke all on function public.activate_store_tenant(uuid, integer) from public, anon;
+grant execute on function public.activate_store_tenant(uuid, integer, text) to authenticated;
+grant execute on function public.activate_store_tenant(uuid, integer) to authenticated;
