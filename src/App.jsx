@@ -396,31 +396,55 @@ function App() {
     const member = availableMemberships.find(m=>m.store_id===selectedStoreId) || availableMemberships[0]
     if (selectedStoreId !== member.store_id) setSelectedStoreId(member.store_id)
     setMembership(member)
-    const [{data: storeData},{data: settingData},{data: productData},{data: orderData},{data: queueData}] = await Promise.all([
+    const loadIssues = []
+    const [
+      {data: storeData, error: storeLoadError},
+      {data: settingData, error: settingLoadError},
+      {data: productData, error: productLoadError},
+      {data: orderData, error: orderLoadError},
+      {data: queueData, error: queueLoadError},
+    ] = await Promise.all([
       supabase.from('stores').select('*').eq('id',member.store_id).single(),
       supabase.from('store_settings').select('*').eq('store_id',member.store_id).maybeSingle(),
       supabase.from('products').select('*').eq('store_id',member.store_id).order('created_at',{ascending:false}),
       supabase.from('orders').select('*').eq('store_id',member.store_id).order('created_at',{ascending:false}),
       supabase.from('queue_tickets').select('*').eq('store_id',member.store_id).eq('service_date',today()).order('queue_number',{ascending:false})
     ])
-    setStore(storeData || null); setSettings(settingData || {store_id:member.store_id,store_name:storeData?.name||member.store_name||'NexaPos Store',address:'',phone:'',receipt_footer:'Terima kasih telah berbelanja',receipt_note:'',queue_prefix:'A',queue_enabled:true,currency:'IDR'})
+    if (storeLoadError || !storeData) {
+      setStore(null); setSettings(null); setProducts([]); setOrders([]); setOrderItems([]); setQueue([])
+      setNotice(userFacingError(storeLoadError, 'Data toko belum berhasil dimuat. Muat ulang halaman atau coba login kembali.'))
+      setLoading(false)
+      return
+    }
+    if (settingLoadError) loadIssues.push('Pengaturan toko: ' + userFacingError(settingLoadError))
+    if (productLoadError) loadIssues.push('Produk: ' + userFacingError(productLoadError))
+    if (orderLoadError) loadIssues.push('Transaksi: ' + userFacingError(orderLoadError))
+    if (queueLoadError) loadIssues.push('Antrean: ' + userFacingError(queueLoadError))
+    setStore(storeData); setSettings(settingData || {store_id:member.store_id,store_name:storeData?.name||member.store_name||'NexaPos Store',address:'',phone:'',receipt_footer:'Terima kasih telah berbelanja',receipt_note:'',queue_prefix:'A',queue_enabled:true,currency:'IDR'})
     setProducts(productData || []); setOrders(orderData || []); setQueue(queueData || [])
     const orderIds=(orderData||[]).map(o=>o.id)
-    if(orderIds.length){const {data:itemRows}=await supabase.from('order_items').select('*').in('order_id',orderIds);setOrderItems(itemRows||[])}else setOrderItems([])
+    if(orderIds.length){
+      const {data:itemRows,error:itemError}=await supabase.from('order_items').select('*').in('order_id',orderIds)
+      if(itemError){setOrderItems([]);loadIssues.push('Rincian transaksi: '+userFacingError(itemError))}
+      else setOrderItems(itemRows||[])
+    } else setOrderItems([])
     if (['owner','admin','manager'].includes(member.role)) {
-      const {data: memberList} = await supabase.from('store_members')
+      const {data: memberList,error:memberListError} = await supabase.from('store_members')
         .select('id,user_id,role,email,full_name,is_active,created_at')
         .eq('store_id',member.store_id).order('created_at',{ascending:true})
-      setTeamMembers(memberList || [])
+      if(memberListError){setTeamMembers([]);loadIssues.push('Daftar tim: '+userFacingError(memberListError))}
+      else setTeamMembers(memberList || [])
       if (member.role === 'owner') {
-        const {data: inviteList} = await supabase.from('store_invites')
+        const {data: inviteList,error:inviteListError} = await supabase.from('store_invites')
           .select('id,email,full_name,role,created_at,expires_at,accepted_at')
           .eq('store_id',member.store_id).order('created_at',{ascending:false})
-        setTeamInvites(inviteList || [])
+        if(inviteListError){setTeamInvites([]);loadIssues.push('Riwayat undangan: '+userFacingError(inviteListError))}
+        else setTeamInvites(inviteList || [])
       } else {
         setTeamInvites([])
       }
     } else { setTeamMembers([]); setTeamInvites([]) }
+    setNotice(loadIssues.length ? 'Sebagian data gagal dimuat: ' + loadIssues.join(' · ') : '')
     setLoading(false)
   }, [session, selectedStoreId, isSuperAdmin, platformStaffRole])
 
@@ -1206,7 +1230,7 @@ function SuperAdminScreen({session,syncStatus,setSyncStatus,onSignOut}) {
   const load=useCallback(async()=>{
     setLoading(true)
     const {data,error}=await supabase.from('stores').select('id,name,owner_name,owner_email,status,activated_at,expires_at,activation_days,created_at,deleted_at').order('created_at',{ascending:false})
-    if(error){setNotice(userFacingError(error));setLoading(false);return}
+    if(error){setTenants([]);setNotice(userFacingError(error));setLoading(false);return}
     const storeIds=(data||[]).map(tenant=>tenant.id)
     const settingsResult=storeIds.length ? await supabase.from('store_settings').select('store_id,store_name').in('store_id',storeIds) : {data:[],error:null}
     if(settingsResult.error)setNotice('Nama toko sebagian belum dapat disinkronkan. Coba muat ulang atau hubungi admin.')
@@ -1235,7 +1259,7 @@ function SuperAdminScreen({session,syncStatus,setSyncStatus,onSignOut}) {
   },[])
   useEffect(()=>{load();loadUsers()},[load,loadUsers])
   const statusOf=(tenant)=>tenant.status==='active'&&tenant.expires_at&&new Date(tenant.expires_at)<=new Date()?'expired':tenant.status
-  const loadDisabledMembers=useCallback(async()=>{setDisabledLoading(true);const {data,error}=await supabase.rpc('super_admin_list_disabled_members');if(error)setNotice(userFacingError(error));else setDisabledMembers(data||[]);setDisabledLoading(false)},[])
+  const loadDisabledMembers=useCallback(async()=>{setDisabledLoading(true);const {data,error}=await supabase.rpc('super_admin_list_disabled_members');if(error){setDisabledMembers([]);setNotice(userFacingError(error))}else setDisabledMembers(data||[]);setDisabledLoading(false)},[])
   useEffect(()=>{loadDisabledMembers()},[loadDisabledMembers])
   // Super Admin lists update from database events; no polling.
   useEffect(()=>{
