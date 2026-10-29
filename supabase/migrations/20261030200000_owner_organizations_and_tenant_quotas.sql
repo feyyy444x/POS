@@ -383,6 +383,50 @@ revoke all on function public.owner_create_store_tenant(text) from public, anon;
 grant execute on function public.owner_create_store_tenant(text) to authenticated;
 
 -- Keep organization package and quota in sync when Super Admin explicitly changes status.
+create or replace function public.owner_list_organization_tenants()
+returns table (
+  id uuid,
+  name text,
+  status text,
+  expires_at timestamptz,
+  activation_package_key text,
+  activation_location_limit integer,
+  deleted_at timestamptz,
+  created_at timestamptz,
+  has_membership boolean
+)
+language plpgsql
+security definer
+set search_path = ''
+as $function$
+declare
+  v_user_id uuid := (select auth.uid());
+  v_org_id uuid;
+begin
+  if v_user_id is null then raise exception 'Authentication required'; end if;
+  select o.id into v_org_id
+  from public.owner_organizations o
+  where o.owner_user_id = v_user_id
+  order by o.created_at asc
+  limit 1;
+  if not found then raise exception 'Organisasi Owner tidak ditemukan'; end if;
+
+  return query
+  select s.id, s.name, s.status, s.expires_at, s.activation_package_key,
+    s.activation_location_limit, s.deleted_at, s.created_at,
+    exists (
+      select 1 from public.store_members m
+      where m.store_id = s.id and m.user_id = v_user_id and m.is_active = true
+    ) as has_membership
+  from public.stores s
+  where s.organization_id = v_org_id
+  order by s.created_at desc;
+end;
+$function$;
+
+revoke all on function public.owner_list_organization_tenants() from public, anon;
+grant execute on function public.owner_list_organization_tenants() to authenticated;
+
 create or replace function public.set_store_tenant_status(p_store_id uuid, p_status text)
 returns public.stores
 language plpgsql
