@@ -124,7 +124,7 @@ export default function PlatformStaffManager() {
 
   return <div className="page-content platform-staff-page">
     <div className="page-heading">
-      <div><span className="eyebrow muted">AKSES INTERNAL NEXAPOS</span><h1>Manajemen Tim & Hak Akses</h1><p>Admin internal memakai workspace dan hak akses setara Super Admin. Customer Service tetap dibatasi sesuai tugasnya.</p></div>
+      <div><span className="eyebrow muted">AKSES INTERNAL NEXAPOS</span><h1>Manajemen Tim & Hak Akses</h1><p>Admin NEXAPOS memakai tampilan, menu, dan hak akses yang sama dengan Super Admin. Customer Service tetap dibatasi sesuai tugasnya.</p></div>
       <button className="btn btn-outline" type="button" onClick={load} disabled={loading}><RefreshCw size={15}/> Muat ulang</button>
     </div>
     {notice && <div className="notice" role="status">{notice}</div>}
@@ -144,7 +144,7 @@ export default function PlatformStaffManager() {
           </>}
           <label htmlFor="platform-staff-role">Role</label>
           <select id="platform-staff-role" className="text-input" value={role} onChange={event => changeRole(event.target.value)}>
-            <option value="admin">Admin</option><option value="customer_service">Customer Service</option>
+            <option value="admin">Admin NEXAPOS</option><option value="customer_service">Customer Service</option>
           </select>
           <div className="permission-heading"><strong>Hak akses</strong><span>{role === 'admin' ? 'Setara Super Admin' : Object.values(permissions).filter(Boolean).length + ' dipilih'}</span></div>
           <div className="permission-list">
@@ -153,7 +153,7 @@ export default function PlatformStaffManager() {
               <span className="permission-copy"><strong>{title}</strong><small>{description}</small></span>
             </label>)}
           </div>
-          <div className="staff-safety-note"><ShieldCheck size={17}/><span>{role === 'admin' ? 'Admin internal mendapat hak platform setara Super Admin setelah verifikasi PIN. Role Admin toko/tenant tidak terpengaruh.' : 'Customer Service hanya dapat menggunakan fitur yang izinnya diberikan. Role staf tidak dapat mengambil alih Owner.'}</span></div>
+          <div className="staff-safety-note"><ShieldCheck size={17}/><span>{role === 'admin' ? 'Admin NEXAPOS mendapat akses dan tampilan yang sama dengan Super Admin setelah verifikasi PIN. Role Admin toko/tenant tidak terpengaruh.' : 'Customer Service hanya dapat menggunakan fitur yang izinnya diberikan. Role staf tidak dapat mengambil alih Owner.'}</span></div>
           <div className="staff-form-actions"><button className="btn btn-primary" type="submit" disabled={saving}>{saving ? 'Menyimpan…' : editing ? 'Simpan perubahan' : createAccount ? 'Buat akun & tambahkan staf' : 'Tambahkan staf'} <Check size={15}/></button>{editing && <button className="btn btn-outline" type="button" onClick={resetForm}>Batal</button>}</div>
         </form>
       </section>
