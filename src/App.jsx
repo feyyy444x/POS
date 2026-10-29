@@ -7,6 +7,7 @@ import {
   TrendingUp, UserRound, Users, UserPlus, CalendarDays, Ban, Archive, Mail, Wallet, Video, X
 } from 'lucide-react'
 import { isSupabaseConfigured, supabase } from './lib/supabase'
+import { userFacingError } from './lib/userFacingError'
 import SupportCenter from './SupportCenter.jsx'
 import Homepage from './Homepage.jsx'
 import Demo from './Demo.jsx'
@@ -55,7 +56,7 @@ function AuthScreen() {
     try {
       if (mode === 'login') {
         const result = await supabase.auth.signInWithPassword({ email: email.trim(), password })
-        if (result.error) setMessage(result.error.message)
+        if (result.error) setMessage(userFacingError(result.error))
       } else {
         const response = await fetch('/.netlify/functions/activate-invitation', {
           method: 'POST',
@@ -69,7 +70,7 @@ function AuthScreen() {
         setMode('login')
       }
     } catch (error) {
-      setMessage(error.message || 'Terjadi kesalahan. Silakan coba lagi.')
+      setMessage(userFacingError(error, 'Terjadi kesalahan. Silakan coba lagi.'))
     } finally {
       setBusy(false)
     }
@@ -114,7 +115,7 @@ function PinGate({session,status,onReady,onSignOut}) {
     setBusy(true)
     const {data,error:rpcError}=await supabase.rpc(setup?'set_my_pin':'verify_my_pin',setup?{p_pin:pin}:{p_pin:pin})
     setBusy(false)
-    if(rpcError){setError(rpcError.message);return}
+    if(rpcError){setError(userFacingError(rpcError));return}
     if(!setup&&data!==true){setPin('');setError('PIN salah. Silakan coba kembali.');return}
     onReady({has_pin:true,is_verified:true})
   }
@@ -375,7 +376,7 @@ function App() {
       if (attempt < 3) await new Promise(resolve => setTimeout(resolve, 500 * (attempt + 1)))
     }
     let resolvedMembers = memberRows || []
-    if (memberError) { setNotice(memberError.message || 'Koneksi belum siap saat memuat keanggotaan. Periksa internet lalu coba lagi.'); setLoading(false); return }
+    if (memberError) { setNotice(userFacingError(memberError, 'Koneksi belum siap saat memuat keanggotaan. Periksa internet lalu coba lagi.')); setLoading(false); return }
     if (!resolvedMembers.length) {
       setMemberships([])
       setMembership(null)
@@ -385,7 +386,7 @@ function App() {
       return
     }
     const {data: storeRows, error: storesError} = await supabase.from('stores').select('id,name').in('id',resolvedMembers.map(m=>m.store_id))
-    if (storesError) { setNotice(storesError.message); setLoading(false); return }
+    if (storesError) { setNotice(userFacingError(storesError)); setLoading(false); return }
     const {data: settingRows} = await supabase.from('store_settings').select('store_id,store_name').in('store_id',resolvedMembers.map(m=>m.store_id))
     const availableMemberships = resolvedMembers.map(m=>({...m,store_name:settingRows?.find(s=>s.store_id===m.store_id)?.store_name||storeRows?.find(s=>s.id===m.store_id)?.name||'Toko'}))
     setMemberships(availableMemberships)
@@ -431,7 +432,7 @@ function App() {
     return()=>{window.removeEventListener('online',handleOnline);window.removeEventListener('offline',handleOffline)}
   },[])
 
-  useEffect(()=>{if(!session){setPinStatus(null);return}let cancelled=false;setPinStatus(null);supabase.rpc('get_my_pin_status').then(({data,error})=>{if(cancelled)return;if(error)setPinStatus({error:error.message});else setPinStatus(data?.[0]||{has_pin:false,is_verified:false})});return()=>{cancelled=true}},[session?.user?.id,session?.access_token])
+  useEffect(()=>{if(!session){setPinStatus(null);return}let cancelled=false;setPinStatus(null);supabase.rpc('get_my_pin_status').then(({data,error})=>{if(cancelled)return;if(error)setPinStatus({error:userFacingError(error, 'Status PIN belum dapat dimuat. Coba lagi.')} );else setPinStatus(data?.[0]||{has_pin:false,is_verified:false})});return()=>{cancelled=true}},[session?.user?.id,session?.access_token])
 
   useEffect(()=>{setSelectedStoreId('')},[session?.user?.id])
 
@@ -445,7 +446,7 @@ function App() {
       const {data:active,error:activeError}=await supabase.from('cashier_shifts').select('*')
         .eq('store_id',store.id).eq('cashier_id',session.user.id).is('closed_at',null).maybeSingle()
       if(!cancelled){
-        if(activeError){setActiveShift(null);if(!activeError.message?.includes('cashier_shifts'))setNotice(activeError.message)}
+        if(activeError){setActiveShift(null);if(!activeError.message?.includes('cashier_shifts'))setNotice(userFacingError(activeError))}
         else setActiveShift(active||null)
       }
       const start=new Date(shiftReportDate+'T00:00:00+07:00')
@@ -454,7 +455,7 @@ function App() {
         .eq('store_id',store.id).gte('opened_at',start.toISOString()).lt('opened_at',end.toISOString())
         .order('opened_at',{ascending:false})
       if(!cancelled){
-        if(recordsError){setShiftRecords([]);if(!recordsError.message?.includes('cashier_shifts'))setNotice(recordsError.message)}
+        if(recordsError){setShiftRecords([]);if(!recordsError.message?.includes('cashier_shifts'))setNotice(userFacingError(recordsError))}
         else setShiftRecords(records||[])
       }
     }
@@ -477,7 +478,7 @@ function App() {
       if(cancelled)return
       if(config)setBreakSettings(config)
       else if(!configError)setBreakSettings({store_id:store.id,max_break_minutes:15,repeat_reminder_minutes:5,sound_enabled:true,escalation_enabled:true,manual_alert_title:'Peringatan dari Admin',manual_alert_message:'⚠️ Waktu istirahat Anda telah melewati batas. Silakan kembali bekerja.'})
-      if(rowsError){setMonitoringBreaks([]);setBreakHistory([]);if(!rowsError.message?.includes('cashier_shift_breaks'))setNotice(rowsError.message)}
+      if(rowsError){setMonitoringBreaks([]);setBreakHistory([]);if(!rowsError.message?.includes('cashier_shift_breaks'))setNotice(userFacingError(rowsError))}
       else {setMonitoringBreaks((rows||[]).filter(row=>!row.ended_at));setBreakHistory((rows||[]).filter(row=>row.ended_at));setShiftBreak((rows||[]).find(row=>row.cashier_id===session.user.id&&!row.ended_at)||null)}
     }
     refreshBreakData()
@@ -514,7 +515,7 @@ function App() {
     if(!message){setSendingBreakAlert('');setNotice('Isi pesan peringatan tidak boleh kosong.');return}
     const {error}=await supabase.from('cashier_manual_alerts').insert({store_id:store.id,cashier_id:row.cashier_id,sent_by:session.user.id,title,message})
     setSendingBreakAlert('')
-    if(error){setNotice('Peringatan gagal dikirim: '+error.message);return}
+    if(error){setNotice('Peringatan gagal dikirim. ' + userFacingError(error));return}
     setNotice('Peringatan berhasil dikirim ke akun '+row.displayName+'.')
   }
 
@@ -559,7 +560,7 @@ function App() {
       const {data,error}=await supabase.from('cashier_shifts').select('*').eq('store_id',store.id)
         .gte('opened_at',start.toISOString()).lt('opened_at',end.toISOString()).order('opened_at',{ascending:false})
       if(cancelled)return
-      if(error){setAttendanceRecords([]);if(!error.message?.includes('cashier_shifts'))setNotice(error.message)}
+      if(error){setAttendanceRecords([]);if(!error.message?.includes('cashier_shifts'))setNotice(userFacingError(error))}
       else setAttendanceRecords(data||[])
     }
     refreshAttendance()
@@ -728,7 +729,7 @@ function App() {
     setQueueBusy(true)
     const {data,error}=await supabase.rpc('complete_sale',{p_store_id:store.id,p_items:cart.map(i=>({product_id:i.id,quantity:i.quantity})),p_discount:safeDiscount,p_payment_method:payMethod,p_paid_amount:paid,p_customer_name:settings?.queue_enabled===false?null:(queueCustomer||null),p_create_queue:settings?.queue_enabled!==false})
     setQueueBusy(false)
-    if(error){setNotice(error.message);return}
+    if(error){setNotice(userFacingError(error));return}
     const {data: receiptItems} = await supabase.from('order_items').select('*').eq('order_id',data.order.id).order('id')
     setReceipt({...data,items:receiptItems||[]})
     const successfulOrder = data?.order || data
@@ -769,7 +770,7 @@ function App() {
       store_id:store.id,cashier_id:session.user.id,opening_cash:openingCash
     }).select('*').single()
     setShiftBusy(false)
-    if(error){setNotice(error.message);return}
+    if(error){setNotice(userFacingError(error));return}
     setActiveShift(data)
     setShiftCountedCash('');setShiftCountedQris('');setShiftNotes('')
     setPage('pos')
@@ -793,14 +794,14 @@ function App() {
   const startCashierBreak=async()=>{
     if(!activeShift||shiftBreak||!store?.id||!session?.user?.id)return
     const {data,error}=await supabase.from('cashier_shift_breaks').insert({store_id:store.id,shift_id:activeShift.id,cashier_id:session.user.id}).select('*').single()
-    if(error){setNotice(error.message);return}
+    if(error){setNotice(userFacingError(error));return}
     setShiftBreak(data);setMonitoringBreaks(prev=>[...prev.filter(row=>row.id!==data.id),data]);setNotice('Istirahat dimulai. Sesi kasir tetap terbuka.')
   }
 
   const endCashierBreak=async()=>{
     if(!shiftBreak)return
     const {data,error}=await supabase.from('cashier_shift_breaks').update({ended_at:new Date().toISOString()}).eq('id',shiftBreak.id).is('ended_at',null).select('*').single()
-    if(error){setNotice(error.message);return}
+    if(error){setNotice(userFacingError(error));return}
     setShiftBreak(null);setMonitoringBreaks(prev=>prev.filter(row=>row.id!==data.id));setBreakHistory(prev=>[data,...prev.filter(row=>row.id!==data.id)].slice(0,100));setNotice('Istirahat selesai. Durasi tersimpan dalam riwayat.')
   }
 
@@ -809,7 +810,7 @@ function App() {
     if(!isManager||!store?.id)return
     const next={store_id:store.id,max_break_minutes:Math.min(240,Math.max(1,Number(breakSettings.max_break_minutes)||15)),repeat_reminder_minutes:5,sound_enabled:true,escalation_enabled:true,manual_alert_title:String(breakSettings.manual_alert_title||'Peringatan dari Admin').trim().slice(0,120)||'Peringatan dari Admin',manual_alert_message:String(breakSettings.manual_alert_message||'⚠️ Waktu istirahat Anda telah melewati batas. Silakan kembali bekerja.').trim().slice(0,2000),updated_at:new Date().toISOString()}
     const {error}=await supabase.from('cashier_break_settings').upsert(next,{onConflict:'store_id'})
-    if(error){setNotice(error.message);return}
+    if(error){setNotice(userFacingError(error));return}
     setBreakSettings(next);setNotice('Pengaturan peringatan istirahat tersimpan untuk toko ini.')
   }
 
@@ -826,7 +827,7 @@ function App() {
       p_shift_id:activeShift.id,p_counted_cash:countedCash,p_counted_qris:countedQris,p_notes:shiftNotes.trim()||null
     })
     setShiftBusy(false)
-    if(error){setNotice(error.message);return}
+    if(error){setNotice(userFacingError(error));return}
     setActiveShift(null)
     setShiftCountedCash('');setShiftCountedQris('');setShiftNotes('')
     setShiftRecords(prev=>[data,...prev.filter(row=>row.id!==data.id)])
@@ -839,7 +840,7 @@ function App() {
     setQueueBusy(true)
     const {data,error}=await supabase.rpc('create_queue_ticket',{p_store_id:store.id,p_customer_name:queueCustomer||null,p_order_id:null})
     setQueueBusy(false)
-    if(error){setNotice(error.message);return}
+    if(error){setNotice(userFacingError(error));return}
     setQueueCustomer('')
     setNotice('Nomor antrian '+(settings?.queue_prefix||'A')+String(data.queue_number).padStart(3,'0')+' berhasil dibuat.')
     await loadWorkspace()
@@ -854,18 +855,18 @@ function App() {
       setQueueBusy(true)
       try {
         const {error}=await supabase.rpc('call_queue_ticket',{p_ticket_id:ticket.id,p_counter_label:counterLabel})
-        if(error){setNotice(error.message);return}
+        if(error){setNotice(userFacingError(error));return}
         await loadWorkspace()
         setNotice('Antrean berhasil dipanggil oleh '+counterLabel+'.')
       } catch (error) {
-        setNotice(error?.message || 'Gagal memanggil antrean. Periksa koneksi lalu coba lagi.')
+        setNotice(userFacingError(error, 'Gagal memanggil antrean. Periksa koneksi lalu coba lagi.'))
       } finally {
         setQueueBusy(false)
       }
       return
     }
     const {error}=await supabase.rpc('update_queue_ticket_status',{p_ticket_id:ticket.id,p_status:status})
-    if(error)setNotice(error.message);else await loadWorkspace()
+    if(error)setNotice(userFacingError(error));else await loadWorkspace()
   }
 
   const saveProduct = async (event) => {
@@ -876,7 +877,7 @@ function App() {
     const result=productModal?.id
       ? await supabase.from('products').update({...data,updated_at:new Date().toISOString()}).eq('id',productModal.id).eq('store_id',store.id)
       : await supabase.from('products').insert(data)
-    if(result.error){setNotice(result.error.message);return}
+    if(result.error){setNotice(userFacingError(result.error));return}
     setProductModal(null);setNotice('Produk berhasil disimpan.')
     const {data:rows}=await supabase.from('products').select('*').eq('store_id',store.id).order('created_at',{ascending:false});setProducts(rows||[])
   }
@@ -885,7 +886,7 @@ function App() {
     if(!isManager)return
     if(!confirm('Hapus produk '+product.name+'?'))return
     const {error}=await supabase.from('products').delete().eq('id',product.id).eq('store_id',store.id)
-    if(error)setNotice(error.message);else{setProducts(prev=>prev.filter(p=>p.id!==product.id));setNotice('Produk dihapus.')}
+    if(error)setNotice(userFacingError(error));else{setProducts(prev=>prev.filter(p=>p.id!==product.id));setNotice('Produk dihapus.')}
   }
 
   const inviteTeamMember = async (event) => {
@@ -896,7 +897,7 @@ function App() {
     setTeamSaving(true)
     const {error} = await supabase.rpc('invite_store_member', {p_store_id:store.id,p_email:String(form.get('email')||'').trim(),p_full_name:String(form.get('full_name')||'').trim(),p_role:String(form.get('role')||'cashier'),p_activation_code:activationCode})
     setTeamSaving(false)
-    if (error) { setNotice(error.message); return }
+    if (error) { setNotice(userFacingError(error)); return }
     event.currentTarget.reset()
     setActivationCodeCopied(false)
     setActivationCodeCard({email:String(form.get('email')||'').trim(),code:activationCode,title:'Kode aktivasi karyawan'})
@@ -908,7 +909,7 @@ function App() {
     event.preventDefault()
     const form = new FormData(event.currentTarget)
     const {error} = await supabase.rpc('owner_update_store_member', {p_member_id:String(form.get('member_id')),p_full_name:String(form.get('full_name')||'').trim(),p_role:String(form.get('role')),p_is_active:form.get('is_active')==='true'})
-    if (error) { setNotice(error.message); return }
+    if (error) { setNotice(userFacingError(error)); return }
     setNotice('Nama, role, dan akses karyawan diperbarui.')
     await loadWorkspace()
   }
@@ -916,7 +917,7 @@ function App() {
   const deleteTeamMember = async (member) => {
     if(!confirm('Hapus permanen keanggotaan '+(member.full_name||member.email)+' dari toko ini? Jika akun tidak digunakan tenant lain, akun login juga akan dihapus permanen.'))return
     const {error}=await supabase.rpc('owner_delete_store_member',{p_member_id:member.id})
-    if(error){setNotice(error.message);return}
+    if(error){setNotice(userFacingError(error));return}
     setNotice('Keanggotaan dihapus permanen.')
     await loadWorkspace()
   }
@@ -928,7 +929,7 @@ function App() {
     setTeamSaving(true)
     const {error}=await supabase.rpc('owner_regenerate_store_invite',{p_invite_id:invite.id,p_activation_code:activationCode})
     setTeamSaving(false)
-    if(error){setNotice(error.message);return}
+    if(error){setNotice(userFacingError(error));return}
     setActivationCodeCopied(false)
     setActivationCodeCard({email:invite.email,code:activationCode,title:'Kode aktivasi baru'})
     setNotice('Kode aktivasi berhasil dibuat ulang. Kode lama sudah tidak berlaku.')
@@ -938,7 +939,7 @@ function App() {
   const deleteTeamInvite = async (invite) => {
     if(!confirm('Hapus permanen undangan '+invite.email+'?'))return
     const {error}=await supabase.rpc('owner_delete_store_invite',{p_invite_id:invite.id})
-    if(error){setNotice(error.message);return}
+    if(error){setNotice(userFacingError(error));return}
     setNotice('Undangan dihapus permanen.')
     await loadWorkspace()
   }
@@ -947,7 +948,7 @@ function App() {
     const nextActive = !member.is_active
     if (!confirm((nextActive?'Aktifkan kembali ':'Nonaktifkan ')+(member.full_name||member.email||'akun karyawan')+'?')) return
     const {error} = await supabase.rpc('manage_store_member', {p_member_id:member.id,p_role:member.role==='admin'?'admin':'cashier',p_is_active:nextActive})
-    if (error) { setNotice(error.message); return }
+    if (error) { setNotice(userFacingError(error)); return }
     setNotice(nextActive?'Akun karyawan diaktifkan kembali.':'Akses karyawan dinonaktifkan.')
     await loadWorkspace()
   }
@@ -1033,7 +1034,7 @@ function App() {
     const next={store_id:store.id,store_name:String(form.get('store_name')||'NexaPos Store'),address:String(form.get('address')||''),phone:String(form.get('phone')||''),receipt_footer:String(form.get('receipt_footer')||''),receipt_note:String(form.get('receipt_note')||'').trim(),queue_prefix:String(form.get('queue_prefix')||'A').slice(0,3).toUpperCase(),queue_enabled:form.get('queue_enabled')==='on',currency:'IDR',logo_url:settings?.logo_url||null,updated_at:new Date().toISOString()}
     const {error}=await supabase.from('store_settings').upsert(next)
     setSavingSettings(false)
-    if(error)setNotice(error.message);else{setSettings(next);setNotice('Pengaturan disimpan.')}
+    if(error)setNotice(userFacingError(error));else{setSettings(next);setNotice('Pengaturan disimpan.')}
   }
 
   const printReceipt = () => { if(receipt)window.print() }
@@ -1120,7 +1121,7 @@ function App() {
 
         {page==='team'&&membership.role==='owner'&&<section className="page-section"><div className="page-heading"><div><span className="eyebrow muted">TEAM / ACCESS CONTROL</span><h1>Karyawan <span className="heading-accent">& akses.</span></h1><p>Undang akun baru dan atur jabatan khusus untuk toko ini.</p></div><span className="role-chip"><ShieldCheck size={14}/> Owner</span></div><div className="settings-grid"><form className="panel settings-form" onSubmit={inviteTeamMember}><div className="panel-head"><div><h3><UserPlus size={17}/> Daftarkan karyawan</h3><p>Undangan hanya berlaku untuk email ini. Karyawan harus aktivasi dan membuat password sebelum login.</p></div></div><label>Nama karyawan</label><input className="text-input" name="full_name" placeholder="Nama lengkap" required/><label>Email akun</label><input className="text-input" type="email" name="email" placeholder="karyawan@email.com" required/><label>Jabatan di toko</label><select className="text-input" name="role" defaultValue="cashier"><option value="admin">Admin</option><option value="cashier">Kasir</option></select><button className="btn btn-primary" disabled={teamSaving}>{teamSaving?<span className="spinner"/>:<UserPlus size={16}/>} Buat undangan</button><p className="permission-note">Undangan berlaku 30 hari. Akun tidak mendapatkan akses ke tenant lain.</p></form><div className="panel"><div className="panel-head"><div><h3><Users size={17}/> Anggota toko</h3><p>{teamMembers.length} akun terdaftar</p></div></div>{teamMembers.length===0?<EmptyState icon={Users} title="Belum ada karyawan" text="Akun Owner akan muncul di sini."/>:<div className="table-wrap"><table><thead><tr><th>Nama / email</th><th>Jabatan</th><th>Akses</th><th>Bergabung</th><th>Kelola</th></tr></thead><tbody>{teamMembers.slice((teamMemberPage-1)*listPageSize,teamMemberPage*listPageSize).map(m=><tr key={m.id}><td><strong>{m.full_name?.trim()||'Akun toko'}</strong>{m.email&&<><br/><small className="member-email-visible">{m.email}</small></>}</td><td><span className="status-pill status-serving">{m.role==='owner'?'Owner':m.role==='admin'?'Admin':m.role==='manager'?'Manager':'Kasir'}</span></td><td><span className={'status-pill '+(m.is_active?'status-paid':'status-inactive')}>{m.is_active?'Aktif':'Nonaktif'}</span></td><td>{new Date(m.created_at).toLocaleDateString('id-ID')}</td><td>{m.role!=='owner'&&<div className="member-manage-cell"><form className="member-role-form" onSubmit={saveTeamMemberRole}><input type="hidden" name="member_id" value={m.id}/><input type="hidden" name="is_active" value={String(m.is_active)}/><input className="text-input member-name-edit" name="full_name" defaultValue={m.full_name||''} aria-label={'Nama '+(m.email||m.user_id)} required minLength={2}/><select className="text-input" name="role" defaultValue={m.role==='admin'?'admin':'cashier'} aria-label={'Jabatan '+(m.email||m.user_id)}><option value="admin">Admin</option><option value="cashier">Kasir</option></select><button className="btn btn-small btn-outline">Simpan</button></form><div className="member-manage-actions"><button className={'btn btn-small '+(m.is_active?'btn-outline':'btn-primary')} onClick={()=>toggleTeamMember(m)}>{m.is_active?'Nonaktifkan':'Aktifkan'}</button><button className="btn btn-small btn-outline danger-icon" onClick={()=>deleteTeamMember(m)}><Trash2 size={13}/> Hapus permanen</button></div></div>}</td></tr>)}</tbody></table></div>}<Pagination page={teamMemberPage} total={teamMembers.length} pageSize={listPageSize} onChange={setTeamMemberPage}/></div></div><div className="panel team-invites-panel"><div className="panel-head"><div><h3><Mail size={17}/> Riwayat undangan</h3><p>Undangan aktif dan yang sudah diterima</p></div></div>{teamInvites.length===0?<p className="subtle">Belum ada undangan.</p>:<div className="table-wrap"><table><thead><tr><th>Email</th><th>Jabatan</th><th>Status</th><th>Kedaluwarsa</th><th>Aksi</th></tr></thead><tbody>{teamInvites.slice((teamInvitePage-1)*listPageSize,teamInvitePage*listPageSize).map(i=><tr key={i.id}><td><strong>{i.full_name?.trim()||'Undangan'}</strong><br/><small className="member-email-visible">{i.email}</small></td><td>{i.role==='owner'?'Owner':i.role==='admin'?'Admin':'Kasir'}</td><td><span className={'status-pill '+(i.accepted_at?'status-paid':new Date(i.expires_at)<new Date()?'status-inactive':'status-waiting')}>{i.accepted_at?'Diterima':new Date(i.expires_at)<new Date()?'Kedaluwarsa':'Menunggu'}</span></td><td>{new Date(i.expires_at).toLocaleDateString('id-ID')}</td><td><div className="member-manage-actions">{!i.accepted_at&&<button className="btn btn-small btn-outline" disabled={teamSaving} onClick={()=>regenerateTeamInviteCode(i)}><KeyRound size={13}/> Buat ulang kode</button>}<button className="btn btn-small btn-outline danger-icon" onClick={()=>deleteTeamInvite(i)}><Trash2 size={13}/> Hapus</button></div></td></tr>)}</tbody></table></div>}<Pagination page={teamInvitePage} total={teamInvites.length} pageSize={listPageSize} onChange={setTeamInvitePage}/></div></section>}
 
-        {page==='profile'&&<section className="page-section"><div className="page-heading"><div><span className="eyebrow muted">ACCOUNT / SECURITY</span><h1>Profil <span className="heading-accent">& keamanan.</span></h1><p>Perbarui nama, ganti PIN 4 angka, dan ubah password akun Anda.</p></div><span className="role-chip"><ShieldCheck size={14}/> Terverifikasi</span></div><div className="settings-grid"><form className="panel settings-form" onSubmit={async(e)=>{e.preventDefault();const f=new FormData(e.currentTarget);const {error}=await supabase.rpc('update_my_profile',{p_full_name:String(f.get('full_name')||'').trim()});if(error){setNotice(error.message);return}setNotice('Profil diperbarui.');await loadWorkspace()}}><div className="panel-head"><div><h3><UserRound size={17}/> Profil akun</h3><p>Email login: {session.user.email}</p></div></div><label>Nama lengkap</label><input className="text-input" name="full_name" defaultValue={session.user.user_metadata?.full_name||membership?.full_name||''} required minLength={2} maxLength={120}/><label>Email akun</label><input className="text-input" value={session.user.email||''} readOnly/><button className="btn btn-primary"><Check size={16}/> Simpan profil</button></form><form className="panel settings-form" onSubmit={async(e)=>{e.preventDefault();const form=e.currentTarget;const f=new FormData(form);const current=String(f.get('current_pin')||'');const next=String(f.get('new_pin')||'');const confirmPin=String(f.get('confirm_pin')||'');if(!/^\d{4}$/.test(next)||next!==confirmPin){setNotice('PIN baru harus tepat 4 angka dan konfirmasinya harus sama.');return}const {data,error}=await supabase.rpc('change_my_pin',{p_current_pin:current,p_new_pin:next});if(error){setNotice(error.message);return}if(data!==true){setNotice('PIN saat ini salah. Percobaan gagal tercatat untuk pembatasan keamanan.');return}form.reset();setNotice('PIN berhasil diganti. Sesi keamanan diperbarui.')}}><div className="panel-head"><div><h3><ShieldCheck size={17}/> Ganti PIN</h3><p>PIN hanya terdiri dari 4 angka. Jangan bagikan kepada siapa pun.</p></div></div><label>PIN saat ini</label><input className="text-input" name="current_pin" type="password" inputMode="numeric" pattern="[0-9]{4}" maxLength={4} required/><label>PIN baru</label><input className="text-input" name="new_pin" type="password" inputMode="numeric" pattern="[0-9]{4}" maxLength={4} required/><label>Ulangi PIN baru</label><input className="text-input" name="confirm_pin" type="password" inputMode="numeric" pattern="[0-9]{4}" maxLength={4} required/><button className="btn btn-primary"><ShieldCheck size={16}/> Ganti PIN</button></form><form className="panel settings-form" onSubmit={async(e)=>{e.preventDefault();const form=e.currentTarget;const f=new FormData(form);const current=String(f.get('current_password')||'');const next=String(f.get('new_password')||'');const confirmPassword=String(f.get('confirm_password')||'');if(next.length<8||next!==confirmPassword){setNotice('Password baru minimal 8 karakter dan konfirmasinya harus sama.');return}const reauth=await supabase.auth.signInWithPassword({email:session.user.email,password:current});if(reauth.error){setNotice('Password saat ini salah.');return}const changed=await supabase.auth.updateUser({password:next});if(changed.error){setNotice(changed.error.message);return}form.reset();setNotice('Password berhasil diganti. Silakan verifikasi PIN kembali jika diminta.')}}><div className="panel-head"><div><h3><ShieldCheck size={17}/> Ganti password</h3><p>Gunakan password unik minimal 8 karakter.</p></div></div><label>Password saat ini</label><input className="text-input" name="current_password" type="password" autoComplete="current-password" required/><label>Password baru</label><input className="text-input" name="new_password" type="password" autoComplete="new-password" minLength={8} required/><label>Ulangi password baru</label><input className="text-input" name="confirm_password" type="password" autoComplete="new-password" minLength={8} required/><button className="btn btn-primary"><ShieldCheck size={16}/> Ganti password</button></form></div></section>}
+        {page==='profile'&&<section className="page-section"><div className="page-heading"><div><span className="eyebrow muted">ACCOUNT / SECURITY</span><h1>Profil <span className="heading-accent">& keamanan.</span></h1><p>Perbarui nama, ganti PIN 4 angka, dan ubah password akun Anda.</p></div><span className="role-chip"><ShieldCheck size={14}/> Terverifikasi</span></div><div className="settings-grid"><form className="panel settings-form" onSubmit={async(e)=>{e.preventDefault();const f=new FormData(e.currentTarget);const {error}=await supabase.rpc('update_my_profile',{p_full_name:String(f.get('full_name')||'').trim()});if(error){setNotice(userFacingError(error));return}setNotice('Profil diperbarui.');await loadWorkspace()}}><div className="panel-head"><div><h3><UserRound size={17}/> Profil akun</h3><p>Email login: {session.user.email}</p></div></div><label>Nama lengkap</label><input className="text-input" name="full_name" defaultValue={session.user.user_metadata?.full_name||membership?.full_name||''} required minLength={2} maxLength={120}/><label>Email akun</label><input className="text-input" value={session.user.email||''} readOnly/><button className="btn btn-primary"><Check size={16}/> Simpan profil</button></form><form className="panel settings-form" onSubmit={async(e)=>{e.preventDefault();const form=e.currentTarget;const f=new FormData(form);const current=String(f.get('current_pin')||'');const next=String(f.get('new_pin')||'');const confirmPin=String(f.get('confirm_pin')||'');if(!/^\d{4}$/.test(next)||next!==confirmPin){setNotice('PIN baru harus tepat 4 angka dan konfirmasinya harus sama.');return}const {data,error}=await supabase.rpc('change_my_pin',{p_current_pin:current,p_new_pin:next});if(error){setNotice(userFacingError(error));return}if(data!==true){setNotice('PIN saat ini salah. Percobaan gagal tercatat untuk pembatasan keamanan.');return}form.reset();setNotice('PIN berhasil diganti. Sesi keamanan diperbarui.')}}><div className="panel-head"><div><h3><ShieldCheck size={17}/> Ganti PIN</h3><p>PIN hanya terdiri dari 4 angka. Jangan bagikan kepada siapa pun.</p></div></div><label>PIN saat ini</label><input className="text-input" name="current_pin" type="password" inputMode="numeric" pattern="[0-9]{4}" maxLength={4} required/><label>PIN baru</label><input className="text-input" name="new_pin" type="password" inputMode="numeric" pattern="[0-9]{4}" maxLength={4} required/><label>Ulangi PIN baru</label><input className="text-input" name="confirm_pin" type="password" inputMode="numeric" pattern="[0-9]{4}" maxLength={4} required/><button className="btn btn-primary"><ShieldCheck size={16}/> Ganti PIN</button></form><form className="panel settings-form" onSubmit={async(e)=>{e.preventDefault();const form=e.currentTarget;const f=new FormData(form);const current=String(f.get('current_password')||'');const next=String(f.get('new_password')||'');const confirmPassword=String(f.get('confirm_password')||'');if(next.length<8||next!==confirmPassword){setNotice('Password baru minimal 8 karakter dan konfirmasinya harus sama.');return}const reauth=await supabase.auth.signInWithPassword({email:session.user.email,password:current});if(reauth.error){setNotice('Password saat ini salah.');return}const changed=await supabase.auth.updateUser({password:next});if(changed.error){setNotice(changed.error.message);return}form.reset();setNotice('Password berhasil diganti. Silakan verifikasi PIN kembali jika diminta.')}}><div className="panel-head"><div><h3><ShieldCheck size={17}/> Ganti password</h3><p>Gunakan password unik minimal 8 karakter.</p></div></div><label>Password saat ini</label><input className="text-input" name="current_password" type="password" autoComplete="current-password" required/><label>Password baru</label><input className="text-input" name="new_password" type="password" autoComplete="new-password" minLength={8} required/><label>Ulangi password baru</label><input className="text-input" name="confirm_password" type="password" autoComplete="new-password" minLength={8} required/><button className="btn btn-primary"><ShieldCheck size={16}/> Ganti password</button></form></div></section>}
         {page==='tv-settings'&&<TvDisplaySettings store={store} settings={settings} membership={membership} onNotice={setNotice}/>}
         {page==='settings'&&<section className="page-section"><div className="page-heading"><div><span className="eyebrow muted">CONFIGURATION / STORE</span><h1>Pengaturan <span className="heading-accent">toko.</span></h1><p>Atur identitas toko, struk thermal, dan format antrian.</p></div><span className="role-chip"><ShieldCheck size={14}/>{membership.role}</span></div><div className="settings-grid"><form className="panel settings-form" onSubmit={saveStoreSettings}><div className="panel-head"><div><h3><Store size={17}/> Profil toko</h3><p>Informasi yang tampil di struk</p></div></div><label>Logo toko (opsional)</label><div className="store-logo-editor">{settings?.logo_url?<img className="store-logo-preview" src={settings.logo_url} alt="Logo toko saat ini"/>:<div className="store-logo-placeholder"><Store size={22}/><span>Belum ada logo</span></div>}<div className="store-logo-controls"><input className="text-input logo-file-input" type="file" accept="image/png,image/jpeg,image/webp" onChange={uploadStoreLogo} disabled={uploadingLogo||!isManager}/><small>PNG, JPG, atau WebP · maksimal 3 MB. Logo akan dicetak di bagian atas struk.</small>{settings?.logo_url&&<button type="button" className="btn btn-outline btn-small" onClick={removeStoreLogo} disabled={uploadingLogo||!isManager}><Trash2 size={14}/> Hapus logo</button>}{uploadingLogo&&<span className="logo-upload-status"><span className="spinner spinner-purple"/> Memproses logo…</span>}</div></div><label>Nama toko</label><input className="text-input" name="store_name" defaultValue={settings?.store_name||store.name} required/><label>Alamat toko</label><textarea className="text-input" name="address" defaultValue={settings?.address||''} rows="3" placeholder="Alamat untuk dicetak di struk"/><label>Nomor telepon</label><input className="text-input" name="phone" defaultValue={settings?.phone||''} placeholder="08xx xxxx xxxx"/><label>Footer struk</label><input className="text-input" name="receipt_footer" defaultValue={settings?.receipt_footer||'Terima kasih telah berbelanja'}/><label>Catatan struk (opsional)</label><textarea className="text-input" name="receipt_note" defaultValue={settings?.receipt_note||''} rows="2" maxLength="300" placeholder="Contoh: Barang yang sudah dibeli tidak dapat ditukar."/><small className="field-help">Kosongkan jika tidak ingin menampilkan catatan pada struk.</small><div className="queue-setting-toggle"><div><strong>Sistem antrian</strong><small>{settings?.queue_enabled===false?'Nonaktif — transaksi tidak membuat nomor antrian.':'Aktif — transaksi dapat membuat nomor antrian.'}</small></div><label className="switch-control"><input type="checkbox" name="queue_enabled" defaultChecked={settings?.queue_enabled!==false} disabled={!isManager}/><span className="switch-track"/><span className="sr-only">Aktifkan sistem antrian</span></label></div><label>Prefix antrian</label><input className="text-input prefix-input" name="queue_prefix" defaultValue={settings?.queue_prefix||'A'} maxLength="3"/><button className="btn btn-primary" disabled={savingSettings||!isManager}>{savingSettings?<span className="spinner"/>:<Check size={16}/>} Simpan pengaturan</button>{!isManager&&<p className="permission-note">Hanya admin/manager yang dapat mengubah pengaturan.</p>}</form><div className="settings-aside">{isManager&&<form className="panel settings-form" onSubmit={saveBreakSettings}><div className="panel-head"><div><h3><Bell size={17}/> Peringatan istirahat</h3><p>Pengaturan hanya berlaku untuk toko yang sedang dipilih.</p></div></div><label>Batas istirahat (menit)</label><input className="text-input" type="number" min="1" max="240" value={breakSettings.max_break_minutes||15} onChange={e=>setBreakSettings(prev=>({...prev,max_break_minutes:e.target.value}))} required/><label>Judul peringatan yang dikirim ke kasir</label><input className="text-input" value={breakSettings.manual_alert_title||'Peringatan dari Admin'} onChange={e=>setBreakSettings(prev=>({...prev,manual_alert_title:e.target.value}))} maxLength={120} required placeholder="Peringatan dari Admin"/><label>Isi pesan peringatan</label><textarea className="text-input" value={breakSettings.manual_alert_message||''} onChange={e=>setBreakSettings(prev=>({...prev,manual_alert_message:e.target.value}))} rows={4} maxLength={2000} required placeholder="Tulis pesan untuk kasir…"/><small className="subtle">Judul dan isi ini tersimpan khusus untuk toko yang dipilih, lalu dipakai oleh tombol Kirim Peringatan.</small><div className="info-line"><CheckCircle2 size={15}/> Pengingat suara setiap 5 menit setelah batas terlewati</div><div className="info-line"><CheckCircle2 size={15}/> Eskalasi visual merah di Monitoring</div><button className="btn btn-primary"><Check size={16}/> Simpan peringatan</button></form>}<div className="panel settings-info"><span className="settings-info-icon"><Printer size={20}/></span><h3>Printer thermal</h3><p>Struk menggunakan layout 80mm. Hubungkan printer ke perangkat kasir, lalu gunakan dialog cetak browser. Printer Bluetooth tertentu memerlukan aplikasi/driver pendamping.</p><div className="info-line"><CheckCircle2 size={15}/> Layout struk 80mm</div><div className="info-line"><CheckCircle2 size={15}/> Bisa cetak dari Chrome</div></div><div className="panel settings-info"><span className="settings-info-icon blue-info"><Monitor size={20}/></span><h3>Layar antrian TV</h3><p>Buka layar TV dari menu antrian di browser TV. Status diperbarui otomatis saat koneksi internet aktif.</p><button className="btn btn-outline btn-wide" onClick={()=>window.open(window.location.pathname+'?screen=queue&store='+encodeURIComponent(store.id),'_blank')}><Monitor size={16}/> Buka layar TV</button></div><div className="panel account-info"><span className="account-avatar"><UserRound size={19}/></span><div><strong>{membership?.full_name?.trim()||session.user.user_metadata?.full_name?.trim()||session.user.user_metadata?.name?.trim()||session.user.email}</strong><small>Masuk sebagai {membership.role}</small></div><button className="text-button" onClick={()=>supabase.auth.signOut()}>Keluar</button></div></div></div></section>}
       </div>
@@ -1201,7 +1202,7 @@ function SuperAdminScreen({session,syncStatus,setSyncStatus,onSignOut}) {
   const load=useCallback(async()=>{
     setLoading(true)
     const {data,error}=await supabase.from('stores').select('id,name,owner_name,owner_email,status,activated_at,expires_at,activation_days,created_at,deleted_at').order('created_at',{ascending:false})
-    if(error){setNotice(error.message);setLoading(false);return}
+    if(error){setNotice(userFacingError(error));setLoading(false);return}
     const storeIds=(data||[]).map(tenant=>tenant.id)
     const settingsResult=storeIds.length ? await supabase.from('store_settings').select('store_id,store_name').in('store_id',storeIds) : {data:[],error:null}
     if(settingsResult.error)setNotice('Nama toko sebagian belum dapat disinkronkan: '+settingsResult.error.message)
@@ -1230,7 +1231,7 @@ function SuperAdminScreen({session,syncStatus,setSyncStatus,onSignOut}) {
   },[])
   useEffect(()=>{load();loadUsers()},[load,loadUsers])
   const statusOf=(tenant)=>tenant.status==='active'&&tenant.expires_at&&new Date(tenant.expires_at)<=new Date()?'expired':tenant.status
-  const loadDisabledMembers=useCallback(async()=>{setDisabledLoading(true);const {data,error}=await supabase.rpc('super_admin_list_disabled_members');if(error)setNotice(error.message);else setDisabledMembers(data||[]);setDisabledLoading(false)},[])
+  const loadDisabledMembers=useCallback(async()=>{setDisabledLoading(true);const {data,error}=await supabase.rpc('super_admin_list_disabled_members');if(error)setNotice(userFacingError(error));else setDisabledMembers(data||[]);setDisabledLoading(false)},[])
   useEffect(()=>{loadDisabledMembers()},[loadDisabledMembers])
   // Super Admin lists update from database events; no polling.
   useEffect(()=>{
@@ -1252,7 +1253,7 @@ function SuperAdminScreen({session,syncStatus,setSyncStatus,onSignOut}) {
     setRegistering(true)
     const {error}=await supabase.rpc('register_store_tenant',{p_store_name:String(form.get('store_name')||'').trim(),p_owner_name:String(form.get('owner_name')||'').trim(),p_owner_email:ownerEmail,p_activation_code:activationCode})
     setRegistering(false)
-    if(error){setNotice(error.message);return}
+    if(error){setNotice(userFacingError(error));return}
     event.currentTarget.reset()
     setOwnerActivationCopied(false)
     setOwnerActivationCard({email:ownerEmail,code:activationCode,title:'Kode aktivasi Owner'})
@@ -1265,7 +1266,7 @@ function SuperAdminScreen({session,syncStatus,setSyncStatus,onSignOut}) {
     setRegistering(true)
     const {error}=await supabase.rpc('super_admin_regenerate_owner_invite',{p_store_id:tenant.id,p_activation_code:activationCode})
     setRegistering(false)
-    if(error){setNotice(error.message);return}
+    if(error){setNotice(userFacingError(error));return}
     setOwnerActivationCopied(false)
     setOwnerActivationCard({email:tenant.owner_email,code:activationCode,title:'Kode aktivasi Owner'})
     setNotice('Kode aktivasi baru siap disalin. Kode lama yang belum digunakan sudah diganti.')
@@ -1275,7 +1276,7 @@ function SuperAdminScreen({session,syncStatus,setSyncStatus,onSignOut}) {
     const days=duration==='custom'?Number(customDays):Number(duration)
     if(!Number.isInteger(days)||days<1||days>3650){setNotice('Durasi khusus harus 1–3650 hari.');return}
     const {error}=await supabase.rpc('activate_store_tenant',{p_store_id:tenant.id,p_duration_days:days})
-    if(error){setNotice(error.message);return}
+    if(error){setNotice(userFacingError(error));return}
     setNotice(tenant.name+' aktif selama '+days+' hari.')
     await load()
   }
@@ -1286,7 +1287,7 @@ function SuperAdminScreen({session,syncStatus,setSyncStatus,onSignOut}) {
     setDeletingUserId(member.user_id)
     const {error}=await supabase.rpc('super_admin_delete_disabled_account',{p_user_id:member.user_id})
     setDeletingUserId('')
-    if(error){setNotice(error.message);return}
+    if(error){setNotice(userFacingError(error));return}
     setNotice('Akun '+label+' berhasil dihapus permanen.')
     await Promise.all([loadDisabledMembers(),loadUsers()])
   }
@@ -1295,7 +1296,7 @@ function SuperAdminScreen({session,syncStatus,setSyncStatus,onSignOut}) {
       const confirmation=prompt('PENGHAPUSAN PERMANEN\\nSemua produk, stok, transaksi, item transaksi, antrian, pengaturan, undangan, dan keanggotaan tenant akan dihapus dari database.\\n\\nKetik HAPUS '+tenant.name+' untuk melanjutkan.')
       if(confirmation!=='HAPUS '+tenant.name)return
       const {error}=await supabase.rpc('super_admin_delete_store_tenant',{p_store_id:tenant.id})
-      if(error){setNotice(error.message);return}
+      if(error){setNotice(userFacingError(error));return}
       setNotice('Tenant dan seluruh data terkait telah dihapus permanen.')
       await Promise.all([load(),loadUsers(),loadDisabledMembers()])
       return
@@ -1303,7 +1304,7 @@ function SuperAdminScreen({session,syncStatus,setSyncStatus,onSignOut}) {
     const action=nextStatus==='suspended'?'Nonaktifkan sementara '+tenant.name+'?':'Kembalikan '+tenant.name+' ke status menunggu aktivasi?'
     if(!confirm(action))return
     const {error}=await supabase.rpc('set_store_tenant_status',{p_store_id:tenant.id,p_status:nextStatus})
-    if(error){setNotice(error.message);return}
+    if(error){setNotice(userFacingError(error));return}
     setNotice('Status tenant diperbarui.')
     await load()
   }
@@ -1313,7 +1314,7 @@ function SuperAdminScreen({session,syncStatus,setSyncStatus,onSignOut}) {
     setUserActionId(user.user_id)
     const {error}=await supabase.rpc('super_admin_reset_user_pin',{p_user_id:user.user_id})
     setUserActionId('')
-    if(error){setNotice(error.message);return}
+    if(error){setNotice(userFacingError(error));return}
     setNotice('PIN direset. Pengguna harus membuat PIN baru.')
     await loadUsers()
   }
@@ -1329,7 +1330,7 @@ function SuperAdminScreen({session,syncStatus,setSyncStatus,onSignOut}) {
       const result=await response.json().catch(()=>({}))
       if(!response.ok)throw new Error(result.error||'Reset password gagal.')
       setNotice('Password akun berhasil diganti.')
-    }catch(error){setNotice(error.message||'Reset password gagal.')}
+    }catch(error){setNotice(userFacingError(error, 'Reset password gagal. Coba lagi.'))}
     finally{setUserActionId('')}
   }
   const deleteUser=async(user)=>{
@@ -1339,14 +1340,14 @@ function SuperAdminScreen({session,syncStatus,setSyncStatus,onSignOut}) {
     setUserActionId(user.user_id)
     const {error}=await supabase.rpc('super_admin_delete_user',{p_user_id:user.user_id})
     setUserActionId('')
-    if(error){setNotice(error.message);return}
+    if(error){setNotice(userFacingError(error));return}
     setNotice('Akun dan kredensial terkait dihapus permanen.')
     await Promise.all([loadUsers(),loadDisabledMembers(),load()])
   }
   const moveUserToTenant=async(user)=>{
     if(user.is_super_admin||user.user_id===session.user.id){setNotice('Akun Super Admin dilindungi dan tidak dapat dipindahkan.');return}
     const {data:members,error:membersError}=await supabase.from('store_members').select('store_id,role,is_active,disabled_at').eq('user_id',user.user_id)
-    if(membersError){setNotice(membersError.message);return}
+    if(membersError){setNotice(userFacingError(membersError));return}
     const movable=(members||[]).filter(m=>m.role!=='owner')
     if(!movable.length){setNotice('Akun ini tidak memiliki keanggotaan karyawan yang dapat dipindahkan. Role Owner tidak dapat dipindahkan melalui fitur ini.');return}
     const sourceOptions=movable.map((m,i)=>{const t=tenants.find(x=>x.id===m.store_id);return (i+1)+'. '+(t?.name||m.store_id)+' — '+m.role+(m.is_active&&!m.disabled_at?' (aktif)':' (nonaktif)')}).join('\n')
@@ -1372,7 +1373,7 @@ function SuperAdminScreen({session,syncStatus,setSyncStatus,onSignOut}) {
     setUserActionId(user.user_id)
     const {error}=await supabase.rpc('super_admin_move_user_membership',{p_user_id:user.user_id,p_source_store_id:source.store_id,p_target_store_id:target.id,p_target_role:normalizedRole})
     setUserActionId('')
-    if(error){setNotice(error.message);return}
+    if(error){setNotice(userFacingError(error));return}
     setNotice('Akun dipindahkan ke '+target.name+' sebagai '+normalizedRole+'. Data tenant asal tetap tidak berubah.')
     await Promise.all([loadUsers(),loadDisabledMembers()])
   }
@@ -1384,7 +1385,7 @@ function SuperAdminScreen({session,syncStatus,setSyncStatus,onSignOut}) {
     setUserActionId(user.user_id)
     const {error}=await supabase.rpc('super_admin_set_user_banned',{p_user_id:user.user_id,p_banned:nextBanned})
     setUserActionId('')
-    if(error){setNotice(error.message);return}
+    if(error){setNotice(userFacingError(error));return}
     setNotice(nextBanned?'Akses login akun dinonaktifkan.':'Akses login akun diaktifkan kembali.')
     await loadUsers()
   }
@@ -1451,7 +1452,7 @@ function QueueScreen(){
   const loadPublic=useCallback(async()=>{
     if(!token||!supabase)return
     const {data,error:loadError}=await supabase.rpc('get_public_tv_display',{p_token:token})
-    if(loadError||!data?.store_id){setPublicDisplay(null);setError(loadError?.message||'URL TV tidak valid, sudah dicabut, atau tenant tidak aktif.');return}
+    if(loadError||!data?.store_id){setPublicDisplay(null);setError(userFacingError(loadError, 'URL TV tidak valid, sudah dicabut, atau tenant tidak aktif.'));return}
     setError('')
     setPublicDisplay(data)
   },[token])
