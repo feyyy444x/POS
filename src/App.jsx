@@ -216,6 +216,8 @@ function App() {
   // Preserve non-sensitive form drafts when mobile browsers suspend or reload the page.
   // Drafts stay local to this browser and are scoped to the current page and signed-in user.
   useEffect(() => {
+    // A tenant/user change must start a fresh restoration pass on the existing DOM.
+    Array.from(document.forms).forEach((form) => { delete form.dataset.draftRestoredKeys })
     const storagePrefix = 'nexapos-form-draft-v1:'
     const userScope = session?.user?.id || 'anonymous'
     const formIdentity = (form) => {
@@ -337,7 +339,7 @@ function App() {
       window.removeEventListener('pageshow', restoreAllForms)
       observer.disconnect()
     }
-  }, [session?.user?.id])
+  }, [session?.user?.id, store?.id, selectedStoreId])
 
   useEffect(() => {
     if (!orderSuccessToast) return
