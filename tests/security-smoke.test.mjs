@@ -7,6 +7,7 @@ const headers = await readFile(new URL('_headers', root), 'utf8')
 const activation = await readFile(new URL('netlify/functions/activate-invitation.mjs', root), 'utf8')
 const app = await readFile(new URL('src/App.jsx', root), 'utf8')
 const queueMigration = await readFile(new URL('supabase/migrations/20261029140000_enforce_store_queue_enabled.sql', root), 'utf8')
+const writeHardeningMigration = await readFile(new URL('supabase/migrations/20261029150000_tighten_mutable_column_grants_and_queue_policy.sql', root), 'utf8')
 
 test('Netlify headers include baseline browser security protections', () => {
   for (const directive of [
@@ -58,4 +59,23 @@ test('cashier passes the queue switch to checkout and receipt only prints a retu
   assert.match(app, /p_create_queue:settings\?\.queue_enabled!==false/)
   assert.match(app, /\{ticket&&<div className="receipt-queue"/)
   assert.match(app, /settings\?\.queue_enabled===false\?null:/)
+})
+
+
+test('queue status updates use a guarded RPC instead of unrestricted table updates', () => {
+  assert.match(app, /supabase\.rpc\('update_queue_ticket_status'/)
+  assert.doesNotMatch(app, /from\('queue_tickets'\)\.update\(update\)/)
+  assert.match(writeHardeningMigration, /REVOKE INSERT, UPDATE ON TABLE public\.queue_tickets FROM PUBLIC, anon, authenticated/)
+  assert.match(writeHardeningMigration, /private\.is_store_operational\(v_ticket\.store_id\)/)
+  assert.match(writeHardeningMigration, /IF NOT v_queue_enabled THEN/)
+  assert.match(writeHardeningMigration, /p_status = 'serving' AND v_ticket\.status <> 'called'/)
+  assert.match(writeHardeningMigration, /p_status = 'done' AND v_ticket\.status NOT IN \('called', 'serving'\)/)
+})
+
+test('cashier alert and break writes are limited to intended columns', () => {
+  assert.match(writeHardeningMigration, /GRANT UPDATE \(read_at\) ON TABLE public\.cashier_manual_alerts TO authenticated/)
+  assert.match(writeHardeningMigration, /GRANT INSERT \(store_id, cashier_id, sent_by, title, message\)/)
+  assert.match(writeHardeningMigration, /GRANT UPDATE \(ended_at\) ON TABLE public\.cashier_shift_breaks TO authenticated/)
+  assert.match(writeHardeningMigration, /GRANT INSERT \(store_id, shift_id, cashier_id\)/)
+  assert.match(writeHardeningMigration, /private\.is_store_member\(store_id\)/)
 })
