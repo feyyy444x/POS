@@ -324,6 +324,8 @@ test('foreign-key index migration covers all staff and platform actor references
   assert.ok(foreignKeyIndexesMigration.includes('create index if not exists platform_staff_roles_updated_by_idx'))
   assert.ok(foreignKeyIndexesMigration.includes('on public.platform_staff_roles (updated_by)'))
   assert.match(foreignKeyIndexesMigration, /if not exists/i)
+})
+
 test('Pusat Kendali Toko scopes operational reads to the selected store and labels timeline limitations honestly', () => {
   assert.match(app, /import StoreControlCenter from '\.\/StoreControlCenter\.jsx'/)
   assert.match(app, /setSelectedTenant\(t\);setSection\('store-control'\)/)
