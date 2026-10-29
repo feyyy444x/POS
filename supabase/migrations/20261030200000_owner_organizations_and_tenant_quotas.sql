@@ -251,6 +251,9 @@ begin
   if not private.is_super_admin() then
     raise exception 'Super Admin access required';
   end if;
+  if not private.is_pin_verified() then
+    raise exception 'Verifikasi PIN diperlukan untuk mengubah aktivasi';
+  end if;
   if p_duration_days is null or p_duration_days < 1 or p_duration_days > 36500 then
     raise exception 'Durasi harus 1 sampai 36500 hari';
   end if;
@@ -326,6 +329,9 @@ begin
   if v_user_id is null then
     raise exception 'Authentication required';
   end if;
+  if not private.is_pin_verified() then
+    raise exception 'Verifikasi PIN diperlukan untuk menambah tenant';
+  end if;
   if nullif(trim(p_store_name), '') is null or char_length(trim(p_store_name)) > 120 then
     raise exception 'Nama tenant wajib diisi (maksimal 120 karakter)';
   end if;
@@ -387,6 +393,9 @@ declare
 begin
   if not private.is_super_admin() then
     raise exception 'Super Admin access required';
+  end if;
+  if not private.is_pin_verified() then
+    raise exception 'Verifikasi PIN diperlukan untuk mengubah status tenant';
   end if;
   if p_status not in ('pending','suspended','deleted') then
     raise exception 'Status tidak diizinkan; gunakan aktivasi untuk mengaktifkan tenant';
