@@ -81,7 +81,7 @@ export default function SubscriptionPlanManager({ onBack }) {
     await load()
   }
   const savePlan = async plan => {
-    setSavingKey('package:'+plan.package_key); setError(''); setNotice('')
+    setSavingKey(plan.package_key); setError(''); setNotice('')
     const payload = { package_key: plan.package_key, name: String(plan.name||'').trim(), location_limit: Number(plan.location_limit), note: String(plan.note||'').trim(), prices: plan.prices || {}, features: (Array.isArray(plan.features)?plan.features:[]).map(v=>String(v).trim()).filter(Boolean), is_popular: Boolean(plan.is_popular), is_active: Boolean(plan.is_active), sort_order: Number(plan.sort_order)||0, updated_at: new Date().toISOString(), updated_by: (await supabase.auth.getUser()).data.user?.id || null }
     if (!payload.name || !Number.isInteger(payload.location_limit) || payload.location_limit < 1 || payload.location_limit > 1000 || !Object.keys(payload.prices).length || Object.values(payload.prices).some(value => !Number.isFinite(Number(value)) || Number(value)<0)) { setError('Nama paket, kuota lokasi, dan semua harga harus valid (tidak negatif).'); setSavingKey(''); return }
     const { error: saveError } = await supabase.from('site_activation_packages').upsert(payload, { onConflict: 'package_key' })
@@ -113,7 +113,7 @@ export default function SubscriptionPlanManager({ onBack }) {
           <div className="nx-duration-price-grid"><strong>Harga per durasi</strong>{activeDurations.map(duration=><label key={duration.duration_key}><span>{duration.name} ({Number(duration.duration_days)} hari)</span><input className="text-input" type="number" min="0" step="1000" value={plan.prices?.[duration.duration_key] ?? 0} onChange={e=>updatePrice(plan.package_key,duration.duration_key,e.target.value)}/></label>)}</div>
           <div className="nx-subscription-preview"><div><strong>Pratinjau kartu homepage</strong><small>{plan.note||'Deskripsi paket'} · Maksimal {plan.location_limit} lokasi</small><b>{money(plan.prices?.monthly)} <small>/ {durations.find(d=>d.duration_key==='monthly')?.name||'Bulanan'}</small></b></div><ul>{(plan.features||[]).map((feature,index)=><li key={index}><CheckCircle2 size={15}/><span>{feature}</span></li>)}</ul></div>
           <div className="nx-subscription-admin-actions"><label className="nx-subscription-toggle"><input type="checkbox" checked={Boolean(plan.is_active)} onChange={e=>updatePlan(plan.package_key,'is_active',e.target.checked)}/>{plan.is_active?<Eye size={15}/>:<EyeOff size={15}/>} Tampilkan di homepage</label><label className="nx-subscription-toggle"><input type="checkbox" checked={Boolean(plan.is_popular)} onChange={e=>updatePlan(plan.package_key,'is_popular',e.target.checked)}/> Paket rekomendasi</label></div>
-          <button className="btn btn-primary btn-wide" disabled={!plansReady || savingKey===plan.package_key} onClick={()=>savePlan(plan)}>{savingKey==='package:'+plan.package_key?<span className="spinner"/>:<Save size={16}/>} Simpan paket</button>
+          <button className="btn btn-primary btn-wide" disabled={!plansReady || savingKey===plan.plan_key} onClick={()=>savePlan(plan)}>{savingKey===plan.plan_key?<span className="spinner"/>:<Save size={16}/>} Simpan paket</button>
         </article>)}</div>
         <p className="nx-subscription-admin-footnote">Harga yang diubah di sini berlaku untuk penawaran dan kode aktivasi baru. Kode aktivasi yang sudah diterbitkan harus tetap mengikuti ketentuan saat kode dibuat. Promo tetap dikelola di menu Promo & Diskon.</p>
       </section></div>
