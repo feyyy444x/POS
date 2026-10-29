@@ -333,7 +333,6 @@ export default function Homepage() {
             const pricedPlan={...plan,price:basePrice,duration:duration?.name||selectedDuration,duration_days:Number(duration?.duration_days||0)}
             const serverQuote=serverQuotes[plan.key]
             const displayPromo=serverQuote?.promo_id?{id:serverQuote.promo_id,title:serverQuote.promo_title,description:serverQuote.promo_description,discount_type:serverQuote.discount_type,discount_value:serverQuote.discount_value,eligible_periods:serverQuote.eligible_periods,promo_code:serverQuote.promo_code,requires_code:serverQuote.requires_code,starts_at:serverQuote.starts_at,ends_at:serverQuote.ends_at}:null
-            const eligible=displayPromo ? eligiblePeriods(displayPromo) : []
             const isEligible=Boolean(displayPromo)
             const discount=isEligible?Math.max(0,Number(serverQuote?.discount||0)):0
             const finalPrice=Math.max(0,Number(serverQuote?.final_price ?? basePrice))
