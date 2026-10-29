@@ -23,6 +23,8 @@ const platformStaffManagerUi = await readFile(new URL('src/PlatformStaffManager.
 const promotionManagerUi = await readFile(new URL('src/PromotionManager.jsx', root), 'utf8')
 const subscriptionPlanManagerUi = await readFile(new URL('src/SubscriptionPlanManager.jsx', root), 'utf8')
 const storeControlCenterUi = await readFile(new URL('src/StoreControlCenter.jsx', root), 'utf8')
+const queueSettingsUi = await readFile(new URL('src/TvDisplaySettings.jsx', root), 'utf8')
+const publicQueueMigration = await readFile(new URL('supabase/migrations/20261029200000_simplify_public_queue_rpc.sql', root), 'utf8')
 
 test('Netlify headers include baseline browser security protections', () => {
   for (const directive of [
@@ -355,4 +357,30 @@ test('form draft restoration handles conditional fields without overwriting fiel
 test('form draft preservation excludes credentials, activation codes, PINs, and file inputs', () => {
   assert.match(app, /\['password', 'hidden', 'file', 'submit', 'button', 'reset', 'image'\]/)
   assert.match(app, /password\|passwd\|pin\|activation\.\?code\|invite\.\?code\|token\|secret/)
+})
+
+
+test('public queue screen is token-gated, tenant-scoped, and stops exposing media/template data', () => {
+  assert.match(publicQueueMigration, /p_token IS NULL OR length\(p_token\) < 32/)
+  assert.match(publicQueueMigration, /WHERE cfg\.public_token = p_token/)
+  assert.match(publicQueueMigration, /'queue_enabled', coalesce\(ss\.queue_enabled, true\)/)
+  assert.match(publicQueueMigration, /CASE WHEN coalesce\(ss\.queue_enabled, true\) THEN/)
+  assert.doesNotMatch(publicQueueMigration, /'media'|'template'|'playlist'|'video'/)
+  assert.match(app, /new URLSearchParams\(window\.location\.search\)\.get\('token'\)/)
+  assert.match(app, /supabase\.rpc\('get_public_tv_display',\{p_token:token\}\)/)
+})
+
+test('queue settings contain no media upload or template controls and require owner/admin for writes', () => {
+  assert.match(queueSettingsUi, /\['owner', 'admin'\]\.includes\(membership\?\.role\)/)
+  assert.match(queueSettingsUi, /store_settings'\)\.upsert/)
+  assert.match(queueSettingsUi, /crypto\.getRandomValues/)
+  assert.doesNotMatch(queueSettingsUi, /store_tv_media|upload|playlist|media_volume|selectedTemplate|template options/i)
+})
+
+test('password minimum is six characters in profile forms and admin reset endpoint', async () => {
+  const profileAndAuthForms = app
+  const passwordReset = await readFile(new URL('../netlify/functions/manage-user-password.mjs', import.meta.url), 'utf8')
+  assert.doesNotMatch(profileAndAuthForms, /minLength=\{8\}/)
+  assert.match(profileAndAuthForms, /minLength=\{6\}/)
+  assert.match(passwordReset, /password\.length < 6/)
 })
