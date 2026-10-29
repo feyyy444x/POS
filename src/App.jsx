@@ -177,7 +177,8 @@ function App() {
   const [queueBusy, setQueueBusy] = useState(false)
   const [mobileNav, setMobileNav] = useState(false)
   const [receipt, setReceipt] = useState(null)
-  const [payMethod, setPayMethod] = useState('cash')  const [paidAmount, setPaidAmount] = useState('')
+  const [payMethod, setPayMethod] = useState('cash')
+  const [paidAmount, setPaidAmount] = useState('')
   const [discount, setDiscount] = useState('0')
   const [savingSettings, setSavingSettings] = useState(false)
   const [activeShift, setActiveShift] = useState(null)
@@ -356,7 +357,8 @@ function App() {
       else if(!configError)setBreakSettings({store_id:store.id,max_break_minutes:15,repeat_reminder_minutes:5,sound_enabled:true,escalation_enabled:true,manual_alert_title:'Peringatan dari Admin',manual_alert_message:'⚠️ Waktu istirahat Anda telah melewati batas. Silakan kembali bekerja.'})
       if(rowsError){setMonitoringBreaks([]);setBreakHistory([]);if(!rowsError.message?.includes('cashier_shift_breaks'))setNotice(rowsError.message)}
       else {setMonitoringBreaks((rows||[]).filter(row=>!row.ended_at));setBreakHistory((rows||[]).filter(row=>row.ended_at));setShiftBreak((rows||[]).find(row=>row.cashier_id===session.user.id&&!row.ended_at)||null)}
-    }    refreshBreakData()
+    }
+    refreshBreakData()
     const channel=supabase.channel('cashier-breaks-'+store.id)
       .on('postgres_changes',{event:'*',schema:'public',table:'cashier_shift_breaks',filter:'store_id=eq.'+store.id},refreshBreakData)
       .on('postgres_changes',{event:'*',schema:'public',table:'cashier_break_settings',filter:'store_id=eq.'+store.id},refreshBreakData)
@@ -535,7 +537,8 @@ function App() {
   useEffect(()=>{if(!notice)return;const timer=setTimeout(()=>setNotice(''),4500);return()=>clearTimeout(timer)},[notice])
 
   const isManager = ['owner','admin','manager'].includes(membership?.role)
-  const currentShiftOrders=useMemo(()=>activeShift?orders.filter(o=>o.cashier_id===activeShift.cashier_id&&new Date(o.created_at)>=new Date(activeShift.opened_at)&&(!activeShift.closed_at||new Date(o.created_at)<=new Date(activeShift.closed_at))&&o.status==='paid'):[],[orders,activeShift])  const expectedShiftCash=Number(activeShift?.opening_cash||0)+currentShiftOrders.filter(o=>o.payment_method==='cash').reduce((sum,o)=>sum+Number(o.total||0),0)
+  const currentShiftOrders=useMemo(()=>activeShift?orders.filter(o=>o.cashier_id===activeShift.cashier_id&&new Date(o.created_at)>=new Date(activeShift.opened_at)&&(!activeShift.closed_at||new Date(o.created_at)<=new Date(activeShift.closed_at))&&o.status==='paid'):[],[orders,activeShift])
+  const expectedShiftCash=Number(activeShift?.opening_cash||0)+currentShiftOrders.filter(o=>o.payment_method==='cash').reduce((sum,o)=>sum+Number(o.total||0),0)
   const expectedShiftQris=currentShiftOrders.filter(o=>o.payment_method==='qris').reduce((sum,o)=>sum+Number(o.total||0),0)
   const categories = useMemo(()=>['Semua',...new Set(products.map(p=>p.category||'Umum'))],[products])
   const visibleProducts = useMemo(()=>products.filter(p=>p.is_active && (category==='Semua'||(p.category||'Umum')===category) && (p.name.toLowerCase().includes(search.toLowerCase())||(p.sku||'').toLowerCase().includes(search.toLowerCase())||(p.barcode||'').includes(search))),[products,category,search])
@@ -714,6 +717,7 @@ function App() {
     const {error}=await supabase.rpc('update_queue_ticket_status',{p_ticket_id:ticket.id,p_status:status})
     if(error)setNotice(error.message);else await loadWorkspace()
   }
+
   const saveProduct = async (event) => {
     event.preventDefault()
     if(!isManager){setNotice('Hanya admin atau manager yang dapat mengelola produk.');return}
@@ -893,7 +897,8 @@ function App() {
   ]
 
   if(!authReady || (session && !adminCheckReady))return <div className="loading-screen"><span className="spinner spinner-large"/><span>Menyiapkan NexaPos…</span></div>
-  if(!session)return (window.location.pathname === '/' || window.location.pathname === '/index.html' ? <Homepage/> : <AuthScreen/>)  if(!pinStatus)return <div className="loading-screen"><span className="spinner spinner-large"/><span>Memeriksa keamanan akun…</span></div>
+  if(!session)return (window.location.pathname === '/' || window.location.pathname === '/index.html' ? <Homepage/> : <AuthScreen/>)
+  if(!pinStatus)return <div className="loading-screen"><span className="spinner spinner-large"/><span>Memeriksa keamanan akun…</span></div>
   if(pinStatus.error)return <div className="loading-screen"><p>Modul keamanan PIN belum siap: {pinStatus.error}</p><p>Terapkan migrasi PIN sebelum memakai versi ini.</p><button className="btn btn-outline" onClick={()=>supabase.auth.signOut()}>Keluar</button></div>
   if(!pinStatus.has_pin||!pinStatus.is_verified)return <PinGate session={session} status={pinStatus} onReady={setPinStatus} onSignOut={()=>supabase.auth.signOut()}/>
   if(isSuperAdmin)return <SuperAdminScreen session={session} syncStatus={syncStatus} setSyncStatus={setSyncStatus} onSignOut={()=>supabase.auth.signOut()}/>
@@ -1075,7 +1080,8 @@ function SuperAdminScreen({session,syncStatus,setSyncStatus,onSignOut}) {
     const ownerEmail=String(form.get('owner_email')||'').trim()
     setRegistering(true)
     const {error}=await supabase.rpc('register_store_tenant',{p_store_name:String(form.get('store_name')||'').trim(),p_owner_name:String(form.get('owner_name')||'').trim(),p_owner_email:ownerEmail,p_activation_code:activationCode})
-    setRegistering(false)    if(error){setNotice(error.message);return}
+    setRegistering(false)
+    if(error){setNotice(error.message);return}
     event.currentTarget.reset()
     setOwnerActivationCopied(false)
     setOwnerActivationCard({email:ownerEmail,code:activationCode,title:'Kode aktivasi Owner'})
@@ -1269,7 +1275,8 @@ function QueueScreen(){
   const [tvMedia,setTvMedia]=useState([])
   const [tickets,setTickets]=useState([])
   const [error,setError]=useState('')
-  const [publicDisplay,setPublicDisplay]=useState(null)  useEffect(()=>{if(!supabase)return;supabase.auth.getSession().then(({data})=>setSession(data.session));const {data:{subscription}}=supabase.auth.onAuthStateChange((_e,s)=>setSession(s));return()=>subscription.unsubscribe()},[])
+  const [publicDisplay,setPublicDisplay]=useState(null)
+  useEffect(()=>{if(!supabase)return;supabase.auth.getSession().then(({data})=>setSession(data.session));const {data:{subscription}}=supabase.auth.onAuthStateChange((_e,s)=>setSession(s));return()=>subscription.unsubscribe()},[])
   const loadPublic=useCallback(async()=>{
     if(!token||!supabase)return
     const {data,error:loadError}=await supabase.rpc('get_public_tv_display',{p_token:token})
