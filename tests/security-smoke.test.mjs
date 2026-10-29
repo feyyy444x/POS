@@ -8,6 +8,7 @@ const activation = await readFile(new URL('netlify/functions/activate-invitation
 const app = await readFile(new URL('src/App.jsx', root), 'utf8')
 const queueMigration = await readFile(new URL('supabase/migrations/20261029140000_enforce_store_queue_enabled.sql', root), 'utf8')
 const writeHardeningMigration = await readFile(new URL('supabase/migrations/20261029150000_tighten_mutable_column_grants_and_queue_policy.sql', root), 'utf8')
+const queueCompatibilityMigration = await readFile(new URL('supabase/migrations/20261029151000_queue_update_compatibility_guard.sql', root), 'utf8')
 
 test('Netlify headers include baseline browser security protections', () => {
   for (const directive of [
@@ -78,4 +79,14 @@ test('cashier alert and break writes are limited to intended columns', () => {
   assert.match(writeHardeningMigration, /GRANT UPDATE \(ended_at\) ON TABLE public\.cashier_shift_breaks TO authenticated/)
   assert.match(writeHardeningMigration, /GRANT INSERT \(store_id, shift_id, cashier_id\)/)
   assert.match(writeHardeningMigration, /private\.is_store_member\(store_id\)/)
+})
+
+
+test('queue database guard preserves only valid status transitions and honors the queue switch', () => {
+  assert.match(queueCompatibilityMigration, /GRANT UPDATE \(status, called_at, completed_at\)/)
+  assert.match(queueCompatibilityMigration, /CREATE TRIGGER guard_queue_ticket_update/)
+  assert.match(queueCompatibilityMigration, /NEW\.store_id IS DISTINCT FROM OLD\.store_id/)
+  assert.match(queueCompatibilityMigration, /Perubahan status antrean tidak valid/)
+  assert.match(queueCompatibilityMigration, /IF NOT v_queue_enabled THEN/)
+  assert.match(queueCompatibilityMigration, /members update operational queue while enabled/)
 })
