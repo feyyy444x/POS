@@ -239,3 +239,54 @@ test('Tim & Hak Akses offers only full-access Admin NexaPos role', () => {
   assert.match(platformStaffEndpoint, /users: 'users', users_toggle_login: 'users'/)
   assert.match(platformStaffEndpoint, /support_inbox: 'support', support_reply: 'support'/)
 })
+
+
+const supportMigration = await readFile(new URL('supabase/migrations/20261029183000_nexapos_free_ai_support.sql', root), 'utf8')
+const supportLockdownMigration = await readFile(new URL('supabase/migrations/20261029183500_lock_down_support_rpc.sql', root), 'utf8')
+const supportHandoffMigration = await readFile(new URL('supabase/migrations/20261029184000_refine_support_bot_handoff.sql', root), 'utf8')
+const supportCenter = await readFile(new URL('src/SupportCenter.jsx', root), 'utf8')
+
+test('free NexaPos support bot is FAQ-only and never calls a paid external AI provider', () => {
+  assert.match(supportMigration, /CREATE TABLE IF NOT EXISTS public\.support_knowledge_base/)
+  assert.match(supportMigration, /INSERT INTO public\.support_knowledge_base/)
+  assert.match(supportMigration, /v_answer := 'Maaf, saya belum memiliki jawaban terverifikasi/)
+  assert.doesNotMatch(supportMigration + supportHandoffMigration, /fetch\s*\(|https:\/\/api\.|OPENAI_API_KEY|GEMINI_API_KEY|ANTHROPIC_API_KEY/i)
+  assert.match(supportCenter, /submit_support_message/)
+  assert.match(supportCenter, /NexaPos Bot/)
+})
+
+test('support RPCs validate customer input, require authenticated sessions, and rate-limit messages', () => {
+  assert.match(supportMigration, /char_length\(v_message\) < 1 OR char_length\(v_message\) > 3000/)
+  assert.match(supportMigration, /v_is_anonymous boolean/)
+  assert.match(supportMigration, /NOT v_is_anonymous AND NOT private\.is_pin_verified\(\)/)
+  assert.match(supportMigration, /interval '1 hour'\)\) >= 40/)
+  assert.match(supportMigration, /CREATE OR REPLACE FUNCTION public\.submit_support_message/)
+  assert.match(supportLockdownMigration, /REVOKE ALL ON FUNCTION public\.submit_support_message\(text, text\) FROM PUBLIC, anon/)
+  assert.match(supportLockdownMigration, /GRANT EXECUTE ON FUNCTION public\.submit_support_message\(text, text\) TO authenticated/)
+})
+
+test('customer RLS isolates support messages and conversations while Admin NexaPos is PIN-gated', () => {
+  assert.match(supportMigration, /ALTER TABLE public\.support_conversations ENABLE ROW LEVEL SECURITY/)
+  assert.match(supportMigration, /ALTER TABLE public\.support_knowledge_base ENABLE ROW LEVEL SECURITY/)
+  assert.match(supportMigration, /user_id = \(SELECT auth\.uid\(\)\)/)
+  assert.match(supportMigration, /private\.is_super_admin\(\)/)
+  assert.match(supportMigration, /private\.is_pin_verified\(\)/)
+  assert.match(supportMigration, /USING \(private\.is_super_admin\(\)\)/)
+  assert.match(supportMigration, /WITH CHECK \(private\.is_super_admin\(\)\)/)
+  assert.match(supportMigration, /CREATE OR REPLACE FUNCTION public\.admin_reply_support_message/)
+  assert.match(supportMigration, /IF NOT private\.is_super_admin\(\) THEN RAISE EXCEPTION 'Admin NexaPos access required'/)
+})
+
+test('human handoff stops bot replies until Admin takes over or reactivates bot', () => {
+  assert.match(supportHandoffMigration, /komplain\|keluhan\|hubungi admin/)
+  assert.match(supportHandoffMigration, /'waiting_admin'/)
+  assert.match(supportMigration, /IF v_status IN \('waiting_admin', 'admin_active'\) THEN/)
+  assert.match(supportMigration, /CREATE OR REPLACE FUNCTION public\.request_support_handoff/)
+  assert.match(supportMigration, /CREATE OR REPLACE FUNCTION public\.set_support_conversation_status/)
+  assert.match(supportMigration, /p_status NOT IN \('ai_active', 'admin_active', 'resolved'\)/)
+  assert.match(supportCenter, /request_support_handoff/)
+  assert.match(supportCenter, /admin_reply_support_message/)
+  assert.match(supportCenter, /set_support_conversation_status/)
+  assert.match(supportCenter, /Hubungi Admin NexaPos/)
+  assert.match(supportCenter, /Menunggu admin/)
+})
