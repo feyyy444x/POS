@@ -10,7 +10,13 @@ const periods = [
   { value: 'yearly', label: 'Tahunan' },
 ]
 const initialForm = () => ({ title: '', description: '', discount_type: 'percent', discount_value: '10', eligible_periods: ['monthly'], promo_code: '', requires_code: false, starts_at: '', ends_at: '', is_active: false })
-const toLocalInput = (value) => value ? new Date(value).toISOString().slice(0, 16) : ''
+const toLocalInput = (value) => {
+  if (!value) return ''
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return ''
+  const pad = part => String(part).padStart(2, '0')
+  return date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate()) + 'T' + pad(date.getHours()) + ':' + pad(date.getMinutes())
+}
 const dateValue = (value) => value ? new Date(value).toISOString() : null
 const promotionErrorMessage = (error) => {
   const message = String(error?.message || error || '')
