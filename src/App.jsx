@@ -448,7 +448,7 @@ function App() {
     setLoading(false)
   }, [session, selectedStoreId, isSuperAdmin, platformStaffRole])
 
-  useEffect(()=>{if(!session){setIsSuperAdmin(false);setPlatformStaffRole(null);setAdminCheckReady(true);return}let cancelled=false;setAdminCheckReady(false);Promise.all([supabase.from('super_admins').select('user_id').eq('user_id',session.user.id).maybeSingle(),supabase.rpc('get_my_platform_staff_role')]).then(([adminResult,staffResult])=>{if(cancelled)return;const staffData=Array.isArray(staffResult.data)?staffResult.data[0]:staffResult.data;const isPlatformAdmin=!staffResult.error&&staffData?.role==='admin';setIsSuperAdmin(Boolean(adminResult.data)||isPlatformAdmin);setPlatformStaffRole(!adminResult.data&&!isPlatformAdmin&&!staffResult.error&&staffData?.role&&staffData?.is_active!==false?staffData:null);setAdminCheckReady(true)}).catch(()=>{if(!cancelled){setIsSuperAdmin(false);setPlatformStaffRole(null);setAdminCheckReady(true)}});return()=>{cancelled=true}},[session?.user?.id,session?.access_token])
+  useEffect(()=>{if(!session){setIsSuperAdmin(false);setPlatformStaffRole(null);setAdminCheckReady(true);return}let cancelled=false;setAdminCheckReady(false);Promise.all([supabase.from('super_admins').select('user_id').eq('user_id',session.user.id).maybeSingle(),supabase.rpc('get_my_platform_staff_role')]).then(([adminResult,staffResult])=>{if(cancelled)return;const staffData=Array.isArray(staffResult.data)?staffResult.data[0]:staffResult.data;const isPlatformAdmin=!staffResult.error&&staffData?.role==='admin'&&staffData?.is_active===true;setIsSuperAdmin(Boolean(adminResult.data)||isPlatformAdmin);setPlatformStaffRole(!adminResult.data&&!isPlatformAdmin&&!staffResult.error&&staffData?.role&&staffData?.is_active!==false?staffData:null);setAdminCheckReady(true)}).catch(()=>{if(!cancelled){setIsSuperAdmin(false);setPlatformStaffRole(null);setAdminCheckReady(true)}});return()=>{cancelled=true}},[session?.user?.id,session?.access_token])
 
   useEffect(()=>{
     const handleOnline=()=>setSyncStatus('checking')
@@ -1612,7 +1612,7 @@ function SupportPortal() {
       supabase.rpc('get_my_platform_staff_role'),
     ]).then(([adminResult, staffResult]) => {
       const staffData = Array.isArray(staffResult.data) ? staffResult.data[0] : staffResult.data
-      if (!cancelled) setIsSuperAdmin(Boolean(adminResult.data) || (!staffResult.error && staffData?.role === 'admin'))
+      if (!cancelled) setIsSuperAdmin(Boolean(adminResult.data) || (!staffResult.error && staffData?.role === 'admin' && staffData?.is_active === true))
     })
     return () => { cancelled = true }
   }, [session?.user?.id, session?.access_token])
