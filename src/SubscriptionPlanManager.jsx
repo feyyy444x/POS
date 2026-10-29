@@ -18,7 +18,6 @@ const packageDefaults = [
   { package_key: 'enterprise', name: 'Enterprise', location_limit: 10, note: 'Untuk jaringan usaha yang lebih besar', prices: { daily: 25000, weekly: 85000, monthly: 299000, yearly: 2990000, custom: 125000 }, features: featureDefaults, is_popular: false, is_active: true, sort_order: 4 },
 ]
 const money = value => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value || 0))
-const slug = value => String(value || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
 
 export default function SubscriptionPlanManager({ onBack }) {
   const [plans, setPlans] = useState(packageDefaults)
@@ -82,7 +81,7 @@ export default function SubscriptionPlanManager({ onBack }) {
   }
   const savePlan = async plan => {
     setSavingKey(plan.package_key); setError(''); setNotice('')
-    const payload = { package_key: plan.package_key, name: String(plan.name||'').trim(), location_limit: Number(plan.location_limit), note: String(plan.note||'').trim(), prices: plan.prices || {}, features: (Array.isArray(plan.features)?plan.features:[]).map(v=>String(v).trim()).filter(Boolean), is_popular: Boolean(plan.is_popular), is_active: Boolean(plan.is_active), sort_order: Number(plan.sort_order)||0, updated_at: new Date().toISOString(), updated_by: (await supabase.auth.getUser()).data.user?.id || null }
+    const payload = { package_key: plan.package_key, name: String(plan.name||'').trim(), location_limit: Number(plan.location_limit), note: String(plan.note||'').trim(), prices: plan.prices || {}, features: featureDefaults, is_popular: Boolean(plan.is_popular), is_active: Boolean(plan.is_active), sort_order: Number(plan.sort_order)||0, updated_at: new Date().toISOString(), updated_by: (await supabase.auth.getUser()).data.user?.id || null }
     if (!payload.name || !Number.isInteger(payload.location_limit) || payload.location_limit < 1 || payload.location_limit > 1000 || !Object.keys(payload.prices).length || Object.values(payload.prices).some(value => !Number.isFinite(Number(value)) || Number(value)<0)) { setError('Nama paket, kuota lokasi, dan semua harga harus valid (tidak negatif).'); setSavingKey(''); return }
     const { error: saveError } = await supabase.from('site_activation_packages').upsert(payload, { onConflict: 'package_key' })
     setSavingKey('')
