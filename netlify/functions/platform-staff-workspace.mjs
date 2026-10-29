@@ -130,21 +130,31 @@ export default async (request) => {
         admin.from('store_members').select('id,is_active').limit(10000),
         admin.from('orders').select('id,status,total,created_at').limit(10000),
       ])
+      const failedSources = [
+        usersResult.error && 'akun',
+        storesResult.error && 'toko',
+        membersResult.error && 'keanggotaan',
+        ordersResult.error && 'transaksi',
+      ].filter(Boolean)
+      if (failedSources.length) {
+        console.error('Platform report sources failed:', failedSources.join(', '))
+        return json({ error: 'Laporan tidak dapat dimuat lengkap. Sumber data bermasalah: ' + failedSources.join(', ') + '. Coba muat ulang.' }, 500)
+      }
       const stores = storesResult.data || []
+      const members = membersResult.data || []
       const orders = ordersResult.data || []
       return json({ data: {
-        account_count: usersResult.data?.users?.length ?? null,
+        account_count: usersResult.data?.users?.length ?? 0,
         account_count_limited: (usersResult.data?.users?.length || 0) >= 1000,
-        store_count: stores.length, active_stores: stores.filter(s => s.status === 'active' && (!s.expires_at || new Date(s.expires_at) > new Date())).length,
+        store_count: stores.length,
+        store_count_limited: stores.length >= 5000,
+        active_stores: stores.filter(s => s.status === 'active' && (!s.expires_at || new Date(s.expires_at) > new Date())).length,
         expired_stores: stores.filter(s => s.expires_at && new Date(s.expires_at) <= new Date()).length,
-        active_memberships: (membersResult.data || []).filter(m => m.is_active).length,
-        order_count: orders.length, order_total: orders.reduce((sum, order) => sum + Number(order.total || 0), 0),
-        source_errors: {
-          accounts: usersResult.error ? 'Akun tidak tersedia' : null,
-          stores: storesResult.error ? 'Data toko tidak tersedia' : null,
-          memberships: membersResult.error ? 'Data keanggotaan tidak tersedia' : null,
-          orders: ordersResult.error ? 'Data transaksi tidak tersedia' : null,
-        },
+        active_memberships: members.filter(m => m.is_active).length,
+        membership_count_limited: members.length >= 10000,
+        order_count: orders.length,
+        order_count_limited: orders.length >= 10000,
+        order_total: orders.reduce((sum, order) => sum + Number(order.total || 0), 0),
       } })
     }
     if (action === 'support_reply') {
