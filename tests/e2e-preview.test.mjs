@@ -31,6 +31,15 @@ test('deployed preview serves the NexaPos entry page and application bundle', as
   assert.equal(scriptResponse.status, 200, 'Application entry script should be served')
 })
 
+test('deployed preview sends baseline browser security headers', async () => {
+  const response = await getReachableApp()
+  assert.match(response.headers.get('x-content-type-options') || '', /nosniff/i)
+  assert.match(response.headers.get('x-frame-options') || '', /deny|sameorigin/i)
+  assert.match(response.headers.get('referrer-policy') || '', /strict-origin-when-cross-origin|no-referrer/i)
+  assert.match(response.headers.get('strict-transport-security') || '', /max-age=\d+/i)
+  assert.match(response.headers.get('permissions-policy') || '', /camera=\(\)/i)
+})
+
 test('activation endpoint rejects GET without touching invitation data', async () => {
   const response = await fetch(activationUrl, { method: 'GET', signal: AbortSignal.timeout(15000) })
   assert.equal(response.status, 405)
