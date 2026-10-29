@@ -424,4 +424,5 @@ test('homepage pricing fallback matches package defaults and does not fabricate 
   assert.doesNotMatch(homepageUi, /fallbackPromo|DISKON BARU CUYYY|nexapos-new-customer-80/)
   assert.match(homepageUi, /p\.starts_at.*p\.ends_at/)
   assert.match(homepageUi, /const availablePromos = promos/)
+  assert.match(homepageUi, /if \(error\) \{ setPromos\(\[\]\); return \}/)
 })
