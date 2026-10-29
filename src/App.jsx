@@ -852,6 +852,7 @@ function App() {
   const subtotal = cart.reduce((sum,item)=>sum+Number(item.price)*item.quantity,0)
   const safeDiscount = Math.min(Math.max(Number(discount)||0,0),subtotal)
   const total = subtotal-safeDiscount
+  useEffect(() => { checkoutRequestIdRef.current = null }, [cart, safeDiscount, payMethod, paidAmount, queueCustomer, store?.id, settings?.queue_enabled])
   const waitingQueue = queue.filter(t=>t.status==='waiting')
   const activeQueue = queue.filter(t=>['called','serving'].includes(t.status))
   const todaysOrders = orders.filter(o=>o.created_at?.slice(0,10)===today())
