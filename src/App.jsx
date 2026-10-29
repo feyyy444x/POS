@@ -1169,7 +1169,27 @@ function SuperAdminScreen({session,syncStatus,setSyncStatus,onSignOut}) {
   const [deletingUserId,setDeletingUserId]=useState('')
   const [userActionId,setUserActionId]=useState('')
   const [section,setSection]=useState('dashboard')
+  const [sectionRestored,setSectionRestored]=useState(false)
   const [mobileNav,setMobileNav]=useState(false)
+
+  // Restore the last Admin Super section per authenticated account after a reload.
+  // Only navigation state is persisted; sensitive credentials and activation codes are never stored here.
+  useEffect(()=>{
+    const userId=session?.user?.id
+    if(!userId)return
+    const allowedSections=new Set(['dashboard','stores','users','disabled','support','promotions','subscription-plans'])
+    try {
+      const saved=localStorage.getItem('nexapos-super-admin-section-v1:'+userId)
+      if(saved&&allowedSections.has(saved))setSection(saved)
+    } catch {}
+    setSectionRestored(true)
+  },[session?.user?.id])
+
+  useEffect(()=>{
+    const userId=session?.user?.id
+    if(!userId||!sectionRestored)return
+    try { localStorage.setItem('nexapos-super-admin-section-v1:'+userId,section) } catch {}
+  },[section,sectionRestored,session?.user?.id])
   const [tenantSearch,setTenantSearch]=useState('')
   const [tenantStatus,setTenantStatus]=useState('all')
   const [tenantPage,setTenantPage]=useState(1)
