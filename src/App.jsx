@@ -17,6 +17,7 @@ import TvDisplaySettings from './TvDisplaySettings.jsx'
 import PlatformStaffManager from './PlatformStaffManager.jsx'
 import StoreControlCenter from './StoreControlCenter.jsx'
 import AuditLogPanel from './AuditLogPanel.jsx'
+import OrganizationReports from './OrganizationReports.jsx'
 
 const money = (value) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value || 0))
 const today = () => new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' })
@@ -586,7 +587,7 @@ function App() {
       ? 'nexapos-workspace-page-v1:' + session.user.id + ':' + selectedStoreId
       : ''
     if (!key) return
-    const allowed = new Set(['dashboard','pos','products','queue','monitoring','reports','attendance','cashier','settings','profile','tv-settings','team','tenants','audit'])
+    const allowed = new Set(['dashboard','pos','products','queue','monitoring','reports','reports-org','attendance','cashier','settings','profile','tv-settings','team','tenants','audit'])
     try {
       const saved = localStorage.getItem(key)
       if (saved && allowed.has(saved) && (!['team','tenants','audit'].includes(saved) || membership?.role === 'owner')) setPage(saved)
@@ -1238,7 +1239,7 @@ function App() {
   const nav = [
     {section:'WORKSPACE',items:[['dashboard','Ringkasan',LayoutDashboard],['pos','Kasir / POS',ShoppingCart],['products','Produk & stok',Package],['queue','Sistem antrian',Ticket]]},
     {section:'OPERASIONAL',items:['owner','admin','manager'].includes(membership?.role)?[['monitoring','Monitoring kasir aktif',Activity]]:[]},
-    {section:'ANALYTICS',items:[['reports','Laporan penjualan',BarChart3],['attendance','Laporan absensi',CalendarDays]]},
+    {section:'ANALYTICS',items:[['reports','Laporan penjualan',BarChart3],...(membership?.role==='owner'?[['reports-org','Laporan organisasi',Store]]:[]),['attendance','Laporan absensi',CalendarDays]]},
     {section:'CASH MANAGEMENT',items:[['cashier','Buka / tutup kasir',Wallet]]},
     {section:'PREFERENCES',items:[['settings','Pengaturan toko',Settings],['profile','Profil & keamanan',UserRound], ...(['owner','admin'].includes(membership?.role)?[['tv-settings','Edit Tampilan TV',Monitor]]:[])]},
     {section:'MANAGEMENT',items:membership?.role==='owner'?[['team','Karyawan & akses',Users],['tenants','Tenant & lokasi',Store],['audit','Audit aktivitas',Activity]]:[]}
@@ -1258,7 +1259,7 @@ function App() {
 
   const tenantDaysRemaining = store?.expires_at ? Math.ceil((new Date(store.expires_at).setHours(0,0,0,0)-new Date().setHours(0,0,0,0))/86400000) : null
   const tenantExpiryTone = tenantDaysRemaining === null ? '' : tenantDaysRemaining < 7 ? 'critical' : tenantDaysRemaining <= 25 ? 'warning' : 'healthy'
-  const titleMap={dashboard:'Ringkasan',pos:'Kasir / POS',products:'Produk & stok',queue:'Sistem antrian',monitoring:'Monitoring kasir aktif',reports:'Laporan penjualan',attendance:'Laporan absensi',cashier:'Buka / tutup kasir',settings:'Pengaturan toko',profile:'Profil & keamanan','tv-settings':'Edit Tampilan TV',tenants:'Tenant & lokasi',audit:'Audit aktivitas'}
+  const titleMap={dashboard:'Ringkasan',pos:'Kasir / POS',products:'Produk & stok',queue:'Sistem antrian',monitoring:'Monitoring kasir aktif',reports:'Laporan penjualan','reports-org':'Laporan organisasi',attendance:'Laporan absensi',cashier:'Buka / tutup kasir',settings:'Pengaturan toko',profile:'Profil & keamanan','tv-settings':'Edit Tampilan TV',tenants:'Tenant & lokasi',audit:'Audit aktivitas'}
   return <div className="app-shell">
     <aside className={`sidebar ${mobileNav?'sidebar-open':''}`}>
       <div className="sidebar-brand"><Brand/></div>
@@ -1318,6 +1319,7 @@ function App() {
         {page==='attendance'&&<section className="page-section"><div className="page-heading"><div><span className="eyebrow muted">TEAM / ATTENDANCE</span><h1>Laporan <span className="heading-accent">absensi.</span></h1><p>Filter rentang tanggal dan cari nama kasir, ID, atau catatan absensi.</p></div><button className="btn btn-outline" onClick={()=>{const rows=[['ID Kasir','Nama Kasir','Waktu Masuk','Waktu Keluar','Durasi','Saldo Awal','Tunai Aktual','QRIS Aktual','Selisih Tunai','Selisih QRIS','Catatan'],...filteredAttendanceRecords.map(row=>[row.cashier_id,teamMembers.find(m=>m.user_id===row.cashier_id)?.full_name||teamMembers.find(m=>m.user_id===row.cashier_id)?.email||'',row.opened_at,row.closed_at||'',row.closed_at?Math.max(0,Math.round((new Date(row.closed_at)-new Date(row.opened_at))/60000))+' menit':'Masih aktif',row.opening_cash,row.counted_cash??'',row.counted_qris??'',row.cash_difference??'',row.qris_difference??'',row.notes||''])];const csv=rows.map(r=>r.map(v=>'"'+String(v??'').replaceAll('"','""')+'"').join(',')).join('\n');const url=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8;'}));const a=document.createElement('a');a.href=url;a.download='nexapos-absensi-'+(attendanceStart||today())+'-sampai-'+(attendanceEnd||attendanceStart||today())+'.csv';a.click();URL.revokeObjectURL(url)}}><ArrowDownRight size={16}/> Unduh laporan absensi</button></div><div className="panel report-filter-panel"><div className="panel-head"><div><h3><CalendarDays size={17}/> Filter absensi</h3><p>Pilih rentang tanggal dan gunakan pencarian untuk menyaring hasil.</p></div><button className="btn btn-ghost btn-small" onClick={()=>{setAttendanceStart(today());setAttendanceEnd(today());setAttendanceSearch('')}}>Hari ini</button></div><div className="report-filter-grid"><label>Dari tanggal<input className="text-input" type="date" max={today()} value={attendanceStart} onChange={e=>setAttendanceStart(e.target.value)}/></label><label>Sampai tanggal<input className="text-input" type="date" min={attendanceStart} max={today()} value={attendanceEnd} onChange={e=>setAttendanceEnd(e.target.value)}/></label><label>Cari absensi<input className="text-input" type="search" value={attendanceSearch} onChange={e=>setAttendanceSearch(e.target.value)} placeholder="Nama kasir, ID, catatan…"/></label></div></div><div className="panel report-panel"><div className="panel-head"><div><h3>Riwayat kehadiran</h3><p>{attendanceStart||today()} sampai {attendanceEnd||attendanceStart||today()}</p></div><span className="result-count">{filteredAttendanceRecords.length} catatan</span></div><div className="table-wrap"><table><thead><tr><th>Kasir</th><th>Waktu masuk</th><th>Waktu keluar</th><th>Durasi</th><th>Saldo awal</th><th>Tunai aktual</th><th>QRIS aktual</th><th>Selisih</th><th>Catatan</th></tr></thead><tbody>{filteredAttendanceRecords.map(row=><tr key={row.id}><td>{teamMembers.find(m=>m.user_id===row.cashier_id)?.full_name||teamMembers.find(m=>m.user_id===row.cashier_id)?.email||(row.cashier_id===session.user.id?'Anda':row.cashier_id.slice(0,8))}</td><td>{new Date(row.opened_at).toLocaleString('id-ID',{timeZone:'Asia/Jakarta'})}</td><td>{row.closed_at?new Date(row.closed_at).toLocaleString('id-ID',{timeZone:'Asia/Jakarta'}):'—'}</td><td>{row.closed_at?Math.max(0,Math.round((new Date(row.closed_at)-new Date(row.opened_at))/60000))+' menit':'Sedang bertugas'}</td><td>{money(row.opening_cash)}</td><td>{row.counted_cash==null?'—':money(row.counted_cash)}</td><td>{row.counted_qris==null?'—':money(row.counted_qris)}</td><td>{row.cash_difference==null?'—':money(Number(row.cash_difference)+Number(row.qris_difference||0))}</td><td>{row.notes||'—'}</td></tr>)}</tbody></table></div>{filteredAttendanceRecords.length===0&&<EmptyState icon={CalendarDays} title="Belum ada data absensi" text="Coba ubah rentang tanggal atau kata pencarian."/>}</div></section>}
 
         {page==='audit'&&membership.role==='owner'&&<AuditLogPanel scope="organization" organizationId={ownerOrganization?.id} storeId={store?.id}/>}
+        {page==='reports-org'&&membership.role==='owner'&&<OrganizationReports organization={ownerOrganization} tenants={ownerTenants}/>}
         {page==='tenants'&&membership.role==='owner'&&<section className="page-section">
         <div className="page-heading"><div><span className="eyebrow muted">OWNER WORKSPACE / ORGANIZATION</span><h1>Tenant <span className="heading-accent">& lokasi.</span></h1><p>Kelola tenant dalam satu organisasi. Semua tenant memakai paket dan masa aktif organisasi yang sama.</p></div><span className="role-chip"><Store size={14}/> OWNER</span></div>
         {ownerOrganization ? <div className="stats-grid">
