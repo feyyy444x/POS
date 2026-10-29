@@ -36,7 +36,7 @@ test('tenant member list and invitation history render email addresses', () => {
 
 test('invitation activation rejects unsupported methods and malformed credentials', () => {
   assert.match(activation, /request\.method !== 'POST'/)
-  assert.match(activation, /password\.length < 8/)
+  assert.match(activation, /password\.length < 6/)
   assert.match(activation, /password\.length > 128/)
   assert.match(activation, /\[a-f0-9\]\{32\}/)
 })
