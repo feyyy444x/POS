@@ -143,6 +143,7 @@ function App() {
   const [membership, setMembership] = useState(null)
   const [memberships, setMemberships] = useState([])
   const [ownerOrganization, setOwnerOrganization] = useState(null)
+  const [ownerTenants, setOwnerTenants] = useState([])
   const [ownerTenantName, setOwnerTenantName] = useState('')
   const [ownerTenantBusy, setOwnerTenantBusy] = useState(false)
   const [selectedStoreId, setSelectedStoreId] = useState('')
@@ -365,6 +366,8 @@ function App() {
     if (isSuperAdmin) {
       setMemberships([])
       setMembership(null)
+      setOwnerOrganization(null)
+      setOwnerTenants([])
       setSelectedStoreId('')
       setStore(null)
       setSettings(null)
@@ -400,6 +403,8 @@ function App() {
     if (!resolvedMembers.length) {
       setMemberships([])
       setMembership(null)
+      setOwnerOrganization(null)
+      setOwnerTenants([])
       setStore(null)
       setNotice('Akun belum memiliki toko. Jika Anda baru saja login atau menerima undangan, coba sebentar lagi.')
       setLoading(false)
@@ -444,9 +449,24 @@ function App() {
         .eq('owner_user_id', session.user.id).limit(1).maybeSingle()
       if (organizationError) {
         setOwnerOrganization(null)
+        setOwnerTenants([])
         loadIssues.push('Organisasi Owner: ' + userFacingError(organizationError))
-      } else setOwnerOrganization(organization || null)
-    } else setOwnerOrganization(null)
+      } else {
+        setOwnerOrganization(organization || null)
+        if (organization?.id) {
+          const {data: organizationTenants, error: organizationTenantsError} = await supabase.from('stores')
+            .select('id,name,status,expires_at,activation_package_key,activation_location_limit,deleted_at,created_at')
+            .eq('organization_id', organization.id).order('created_at', {ascending: false})
+          if (organizationTenantsError) {
+            setOwnerTenants([])
+            loadIssues.push('Daftar tenant organisasi: ' + userFacingError(organizationTenantsError))
+          } else setOwnerTenants(organizationTenants || [])
+        } else setOwnerTenants([])
+      }
+    } else {
+      setOwnerOrganization(null)
+      setOwnerTenants([])
+    }
     setProducts(productData || []); setOrders(orderData || []); setQueue(queueData || [])
     const orderIds=(orderData||[]).map(o=>o.id)
     if(orderIds.length){
@@ -1191,16 +1211,16 @@ function App() {
         {page==='tenants'&&membership.role==='owner'&&<section className="page-section">
         <div className="page-heading"><div><span className="eyebrow muted">OWNER WORKSPACE / ORGANIZATION</span><h1>Tenant <span className="heading-accent">& lokasi.</span></h1><p>Kelola tenant dalam satu organisasi. Semua tenant memakai paket dan masa aktif organisasi yang sama.</p></div><span className="role-chip"><Store size={14}/> OWNER</span></div>
         {ownerOrganization ? <div className="stats-grid">
-          <StatCard icon={Store} label="Tenant terdaftar" value={memberships.filter(item=>item.role==='owner').length} meta={'Kuota paket: '+Number(ownerOrganization.activation_location_limit||0)} tone="violet"/>
+          <StatCard icon={Store} label="Tenant terdaftar" value={ownerTenants.filter(item=>item.status!=='deleted'&&!item.deleted_at).length} meta={'Kuota paket: '+Number(ownerOrganization.activation_location_limit||0)} tone="violet"/>
           <StatCard icon={Package} label="Paket organisasi" value={ownerOrganization.activation_package_key||'starter'} meta="Diatur Super Admin" tone="blue"/>
           <StatCard icon={CalendarDays} label="Masa aktif" value={ownerOrganization.expires_at?new Date(ownerOrganization.expires_at).toLocaleDateString('id-ID',{timeZone:'Asia/Jakarta'}):'Belum aktif'} meta={ownerOrganization.status==='active'?'Status aktif':'Status: '+ownerOrganization.status} tone={ownerOrganization.status==='active'?'green':'orange'}/>
         </div> : <div className="panel"><strong>Organisasi Owner belum terhubung</strong><p>Hubungi Super Admin untuk menautkan akun Owner ke organisasi dan paket aktivasi.</p></div>}
         <div className="panel tenant-list-panel"><div className="panel-head"><div><h3><Store size={17}/> Tenant milik organisasi</h3><p>Pilih tenant untuk berpindah workspace. Data tenant lain tetap terisolasi.</p></div></div>
-          {memberships.filter(item=>item.role==='owner').length ? <div className="table-wrap"><table><thead><tr><th>Nama tenant</th><th>Peran</th><th>Workspace</th></tr></thead><tbody>{memberships.filter(item=>item.role==='owner').map(item=><tr key={item.store_id}><td><strong>{item.store_name}</strong><br/><small className="mono">{item.store_id}</small></td><td>Owner</td><td>{item.store_id===store.id?<span className="status-pill status-paid">Sedang aktif</span>:<button type="button" className="btn btn-small btn-outline" onClick={()=>{setSelectedStoreId(item.store_id);setPage('dashboard')}}>Buka workspace <ArrowRight size={13}/></button>}</td></tr>)}</tbody></table></div> : <div className="empty-state"><strong>Belum ada tenant Owner</strong><p>Tenant yang sudah terhubung ke akun Owner akan muncul di sini.</p></div>}
+          {ownerTenants.filter(item=>item.status!=='deleted'&&!item.deleted_at).length ? <div className="table-wrap"><table><thead><tr><th>Nama tenant</th><th>Status</th><th>Paket / kuota</th><th>Workspace</th></tr></thead><tbody>{ownerTenants.filter(item=>item.status!=='deleted'&&!item.deleted_at).map(item=>{const linked=memberships.some(memberItem=>memberItem.store_id===item.id);return <tr key={item.id}><td><strong>{item.name}</strong><br/><small className="mono">{item.id}</small></td><td><span className={'status-pill '+(item.status==='active'?'status-paid':item.status==='pending'?'status-waiting':'status-inactive')}>{item.status||'—'}</span>{item.expires_at&&<><br/><small>Berakhir {new Date(item.expires_at).toLocaleDateString('id-ID',{timeZone:'Asia/Jakarta'})}</small></>}</td><td>{item.activation_package_key||ownerOrganization?.activation_package_key||'starter'} · {Number(item.activation_location_limit||ownerOrganization?.activation_location_limit||0)} tenant</td><td>{item.id===store.id?<span className="status-pill status-paid">Sedang aktif</span>:linked?<button type="button" className="btn btn-small btn-outline" onClick={()=>{setSelectedStoreId(item.id);setPage('dashboard')}}>Buka workspace <ArrowRight size={13}/></button>:<span className="subtle">Menunggu undangan Owner</span>}</td></tr>})}</tbody></table></div> : <div className="empty-state"><strong>Belum ada tenant Owner</strong><p>Tenant organisasi yang terhubung akan muncul di sini.</p></div>}
         </div>
         <div className="panel super-register-panel"><div className="panel-head"><div><h3><Plus size={17}/> Tambah tenant</h3><p>Tenant baru otomatis mengikuti kuota dan tanggal kedaluwarsa organisasi. Data operasional tidak dipindahkan dari tenant lain.</p></div></div>
-          <form className="tenant-register-form" onSubmit={createOwnerTenant}><div><label>Nama tenant baru</label><input className="text-input" value={ownerTenantName} onChange={event=>setOwnerTenantName(event.target.value)} placeholder="Contoh: Cabang Pusat Kota" maxLength={120} required/></div><button className="btn btn-primary" disabled={ownerTenantBusy||!ownerOrganization||ownerOrganization.status!=='active'||memberships.filter(item=>item.role==='owner').length>=Number(ownerOrganization.activation_location_limit||0)}>{ownerTenantBusy?<span className="spinner"/>:<Plus size={16}/>} Buat tenant</button></form>
-          {!ownerOrganization ? <p className="subtle">Organisasi belum tersedia. Minta Super Admin menautkan organisasi terlebih dahulu.</p> : ownerOrganization.status!=='active' ? <p className="subtle">Pembuatan tenant hanya tersedia saat paket organisasi aktif.</p> : memberships.filter(item=>item.role==='owner').length>=Number(ownerOrganization.activation_location_limit||0) ? <p className="subtle">Kuota tenant sudah penuh. Hubungi Super Admin untuk meningkatkan paket.</p> : <p className="subtle">Sisa kuota: {Math.max(0,Number(ownerOrganization.activation_location_limit||0)-memberships.filter(item=>item.role==='owner').length)} tenant.</p>}
+          <form className="tenant-register-form" onSubmit={createOwnerTenant}><div><label>Nama tenant baru</label><input className="text-input" value={ownerTenantName} onChange={event=>setOwnerTenantName(event.target.value)} placeholder="Contoh: Cabang Pusat Kota" maxLength={120} required/></div><button className="btn btn-primary" disabled={ownerTenantBusy||!ownerOrganization||ownerOrganization.status!=='active'||ownerTenants.filter(item=>item.status!=='deleted'&&!item.deleted_at).length>=Number(ownerOrganization.activation_location_limit||0)}>{ownerTenantBusy?<span className="spinner"/>:<Plus size={16}/>} Buat tenant</button></form>
+          {!ownerOrganization ? <p className="subtle">Organisasi belum tersedia. Minta Super Admin menautkan organisasi terlebih dahulu.</p> : ownerOrganization.status!=='active' ? <p className="subtle">Pembuatan tenant hanya tersedia saat paket organisasi aktif.</p> : ownerTenants.filter(item=>item.status!=='deleted'&&!item.deleted_at).length>=Number(ownerOrganization.activation_location_limit||0) ? <p className="subtle">Kuota tenant sudah penuh. Hubungi Super Admin untuk meningkatkan paket.</p> : <p className="subtle">Sisa kuota: {Math.max(0,Number(ownerOrganization.activation_location_limit||0)-ownerTenants.filter(item=>item.status!=='deleted'&&!item.deleted_at).length)} tenant.</p>}
         </div>
       </section>}
       {page==='team'&&membership.role==='owner'&&<section className="page-section"><div className="page-heading"><div><span className="eyebrow muted">TEAM / ACCESS CONTROL</span><h1>Karyawan <span className="heading-accent">& akses.</span></h1><p>Undang akun baru dan atur jabatan khusus untuk toko ini.</p></div><span className="role-chip"><ShieldCheck size={14}/> Owner</span></div><div className="settings-grid"><form className="panel settings-form" onSubmit={inviteTeamMember}><div className="panel-head"><div><h3><UserPlus size={17}/> Daftarkan karyawan</h3><p>Undangan hanya berlaku untuk email ini. Karyawan harus aktivasi dan membuat password sebelum login.</p></div></div><label>Nama karyawan</label><input className="text-input" name="full_name" placeholder="Nama lengkap" required/><label>Email akun</label><input className="text-input" type="email" name="email" placeholder="karyawan@email.com" required/><label>Jabatan di toko</label><select className="text-input" name="role" defaultValue="cashier"><option value="admin">Admin</option><option value="cashier">Kasir</option></select><button className="btn btn-primary" disabled={teamSaving}>{teamSaving?<span className="spinner"/>:<UserPlus size={16}/>} Buat undangan</button><p className="permission-note">Undangan berlaku 30 hari. Akun tidak mendapatkan akses ke tenant lain.</p></form><div className="panel"><div className="panel-head"><div><h3><Users size={17}/> Anggota toko</h3><p>{teamMembers.length} akun terdaftar</p></div></div>{teamMembers.length===0?<EmptyState icon={Users} title="Belum ada karyawan" text="Akun Owner akan muncul di sini."/>:<div className="table-wrap"><table><thead><tr><th>Nama / email</th><th>Jabatan</th><th>Akses</th><th>Bergabung</th><th>Kelola</th></tr></thead><tbody>{teamMembers.slice((teamMemberPage-1)*listPageSize,teamMemberPage*listPageSize).map(m=><tr key={m.id}><td><strong>{m.full_name?.trim()||'Akun toko'}</strong>{m.email&&<><br/><small className="member-email-visible">{m.email}</small></>}</td><td><span className="status-pill status-serving">{m.role==='owner'?'Owner':m.role==='admin'?'Admin':m.role==='manager'?'Manager':'Kasir'}</span></td><td><span className={'status-pill '+(m.is_active?'status-paid':'status-inactive')}>{m.is_active?'Aktif':'Nonaktif'}</span></td><td>{new Date(m.created_at).toLocaleDateString('id-ID')}</td><td>{m.role!=='owner'&&<div className="member-manage-cell"><form className="member-role-form" onSubmit={saveTeamMemberRole}><input type="hidden" name="member_id" value={m.id}/><input type="hidden" name="is_active" value={String(m.is_active)}/><input className="text-input member-name-edit" name="full_name" defaultValue={m.full_name||''} aria-label={'Nama '+(m.email||m.user_id)} required minLength={2}/><select className="text-input" name="role" defaultValue={m.role==='admin'?'admin':'cashier'} aria-label={'Jabatan '+(m.email||m.user_id)}><option value="admin">Admin</option><option value="cashier">Kasir</option></select><button className="btn btn-small btn-outline">Simpan</button></form><div className="member-manage-actions"><button className={'btn btn-small '+(m.is_active?'btn-outline':'btn-primary')} onClick={()=>toggleTeamMember(m)}>{m.is_active?'Nonaktifkan':'Aktifkan'}</button><button className="btn btn-small btn-outline danger-icon" onClick={()=>deleteTeamMember(m)}><Trash2 size={13}/> Hapus permanen</button></div></div>}</td></tr>)}</tbody></table></div>}<Pagination page={teamMemberPage} total={teamMembers.length} pageSize={listPageSize} onChange={setTeamMemberPage}/></div></div><div className="panel team-invites-panel"><div className="panel-head"><div><h3><Mail size={17}/> Riwayat undangan</h3><p>Undangan aktif dan yang sudah diterima</p></div></div>{teamInvites.length===0?<p className="subtle">Belum ada undangan.</p>:<div className="table-wrap"><table><thead><tr><th>Email</th><th>Jabatan</th><th>Status</th><th>Kedaluwarsa</th><th>Aksi</th></tr></thead><tbody>{teamInvites.slice((teamInvitePage-1)*listPageSize,teamInvitePage*listPageSize).map(i=><tr key={i.id}><td><strong>{i.full_name?.trim()||'Undangan'}</strong><br/><small className="member-email-visible">{i.email}</small></td><td>{i.role==='owner'?'Owner':i.role==='admin'?'Admin':'Kasir'}</td><td><span className={'status-pill '+(i.accepted_at?'status-paid':new Date(i.expires_at)<new Date()?'status-inactive':'status-waiting')}>{i.accepted_at?'Diterima':new Date(i.expires_at)<new Date()?'Kedaluwarsa':'Menunggu'}</span></td><td>{new Date(i.expires_at).toLocaleDateString('id-ID')}</td><td><div className="member-manage-actions">{!i.accepted_at&&<button className="btn btn-small btn-outline" disabled={teamSaving} onClick={()=>regenerateTeamInviteCode(i)}><KeyRound size={13}/> Buat ulang kode</button>}<button className="btn btn-small btn-outline danger-icon" onClick={()=>deleteTeamInvite(i)}><Trash2 size={13}/> Hapus</button></div></td></tr>)}</tbody></table></div>}<Pagination page={teamInvitePage} total={teamInvites.length} pageSize={listPageSize} onChange={setTeamInvitePage}/></div></section>}
