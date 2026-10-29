@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Check, Headphones, RefreshCw, ShieldCheck, Trash2, UserCog, Users } from 'lucide-react'
+import { Check, RefreshCw, ShieldCheck, Trash2, UserCog, Users } from 'lucide-react'
 import { supabase } from './lib/supabase'
 import { userFacingError } from './lib/userFacingError'
 
@@ -11,10 +11,7 @@ const ADMIN_PERMISSIONS = [
   ['plans', 'Paket & harga', 'Melihat dan mengelola paket'],
   ['system_reports', 'Laporan sistem', 'Melihat laporan dan masalah sistem'],
 ]
-const CS_PERMISSIONS = [
-  ['support', 'Pusat bantuan', 'Melihat dan menangani keluhan pelanggan serta membalas dengan identitas staf yang sedang login'],
-]
-const defaultPermissions = role => Object.fromEntries((role === 'admin' ? ADMIN_PERMISSIONS : CS_PERMISSIONS).map(([key]) => [key, true]))
+const defaultPermissions = () => Object.fromEntries(ADMIN_PERMISSIONS.map(([key]) => [key, true]))
 
 export default function PlatformStaffManager() {
   const [staff, setStaff] = useState([])
@@ -22,7 +19,7 @@ export default function PlatformStaffManager() {
   const [fullName, setFullName] = useState('')
   const [password, setPassword] = useState('')
   const [role, setRole] = useState('admin')
-  const [permissions, setPermissions] = useState(() => defaultPermissions('admin'))
+  const [permissions, setPermissions] = useState(() => defaultPermissions())
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [notice, setNotice] = useState('')
@@ -52,14 +49,14 @@ export default function PlatformStaffManager() {
 
   const resetForm = () => {
     setEditing(null); setEmail(''); setFullName(''); setPassword('')
-    setRole('admin'); setPermissions(defaultPermissions('admin')); setCreateAccount(true)
+    setRole('admin'); setPermissions(defaultPermissions()); setCreateAccount(true)
   }
   const beginEdit = member => {
     setEditing(member); setEmail(member.email || ''); setFullName(member.full_name || '')
-    setPassword(''); setRole(member.role)
-    setPermissions(member.role === 'admin' ? defaultPermissions('admin') : { ...defaultPermissions(member.role), ...(member.permissions || {}) })
+    setPassword(''); setRole('admin')
+    setPermissions(defaultPermissions())
   }
-  const changeRole = next => { setRole(next); setPermissions(defaultPermissions(next)) }
+  const changeRole = () => { setRole('admin'); setPermissions(defaultPermissions()) }
 
   const save = async event => {
     event.preventDefault()
@@ -80,7 +77,7 @@ export default function PlatformStaffManager() {
         if (!response.ok) throw new Error(result.error || 'Akun staf belum berhasil dibuat.')
       } else {
         const { error } = await supabase.rpc('super_admin_set_platform_staff', {
-          p_email: email.trim(), p_role: role, p_permissions: role === 'admin' ? defaultPermissions('admin') : permissions,
+          p_email: email.trim(), p_role: 'admin', p_permissions: defaultPermissions(),
           p_is_active: editing ? editing.is_active : true,
         })
         if (error) throw error
@@ -97,7 +94,7 @@ export default function PlatformStaffManager() {
     setNotice('')
     try {
       const { error } = await supabase.rpc('super_admin_set_platform_staff', {
-        p_email: member.email, p_role: member.role, p_permissions: member.role === 'admin' ? defaultPermissions('admin') : (member.permissions || {}), p_is_active: !member.is_active,
+        p_email: member.email, p_role: 'admin', p_permissions: defaultPermissions(), p_is_active: !member.is_active,
       })
       if (error) throw error
       await load()
@@ -119,17 +116,17 @@ export default function PlatformStaffManager() {
       setNotice(userFacingError(error, 'Penugasan role belum berhasil dihapus.'))
     }
   }
-  const available = role === 'admin' ? ADMIN_PERMISSIONS : CS_PERMISSIONS
+  const available = ADMIN_PERMISSIONS
 
   return <div className="page-content platform-staff-page">
     <div className="page-heading">
-      <div><span className="eyebrow muted">AKSES INTERNAL NEXAPOS</span><h1>Manajemen Tim & Hak Akses</h1><p><strong>Admin NEXAPOS memiliki FULL AKSES setara Super Admin.</strong> Customer Service memakai workspace platform yang sama, tetapi hanya dapat menjalankan fitur yang diizinkan.</p></div>
+      <div><span className="eyebrow muted">AKSES INTERNAL NEXAPOS</span><h1>Manajemen Tim & Hak Akses</h1><p><strong>Hanya ada satu role staf platform: Admin NEXAPOS dengan FULL AKSES setara Super Admin.</strong></p></div>
       <button className="btn btn-outline" type="button" onClick={load} disabled={loading}><RefreshCw size={15}/> Muat ulang</button>
     </div>
     {notice && <div className="notice" role="status">{notice}</div>}
     <div className="staff-layout">
       <section className="panel staff-form-panel">
-        <div className="panel-heading"><span className="panel-icon"><UserCog size={19}/></span><div><h2>{editing ? 'Ubah akses staf' : 'Tambah staf'}</h2><p>{editing ? 'Ubah role tanpa mengubah akun login.' : 'Buat akun khusus Admin atau Customer Service langsung dari sini.'}</p></div></div>
+        <div className="panel-heading"><span className="panel-icon"><UserCog size={19}/></span><div><h2>{editing ? 'Ubah akses staf' : 'Tambah staf'}</h2><p>{editing ? 'Ubah role tanpa mengubah akun login.' : 'Buat akun Admin NEXAPOS dengan akses setara Super Admin.'}</p></div></div>
         <form onSubmit={save} className="settings-form staff-form">
           {!editing && <label className="permission-option"><input type="checkbox" checked={createAccount} onChange={event => setCreateAccount(event.target.checked)}/><span className="permission-copy"><strong>Buat akun login baru</strong><small>Matikan pilihan ini jika email sudah punya akun NexaPos.</small></span></label>}
           <label htmlFor="platform-staff-name">Nama staf</label>
@@ -142,27 +139,20 @@ export default function PlatformStaffManager() {
             <small>Berikan password ini kepada staf secara pribadi. Staf dapat menggantinya setelah masuk.</small>
           </>}
           <label htmlFor="platform-staff-role">Role</label>
-          <select id="platform-staff-role" className="text-input" value={role} onChange={event => changeRole(event.target.value)}>
-            <option value="admin">Admin NEXAPOS</option><option value="customer_service">Customer Service</option>
-          </select>
-          <div className="permission-heading"><strong>Hak akses</strong><span>{role === 'admin' ? 'FULL AKSES' : Object.values(permissions).filter(Boolean).length + ' izin aktif'}</span></div>
-          {role === 'admin' ? <div className="permission-option" role="status"><span className="permission-copy"><strong>FULL AKSES — setara Super Admin</strong><small>Seluruh menu dan tindakan administrasi platform tersedia. Tidak dibatasi hanya pada daftar izin di bawah.</small></span></div> : <div className="permission-list">
-            {available.map(([key, title, description]) => <label className="permission-option" key={key}>
-              <input type="checkbox" checked={Boolean(permissions[key])} onChange={event => setPermissions(current => ({ ...current, [key]: event.target.checked }))}/>
-              <span className="permission-copy"><strong>{title}</strong><small>{description}</small></span>
-            </label>)}
-          </div>}
-          <div className="staff-safety-note"><ShieldCheck size={17}/><span>{role === 'admin' ? 'Admin NEXAPOS mendapat akses dan tampilan yang sama dengan Super Admin setelah verifikasi PIN. Role Admin toko/tenant tidak terpengaruh.' : 'Customer Service hanya dapat menggunakan fitur yang izinnya diberikan. Role staf tidak dapat mengambil alih Owner.'}</span></div>
+          <div id="platform-staff-role" className="text-input" aria-readonly="true">Admin NEXAPOS — FULL AKSES</div>
+          <div className="permission-heading"><strong>Hak akses</strong><span>FULL AKSES</span></div>
+          <div className="permission-option" role="status"><span className="permission-copy"><strong>FULL AKSES — setara Super Admin</strong><small>Seluruh menu dan tindakan administrasi platform tersedia.</small></span></div>
+          <div className="staff-safety-note"><ShieldCheck size={17}/><span>Admin NEXAPOS mendapat akses dan tampilan yang sama dengan Super Admin setelah verifikasi PIN. Role Admin toko/tenant tidak terpengaruh.</span></div>
           <div className="staff-form-actions"><button className="btn btn-primary" type="submit" disabled={saving}>{saving ? 'Menyimpan…' : editing ? 'Simpan perubahan' : createAccount ? 'Buat akun & tambahkan staf' : 'Tambahkan staf'} <Check size={15}/></button>{editing && <button className="btn btn-outline" type="button" onClick={resetForm}>Batal</button>}</div>
         </form>
       </section>
       <section className="panel staff-list-panel">
         <div className="panel-heading"><span className="panel-icon"><Users size={19}/></span><div><h2>Tim internal</h2><p>{staff.length} penugasan role</p></div></div>
-        {loading ? <div className="empty-state"><RefreshCw size={20}/><p>Memuat anggota tim…</p></div> : staff.length === 0 ? <div className="empty-state"><Users size={23}/><strong>Belum ada staf</strong><p>Buat akun Admin atau Customer Service untuk mulai membagi tugas.</p></div> :
+        {loading ? <div className="empty-state"><RefreshCw size={20}/><p>Memuat anggota tim…</p></div> : staff.length === 0 ? <div className="empty-state"><Users size={23}/><strong>Belum ada staf</strong><p>Tambahkan akun Admin NEXAPOS untuk memberikan akses internal.</p></div> :
           <div className="staff-table-wrap"><table className="staff-table"><thead><tr><th>Anggota</th><th>Role</th><th>Status</th><th>Aksi</th></tr></thead><tbody>
-            {staff.map(member => <tr key={member.user_id}><td><div className="staff-person"><strong>{member.full_name || member.email}</strong><small>{member.email}</small></div></td><td><span className="staff-role-pill">{member.role === 'admin' ? 'Admin NEXAPOS' : 'Customer Service'}</span><small className="staff-permission-count">{member.role === 'admin' ? 'FULL AKSES · Setara Super Admin' : (Object.values(member.permissions || {}).filter(Boolean).length ? 'Akses: Pusat bantuan' : 'Tidak ada izin fitur aktif')}</small></td><td><span className={'staff-status '+(member.is_active ? 'is-active' : 'is-inactive')}>{member.is_active ? 'Aktif' : 'Nonaktif'}</span></td><td><div className="staff-actions"><button className="btn btn-small btn-outline" type="button" onClick={() => beginEdit(member)}>Ubah</button><button className="btn btn-small btn-outline" type="button" onClick={() => toggleActive(member)}>{member.is_active ? 'Nonaktifkan' : 'Aktifkan'}</button><button className="icon-button" type="button" title="Hapus penugasan role" aria-label={'Hapus role '+member.email} onClick={() => remove(member)}><Trash2 size={15}/></button></div></td></tr>)}
+            {staff.map(member => <tr key={member.user_id}><td><div className="staff-person"><strong>{member.full_name || member.email}</strong><small>{member.email}</small></div></td><td><span className="staff-role-pill">Admin NEXAPOS</span><small className="staff-permission-count">FULL AKSES · Setara Super Admin</small></td><td><span className={'staff-status '+(member.is_active ? 'is-active' : 'is-inactive')}>{member.is_active ? 'Aktif' : 'Nonaktif'}</span></td><td><div className="staff-actions"><button className="btn btn-small btn-outline" type="button" onClick={() => beginEdit(member)}>Ubah</button><button className="btn btn-small btn-outline" type="button" onClick={() => toggleActive(member)}>{member.is_active ? 'Nonaktifkan' : 'Aktifkan'}</button><button className="icon-button" type="button" title="Hapus penugasan role" aria-label={'Hapus role '+member.email} onClick={() => remove(member)}><Trash2 size={15}/></button></div></td></tr>)}
           </tbody></table></div>}
-        <div className="staff-note"><Headphones size={16}/><span>Customer Service difokuskan ke pusat bantuan dan informasi akun yang diperlukan.</span></div>
+
       </section>
     </div>
   </div>
