@@ -1167,3 +1167,6 @@ tbody tr:hover{background:#f7fbfd}
 .queue-disabled-notice strong{display:block;font-size:14px}
 .queue-disabled-notice p{margin:5px 0 0;font-size:12px;line-height:1.5;color:var(--muted,#64748b)}
 @media(max-width:600px){.queue-disabled-notice{align-items:flex-start;flex-wrap:wrap}.queue-disabled-notice .btn{width:100%}}
+
+/* Keep tenant email addresses readable below each member/invitation name. */
+.member-email-visible{display:inline-block;margin-top:3px;color:var(--muted,#64748b);font-size:12px;line-height:1.45;overflow-wrap:anywhere;word-break:break-word}
