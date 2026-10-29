@@ -17,6 +17,7 @@ const foreignKeyIndexesMigration = await readFile(new URL('supabase/migrations/2
 const cashierAlertRlsMigration = await readFile(new URL('supabase/migrations/20261029161000_optimize_cashier_alert_rls.sql', root), 'utf8')
 const platformAdminParityMigration = await readFile(new URL('supabase/migrations/20261029163000_platform_admin_super_admin_parity.sql', root), 'utf8')
 const platformStaffEndpoint = await readFile(new URL('netlify/functions/platform-staff-workspace.mjs', root), 'utf8')
+const platformStaffWorkspaceUi = await readFile(new URL('src/PlatformStaffWorkspace.jsx', root), 'utf8')
 
 test('Netlify headers include baseline browser security protections', () => {
   for (const directive of [
@@ -170,4 +171,21 @@ test('platform Admin receives full internal endpoint access while Customer Servi
   assert.match(platformStaffEndpoint, /assignment\.role !== 'admin' && assignment\.permissions\?\./)
   assert.match(platformStaffEndpoint, /assignment\.permissions\?\.\[requiredPermission\] !== true/)
   assert.match(platformStaffEndpoint, /if \(!assignment \|\| !assignment\.is_active\)/)
+})
+
+
+test('workspace data loaders surface query failures instead of presenting failed queries as empty data', () => {
+  assert.match(app, /error: storeLoadError/)
+  assert.match(app, /if \(storeLoadError \|\| !storeData\)/)
+  assert.match(app, /error: productLoadError/)
+  assert.match(app, /error: orderLoadError/)
+  assert.match(app, /error: queueLoadError/)
+  assert.match(app, /Sebagian data gagal dimuat/)
+  assert.match(app, /error:itemError/)
+  assert.match(platformStaffEndpoint, /failedSources/)
+  assert.match(platformStaffEndpoint, /Laporan tidak dapat dimuat lengkap/)
+  assert.match(platformStaffEndpoint, /store_count_limited/)
+  assert.match(platformStaffEndpoint, /order_count_limited/)
+  assert.match(platformStaffWorkspaceUi, /if \(target === 'reports'\) setReport\(null\)/)
+  assert.match(platformStaffWorkspaceUi, /Sebagian angka mencapai batas pembacaan laporan/)
 })
