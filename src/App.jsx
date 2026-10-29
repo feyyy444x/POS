@@ -177,8 +177,7 @@ function App() {
   const [queueBusy, setQueueBusy] = useState(false)
   const [mobileNav, setMobileNav] = useState(false)
   const [receipt, setReceipt] = useState(null)
-  const [payMethod, setPayMethod] = useState('cash')
-  const [paidAmount, setPaidAmount] = useState('')
+  const [payMethod, setPayMethod] = useState('cash')  const [paidAmount, setPaidAmount] = useState('')
   const [discount, setDiscount] = useState('0')
   const [savingSettings, setSavingSettings] = useState(false)
   const [activeShift, setActiveShift] = useState(null)
@@ -357,8 +356,7 @@ function App() {
       else if(!configError)setBreakSettings({store_id:store.id,max_break_minutes:15,repeat_reminder_minutes:5,sound_enabled:true,escalation_enabled:true,manual_alert_title:'Peringatan dari Admin',manual_alert_message:'⚠️ Waktu istirahat Anda telah melewati batas. Silakan kembali bekerja.'})
       if(rowsError){setMonitoringBreaks([]);setBreakHistory([]);if(!rowsError.message?.includes('cashier_shift_breaks'))setNotice(rowsError.message)}
       else {setMonitoringBreaks((rows||[]).filter(row=>!row.ended_at));setBreakHistory((rows||[]).filter(row=>row.ended_at));setShiftBreak((rows||[]).find(row=>row.cashier_id===session.user.id&&!row.ended_at)||null)}
-    }
-    refreshBreakData()
+    }    refreshBreakData()
     const channel=supabase.channel('cashier-breaks-'+store.id)
       .on('postgres_changes',{event:'*',schema:'public',table:'cashier_shift_breaks',filter:'store_id=eq.'+store.id},refreshBreakData)
       .on('postgres_changes',{event:'*',schema:'public',table:'cashier_break_settings',filter:'store_id=eq.'+store.id},refreshBreakData)
@@ -537,8 +535,7 @@ function App() {
   useEffect(()=>{if(!notice)return;const timer=setTimeout(()=>setNotice(''),4500);return()=>clearTimeout(timer)},[notice])
 
   const isManager = ['owner','admin','manager'].includes(membership?.role)
-  const currentShiftOrders=useMemo(()=>activeShift?orders.filter(o=>o.cashier_id===activeShift.cashier_id&&new Date(o.created_at)>=new Date(activeShift.opened_at)&&(!activeShift.closed_at||new Date(o.created_at)<=new Date(activeShift.closed_at))&&o.status==='paid'):[],[orders,activeShift])
-  const expectedShiftCash=Number(activeShift?.opening_cash||0)+currentShiftOrders.filter(o=>o.payment_method==='cash').reduce((sum,o)=>sum+Number(o.total||0),0)
+  const currentShiftOrders=useMemo(()=>activeShift?orders.filter(o=>o.cashier_id===activeShift.cashier_id&&new Date(o.created_at)>=new Date(activeShift.opened_at)&&(!activeShift.closed_at||new Date(o.created_at)<=new Date(activeShift.closed_at))&&o.status==='paid'):[],[orders,activeShift])  const expectedShiftCash=Number(activeShift?.opening_cash||0)+currentShiftOrders.filter(o=>o.payment_method==='cash').reduce((sum,o)=>sum+Number(o.total||0),0)
   const expectedShiftQris=currentShiftOrders.filter(o=>o.payment_method==='qris').reduce((sum,o)=>sum+Number(o.total||0),0)
   const categories = useMemo(()=>['Semua',...new Set(products.map(p=>p.category||'Umum'))],[products])
   const visibleProducts = useMemo(()=>products.filter(p=>p.is_active && (category==='Semua'||(p.category||'Umum')===category) && (p.name.toLowerCase().includes(search.toLowerCase())||(p.sku||'').toLowerCase().includes(search.toLowerCase())||(p.barcode||'').includes(search))),[products,category,search])
@@ -717,7 +714,6 @@ function App() {
     const {error}=await supabase.rpc('update_queue_ticket_status',{p_ticket_id:ticket.id,p_status:status})
     if(error)setNotice(error.message);else await loadWorkspace()
   }
-
   const saveProduct = async (event) => {
     event.preventDefault()
     if(!isManager){setNotice('Hanya admin atau manager yang dapat mengelola produk.');return}
@@ -897,8 +893,7 @@ function App() {
   ]
 
   if(!authReady || (session && !adminCheckReady))return <div className="loading-screen"><span className="spinner spinner-large"/><span>Menyiapkan NexaPos…</span></div>
-  if(!session)return (window.location.pathname === '/' || window.location.pathname === '/index.html' ? <Homepage/> : <AuthScreen/>)
-  if(!pinStatus)return <div className="loading-screen"><span className="spinner spinner-large"/><span>Memeriksa keamanan akun…</span></div>
+  if(!session)return (window.location.pathname === '/' || window.location.pathname === '/index.html' ? <Homepage/> : <AuthScreen/>)  if(!pinStatus)return <div className="loading-screen"><span className="spinner spinner-large"/><span>Memeriksa keamanan akun…</span></div>
   if(pinStatus.error)return <div className="loading-screen"><p>Modul keamanan PIN belum siap: {pinStatus.error}</p><p>Terapkan migrasi PIN sebelum memakai versi ini.</p><button className="btn btn-outline" onClick={()=>supabase.auth.signOut()}>Keluar</button></div>
   if(!pinStatus.has_pin||!pinStatus.is_verified)return <PinGate session={session} status={pinStatus} onReady={setPinStatus} onSignOut={()=>supabase.auth.signOut()}/>
   if(isSuperAdmin)return <SuperAdminScreen session={session} syncStatus={syncStatus} setSyncStatus={setSyncStatus} onSignOut={()=>supabase.auth.signOut()}/>
@@ -1008,6 +1003,8 @@ function SuperAdminScreen({session,syncStatus,setSyncStatus,onSignOut}) {
   const [usersLoading,setUsersLoading]=useState(false)
   const [usersError,setUsersError]=useState('')
   const [notice,setNotice]=useState('')
+  const [ownerActivationCard,setOwnerActivationCard]=useState(null)
+  const [ownerActivationCopied,setOwnerActivationCopied]=useState(false)
   const [registering,setRegistering]=useState(false)
   const [duration,setDuration]=useState('30')
   const [customDays,setCustomDays]=useState('14')
@@ -1075,12 +1072,14 @@ function SuperAdminScreen({session,syncStatus,setSyncStatus,onSignOut}) {
     event.preventDefault()
     const form=new FormData(event.currentTarget)
     const activationCode=crypto.randomUUID().replaceAll('-','')
+    const ownerEmail=String(form.get('owner_email')||'').trim()
     setRegistering(true)
-    const {error}=await supabase.rpc('register_store_tenant',{p_store_name:String(form.get('store_name')||'').trim(),p_owner_name:String(form.get('owner_name')||'').trim(),p_owner_email:String(form.get('owner_email')||'').trim(),p_activation_code:activationCode})
-    setRegistering(false)
-    if(error){setNotice(error.message);return}
+    const {error}=await supabase.rpc('register_store_tenant',{p_store_name:String(form.get('store_name')||'').trim(),p_owner_name:String(form.get('owner_name')||'').trim(),p_owner_email:ownerEmail,p_activation_code:activationCode})
+    setRegistering(false)    if(error){setNotice(error.message);return}
     event.currentTarget.reset()
-    setNotice('Tenant terdaftar. Kode aktivasi Owner (sekali pakai): '+activationCode+'. Salin dan kirimkan secara pribadi kepada Owner. Aktifkan tenant setelah siap.')
+    setOwnerActivationCopied(false)
+    setOwnerActivationCard({email:ownerEmail,code:activationCode,title:'Kode aktivasi Owner'})
+    setNotice('Tenant terdaftar. Kode aktivasi ditampilkan di kartu; kirimkan secara pribadi kepada Owner. Aktifkan tenant setelah siap.')
     await load()
   }
   const regenerateOwnerInvite=async(tenant)=>{
@@ -1090,7 +1089,9 @@ function SuperAdminScreen({session,syncStatus,setSyncStatus,onSignOut}) {
     const {error}=await supabase.rpc('super_admin_regenerate_owner_invite',{p_store_id:tenant.id,p_activation_code:activationCode})
     setRegistering(false)
     if(error){setNotice(error.message);return}
-    setNotice('Kode aktivasi Owner untuk '+tenant.owner_email+' (sekali pakai): '+activationCode+'. Salin dan kirimkan secara pribadi.')
+    setOwnerActivationCopied(false)
+    setOwnerActivationCard({email:tenant.owner_email,code:activationCode,title:'Kode aktivasi Owner'})
+    setNotice('Kode aktivasi baru siap disalin. Kode lama yang belum digunakan sudah diganti.')
     await load()
   }
   const activate=async(tenant)=>{
@@ -1235,8 +1236,19 @@ function SuperAdminScreen({session,syncStatus,setSyncStatus,onSignOut}) {
     </aside>
     {mobileNav&&<button className="mobile-scrim" onClick={()=>setMobileNav(false)} aria-label="Tutup menu"/>}
     <main className="main-area">
-      <header className="topbar"><div className="topbar-left"><button className="mobile-menu icon-button" onClick={()=>setMobileNav(true)} aria-label="Buka sidebar"><Menu size={20}/></button><button className="topbar-back btn btn-outline" onClick={()=>setPage("dashboard")} aria-label="Kembali ke dashboard"><ArrowLeft size={17}/></button><div className="topbar-title-group"><div className="breadcrumb">Platform <span>/</span> <strong>{pageTitle}</strong></div><div className="topbar-date"><span className="desktop-date">Manajemen user, toko, dan akses platform</span><span className="mobile-date">{new Date().toLocaleDateString("id-ID",{day:"2-digit",month:"2-digit",year:"numeric"})}</span></div></div></div><div className="topbar-actions"><WibClock/><span className="role-chip"><ShieldCheck size={14}/> SUPER ADMIN</span><span className="live-status" title={syncStatus==='connected'?'Koneksi dan Supabase Realtime terhubung':syncStatus==='unstable'?'Koneksi tidak stabil; sinkronisasi mungkin terlambat':syncStatus==='offline'?'Tidak ada koneksi jaringan':'Memeriksa koneksi'} style={{color:syncStatus==='connected'?'#16a34a':syncStatus==='unstable'?'#ca8a04':syncStatus==='offline'?'#dc2626':'#64748b'}}><i style={{backgroundColor:syncStatus==='connected'?'#16a34a':syncStatus==='unstable'?'#eab308':syncStatus==='offline'?'#dc2626':'#94a3b8'}}/>{syncStatus==='connected'?'LIVE SYNC':syncStatus==='unstable'?'SYNC LAMBAT':syncStatus==='offline'?'OFFLINE':'MEMERIKSA'}</span><button className="icon-button refresh-btn" onClick={()=>{load();loadUsers();loadDisabledMembers()}} title="Refresh halaman ini" aria-label="Refresh halaman ini"><RefreshCw size={17}/></button></div></header>
+      <header className="topbar"><div className="topbar-left"><button className="mobile-menu icon-button" onClick={()=>setMobileNav(true)} aria-label="Buka sidebar"><Menu size={20}/></button><div className="topbar-title-group"><div className="breadcrumb">Platform <span>/</span> <strong>{pageTitle}</strong></div><div className="topbar-date"><span className="desktop-date">Manajemen user, toko, dan akses platform</span><span className="mobile-date">{new Date().toLocaleDateString("id-ID",{day:"2-digit",month:"2-digit",year:"numeric"})}</span></div></div></div><div className="topbar-actions"><WibClock/><span className="role-chip"><ShieldCheck size={14}/> SUPER ADMIN</span><span className="live-status" title={syncStatus==='connected'?'Koneksi dan Supabase Realtime terhubung':syncStatus==='unstable'?'Koneksi tidak stabil; sinkronisasi mungkin terlambat':syncStatus==='offline'?'Tidak ada koneksi jaringan':'Memeriksa koneksi'} style={{color:syncStatus==='connected'?'#16a34a':syncStatus==='unstable'?'#ca8a04':syncStatus==='offline'?'#dc2626':'#64748b'}}><i style={{backgroundColor:syncStatus==='connected'?'#16a34a':syncStatus==='unstable'?'#eab308':syncStatus==='offline'?'#dc2626':'#94a3b8'}}/>{syncStatus==='connected'?'LIVE SYNC':syncStatus==='unstable'?'SYNC LAMBAT':syncStatus==='offline'?'OFFLINE':'MEMERIKSA'}</span><button className="icon-button refresh-btn" onClick={()=>{load();loadUsers();loadDisabledMembers()}} title="Refresh halaman ini" aria-label="Refresh halaman ini"><RefreshCw size={17}/></button></div></header>
       {notice&&<div className="toast"><CheckCircle2 size={17}/><span>{notice}</span><button onClick={()=>setNotice('')}><X size={15}/></button></div>}
+      {ownerActivationCard&&<div role="presentation" onMouseDown={e=>{if(e.target===e.currentTarget){setOwnerActivationCard(null);setOwnerActivationCopied(false)}}} style={{position:'fixed',inset:0,zIndex:10000,background:'rgba(12,16,32,.48)',display:'flex',alignItems:'center',justifyContent:'center',padding:18}}>
+        <section role="dialog" aria-modal="true" aria-labelledby="owner-activation-code-title" style={{position:'relative',width:'100%',maxWidth:390,background:'var(--panel,#fff)',color:'var(--ink,#1b2035)',borderRadius:18,padding:24,boxShadow:'0 24px 80px rgba(0,0,0,.24)',border:'1px solid var(--border,#e6e8f0)'}}>
+          <button type="button" aria-label="Tutup kartu kode aktivasi" title="Tutup" onClick={()=>{setOwnerActivationCard(null);setOwnerActivationCopied(false)}} style={{position:'absolute',top:12,right:12,width:34,height:34,borderRadius:10,border:'1px solid var(--border,#e6e8f0)',background:'transparent',color:'inherit',display:'grid',placeItems:'center',cursor:'pointer'}}><X size={17}/></button>
+          <div style={{width:44,height:44,borderRadius:13,display:'grid',placeItems:'center',background:'rgba(98,92,241,.12)',color:'var(--primary,#625cf1)',marginBottom:14}}><KeyRound size={21}/></div>
+          <h2 id="owner-activation-code-title" style={{fontSize:19,margin:'0 42px 6px 0'}}>{ownerActivationCard.title}</h2>
+          <p style={{fontSize:13,color:'var(--muted,#73798f)',lineHeight:1.6,margin:'0 0 16px'}}>Kirim kode ini secara pribadi kepada <strong>{ownerActivationCard.email}</strong>. Kode hanya ditampilkan sekali.</p>
+          <div style={{border:'1px dashed var(--border,#cfd3e2)',background:'var(--surface,#f7f8fc)',borderRadius:12,padding:'14px 12px',fontFamily:'ui-monospace,SFMono-Regular,Menlo,monospace',fontSize:14,letterSpacing:'.035em',overflowWrap:'anywhere',textAlign:'center',userSelect:'all'}}>{ownerActivationCard.code}</div>
+          <button type="button" className="btn btn-primary btn-wide" style={{marginTop:16,justifyContent:'center'}} onClick={async()=>{try{await navigator.clipboard.writeText(ownerActivationCard.code);setOwnerActivationCopied(true)}catch{setNotice('Browser tidak mengizinkan salin otomatis. Tekan lama kode untuk menyalinnya.')}}}><Copy size={16}/>{ownerActivationCopied?'Kode tersalin':'Salin kode aktivasi'}</button>
+          <p style={{fontSize:11,color:'var(--muted,#73798f)',margin:'12px 0 0',lineHeight:1.5}}>Jangan bagikan kode ini di grup publik. Menutup kartu tidak akan menampilkan kode kembali.</p>
+        </section>
+      </div>}
       <div className="page-content">
         {section==='support'&&<section className="page-section support-admin-page"><div className="page-heading"><div><span className="eyebrow muted">PLATFORM / SUPPORT</span><h1>Pusat <span className="heading-accent">bantuan.</span></h1><p>Atur WhatsApp dan Telegram, serta tangani percakapan live chat tenant.</p></div><span className="date-pill"><Headphones size={14}/> Sinkron realtime</span></div><SupportCenter session={session} isSuperAdmin embedded onClose={()=>setSection('dashboard')}/></section>}
         {section==='dashboard'&&<section className="page-section"><div className="page-heading"><div><span className="eyebrow muted">PLATFORM CONTROL / OVERVIEW</span><h1>Kontrol <span className="heading-accent">platform.</span></h1><p>Kelola akun, tenant, dan akses dari satu panel terpusat.</p></div><span className="date-pill"><ShieldCheck size={14}/> Akses istimewa</span></div><div className="stats-grid"><StatCard icon={Store} label="Total tenant" value={tenants.filter(t=>statusOf(t)!=='deleted').length} meta={'Dikelola permanen'} tone="violet"/><StatCard icon={CheckCircle2} label="Aktif" value={activeCount} meta="Masa aktivasi berlaku" tone="green"/><StatCard icon={CalendarDays} label="Kedaluwarsa" value={expiredCount} meta="Menunggu reaktivasi" tone="orange"/><StatCard icon={Users} label="Akun user" value={users.length} meta={users.filter(u=>u.is_banned).length+' akun dinonaktifkan'} tone="blue"/></div><div className="admin-shortcuts"><button className="admin-shortcut" onClick={()=>selectSection('stores')}><span><Store size={20}/></span><strong>Kelola toko</strong><small>Cari tenant, aktivasi, arsip/hapus</small><ArrowRight size={16}/></button><button className="admin-shortcut" onClick={()=>selectSection('users')}><span><Users size={20}/></span><strong>Manajemen user</strong><small>Daftar akun dan kontrol akses login</small><ArrowRight size={16}/></button><button className="admin-shortcut" onClick={()=>selectSection('disabled')}><span><Ban size={20}/></span><strong>Akun staf nonaktif</strong><small>Tinjau dan bersihkan akun yang memenuhi syarat</small><ArrowRight size={16}/></button><button className="admin-shortcut" onClick={()=>selectSection('support')}><span><Headphones size={20}/></span><strong>Pusat bantuan</strong><small>Atur WhatsApp, Telegram, dan live chat</small><ArrowRight size={16}/></button></div></section>}
@@ -1257,8 +1269,7 @@ function QueueScreen(){
   const [tvMedia,setTvMedia]=useState([])
   const [tickets,setTickets]=useState([])
   const [error,setError]=useState('')
-  const [publicDisplay,setPublicDisplay]=useState(null)
-  useEffect(()=>{if(!supabase)return;supabase.auth.getSession().then(({data})=>setSession(data.session));const {data:{subscription}}=supabase.auth.onAuthStateChange((_e,s)=>setSession(s));return()=>subscription.unsubscribe()},[])
+  const [publicDisplay,setPublicDisplay]=useState(null)  useEffect(()=>{if(!supabase)return;supabase.auth.getSession().then(({data})=>setSession(data.session));const {data:{subscription}}=supabase.auth.onAuthStateChange((_e,s)=>setSession(s));return()=>subscription.unsubscribe()},[])
   const loadPublic=useCallback(async()=>{
     if(!token||!supabase)return
     const {data,error:loadError}=await supabase.rpc('get_public_tv_display',{p_token:token})
