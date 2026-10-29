@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Activity, BarChart3, CreditCard, Headphones, LogOut, RefreshCw, ShieldCheck, Store, Ticket, Users, LayoutDashboard, Search, Send, ArrowLeft } from 'lucide-react'
+import { Activity, BarChart3, CreditCard, Headphones, LogOut, RefreshCw, ShieldCheck, Store, Ticket, Users, LayoutDashboard, Search, Send, ArrowLeft, Menu, Clock3 } from 'lucide-react'
 import PromotionManager from './PromotionManager.jsx'
 import SubscriptionPlanManager from './SubscriptionPlanManager.jsx'
 
@@ -14,6 +14,15 @@ const items = [
 ]
 const money = value => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value || 0))
 const date = value => value ? new Date(value).toLocaleString('id-ID') : '—'
+
+function WibClock() {
+  const [now, setNow] = useState(() => new Date())
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 1000)
+    return () => clearInterval(timer)
+  }, [])
+  return <span className="wib-digital-clock" title="Waktu Indonesia Barat"><Clock3 size={14}/><strong>{new Intl.DateTimeFormat('id-ID', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).format(now)}</strong><small>WIB</small></span>
+}
 
 export default function PlatformStaffWorkspace({ session, staff, onSignOut }) {
   const [page, setPage] = useState('dashboard')
