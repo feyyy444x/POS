@@ -21,7 +21,12 @@ CREATE POLICY "Super Admins can update site promotions"
 DROP POLICY IF EXISTS "Anyone can view active site promotions" ON public.site_promotions;
 CREATE POLICY "Anyone can view active site promotions"
   ON public.site_promotions FOR SELECT TO anon, authenticated
-  USING (is_active = true OR private.is_super_admin());
+  USING (is_active = true);
+
+DROP POLICY IF EXISTS "PIN verified Super Admins view all site promotions" ON public.site_promotions;
+CREATE POLICY "PIN verified Super Admins view all site promotions"
+  ON public.site_promotions FOR SELECT TO authenticated
+  USING (private.is_super_admin());
 
 DROP POLICY IF EXISTS "Super admins manage subscription plans" ON public.site_subscription_plans;
 CREATE POLICY "Super admins manage subscription plans"
