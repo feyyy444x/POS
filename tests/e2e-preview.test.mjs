@@ -86,3 +86,35 @@ test('activation endpoint denies a nonexistent invitation without creating an ac
   assert.equal(response.status, 403)
   assert.match(await response.text(), /undangan|kode aktivasi/i)
 })
+
+
+test('deployed preview bundle includes the NexaPos FAQ bot and human handoff UI', async () => {
+  const expectedStrings = [
+    'NexaPos Bot',
+    'Hubungi Admin NexaPos',
+    'submit_support_message',
+    'request_support_handoff',
+    'admin_reply_support_message',
+    'set_support_conversation_status',
+  ]
+  let lastBundle = ''
+  let lastError
+  for (let attempt = 0; attempt < 12; attempt += 1) {
+    try {
+      const response = await fetch(baseUrl, { redirect: 'follow', signal: AbortSignal.timeout(15000) })
+      if (!response.ok) throw new Error(`Preview returned HTTP ${response.status}`)
+      const html = await response.text()
+      const scriptPath = html.match(/<script[^>]+type="module"[^>]+src="([^"]+)"/i)?.[1]
+      assert.ok(scriptPath, 'Expected a Vite module entry script')
+      const scriptResponse = await fetch(new URL(scriptPath, baseUrl), { signal: AbortSignal.timeout(15000) })
+      assert.equal(scriptResponse.status, 200, 'Application bundle should be served')
+      lastBundle = await scriptResponse.text()
+      if (expectedStrings.every(value => lastBundle.includes(value))) return
+      lastError = new Error('Latest preview bundle does not include all support UI/RPC labels yet')
+    } catch (error) {
+      lastError = error
+    }
+    if (attempt < 11) await new Promise(resolve => setTimeout(resolve, 5000))
+  }
+  assert.ok(expectedStrings.every(value => lastBundle.includes(value)), lastError?.message || 'Support UI strings missing from deployed preview bundle')
+})
