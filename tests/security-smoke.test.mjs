@@ -219,7 +219,7 @@ test('admin managers clear stale data on load failures and prevent editing fallb
   assert.match(promotionManagerUi, /if \(queryError\) \{\s*setPromos\(\[\]\)/)
   assert.match(subscriptionPlanManagerUi, /if \(queryError\) \{\s*setPlans\(\[\]\)/)
   assert.match(subscriptionPlanManagerUi, /setPlansReady\(missingKeys\.length === 0\)/)
-  assert.match(subscriptionPlanManagerUi, /disabled=\{!plansReady \|\| savingKey===plan\.plan_key\}/)
+  assert.match(subscriptionPlanManagerUi, /disabled=\{!plansReady \|\| savingKey===plan\.package_key\}/)
   assert.match(subscriptionPlanManagerUi, /Data paket belum tersedia/)
 })
 
