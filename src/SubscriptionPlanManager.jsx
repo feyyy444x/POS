@@ -10,7 +10,7 @@ const defaultDurations = [
   { duration_key: 'yearly', name: 'Tahunan', duration_days: 365, sort_order: 4, is_active: true },
   { duration_key: 'custom', name: 'Custom', duration_days: 15, sort_order: 5, is_active: true },
 ]
-const featureDefaults = ['Semua fitur NexaPos', 'Kasir dan transaksi', 'Produk dan stok per cabang', 'Laporan operasional', 'Sistem antrian dan struk']
+const featureDefaults = ['Semua fitur NexaPos', 'Kasir dan transaksi', 'Produk dan stok per tenant', 'Laporan operasional', 'Sistem antrian dan struk']
 const packageDefaults = [
   { package_key: 'starter', name: 'Starter', location_limit: 3, note: 'Untuk satu lokasi usaha', prices: { daily: 5000, weekly: 15000, monthly: 49000, yearly: 490000, custom: 25000 }, features: featureDefaults, is_popular: false, is_active: true, sort_order: 1 },
   { package_key: 'growth', name: 'Growth', location_limit: 5, note: 'Untuk bisnis yang mulai berkembang', prices: { daily: 10000, weekly: 30000, monthly: 99000, yearly: 990000, custom: 45000 }, features: featureDefaults, is_popular: false, is_active: true, sort_order: 2 },
@@ -81,8 +81,8 @@ export default function SubscriptionPlanManager({ onBack }) {
   }
   const savePlan = async plan => {
     setSavingKey(plan.package_key); setError(''); setNotice('')
-    const payload = { package_key: plan.package_key, name: String(plan.name||'').trim(), location_limit: Number(plan.location_limit), note: String(plan.note||'').trim(), prices: plan.prices || {}, features: featureDefaults, is_popular: Boolean(plan.is_popular), is_active: Boolean(plan.is_active), sort_order: Number(plan.sort_order)||0, updated_at: new Date().toISOString(), updated_by: (await supabase.auth.getUser()).data.user?.id || null }
-    if (!payload.name || !Number.isInteger(payload.location_limit) || payload.location_limit < 1 || payload.location_limit > 1000 || !Object.keys(payload.prices).length || Object.values(payload.prices).some(value => !Number.isFinite(Number(value)) || Number(value)<0)) { setError('Nama paket, kuota lokasi, dan semua harga harus valid (tidak negatif).'); setSavingKey(''); return }
+    const payload = { package_key: plan.package_key, name: String(plan.name||'').trim(), location_limit: Number(plan.location_limit), note: String(plan.note||'').trim(), prices: plan.prices || {}, features: (Array.isArray(plan.features) ? plan.features : featureDefaults).map(feature => String(feature || '').trim()).filter(Boolean).slice(0,30), is_popular: Boolean(plan.is_popular), is_active: Boolean(plan.is_active), sort_order: Number(plan.sort_order)||0, updated_at: new Date().toISOString(), updated_by: (await supabase.auth.getUser()).data.user?.id || null }
+    if (!payload.name || !Number.isInteger(payload.location_limit) || payload.location_limit < 1 || payload.location_limit > 1000 || !payload.features.length || payload.features.some(feature => feature.length > 160) || !Object.keys(payload.prices).length || Object.values(payload.prices).some(value => !Number.isFinite(Number(value)) || Number(value)<0)) { setError('Nama paket, kuota lokasi, minimal satu fitur, dan semua harga harus valid. Setiap fitur maksimal 160 karakter.'); setSavingKey(''); return }
     const { error: saveError } = await supabase.from('site_activation_packages').upsert(payload, { onConflict: 'package_key' })
     setSavingKey('')
     if (saveError) { setError(saveError.message); return }
