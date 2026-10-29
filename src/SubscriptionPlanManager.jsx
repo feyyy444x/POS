@@ -27,11 +27,13 @@ export default function SubscriptionPlanManager({ onBack, staffMode = false, ses
       catch (error) { queryError=error }
     } else ({ data, error: queryError } = await supabase.from('site_subscription_plans').select('*').order('sort_order', { ascending: true }))
     if (queryError) {
+      setPlans([])
       setError(userFacingError(queryError, 'Paket belum dapat dimuat. Coba lagi atau hubungi admin jika masalah berlanjut.'))
-      setPlans(defaults)
     } else {
-      const byKey = new Map((data || []).map(plan => [plan.plan_key, plan]))
-      setPlans(defaults.map(fallback => ({ ...fallback, ...(byKey.get(fallback.plan_key) || {}) })))
+      setPlans(data || [])
+      const expectedKeys = defaults.map(plan => plan.plan_key)
+      const missingKeys = expectedKeys.filter(key => !(data || []).some(plan => plan.plan_key === key))
+      if (missingKeys.length) setError('Data paket belum lengkap. Paket yang belum ditemukan: ' + missingKeys.join(', ') + '. Periksa database sebelum mengubah harga.')
     }
     setLoading(false)
   }, [staffMode, session?.access_token])
