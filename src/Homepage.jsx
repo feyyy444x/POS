@@ -49,17 +49,6 @@ const promoDiscountLabel = (promo) => {
     ? Math.min(value, 100) + '%'
     : money(value)
 }
-function discountFor(plan, promo, durationKey) {
-  if (!promo || promo.is_active === false) return 0
-  const eligible = eligiblePeriods(promo)
-  if (eligible.length && !eligible.includes(String(durationKey || '').trim().toLowerCase())) return 0
-  const price = Math.max(0, Number(plan?.price || 0))
-  const value = Math.max(0, Number(promo.discount_value || 0))
-  const type = String(promo.discount_type || '').trim().toLowerCase()
-  const isPercent = ['percent', 'percentage', 'percentual', 'persen'].includes(type)
-  if (isPercent) return Math.min(price, Math.round(price * Math.min(value, 100) / 100))
-  return Math.min(price, value)
-}
 function Brand({ footer = false }) {
   return <a className={'living-brand' + (footer ? ' living-brand-footer' : '')} href="/" aria-label="NexaPos beranda">
     <img src="/nexapos-mark.svg" alt="" />
