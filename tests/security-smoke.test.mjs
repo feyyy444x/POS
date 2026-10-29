@@ -168,6 +168,6 @@ test('platform Admin can create staff only with active role and verified PIN', (
 
 test('platform Admin receives full internal endpoint access while Customer Service remains permission-scoped', () => {
   assert.match(platformStaffEndpoint, /assignment\.role !== 'admin' && assignment\.permissions\?\./)
-  assert.match(platformStaffEndpoint, /assignment\.permissions\?\[requiredPermission\] !== true/)
+  assert.match(platformStaffEndpoint, /assignment\.permissions\?\.\[requiredPermission\] !== true/)
   assert.match(platformStaffEndpoint, /if \(!assignment \|\| !assignment\.is_active\)/)
 })
