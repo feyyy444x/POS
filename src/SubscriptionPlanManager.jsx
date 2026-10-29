@@ -34,7 +34,7 @@ export default function SubscriptionPlanManager({ onBack, staffMode = false, ses
       setPlans(defaults.map(fallback => ({ ...fallback, ...(byKey.get(fallback.plan_key) || {}) })))
     }
     setLoading(false)
-  }, [])
+  }, [staffMode, session?.access_token])
 
   useEffect(() => {
     load()
