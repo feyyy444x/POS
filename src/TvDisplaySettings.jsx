@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Check, Copy, ExternalLink, Link2, Monitor, Palette, Plus, RefreshCw, Save, ShieldCheck, Trash2, Volume2, Video } from 'lucide-react'
 import { supabase } from './lib/supabase'
+import { userFacingError } from './lib/userFacingError'
 import './tv-display.css'
 
 const DEFAULTS = {
@@ -100,7 +101,7 @@ export default function TvDisplaySettings({ store, membership, onNotice }) {
       supabase.from('store_tv_media').select('*').eq('store_id', storeId).order('sort_order').order('created_at'),
     ])
     if (settingsError || mediaError) {
-      notify('Pengaturan TV belum dapat dimuat. Pastikan migrasi TV Display sudah aktif pada proyek Supabase POS: ' + (settingsError?.message || mediaError?.message))
+      notify(userFacingError(settingsError || mediaError, 'Pengaturan TV belum dapat dimuat. Coba lagi atau hubungi admin.'))
     } else {
       const loadedSettings = { ...DEFAULTS, ...(settingsRow || {}) }
       const legacyTemplates = { 'modern-blue': 'nexa-cinema', 'minimal-light': 'nexa-showcase', 'premium-dark': 'nexa-overlay', 'queue-media': 'nexa-carousel', professional: 'nexa-grid' }
@@ -148,7 +149,7 @@ export default function TvDisplaySettings({ store, membership, onNotice }) {
     const payload = { ...draft, store_id: storeId, updated_at: new Date().toISOString() }
     const { error } = await supabase.from('store_tv_settings').upsert(payload)
     setSaving(false)
-    if (error) { notify('Pengaturan belum tersimpan: ' + error.message); return }
+    if (error) { notify(userFacingError(error, 'Pengaturan TV belum berhasil disimpan. Coba lagi.')); return }
     setDraft(payload)
     notify('Pengaturan TV berhasil disimpan. Semua TV akan mengikuti konfigurasi terbaru.')
   }
@@ -160,7 +161,7 @@ export default function TvDisplaySettings({ store, membership, onNotice }) {
     setSaving(true)
     const { error } = await supabase.from('store_tv_settings').upsert(payload)
     setSaving(false)
-    if (error) { notify('URL TV belum dapat dibuat: ' + error.message); return }
+    if (error) { notify(userFacingError(error, 'URL TV belum dapat dibuat. Coba lagi.')); return }
     setDraft(payload)
     notify('URL TV berhasil dibuat. Simpan atau salin URL ini; Anda dapat menggantinya kapan saja.')
   }
@@ -171,7 +172,7 @@ export default function TvDisplaySettings({ store, membership, onNotice }) {
     setSaving(true)
     const { error } = await supabase.from('store_tv_settings').upsert(payload)
     setSaving(false)
-    if (error) { notify('URL TV belum dapat dicabut: ' + error.message); return }
+    if (error) { notify(userFacingError(error, 'URL TV belum dapat dicabut. Coba lagi.')); return }
     setDraft(payload)
     notify('Akses URL TV lama sudah dicabut.')
   }
@@ -202,7 +203,7 @@ export default function TvDisplaySettings({ store, membership, onNotice }) {
       is_active: true,
     }).select('*').single()
     setAddingMedia(false)
-    if (error) { notify('Tautan media belum tersimpan: ' + error.message); return }
+    if (error) { notify(userFacingError(error, 'Tautan media belum berhasil disimpan. Coba lagi.')); return }
     setMedia(prev => [...prev, data])
     setTitle('')
     setSourceUrl('')
@@ -241,7 +242,7 @@ export default function TvDisplaySettings({ store, membership, onNotice }) {
         },
       })
       if (reserveError || reserveData?.error || !reserveData?.media?.id || !reserveData?.path || !reserveData?.token) {
-        throw new Error(reserveData?.error || reserveError?.message || 'Server upload belum siap. Coba lagi nanti.')
+        throw new Error(userFacingError(reserveData?.error || reserveError, 'Layanan upload belum siap. Coba lagi nanti.'))
       }
       reservation = reserveData
 
@@ -251,13 +252,13 @@ export default function TvDisplaySettings({ store, membership, onNotice }) {
         file,
         { contentType: file.type, upsert: false },
       )
-      if (uploadError) throw new Error('Upload gagal: ' + uploadError.message)
+      if (uploadError) throw new Error(userFacingError(uploadError, 'Upload video gagal. Periksa koneksi lalu coba lagi.'))
 
       const { data: completeData, error: completeError } = await supabase.functions.invoke('tv-media-upload', {
         body: { action: 'complete', store_id: storeId, media_id: reserveData.media.id },
       })
       if (completeError || completeData?.error || !completeData?.media?.id) {
-        throw new Error(completeData?.error || completeError?.message || 'Video belum berhasil diverifikasi.')
+        throw new Error(userFacingError(completeData?.error || completeError, 'Video belum berhasil diverifikasi. Coba lagi.'))
       }
 
       setMedia(prev => [...prev, completeData.media])
@@ -270,7 +271,7 @@ export default function TvDisplaySettings({ store, membership, onNotice }) {
       }
       // Refresh media/quota after a failed attempt so the editor reflects server cleanup.
       await load()
-      notify(error?.message || 'Upload video gagal.')
+      notify(userFacingError(error, 'Upload video gagal. Coba lagi.'))
     } finally {
       setUploading(false)
     }
@@ -283,12 +284,12 @@ export default function TvDisplaySettings({ store, membership, onNotice }) {
         body: { action: 'delete', store_id: storeId, media_id: item.id },
       })
       if (error || data?.error || !data?.ok) {
-        notify(data?.error || error?.message || 'Video belum dapat dihapus.')
+        notify(userFacingError(data?.error || error, 'Video belum dapat dihapus. Coba lagi.'))
         return
       }
     } else {
       const { error } = await supabase.from('store_tv_media').delete().eq('id', item.id).eq('store_id', storeId)
-      if (error) { notify('Tautan media belum dapat dihapus: ' + error.message); return }
+      if (error) { notify(userFacingError(error, 'Tautan media belum dapat dihapus. Coba lagi.')); return }
     }
     setMedia(prev => prev.filter(row => row.id !== item.id))
     notify(item.media_type === 'upload' ? 'Video dan metadata dihapus.' : 'Tautan dihapus dari NexaPos. Video sumber di platform asal tetap ada.')
