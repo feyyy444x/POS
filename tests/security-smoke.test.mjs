@@ -260,7 +260,7 @@ test('support RPCs validate customer input, require authenticated sessions, and 
   assert.match(supportMigration, /char_length\(v_message\) < 1 OR char_length\(v_message\) > 3000/)
   assert.match(supportMigration, /v_is_anonymous boolean/)
   assert.match(supportMigration, /NOT v_is_anonymous AND NOT private\.is_pin_verified\(\)/)
-  assert.match(supportMigration, /created_at > now\\(\\) - interval '1 hour'\\) >= 40/)
+  assert.match(supportMigration, /created_at > now\(\) - interval '1 hour'\) >= 40/)
   assert.match(supportMigration, /CREATE OR REPLACE FUNCTION public\.submit_support_message/)
   assert.match(supportLockdownMigration, /REVOKE ALL ON FUNCTION public\.submit_support_message\(text, text\) FROM PUBLIC, anon/)
   assert.match(supportLockdownMigration, /GRANT EXECUTE ON FUNCTION public\.submit_support_message\(text, text\) TO authenticated/)
