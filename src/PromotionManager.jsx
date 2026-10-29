@@ -39,8 +39,10 @@ export default function PromotionManager({ onBack, onSignOut, staffMode = false,
       try { const response=await fetch('/.netlify/functions/platform-staff-workspace',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+(session?.access_token||'')},body:JSON.stringify({action:'promotions_list'})}); const result=await response.json(); if(!response.ok) throw new Error(result.error||'Promo belum dapat dimuat.'); data=result.data||[] }
       catch (error) { queryError=error }
     } else ({ data, error: queryError } = await supabase.from('site_promotions').select('*').order('created_at', { ascending: false }))
-    if (queryError) setError(promotionErrorMessage(queryError))
-    else setPromos(data || [])
+    if (queryError) {
+      setPromos([])
+      setError(promotionErrorMessage(queryError))
+    } else setPromos(data || [])
     setLoading(false)
   }, [staffMode, session?.access_token])
   useEffect(() => {
