@@ -244,6 +244,7 @@ test('Tim & Hak Akses offers only full-access Admin NexaPos role', () => {
 const supportMigration = await readFile(new URL('supabase/migrations/20261029183000_nexapos_free_ai_support.sql', root), 'utf8')
 const supportLockdownMigration = await readFile(new URL('supabase/migrations/20261029183500_lock_down_support_rpc.sql', root), 'utf8')
 const supportHandoffMigration = await readFile(new URL('supabase/migrations/20261029184000_refine_support_bot_handoff.sql', root), 'utf8')
+const supportHardenMigration = await readFile(new URL('supabase/migrations/20261029185000_harden_support_handoff_and_admin_reply.sql', root), 'utf8')
 const supportCenter = await readFile(new URL('src/SupportCenter.jsx', root), 'utf8')
 
 test('free NexaPos support bot is FAQ-only and never calls a paid external AI provider', () => {
@@ -289,4 +290,11 @@ test('human handoff stops bot replies until Admin takes over or reactivates bot'
   assert.match(supportCenter, /set_support_conversation_status/)
   assert.match(supportCenter, /Hubungi Admin NexaPos/)
   assert.match(supportCenter, /Menunggu admin/)
+})
+
+
+test('handoff recognizes natural requests to speak with a human and validates admin targets', () => {
+  assert.match(supportHardenMigration, /bicara \(dengan\|sama\) \(admin\|manusia\|petugas\)/)
+  assert.match(supportHardenMigration, /IF NOT FOUND THEN RAISE EXCEPTION 'Percakapan tidak ditemukan'/)
+  assert.match(supportHardenMigration, /IF NOT private\.is_super_admin\(\) THEN RAISE EXCEPTION 'Admin NexaPos access required'/)
 })
