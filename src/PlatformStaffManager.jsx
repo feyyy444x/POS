@@ -32,10 +32,21 @@ export default function PlatformStaffManager() {
 
   const load = useCallback(async () => {
     setLoading(true)
-    const { data, error } = await supabase.rpc('super_admin_list_platform_staff')
-    if (error) setNotice(userFacingError(error, 'Daftar tim belum dapat dimuat. Pastikan migrasi role sudah diterapkan.'))
-    else { setStaff(data || []); setNotice('') }
-    setLoading(false)
+    try {
+      const { data, error } = await supabase.rpc('super_admin_list_platform_staff')
+      if (error) {
+        setStaff([])
+        setNotice(userFacingError(error, 'Daftar tim belum dapat dimuat. Pastikan migrasi role sudah diterapkan.'))
+      } else {
+        setStaff(data || [])
+        setNotice('')
+      }
+    } catch (error) {
+      setStaff([])
+      setNotice(userFacingError(error, 'Daftar tim belum dapat dimuat. Periksa koneksi lalu coba lagi.'))
+    } finally {
+      setLoading(false)
+    }
   }, [])
 
   useEffect(() => { load() }, [load])
@@ -84,20 +95,30 @@ export default function PlatformStaffManager() {
   }
 
   const toggleActive = async member => {
-    const { error } = await supabase.rpc('super_admin_set_platform_staff', {
-      p_email: member.email, p_role: member.role, p_permissions: member.role === 'admin' ? defaultPermissions('admin') : (member.permissions || {}), p_is_active: !member.is_active,
-    })
-    if (error) { setNotice(userFacingError(error)); return }
-    setNotice(member.is_active ? 'Akses staf dinonaktifkan.' : 'Akses staf diaktifkan kembali.')
-    await load()
+    setNotice('')
+    try {
+      const { error } = await supabase.rpc('super_admin_set_platform_staff', {
+        p_email: member.email, p_role: member.role, p_permissions: member.role === 'admin' ? defaultPermissions('admin') : (member.permissions || {}), p_is_active: !member.is_active,
+      })
+      if (error) throw error
+      await load()
+      setNotice(member.is_active ? 'Akses staf dinonaktifkan.' : 'Akses staf diaktifkan kembali.')
+    } catch (error) {
+      setNotice(userFacingError(error, 'Status akses staf belum berhasil diubah.'))
+    }
   }
   const remove = async member => {
     if (!confirm('Hapus penugasan role NexaPos untuk ' + member.email + '? Akun login tidak akan dihapus.')) return
-    const { error } = await supabase.rpc('super_admin_remove_platform_staff', { p_user_id: member.user_id })
-    if (error) { setNotice(userFacingError(error)); return }
-    setNotice('Penugasan role dihapus. Akun login tetap ada.')
-    if (editing?.user_id === member.user_id) resetForm()
-    await load()
+    setNotice('')
+    try {
+      const { error } = await supabase.rpc('super_admin_remove_platform_staff', { p_user_id: member.user_id })
+      if (error) throw error
+      if (editing?.user_id === member.user_id) resetForm()
+      await load()
+      setNotice('Penugasan role dihapus. Akun login tetap ada.')
+    } catch (error) {
+      setNotice(userFacingError(error, 'Penugasan role belum berhasil dihapus.'))
+    }
   }
   const available = role === 'admin' ? ADMIN_PERMISSIONS : CS_PERMISSIONS
 
