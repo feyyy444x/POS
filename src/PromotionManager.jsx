@@ -42,7 +42,7 @@ export default function PromotionManager({ onBack, onSignOut, staffMode = false,
     if (queryError) setError(promotionErrorMessage(queryError))
     else setPromos(data || [])
     setLoading(false)
-  }, [])
+  }, [staffMode, session?.access_token])
   useEffect(() => {
     if (!supabase) return
     load()
