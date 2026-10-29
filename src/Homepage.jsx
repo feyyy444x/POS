@@ -112,7 +112,9 @@ export default function Homepage() {
         supabase.from('site_activation_durations').select('duration_key,name,duration_days,sort_order,is_active').eq('is_active', true).order('sort_order', { ascending: true }),
       ])
       if (mounted && !durationResult.error && Array.isArray(durationResult.data) && durationResult.data.length) {
-        setDurations(durationResult.data.map(d => ({ ...d, duration_days: Number(d.duration_days) })))
+        const nextDurations = durationResult.data.map(d => ({ ...d, duration_days: Number(d.duration_days) }))
+        setDurations(nextDurations)
+        setSelectedDuration(current => nextDurations.some(d => d.duration_key === current) ? current : nextDurations[0].duration_key)
       }
       if (mounted && !packageResult.error && Array.isArray(packageResult.data) && packageResult.data.length) {
         setPlans(packageResult.data.map(plan => ({

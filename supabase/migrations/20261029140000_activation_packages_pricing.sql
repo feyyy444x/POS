@@ -151,3 +151,24 @@ revoke all on function public.activate_store_tenant(uuid, integer, text) from pu
 revoke all on function public.activate_store_tenant(uuid, integer) from public, anon;
 grant execute on function public.activate_store_tenant(uuid, integer, text) to authenticated;
 grant execute on function public.activate_store_tenant(uuid, integer) to authenticated;
+
+-- Keep live homepage/admin pricing synchronized through Supabase Realtime.
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime'
+      and schemaname = 'public'
+      and tablename = 'site_activation_durations'
+  ) then
+    alter publication supabase_realtime add table public.site_activation_durations;
+  end if;
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime'
+      and schemaname = 'public'
+      and tablename = 'site_activation_packages'
+  ) then
+    alter publication supabase_realtime add table public.site_activation_packages;
+  end if;
+end $$;
