@@ -42,19 +42,27 @@ export default async (request) => {
     return json({ error: 'Layanan pembuatan akun belum dikonfigurasi di server.' }, 503)
   }
 
-  const authClient = createClient(supabaseUrl, anonKey, { auth: { autoRefreshToken: false, persistSession: false } })
+  const authClient = createClient(supabaseUrl, anonKey, { auth: { autoRefreshToken: false, persistSession: false }, global: { headers: { Authorization: 'Bearer ' + token } } })
   const { data: authData, error: authError } = await authClient.auth.getUser(token)
   if (authError || !authData?.user) return json({ error: 'Sesi login tidak valid. Silakan login ulang.' }, 401)
+  const { data: pinRows, error: pinError } = await authClient.rpc('get_my_pin_status')
+  const pinStatus = Array.isArray(pinRows) ? pinRows[0] : pinRows
+  if (pinError || pinStatus?.is_verified !== true) {
+    return json({ error: 'Verifikasi PIN diperlukan sebelum mengelola akun staf.' }, 403)
+  }
 
   const admin = createClient(supabaseUrl, serviceRoleKey, { auth: { autoRefreshToken: false, persistSession: false } })
   try {
-    const { data: superAdmin, error: superAdminError } = await admin
-      .from('super_admins').select('user_id').eq('user_id', authData.user.id).maybeSingle()
-    if (superAdminError) {
-      console.error('Could not verify platform administrator:', superAdminError.message)
-      return json({ error: 'Hak akses Super Admin belum dapat diverifikasi.' }, 500)
+    const [{ data: superAdmin, error: superAdminError }, { data: staffRole, error: staffRoleError }] = await Promise.all([
+      admin.from('super_admins').select('user_id').eq('user_id', authData.user.id).maybeSingle(),
+      admin.from('platform_staff_roles').select('role,is_active').eq('user_id', authData.user.id).maybeSingle(),
+    ])
+    if (superAdminError || staffRoleError) {
+      console.error('Could not verify platform administrator:', superAdminError?.message || staffRoleError?.message)
+      return json({ error: 'Hak akses administrator platform belum dapat diverifikasi.' }, 500)
     }
-    if (!superAdmin) return json({ error: 'Hanya Super Admin yang boleh membuat akun staf.' }, 403)
+    const authorized = Boolean(superAdmin) || (staffRole?.role === 'admin' && staffRole?.is_active === true)
+    if (!authorized) return json({ error: 'Hanya Admin platform aktif atau Super Admin yang boleh membuat akun staf.' }, 403)
 
     const { data: existing, error: existingError } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 })
     if (existingError) {
