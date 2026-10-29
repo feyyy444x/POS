@@ -39,10 +39,10 @@ export default function SubscriptionPlanManager({ onBack }) {
     ])
     const queryError = packageResult.error || durationResult.error
     if (queryError) {
-      setError('Pengaturan paket aktivasi belum tersedia di database. Pastikan migrasi activation_packages_pricing sudah diterapkan. ' + queryError.message)
       setPlans([])
       setDurations([])
       setPlansReady(false)
+      setError('Pengaturan paket aktivasi belum tersedia di database. Pastikan migrasi activation_packages_pricing sudah diterapkan. ' + queryError.message)
     } else {
       const savedPackages = new Map((packageResult.data || []).map(item => [item.package_key, item]))
       const missingKeys = packageDefaults.filter(item => !savedPackages.has(item.package_key)).map(item => item.package_key)
