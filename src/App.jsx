@@ -1488,8 +1488,6 @@ function QueueScreen(){
   const [session,setSession]=useState(null)
   const [store,setStore]=useState(null)
   const [settings,setSettings]=useState(null)
-  const [tvSettings,setTvSettings]=useState(null)
-  const [tvMedia,setTvMedia]=useState([])
   const [tickets,setTickets]=useState([])
   const [error,setError]=useState('')
   const [publicDisplay,setPublicDisplay]=useState(null)
@@ -1502,7 +1500,7 @@ function QueueScreen(){
     setPublicDisplay(data)
   },[token])
   useEffect(()=>{if(!token)return;loadPublic();const timer=setInterval(loadPublic,5000);return()=>clearInterval(timer)},[token,loadPublic])
-  const load=useCallback(async()=>{if(!session?.user)return;setError('');const {data:members,error}=await supabase.from('store_members').select('store_id').eq('user_id',session.user.id).eq('is_active',true).order('created_at',{ascending:true});if(error||!members?.length){setError(userFacingError(error, 'Akun tidak memiliki akses toko aktif.'));return}const requestedStore=new URLSearchParams(window.location.search).get('store');if(requestedStore&&!members.some(m=>m.store_id===requestedStore)){setError('Akses ke layar antrian toko ini tidak diizinkan untuk akun Anda.');return}const sid=(members.find(m=>m.store_id===requestedStore)||members[0]).store_id;const [{data:s},{data:cfg},{data:q},{data:tvCfg},{data:tvMediaRows}]=await Promise.all([supabase.from('stores').select('*').eq('id',sid).single(),supabase.from('store_settings').select('*').eq('store_id',sid).maybeSingle(),supabase.from('queue_tickets').select('*').eq('store_id',sid).eq('service_date',today()).order('queue_number'),supabase.from('store_tv_settings').select('*').eq('store_id',sid).maybeSingle(),supabase.from('store_tv_media').select('*').eq('store_id',sid).eq('is_active',true).order('sort_order').order('created_at')]);setStore(s);setSettings(cfg);setTickets(q||[]);setTvSettings(tvCfg||null);setTvMedia(tvMediaRows||[])},[session])
+  const load=useCallback(async()=>{if(!session?.user)return;setError('');const {data:members,error}=await supabase.from('store_members').select('store_id').eq('user_id',session.user.id).eq('is_active',true).order('created_at',{ascending:true});if(error||!members?.length){setError(userFacingError(error, 'Akun tidak memiliki akses toko aktif.'));return}const requestedStore=new URLSearchParams(window.location.search).get('store');if(requestedStore&&!members.some(m=>m.store_id===requestedStore)){setError('Akses ke layar antrian toko ini tidak diizinkan untuk akun Anda.');return}const sid=(members.find(m=>m.store_id===requestedStore)||members[0]).store_id;const [{data:s},{data:cfg},{data:q}]=await Promise.all([supabase.from('stores').select('*').eq('id',sid).single(),supabase.from('store_settings').select('*').eq('store_id',sid).maybeSingle(),supabase.from('queue_tickets').select('*').eq('store_id',sid).eq('service_date',today()).order('queue_number')]);setStore(s);setSettings(cfg);setTickets(q||[])},[session])
   useEffect(()=>{if(token)return;load()},[token,load])
   useEffect(()=>{if(token||!store||!supabase)return;const channel=supabase.channel('tv-queue-'+store.id).on('postgres_changes',{event:'*',schema:'public',table:'queue_tickets',filter:'store_id=eq.'+store.id},()=>load()).subscribe();return()=>supabase.removeChannel(channel)},[token,store,load])
   // Authenticated TV uses the queue_tickets Realtime channel above; avoid redundant polling.
@@ -1513,7 +1511,7 @@ function QueueScreen(){
   if(!session)return <div className="tv-login"><Brand/><h1>Layar antrian NexaPos</h1><p>Masuk dengan akun toko untuk menampilkan antrian.</p><button className="btn btn-primary" onClick={()=>window.location.href=window.location.pathname}>Kembali ke login</button></div>
   if(error&&!store)return <div className="tv-login"><Brand/><h1>Akses layar antrian ditolak</h1><p>{error}</p><button className="btn btn-primary" onClick={()=>window.location.href=window.location.pathname}>Kembali ke workspace</button></div>
   if(store&&queueTenantStatus!=='active')return <TenantLockedScreen store={store} status={queueTenantStatus} onSignOut={()=>supabase.auth.signOut()}/>
-  return <PublicQueueScreen display={{store_id:store?.id,store_name:settings?.store_name||store?.name||'NexaPos',settings:{...(tvSettings||{}),queue_prefix:settings?.queue_prefix||'A'},media:tvMedia,current,waiting}} error={error}/>
+  return <PublicQueueScreen display={{store_id:store?.id,store_name:settings?.store_name||store?.name||'NexaPos',queue_enabled:settings?.queue_enabled!==false,settings:{queue_prefix:settings?.queue_prefix||'A',queue_enabled:settings?.queue_enabled!==false},current,waiting}} error={error}/>
 }
 
 function PublicQueueScreen({display,error}){
