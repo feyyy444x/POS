@@ -30,6 +30,7 @@ const activationPackagesMigration = await readFile(new URL('supabase/migrations/
 const ownerOrganizationsMigration = await readFile(new URL('supabase/migrations/20261030200000_owner_organizations_and_tenant_quotas.sql', root), 'utf8')
 const auditLogsMigration = await readFile(new URL('supabase/migrations/20261030210000_platform_audit_logs.sql', root), 'utf8')
 const auditLogUi = await readFile(new URL('src/AuditLogPanel.jsx', root), 'utf8')
+const serverPromoQuoteMigration = await readFile(new URL('supabase/migrations/20261030220000_server_validate_activation_promotions.sql', root), 'utf8')
 
 test('Netlify headers include baseline browser security protections', () => {
   for (const directive of [
@@ -413,6 +414,8 @@ test('activation package administration is protected and validates active packag
 })
 
 test('Super Admin can configure custom activation durations and package-specific pricing', () => {
+  assert.match(subscriptionPlanManagerUi, /features: \(Array\.isArray\(plan\.features\) \? plan\.features : featureDefaults\)/)
+  assert.doesNotMatch(subscriptionPlanManagerUi, /Produk dan stok per cabang/)
   assert.match(subscriptionPlanManagerUi, /supabase\.from\('site_activation_durations'\)\.upsert/)
   assert.match(subscriptionPlanManagerUi, /const addCustomDuration = async/)
   assert.match(subscriptionPlanManagerUi, /updatePrice\(plan\.package_key,duration\.duration_key/)
@@ -467,4 +470,26 @@ test('audit events are recorded server-side with scoped read policies and redact
   assert.match(auditLogUi, /from\('platform_audit_logs'\)/)
   assert.match(app, /section==='audit'&&<AuditLogPanel scope="platform"\/>/)
   assert.match(app, /page==='audit'&&membership\.role==='owner'&&<AuditLogPanel scope="organization"/)
+})
+
+
+test('activation discounts and vouchers are calculated against active server-side package, duration, and promotion rows', () => {
+  assert.match(serverPromoQuoteMigration, /security invoker/i)
+  assert.match(serverPromoQuoteMigration, /p\.is_active = true/i)
+  assert.match(serverPromoQuoteMigration, /d\.duration_key = p_duration_key and d\.is_active = true/i)
+  assert.match(serverPromoQuoteMigration, /upper\(trim\(p\.promo_code\)\) = v_code/i)
+  assert.match(serverPromoQuoteMigration, /p\.starts_at is null or p\.starts_at <= now\(\)/i)
+  assert.match(serverPromoQuoteMigration, /p\.ends_at is null or p\.ends_at >= now\(\)/i)
+  assert.match(serverPromoQuoteMigration, /p_duration_key = any\(p\.eligible_periods\)/i)
+  assert.match(homepageUi, /supabase\.rpc\('get_activation_quote'/)
+  assert.match(homepageUi, /serverQuotes\[plan\.key\]/)
+  assert.match(homepageUi, /serverQuotes\[selectedPlan\]\?\.promo_id/)
+})
+
+test('workspace browser history restores prior pages without clearing current tenant state', () => {
+  assert.match(app, /nexaposWorkspaceNav/)
+  assert.match(app, /nexaposSuperAdminNav/)
+  assert.match(app, /window\.addEventListener\('popstate'/)
+  assert.match(app, /setPage\(state\.page \|\| 'dashboard'\)/)
+  assert.match(app, /setSelectedTenant\(state\.superSelectedTenant \|\| null\)/)
 })
