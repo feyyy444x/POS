@@ -416,6 +416,7 @@ test('activation package administration is protected and validates active packag
 test('Super Admin can configure custom activation durations and package-specific pricing', () => {
   assert.match(subscriptionPlanManagerUi, /features: \(Array\.isArray\(plan\.features\) \? plan\.features : featureDefaults\)/)
   assert.doesNotMatch(subscriptionPlanManagerUi, /Produk dan stok per cabang/)
+  assert.match(subscriptionPlanManagerUi, /savingKey===plan\.package_key/)
   assert.match(subscriptionPlanManagerUi, /supabase\.from\('site_activation_durations'\)\.upsert/)
   assert.match(subscriptionPlanManagerUi, /const addCustomDuration = async/)
   assert.match(subscriptionPlanManagerUi, /updatePrice\(plan\.package_key,duration\.duration_key/)
