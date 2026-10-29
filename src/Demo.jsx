@@ -58,7 +58,6 @@ export default function Demo() {
     setCart([])
     simulate('Checkout demo ' + money(completedTotal))
   }
-  const nextQueueNumber = () => Math.max(0, ...queueRows.map(row => Number(String(row[0]).replace(/\\D/g, '')))) + 1
   const callNextDemo = () => { const nextIndex=queueRows.findIndex(row=>row[1]==='Menunggu');if(nextIndex<0){simulate('Tidak ada antrian menunggu');return}setQueueRows(current=>current.map((row,index)=>index===nextIndex?[row[0],'Dipanggil']:row[1]==='Dipanggil'?[row[0],'Selesai']:row));simulate('Panggil antrian demo') }
   return <main className="nx-demo">
     <header className="demo-topbar">
