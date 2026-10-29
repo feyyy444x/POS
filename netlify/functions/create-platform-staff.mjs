@@ -6,7 +6,6 @@ const json = (body, status = 200) => new Response(JSON.stringify(body), {
 })
 
 const ADMIN_KEYS = new Set(['users', 'stores', 'support', 'promotions', 'plans', 'system_reports'])
-const CS_KEYS = new Set(['support', 'users_read'])
 
 export default async (request) => {
   if (request.method === 'OPTIONS') return new Response(null, { status: 204 })
@@ -26,10 +25,9 @@ export default async (request) => {
 
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json({ error: 'Masukkan alamat email yang valid.' }, 400)
   if (password.length < 6 || password.length > 128) return json({ error: 'Password harus terdiri dari 6 sampai 128 karakter.' }, 400)
-  if (!['admin', 'customer_service'].includes(role)) return json({ error: 'Role tidak valid.' }, 400)
+  if (role !== 'admin') return json({ error: 'Role yang tersedia hanya Admin NEXAPOS.' }, 400)
   if (!permissions || typeof permissions !== 'object' || Array.isArray(permissions)) return json({ error: 'Hak akses tidak valid.' }, 400)
-  const allowedKeys = role === 'admin' ? ADMIN_KEYS : CS_KEYS
-  if (Object.keys(permissions).some(key => !allowedKeys.has(key)) ||
+  if (Object.keys(permissions).some(key => !ADMIN_KEYS.has(key)) ||
       Object.values(permissions).some(value => typeof value !== 'boolean')) {
     return json({ error: 'Hak akses berisi izin yang tidak diizinkan.' }, 400)
   }
