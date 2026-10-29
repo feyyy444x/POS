@@ -1170,3 +1170,116 @@ tbody tr:hover{background:#f7fbfd}
 
 /* Keep tenant email addresses readable below each member/invitation name. */
 .member-email-visible{display:inline-block;margin-top:3px;color:var(--muted,#64748b);font-size:12px;line-height:1.45;overflow-wrap:anywhere;word-break:break-word}
+
+
+/* Workspace layout refinement: monitoring and operational history panels */
+.app-shell .page-section > .panel {
+  min-width: 0;
+  overflow: hidden;
+}
+.app-shell .page-section > .panel .panel-head {
+  min-width: 0;
+  padding: 20px 22px 0;
+  margin-bottom: 16px;
+  gap: 14px 18px;
+}
+.app-shell .page-section > .panel .panel-head > div {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+.app-shell .page-section > .panel .panel-head h3 {
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+.app-shell .page-section > .panel .panel-head p {
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+.app-shell .page-section > .panel .panel-head > .result-count,
+.app-shell .page-section > .panel .panel-head > .btn {
+  flex: 0 0 auto;
+  max-width: 100%;
+}
+.app-shell .page-section > .panel > .table-wrap {
+  width: auto;
+  max-width: calc(100% - 28px);
+  margin: 0 14px;
+  border: 1px solid #e7edf3;
+  border-radius: 12px;
+  overflow: auto;
+  overscroll-behavior-x: contain;
+}
+.app-shell .page-section > .panel > .table-wrap table {
+  min-width: max-content;
+}
+.app-shell .page-section > .panel > .table-wrap th,
+.app-shell .page-section > .panel > .table-wrap td {
+  padding: 13px 15px;
+  line-height: 1.55;
+  vertical-align: middle;
+}
+.app-shell .page-section > .panel > .table-wrap td {
+  overflow-wrap: anywhere;
+}
+.app-shell .page-section > .panel > .table-wrap td .status-pill,
+.app-shell .page-section > .panel > .table-wrap td .payment-tag {
+  white-space: nowrap;
+}
+.app-shell .page-section > .panel > .report-filter-grid {
+  margin: 18px 22px 22px;
+}
+.app-shell .page-section > .panel > .table-wrap + .pagination,
+.app-shell .page-section > .panel > .table-wrap + nav {
+  margin: 14px 22px 18px;
+}
+.app-shell .page-section > .panel > .empty-state {
+  margin: 8px 14px 14px;
+  border-radius: 12px;
+}
+.app-shell .page-section > .panel + .panel {
+  margin-top: 0;
+}
+.app-shell .page-section .report-filter-panel {
+  padding-bottom: 2px;
+}
+.app-shell .page-section .report-filter-panel .panel-head {
+  padding: 20px 22px 0;
+}
+@media (max-width: 760px) {
+  .app-shell .page-section > .panel .panel-head,
+  .app-shell .page-section .report-filter-panel .panel-head {
+    padding: 16px 15px 0;
+    gap: 10px;
+  }
+  .app-shell .page-section > .panel .panel-head > .result-count {
+    white-space: normal;
+    text-align: right;
+  }
+  .app-shell .page-section > .panel > .table-wrap {
+    max-width: calc(100% - 20px);
+    margin: 0 10px;
+  }
+  .app-shell .page-section > .panel > .table-wrap th,
+  .app-shell .page-section > .panel > .table-wrap td {
+    padding: 12px;
+  }
+  .app-shell .page-section > .panel > .report-filter-grid {
+    margin: 16px 15px 18px;
+  }
+  .app-shell .page-section > .panel > .table-wrap + .pagination,
+  .app-shell .page-section > .panel > .table-wrap + nav {
+    margin: 12px 15px 16px;
+  }
+}
+@media (max-width: 520px) {
+  .app-shell .page-section > .panel .panel-head > div {
+    flex-basis: 100%;
+  }
+  .app-shell .page-section > .panel .panel-head > .result-count,
+  .app-shell .page-section > .panel .panel-head > .btn {
+    margin-left: 0;
+  }
+  .app-shell .page-section > .panel > .table-wrap {
+    border-radius: 10px;
+  }
+}
