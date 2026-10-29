@@ -306,7 +306,7 @@ export default function Homepage() {
             const duration=durations.find(d=>d.duration_key===selectedDuration) || durations[0]
             const basePrice=Math.max(0,Number(plan.prices?.[selectedDuration] ?? 0))
             const pricedPlan={...plan,price:basePrice,duration:duration?.name||selectedDuration,duration_days:Number(duration?.duration_days||0)}
-            const displayPromo=coupon.trim()?(couponPromo?{...couponPromo,requires_code:false}:null):(automaticPromo || upcomingPromo)
+            const displayPromo=coupon.trim()?(couponPromo?{...couponPromo,requires_code:false}:null):automaticPromo
             const eligible=displayPromo ? eligiblePeriods(displayPromo) : []
             const isEligible=!eligible.length||eligible.includes(selectedDuration)
             const discount=isEligible?discountFor(pricedPlan,displayPromo,selectedDuration):0
