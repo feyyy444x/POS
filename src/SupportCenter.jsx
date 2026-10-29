@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowLeft, ArrowRight, Headphones, MessageCircle, Send, X, ExternalLink, RefreshCw, Phone, Settings, Save, CheckCircle2 } from 'lucide-react'
 import { supabase } from './lib/supabase'
+import { userFacingError } from './lib/userFacingError'
 
 const telegramUsername = (import.meta.env.VITE_TELEGRAM_SUPPORT_USERNAME || '').replace(/^@/, '').trim()
 const defaultChannelSettings = { whatsapp_enabled: false, whatsapp_number: '', telegram_enabled: Boolean(telegramUsername || 'becaaapos'), telegram_username: telegramUsername || 'becaaapos' }
@@ -43,7 +44,7 @@ export default function SupportCenter({ session, onClose, isSuperAdmin = false, 
       .select('id,whatsapp_enabled,whatsapp_number,telegram_enabled,telegram_username')
       .eq('id', 1).maybeSingle()
     if (queryError) {
-      setChannelError(queryError.message)
+      setChannelError(userFacingError(queryError, 'Pengaturan kanal bantuan belum dapat dimuat. Coba lagi atau hubungi admin.'))
       setChannelLoading(false)
       return
     }
@@ -103,7 +104,7 @@ export default function SupportCenter({ session, onClose, isSuperAdmin = false, 
       updated_at: new Date().toISOString(),
     }, { onConflict: 'id' })
     setChannelBusy(false)
-    if (saveError) { setChannelError(saveError.message); return }
+    if (saveError) { setChannelError(userFacingError(saveError, 'Pengaturan kanal bantuan belum berhasil disimpan. Coba lagi.')); return }
     setChannelNotice('Pengaturan kanal bantuan berhasil disimpan dan akan tersinkron otomatis.')
     await loadChannelSettings()
   }
@@ -111,7 +112,7 @@ export default function SupportCenter({ session, onClose, isSuperAdmin = false, 
   const loadMessages = useCallback(async (targetUserId = userId) => {
     if (!targetUserId || !supabase) return
     const { data, error: queryError } = await supabase.from('support_messages').select('*').eq('user_id', targetUserId).order('created_at', { ascending: true }).limit(300)
-    if (queryError) { setError(queryError.message); return }
+    if (queryError) { setError(userFacingError(queryError, 'Pesan bantuan belum dapat dimuat. Coba lagi.')); return }
     setMessages(data || [])
     setError('')
   }, [userId])
@@ -203,7 +204,7 @@ export default function SupportCenter({ session, onClose, isSuperAdmin = false, 
       message: body,
     })
     setBusy(false)
-    if (insertError) { setError(insertError.message); return }
+    if (insertError) { setError(userFacingError(insertError, 'Pesan belum berhasil dikirim. Periksa koneksi lalu coba lagi.')); return }
     setDraft('')
     await loadMessages(targetUser)
     if (isSuperAdmin) await loadInbox()
