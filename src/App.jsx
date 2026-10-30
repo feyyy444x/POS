@@ -192,7 +192,7 @@ function OwnerOrganizationCenter({session,organization,tenants,busy,notice,onRef
             {!activeTenants.length&&<div className="owner-no-tenant"><Store size={24}/><strong>Belum ada tenant</strong><span>Tenant organisasi akan muncul di sini setelah tersedia.</span></div>}
           </div>
         </>}
-        {activeMenu==='tenants'&&<><section className="owner-section-heading owner-page-heading"><div><span className="owner-kicker">ORGANIZATION WORKSPACES</span><h2>Tenant Saya</h2><p>Kelola akses ke seluruh workspace di bawah organisasi ini.</p></div><div className="owner-tenant-count">{activeTenants.length} tenant</div></section><form className="owner-create-tenant-form" onSubmit={onCreateTenant}><div><strong>Tambah tenant baru</strong><small>Kuota tambahan tersisa: {remaining} · Workspace utama tidak dihitung sebagai tenant tambahan.</small></div><input className="text-input" value={ownerTenantName} onChange={event=>setOwnerTenantName(event.target.value)} maxLength={120} minLength={2} placeholder="Nama tenant baru" required/><button className="btn btn-primary" disabled={tenantBusy||remaining<=0}>{tenantBusy?<span className="spinner"/>:<Plus size={15}/>} Buat tenant</button></form><div className="owner-tenant-toolbar"><label><Search size={17}/><input value={tenantQuery} onChange={e=>setTenantQuery(e.target.value)} placeholder="Cari nama tenant..."/></label><span>{filteredTenants.length} hasil</span></div><div className="owner-tenant-grid">{filteredTenants.map(tenant=><TenantCard tenant={tenant}/>)}{!filteredTenants.length&&<div className="owner-no-tenant">Tidak ada tenant yang cocok dengan pencarian.</div>}</div></>}
+        {activeMenu==='tenants'&&<><section className="owner-section-heading owner-page-heading"><div><span className="owner-kicker">ORGANIZATION WORKSPACES</span><h2>Tenant Saya</h2><p>Kelola akses ke seluruh workspace di bawah organisasi ini.</p></div><div className="owner-tenant-count">{activeTenants.length} tenant</div></section><form className="owner-create-tenant-form" onSubmit={onCreateTenant}><div><strong>Tambah tenant baru</strong><small>Kuota tambahan tersisa: {remaining} · Workspace utama tidak dihitung sebagai tenant tambahan.</small></div><input className="text-input" value={ownerTenantName} onChange={event=>setOwnerTenantName(event.target.value)} maxLength={120} minLength={2} placeholder="Nama tenant baru" required/><button className="btn btn-primary" disabled={tenantBusy||remaining<=0||organization.status!=='active'}>{tenantBusy?<span className="spinner"/>:<Plus size={15}/>} Buat tenant</button></form><div className="owner-tenant-toolbar"><label><Search size={17}/><input value={tenantQuery} onChange={e=>setTenantQuery(e.target.value)} placeholder="Cari nama tenant..."/></label><span>{filteredTenants.length} hasil</span></div><div className="owner-tenant-grid">{filteredTenants.map(tenant=><TenantCard tenant={tenant}/>)}{!filteredTenants.length&&<div className="owner-no-tenant">Tidak ada tenant yang cocok dengan pencarian.</div>}</div></>}
         {activeMenu==='team'&&<OrganizationOperations mode="team" tenants={activeTenants}/>}
         {activeMenu==='monitoring'&&<OrganizationOperations mode="monitoring" tenants={activeTenants}/>}
         {activeMenu==='reports'&&<OrganizationReports organization={organization} tenants={activeTenants}/>}
@@ -1346,8 +1346,12 @@ function App() {
     if (error) { setNotice(userFacingError(error, 'Tenant baru belum berhasil dibuat.')); return }
     setOwnerTenantName('')
     setNotice('Tenant ' + name + ' berhasil dibuat. Paket dan masa aktif mengikuti organisasi Owner.')
-    if (data?.id) { setIsOwnerTenantWorkspace(true); setSelectedStoreId(data.id) }
-    else await loadWorkspace()
+    if (data?.id) {
+      setLoading(true)
+      setIsOwnerTenantWorkspace(true)
+      setStore(null); setMembership(null); setSettings(null); setProducts([]); setOrders([]); setOrderItems([]); setQueue([]); setCart([]); setReceipt(null)
+      setSelectedStoreId(data.id)
+    } else await loadWorkspace()
   }
 
   const deleteOwnerTenant = async (tenant) => {
