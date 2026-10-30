@@ -25,7 +25,7 @@ jobs:
       - name: Audit dependencies for high or critical vulnerabilities
         run: npm audit --audit-level=high
       - name: Run static security regression checks
-        run: node --test tests/security-smoke.test.mjs tests/read-only-lock.test.mjs
+        run: node --test tests/security-smoke.test.mjs tests/read-only-lock.test.mjs tests/tenant-lifecycle-sync.test.mjs
       - name: Build production bundle
         run: npm run build
       - name: Run deployed preview end-to-end smoke checks
