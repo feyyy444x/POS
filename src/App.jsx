@@ -1254,6 +1254,22 @@ function App() {
     else await loadWorkspace()
   }
 
+  const deleteOwnerTenant = async (tenant) => {
+    const confirmation = prompt(
+      'PENGHAPUSAN PERMANEN TENANT\\nSemua produk, stok, transaksi, item transaksi, antrean, pengaturan, undangan, anggota, riwayat kasir, dan data operasional tenant ini akan dihapus permanen. Tenant lain tidak terpengaruh.\\n\\nKetik HAPUS ' + tenant.name + ' untuk melanjutkan.'
+    )
+    if (confirmation !== 'HAPUS ' + tenant.name) return
+    setOwnerTenantBusy(true)
+    setNotice('')
+    const { error } = await supabase.rpc('owner_delete_store_tenant', { p_store_id: tenant.id })
+    setOwnerTenantBusy(false)
+    if (error) {
+      setNotice(userFacingError(error, 'Tenant belum berhasil dihapus. Periksa apakah masih ada sesi kasir terbuka.'))
+      return
+    }
+    window.location.reload()
+  }
+
   const printReceipt = () => { if(receipt)window.print() }
   const nav = [
     {section:'WORKSPACE',items:[['dashboard','Ringkasan',LayoutDashboard],['pos','Kasir / POS',ShoppingCart],['products','Produk & stok',Package],['queue','Sistem antrian',Ticket]]},
@@ -1372,7 +1388,7 @@ function App() {
           <StatCard icon={CalendarDays} label="Masa aktif" value={ownerOrganization.expires_at?new Date(ownerOrganization.expires_at).toLocaleDateString('id-ID',{timeZone:'Asia/Jakarta'}):'Belum aktif'} meta={ownerOrganization.status==='active'?'Status aktif':'Status: '+ownerOrganization.status} tone={ownerOrganization.status==='active'?'green':'orange'}/>
         </div> : <div className="panel"><strong>Organisasi Owner belum terhubung</strong><p>Hubungi Super Admin untuk menautkan akun Owner ke organisasi dan paket aktivasi.</p></div>}
         <div className="panel tenant-list-panel"><div className="panel-head"><div><h3><Store size={17}/> Tenant milik organisasi</h3><p>Pilih tenant untuk berpindah workspace. Data tenant lain tetap terisolasi.</p></div></div>
-          {ownerTenants.filter(item=>item.status!=='deleted'&&!item.deleted_at).length ? <div className="table-wrap"><table><thead><tr><th>Nama tenant</th><th>Status</th><th>Paket / kuota</th><th>Workspace</th></tr></thead><tbody>{ownerTenants.filter(item=>item.status!=='deleted'&&!item.deleted_at).map(item=>{const linked=Boolean(item.has_membership)||memberships.some(memberItem=>memberItem.store_id===item.id);return <tr key={item.id}><td><strong>{item.name}</strong><br/><small className="mono">{item.id}</small></td><td><span className={'status-pill '+(item.status==='active'?'status-paid':item.status==='pending'?'status-waiting':'status-inactive')}>{item.status||'—'}</span>{item.expires_at&&<><br/><small>Berakhir {new Date(item.expires_at).toLocaleDateString('id-ID',{timeZone:'Asia/Jakarta'})}</small></>}</td><td>{item.is_primary_workspace?'Workspace utama':(item.activation_package_key||ownerOrganization?.activation_package_key||'starter')+' · Tenant tambahan'}</td><td>{item.id===store.id?<span className="status-pill status-paid">Sedang aktif</span>:linked?<button type="button" className="btn btn-small btn-outline" onClick={()=>{setSelectedStoreId(item.id);setPage('dashboard')}}>Buka workspace <ArrowRight size={13}/></button>:<span className="subtle">Menunggu undangan Owner</span>}</td></tr>})}</tbody></table></div> : <div className="empty-state"><strong>Belum ada tenant Owner</strong><p>Tenant organisasi yang terhubung akan muncul di sini.</p></div>}
+          {ownerTenants.filter(item=>item.status!=='deleted'&&!item.deleted_at).length ? <div className="table-wrap"><table><thead><tr><th>Nama tenant</th><th>Status</th><th>Paket / kuota</th><th>Workspace</th><th>Aksi</th></tr></thead><tbody>{ownerTenants.filter(item=>item.status!=='deleted'&&!item.deleted_at).map(item=>{const linked=Boolean(item.has_membership)||memberships.some(memberItem=>memberItem.store_id===item.id);return <tr key={item.id}><td><strong>{item.name}</strong><br/><small className="mono">{item.id}</small></td><td><span className={'status-pill '+(item.status==='active'?'status-paid':item.status==='pending'?'status-waiting':'status-inactive')}>{item.status||'—'}</span>{item.expires_at&&<><br/><small>Berakhir {new Date(item.expires_at).toLocaleDateString('id-ID',{timeZone:'Asia/Jakarta'})}</small></>}</td><td>{item.is_primary_workspace?'Workspace utama':(item.activation_package_key||ownerOrganization?.activation_package_key||'starter')+' · Tenant tambahan'}</td><td>{item.id===store.id?<span className="status-pill status-paid">Sedang aktif</span>:linked?<button type="button" className="btn btn-small btn-outline" onClick={()=>{setSelectedStoreId(item.id);setPage('dashboard')}}>Buka workspace <ArrowRight size={13}/></button>:<span className="subtle">Menunggu undangan Owner</span>}</td><td><button type="button" className="btn btn-small btn-outline" disabled={ownerTenantBusy} onClick={()=>deleteOwnerTenant(item)}><Trash2 size={13}/> Hapus permanen</button></td></tr>})}</tbody></table></div> : <div className="empty-state"><strong>Belum ada tenant Owner</strong><p>Tenant organisasi yang terhubung akan muncul di sini.</p></div>}
         </div>
         <div className="panel super-register-panel"><div className="panel-head"><div><h3><Plus size={17}/> Tambah tenant</h3><p>Tenant tambahan otomatis mengikuti kuota dan tanggal kedaluwarsa organisasi. Workspace utama tidak mengurangi kuota tenant tambahan.</p></div></div>
           <form className="tenant-register-form" onSubmit={createOwnerTenant}><div><label>Nama tenant baru</label><input className="text-input" value={ownerTenantName} onChange={event=>setOwnerTenantName(event.target.value)} placeholder="Contoh: Cabang Pusat Kota" maxLength={120} required/></div><button className="btn btn-primary" disabled={ownerTenantBusy||!ownerOrganization||ownerOrganization.status!=='active'||ownerTenants.filter(item=>!item.is_primary_workspace&&item.status!=='deleted'&&!item.deleted_at).length>=Number(ownerOrganization.activation_location_limit||0)}>{ownerTenantBusy?<span className="spinner"/>:<Plus size={16}/>} Buat tenant</button></form>
