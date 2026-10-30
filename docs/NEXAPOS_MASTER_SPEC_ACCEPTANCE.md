@@ -38,7 +38,7 @@ This matrix is the release checklist for the 16-point NexaPos master specificati
 **Status: Existing + new RLS; direct API tests pending.** Existing tenant-scoped policies remain; the new organization/audit tables have explicit RLS. Run direct API/RLS tests for products, prices, stock, orders, payments, cashier attribution, queue, reports, audit, search/export, and realtime across two unrelated organizations.
 
 ## 11. Concurrent cashiers, transactions, stock, receipts
-**Status: Existing / verify.** Multi-cashier operation and cashier attribution remain in the existing implementation. Run two or more authenticated cashiers concurrently and verify stock consistency, transaction identity, receipt correctness, and report attribution.
+**Status: Existing / verify.** Multi-cashier operation and cashier attribution remain in the existing implementation. Account deletion migrations retain shift, break, and manual-alert actor labels after login removal; open sessions prevent account deletion. Run two or more authenticated cashiers concurrently and verify stock consistency, transaction identity, receipt correctness, and report attribution.
 
 ## 12. Operational-only queue
 **Status: Implemented in branch; integration pending.** Queue enable/disable is retained; checkout passes the queue-enabled state to the backend and receipts only render a queue number when a ticket exists. Public queue RPC no longer exposes media/template/player data. Media tables are intentionally not dropped until their dependencies/data impact are reviewed.
