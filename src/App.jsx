@@ -714,6 +714,26 @@ function App() {
     loadWorkspace()
   }, [session, loadWorkspace, selectedStoreReady])
 
+  useEffect(()=>{
+    if(!session?.user?.id||!ownerOrganization?.id||!supabase)return
+    let cancelled=false
+    const refreshOwnerTenants=async()=>{
+      const {data,error}=await fetchOwnerOrganizationTenants()
+      if(!cancelled&&!error&&data)setOwnerTenants(data)
+    }
+    if(!isOwnerTenantWorkspace)refreshOwnerTenants()
+    const channel=supabase.channel('owner-tenant-profile-sync-'+ownerOrganization.id)
+      .on('postgres_changes',{event:'*',schema:'public',table:'store_settings'},refreshOwnerTenants)
+      .subscribe(status=>{if(status==='SUBSCRIBED')refreshOwnerTenants()})
+    const handleFocus=()=>{if(!isOwnerTenantWorkspace)refreshOwnerTenants()}
+    window.addEventListener('focus',handleFocus)
+    return()=>{
+      cancelled=true
+      window.removeEventListener('focus',handleFocus)
+      supabase.removeChannel(channel)
+    }
+  },[session?.user?.id,ownerOrganization?.id,isOwnerTenantWorkspace])
+
   // Preserve the active workspace page and its scroll position across reloads and app switching.
   useEffect(() => {
     if (!session?.user?.id || !selectedStoreReady || isSuperAdmin) return
