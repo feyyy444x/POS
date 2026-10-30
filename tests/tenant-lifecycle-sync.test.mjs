@@ -52,3 +52,17 @@ test('Admin, Owner, and tenant workspace subscribe to shared lifecycle changes',
   assert.match(app, /table:'store_members'},payload=>/)
   assert.match(lifecycle, /alter publication supabase_realtime add table public\.%I/)
 })
+
+
+const reactivation = await readFile(new URL('../supabase/migrations/20261030490000_reactivate_suspended_tenant_independently.sql', import.meta.url), 'utf8')
+
+test('tenant reactivation RPC accepts active status while preserving organization, expiry, and package quota guards', () => {
+  assert.match(reactivation, /p_status not in \\(?'active', 'pending', 'suspended'\\)?/i)
+  assert.match(reactivation, /v_org\.status <> 'active'/)
+  assert.match(reactivation, /v_org\.expires_at/)
+  assert.match(reactivation, /v_store\.expires_at/)
+  assert.match(reactivation, /v_active_tenants >= v_org\.activation_location_limit/)
+  assert.match(reactivation, /private\.is_super_admin\(\)/)
+  assert.match(reactivation, /private\.is_pin_verified\(\)/)
+  assert.match(app, /supabase\.rpc\('set_store_tenant_status',\{p_store_id:tenant\.id,p_status:nextStatus\}\)/)
+})
