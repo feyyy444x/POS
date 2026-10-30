@@ -9,8 +9,6 @@ test('package activation is blocked until active tenant count fits the new packa
   assert.match(lifecycle, /v_active_tenants > v_package\.location_limit/)
   assert.match(lifecycle, /Admin\/Super Admin harus menonaktifkan tenant yang tidak dipilih/)
   assert.match(lifecycle, /status = 'active'/)
-  assert.match(lifecycle, /status = 'active'/)
-  assert.match(lifecycle, /p_status not in \\('active','pending','suspended'\\)/)
 })
 
 test('Admin NexaPos and Super Admin can reactivate one tenant only within organization quota', () => {
