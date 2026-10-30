@@ -160,7 +160,7 @@ function OwnerOrganizationCenter({session,organization,tenants,busy,notice,onRef
   const choose=(id)=>{setActiveMenu(id);setMobileOpen(false)}
   const Stat=({label,value,meta,icon:Icon})=><article className="owner-stat-card"><span className="owner-stat-icon"><Icon size={18}/></span><div><small>{label}</small><strong>{value}</strong><p>{meta}</p></div></article>
   const TenantCard=({tenant})=><article className="owner-tenant-card" key={tenant.id}>
-    <div className="owner-tenant-card-top"><span className="owner-tenant-symbol"><Store size={19}/></span><span className={'owner-status '+(tenant.status==='active'?'is-active':'')}>{tenant.status||'unknown'}</span></div>
+    <div className="owner-tenant-card-top"><span className="owner-tenant-symbol"><Store size={19}/></span><span className={'owner-status '+(tenant.status==='active'&&!(tenant.expires_at&&new Date(tenant.expires_at)<=new Date())?'is-active':'')}>{tenant.expires_at&&new Date(tenant.expires_at)<=new Date()?'expired':tenant.status||'unknown'}</span></div>
     <h3>{tenant.name||'Tenant tanpa nama'}</h3>
     <p>{tenant.is_primary_workspace?'Workspace utama':'Tenant tambahan'} · {tenant.activation_package_key||organization.activation_package_key||'Paket organisasi'}</p>
     <div className="owner-tenant-card-bottom"><span>{tenant.expires_at?'Berakhir '+new Date(tenant.expires_at).toLocaleDateString('id-ID'):'Masa aktif mengikuti paket'}</span>
