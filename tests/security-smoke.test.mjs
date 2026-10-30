@@ -268,7 +268,7 @@ test('free NexaPos support bot is FAQ-only and never calls a paid external AI pr
   assert.match(supportHandoffMigration, /v_answer := 'Maaf, saya belum memiliki jawaban terverifikasi/)
   assert.doesNotMatch(supportMigration + supportHandoffMigration, /fetch\s*\(|https:\/\/api\.|OPENAI_API_KEY|GEMINI_API_KEY|ANTHROPIC_API_KEY/i)
   assert.match(supportCenter, /submit_support_message/)
-  assert.match(supportCenter, /NexaPos Bot/)
+  assert.match(supportCenter, /Joeclyn/)
 })
 
 test('support RPCs validate customer input, require authenticated sessions, and rate-limit messages', () => {
