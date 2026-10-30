@@ -28,6 +28,38 @@ as $function$
     )
 $function$;
 
+-- Staff assigned to a tenant may read its entitlement status so the UI can show the lock state.
+drop policy if exists "Tenant members read organization entitlement" on public.owner_organizations;
+create policy "Tenant members read organization entitlement"
+  on public.owner_organizations for select to authenticated
+  using (
+    exists (
+      select 1
+      from public.stores s
+      where s.organization_id = owner_organizations.id
+        and private.is_store_member(s.id)
+    )
+  );
+
+create or replace function public.manager_can_manage_store_member(p_member_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $function$
+  select exists (
+    select 1 from public.store_members target
+    where target.id = p_member_id
+      and target.role <> 'owner'
+      and target.user_id <> (select auth.uid())
+      and private.is_store_manager(target.store_id)
+      and private.is_store_operational(target.store_id)
+  )
+$function$;
+revoke all on function public.manager_can_manage_store_member(uuid) from public, anon;
+grant execute on function public.manager_can_manage_store_member(uuid) to authenticated;
+
 -- Keep tenant data readable by its active members while operational writes remain blocked.
 drop policy if exists "members read operational products" on public.products;
 create policy "members read tenant products"
