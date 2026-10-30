@@ -177,7 +177,7 @@ function OwnerOrganizationCenter({session,organization,tenants,busy,notice,onRef
     </div>
   </article>
   const ComingSoon=({description})=><section className="owner-empty-state"><span><Activity size={22}/></span><h3>Ruang kerja {activeItem.label}</h3><p>{description}</p><small>Halaman ini sudah tersedia di navigasi. Integrasi data dan tindakan akan diaktifkan setelah sumber data organisasi tersedia, tanpa menampilkan data contoh.</small></section>
-  return <div className="owner-console" onClickCapture={guardLockedClick} onSubmitCapture={event=>{if(!readOnly)return;event.preventDefault();event.stopPropagation();event.nativeEvent?.stopImmediatePropagation?.();onLockedAction()}}>
+  return <div className="owner-console" onClickCapture={guardLockedClick} onSubmitCapture={event=>{if(!readOnly)return;event.preventDefault();event.stopPropagation();event.nativeEvent?.stopImmediatePropagation?.();onLockedAction();setLockNoticeOpen(true)}}>
     <aside className={'owner-sidebar '+(mobileOpen?'owner-sidebar-open':'')}>
       <div className="owner-brand-row"><Brand/><button className="owner-mobile-close" onClick={()=>setMobileOpen(false)} aria-label="Tutup navigasi"><X size={19}/></button></div>
       <div className="owner-org-switch"><span className="owner-org-avatar">{initial(organization.organization_name||organization.owner_name||organization.owner_email)}</span><span><strong>{organization.organization_name||'Organisasi belum bernama'}</strong><small>ORGANIZATION OWNER · {organization.owner_name||'Pemilik'}</small></span><span className="owner-org-dot"/></div>
