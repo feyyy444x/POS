@@ -134,6 +134,49 @@ function Pagination({page,total,pageSize=10,onChange}) {
   return <div className="pagination-bar"><span>Menampilkan {start}–{end} dari {total.toLocaleString('id-ID')} data</span><div className="pagination-actions"><button className="btn btn-small btn-outline" disabled={page<=1} onClick={()=>onChange(page-1)}>Sebelumnya</button><span>Halaman {page} / {pages}</span><button className="btn btn-small btn-outline" disabled={page>=pages} onClick={()=>onChange(page+1)}>Berikutnya</button></div></div>
 }
 
+
+function OwnerOrganizationCenter({session,organization,tenants,busy,notice,onRefresh,onSignOut,onEnterTenant}) {
+  const activeTenants=(tenants||[]).filter(item=>item.status!=='deleted'&&!item.deleted_at)
+  const additionalTenants=activeTenants.filter(item=>!item.is_primary_workspace)
+  const canEnter=(tenant)=>Boolean(tenant.has_membership)
+  return <main className="tenant-locked-shell" style={{alignItems:'stretch',padding:24}}>
+    <section style={{width:'min(1100px,100%)',margin:'0 auto',background:'var(--panel,#fff)',border:'1px solid var(--border,#e6e8f0)',borderRadius:22,padding:24,boxShadow:'0 18px 60px rgba(20,30,60,.08)'}}>
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:16,flexWrap:'wrap'}}>
+        <Brand/>
+        <button className="btn btn-outline" onClick={onSignOut}><LogOut size={15}/> Keluar</button>
+      </div>
+      <div style={{marginTop:34}}>
+        <span className="eyebrow muted">NEXAPOS / ORGANIZATION CONTROL CENTER</span>
+        <h1 style={{fontSize:'clamp(28px,5vw,42px)',margin:'8px 0'}}>Pusat kendali organisasi.</h1>
+        <p className="subtle" style={{maxWidth:680}}>Kelola tenant organisasi dari satu tempat. Operasional kasir, produk, stok, dan transaksi hanya tersedia setelah masuk ke workspace tenant.</p>
+      </div>
+      {notice&&<div className="notice" role="status" style={{marginTop:18}}>{notice}</div>}
+      <div className="stats-grid" style={{marginTop:24}}>
+        <StatCard icon={Store} label="Tenant aktif" value={activeTenants.length} meta="Workspace dalam organisasi" tone="violet"/>
+        <StatCard icon={Package} label="Paket organisasi" value={organization.activation_package_key||'starter'} meta="Kuota bersama" tone="blue"/>
+        <StatCard icon={CalendarDays} label="Kuota tenant tambahan" value={Math.max(0,Number(organization.activation_location_limit||0)-additionalTenants.length)} meta="Di luar workspace utama" tone="green"/>
+      </div>
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:12,margin:'28px 0 14px',flexWrap:'wrap'}}>
+        <div><h2 style={{margin:0}}>Tenant saya</h2><p className="subtle" style={{margin:'5px 0 0'}}>Pilih tenant untuk membuka workspace operasional.</p></div>
+        <button className="btn btn-outline" onClick={onRefresh} disabled={busy}><RefreshCw size={15}/> Muat ulang</button>
+      </div>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(260px,1fr))',gap:14}}>
+        {activeTenants.map(tenant=><article key={tenant.id} className="panel" style={{padding:18}}>
+          <div style={{display:'flex',justifyContent:'space-between',gap:10,alignItems:'start'}}>
+            <div><strong style={{fontSize:16}}>{tenant.name}</strong><div className="subtle" style={{fontSize:12,marginTop:5}}>{tenant.is_primary_workspace?'Workspace utama':'Tenant tambahan'}</div></div>
+            <span className={'status-pill '+(tenant.status==='active'?'status-paid':'status-waiting')}>{tenant.status}</span>
+          </div>
+          <div style={{marginTop:18}}>{canEnter(tenant)
+            ? <button className="btn btn-primary btn-wide" onClick={()=>onEnterTenant(tenant.id)}><ArrowRight size={15}/> Masuk workspace</button>
+            : <p className="subtle" style={{fontSize:12}}>Akses operasional tenant ini belum ditautkan ke akun Owner. Minta Super Admin menautkan akses tenant.</p>}
+        </div></article>)}
+        {!activeTenants.length&&<div className="panel"><EmptyState icon={Store} title="Belum ada tenant" text="Organisasi ini belum memiliki workspace tenant."/></div>}
+      </div>
+      <p className="subtle" style={{fontSize:12,marginTop:24}}>Akun: {session.user.email} · Organisasi: {organization.owner_name||organization.owner_email}</p>
+    </section>
+  </main>
+}
+
 function App() {
   const [session, setSession] = useState(null)
   const [authReady, setAuthReady] = useState(false)
@@ -453,12 +496,37 @@ function App() {
     let resolvedMembers = memberRows || []
     if (memberError) { setNotice(userFacingError(memberError, 'Koneksi belum siap saat memuat keanggotaan. Periksa internet lalu coba lagi.')); setLoading(false); return }
     if (!resolvedMembers.length) {
+      // Owner organizations are control centers and do not require a store membership to sign in.
+      const {data: organization, error: organizationError} = await supabase.from('owner_organizations')
+        .select('id,owner_user_id,owner_email,owner_name,activation_package_key,activation_location_limit,status,activated_at,expires_at,activation_days')
+        .eq('owner_user_id', session.user.id).limit(1).maybeSingle()
+      if (organizationError) {
+        setOwnerOrganization(null)
+        setOwnerTenants([])
+        setNotice(userFacingError(organizationError, 'Organisasi Owner belum dapat dimuat.'))
+      } else if (organization?.id) {
+        setOwnerOrganization(organization)
+        const {data: organizationTenants, error: tenantsError} = await supabase.rpc('owner_list_organization_tenants')
+        if (tenantsError) {
+          setOwnerTenants([])
+          setNotice(userFacingError(tenantsError, 'Daftar tenant organisasi belum dapat dimuat.'))
+        } else {
+          setOwnerTenants(organizationTenants || [])
+          setNotice('')
+        }
+      } else {
+        setOwnerOrganization(null)
+        setOwnerTenants([])
+        setNotice('Akun belum memiliki toko atau organisasi Owner. Jika Anda baru menerima undangan, coba lagi sebentar.')
+      }
       setMemberships([])
       setMembership(null)
-      setOwnerOrganization(null)
-      setOwnerTenants([])
       setStore(null)
-      setNotice('Akun belum memiliki toko. Jika Anda baru saja login atau menerima undangan, coba sebentar lagi.')
+      setSettings(null)
+      setProducts([])
+      setOrders([])
+      setOrderItems([])
+      setQueue([])
       setLoading(false)
       return
     }
@@ -1289,6 +1357,16 @@ function App() {
   
   if(loading&&!store)return <div className="loading-screen"><span className="spinner spinner-large"/><span>Memeriksa keanggotaan toko…</span></div>
   if(!store)return <div className="loading-screen"><span className="spinner spinner-large"/><p>{notice||'Akun ini belum terhubung ke toko. Minta Owner atau Super Admin mengirim undangan.'}</p><button className="btn btn-outline" onClick={loadWorkspace} disabled={loading}><RefreshCw size={14}/> {loading?'Memeriksa toko…':'Cek koneksi toko'}</button><button className="btn btn-ghost" onClick={()=>supabase.auth.signOut()}>Keluar</button></div>
+  if (ownerOrganization && !store) return <OwnerOrganizationCenter
+    session={session}
+    organization={ownerOrganization}
+    tenants={ownerTenants}
+    busy={loading}
+    notice={notice}
+    onRefresh={loadWorkspace}
+    onSignOut={()=>supabase.auth.signOut()}
+    onEnterTenant={(tenantId)=>{setSelectedStoreId(tenantId);setStore(null);setMembership(null);setSettings(null);setProducts([]);setOrders([]);setQueue([]);setNotice('')}}
+  />
   const effectiveStoreStatus = store.status === 'active' && store.expires_at && new Date(store.expires_at) <= new Date() ? 'expired' : (store.status || 'active')
   if(effectiveStoreStatus !== 'active') return <TenantLockedScreen store={store} status={effectiveStoreStatus} onSignOut={()=>supabase.auth.signOut()}/>
 
