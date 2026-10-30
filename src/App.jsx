@@ -164,6 +164,9 @@ function App() {
   const [queue, setQueue] = useState([])
   const [loading, setLoading] = useState(false)
   const [notice, setNotice] = useState('')
+  const [ownerMemberDeleteTarget,setOwnerMemberDeleteTarget] = useState(null)
+  const [ownerMemberDeleteText,setOwnerMemberDeleteText] = useState('')
+  const [ownerMemberDeleteBusy,setOwnerMemberDeleteBusy] = useState(false)
   const [syncStatus, setSyncStatus] = useState(() => typeof navigator !== 'undefined' && !navigator.onLine ? 'offline' : 'checking')
   const [manualRefreshTick, setManualRefreshTick] = useState(0)
   const [search, setSearch] = useState('')
@@ -1103,11 +1106,22 @@ function App() {
   }
 
   const deleteTeamMember = async (member) => {
-    if(!confirm('Hapus permanen keanggotaan '+(member.full_name||member.email)+' dari toko ini? Jika akun tidak digunakan tenant lain, akun login juga akan dihapus permanen.'))return
-    const {error}=await supabase.rpc('owner_delete_store_member',{p_member_id:member.id})
-    if(error){setNotice(userFacingError(error));return}
-    setNotice('Keanggotaan dihapus permanen.')
-    await loadWorkspace()
+    setOwnerMemberDeleteText('')
+    setOwnerMemberDeleteTarget(member)
+  }
+  const confirmOwnerMemberDelete = async () => {
+    if(!ownerMemberDeleteTarget||ownerMemberDeleteText.trim()!=='HAPUS')return
+    setOwnerMemberDeleteBusy(true)
+    try{
+      const {error}=await supabase.rpc('owner_delete_store_member',{p_member_id:ownerMemberDeleteTarget.id})
+      if(error)throw error
+      setOwnerMemberDeleteTarget(null)
+      setOwnerMemberDeleteText('')
+      setNotice('Keanggotaan dihapus permanen.')
+      await loadWorkspace()
+    }catch(error){
+      setNotice(userFacingError(error,'Keanggotaan belum berhasil dihapus. Periksa sesi kasir yang masih terbuka lalu coba lagi.'))
+    }finally{setOwnerMemberDeleteBusy(false)}
   }
 
   const regenerateTeamInviteCode = async (invite) => {
@@ -1266,6 +1280,31 @@ function App() {
   const tenantExpiryTone = tenantDaysRemaining === null ? '' : tenantDaysRemaining < 7 ? 'critical' : tenantDaysRemaining <= 25 ? 'warning' : 'healthy'
   const titleMap={dashboard:'Ringkasan',pos:'Kasir / POS',products:'Produk & stok',queue:'Sistem antrian',monitoring:'Monitoring kasir aktif',reports:'Laporan penjualan','reports-org':'Laporan organisasi',attendance:'Laporan absensi',cashier:'Buka / tutup kasir',settings:'Pengaturan toko',profile:'Profil & keamanan','tv-settings':'Edit Tampilan TV',tenants:'Tenant & lokasi',audit:'Audit aktivitas'}
   return <div className="app-shell">
+    {ownerMemberDeleteTarget&&<div role="presentation" onMouseDown={e=>{if(e.target===e.currentTarget&&!ownerMemberDeleteBusy){setOwnerMemberDeleteTarget(null);setOwnerMemberDeleteText('')}}} style={{position:'fixed',inset:0,zIndex:10020,background:'rgba(12,16,32,.58)',display:'flex',alignItems:'center',justifyContent:'center',padding:18}}>
+      <section role="dialog" aria-modal="true" aria-labelledby="owner-delete-member-title" style={{position:'relative',width:'100%',maxWidth:430,background:'var(--panel,#fff)',color:'var(--ink,#1b2035)',borderRadius:18,padding:24,boxShadow:'0 24px 80px rgba(0,0,0,.28)',border:'1px solid var(--border,#e6e8f0)'}}>
+        <button type="button" aria-label="Tutup konfirmasi hapus anggota" disabled={ownerMemberDeleteBusy} onClick={()=>{setOwnerMemberDeleteTarget(null);setOwnerMemberDeleteText('')}} style={{position:'absolute',top:12,right:12,width:34,height:34,borderRadius:10,border:'1px solid var(--border,#e6e8f0)',background:'transparent',color:'inherit',display:'grid',placeItems:'center',cursor:'pointer'}}><X size={17}/></button>
+        <div style={{width:46,height:46,borderRadius:14,display:'grid',placeItems:'center',background:'rgba(220,38,38,.10)',color:'#dc2626',marginBottom:14}}><Trash2 size={22}/></div>
+        <span className="eyebrow muted">TINDAKAN PERMANEN</span>
+        <h2 id="owner-delete-member-title" style={{fontSize:20,margin:'6px 42px 8px 0'}}>Hapus anggota toko?</h2>
+        <p style={{fontSize:13,color:'var(--muted,#73798f)',lineHeight:1.6,margin:'0 0 14px'}}>Keanggotaan akan dihapus. Jika akun tidak lagi digunakan di tenant lain, kredensial login juga akan dihapus. Riwayat operasional tetap dipertahankan.</p>
+        <div style={{border:'1px solid var(--border,#e6e8f0)',background:'var(--surface,#f7f8fc)',borderRadius:12,padding:13,marginBottom:16}}>
+          <small style={{display:'block',color:'var(--muted,#73798f)',marginBottom:4}}>Anggota yang dipilih</small>
+          <strong style={{display:'block',overflowWrap:'anywhere'}}>{ownerMemberDeleteTarget.full_name||'Tanpa nama'}</strong>
+          <span style={{fontSize:13,color:'var(--muted,#73798f)',overflowWrap:'anywhere'}}>{ownerMemberDeleteTarget.email||'Email tidak tersedia'}</span>
+        </div>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,marginBottom:8}}>
+          <label htmlFor="owner-delete-member-confirm" style={{fontSize:13,fontWeight:700}}>Salin kode lalu ketik di bawah</label>
+          <button type="button" className="btn btn-small btn-outline" onClick={async()=>{try{await navigator.clipboard.writeText('HAPUS');setNotice('Kode konfirmasi HAPUS berhasil disalin.')}catch{setNotice('Browser tidak mengizinkan salin otomatis. Pilih teks HAPUS untuk menyalinnya.')}}}><Copy size={14}/> Salin HAPUS</button>
+        </div>
+        <div style={{fontFamily:'ui-monospace,SFMono-Regular,Menlo,monospace',fontSize:20,fontWeight:800,letterSpacing:'.16em',textAlign:'center',padding:12,border:'1px dashed #dc2626',borderRadius:10,color:'#dc2626',marginBottom:12,userSelect:'all'}}>HAPUS</div>
+        <input id="owner-delete-member-confirm" className="text-input" autoComplete="off" value={ownerMemberDeleteText} onChange={e=>setOwnerMemberDeleteText(e.target.value.toUpperCase())} placeholder="Ketik HAPUS untuk mengonfirmasi" disabled={ownerMemberDeleteBusy}/>
+        <div style={{display:'flex',gap:10,marginTop:16}}>
+          <button type="button" className="btn btn-outline" style={{flex:1,justifyContent:'center'}} disabled={ownerMemberDeleteBusy} onClick={()=>{setOwnerMemberDeleteTarget(null);setOwnerMemberDeleteText('')}}>Batal</button>
+          <button type="button" className="btn btn-primary" style={{flex:1,justifyContent:'center',background:'#dc2626',borderColor:'#dc2626'}} disabled={ownerMemberDeleteBusy||ownerMemberDeleteText.trim()!=='HAPUS'} onClick={confirmOwnerMemberDelete}>{ownerMemberDeleteBusy?<span className="spinner"/>:<Trash2 size={15}/>} Hapus permanen</button>
+        </div>
+      </section>
+    </div>}
+
     <aside className={`sidebar ${mobileNav?'sidebar-open':''}`}>
       <div className="sidebar-brand"><Brand/></div>
       <div className="store-switch"><span className="store-avatar">{settings?.logo_url?<img className="sidebar-store-logo" src={settings.logo_url} alt={`Logo ${settings?.store_name||store.name}`}/>:<Store size={17}/>}</span><span className="store-copy">{memberships.length>1?<select className="store-select" aria-label="Pilih toko aktif" value={store.id} onChange={e=>{setSelectedStoreId(e.target.value);setStore(null);setMembership(null);setSettings(null);setProducts([]);setOrders([]);setQueue([]);setCart([]);setReceipt(null);setNotice('')}}>{memberships.map(m=><option key={m.store_id} value={m.store_id}>{m.store_name}</option>)}</select>:<strong>{settings?.store_name||store.name}</strong>}<small>{memberships.length>1?'Ganti workspace':'Workspace aktif'}</small></span>{memberships.length===1&&<ChevronDown size={15}/>}</div>
