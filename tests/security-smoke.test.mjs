@@ -621,3 +621,37 @@ test('Super Admin protected actions explain PIN verification failures', async ()
   assert.match(errors, /Verifikasi PIN Super Admin diperlukan/)
   assert.match(errors, /super admin access required/i)
 })
+
+
+test('Owner organization settings persist a separate organization name and refresh the shared UI state', async () => {
+  const settings = await readFile(new URL('../src/OrganizationSettings.jsx', import.meta.url), 'utf8')
+  const profileMigration = await readFile(new URL('../supabase/migrations/20261030320000_owner_organization_profile.sql', import.meta.url), 'utf8')
+  assert.match(settings, /rpc\('owner_update_organization_profile'/)
+  assert.match(settings, /onSaved\?\.\(data\)/)
+  assert.match(profileMigration, /add column if not exists organization_name text/i)
+  assert.match(profileMigration, /where owner_user_id = v_user_id/)
+})
+
+test('Owner organization operations can invite employees and update tenant roles safely', async () => {
+  const operations = await readFile(new URL('../src/OrganizationOperations.jsx', import.meta.url), 'utf8')
+  assert.match(operations, /rpc\('invite_store_member'/)
+  assert.match(operations, /rpc\('owner_update_store_member'/)
+  assert.match(operations, /Tambah karyawan/)
+  assert.match(operations, /Edit akses/)
+  assert.match(operations, /p_store_id: inviteTenant/)
+})
+
+test('Owner tenant creation, entry, organization identity and Admin tenant classification remain connected', async () => {
+  const app = await readFile(new URL('../src/App.jsx', import.meta.url), 'utf8')
+  const adminMigration = await readFile(new URL('../supabase/migrations/20261030360000_admin_owner_membership_not_tenant_assignment.sql', import.meta.url), 'utf8')
+  const expiryMigration = await readFile(new URL('../supabase/migrations/20261030350000_owner_tenant_entry_expiry_guard.sql', import.meta.url), 'utf8')
+  assert.match(app, /rpc\('owner_create_store_tenant'/)
+  assert.match(app, /rpc\('owner_enter_store_tenant'/)
+  assert.match(app, /rpc\('owner_list_organization_tenants'/)
+  assert.match(app, /organization_name,activation_package_key/)
+  assert.match(app, /Pusat organisasi/)
+  assert.match(adminMigration, /filter \(where m\.role <> 'owner'/i)
+  assert.match(adminMigration, /organization_names text/i)
+  assert.match(expiryMigration, /v_store_expires_at <= now\(\)/i)
+  assert.match(expiryMigration, /v_org_expires_at <= now\(\)/i)
+})
