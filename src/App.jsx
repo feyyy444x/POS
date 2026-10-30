@@ -787,6 +787,14 @@ function App() {
         const changedId=payload.new?.id||payload.old?.id
         if(!changedId||changedId===selectedStoreId)refreshSelectedWorkspace()
       })
+      .on('postgres_changes',{event:'*',schema:'public',table:'store_settings'},payload=>{
+        const changedId=payload.new?.store_id||payload.old?.store_id
+        if(!changedId||changedId===selectedStoreId)refreshSelectedWorkspace()
+      })
+      .on('postgres_changes',{event:'*',schema:'public',table:'store_members'},payload=>{
+        const changedId=payload.new?.store_id||payload.old?.store_id
+        if(!changedId||changedId===selectedStoreId)refreshSelectedWorkspace()
+      })
       .on('postgres_changes',{event:'*',schema:'public',table:'owner_organizations'},refreshSelectedWorkspace)
       .subscribe()
     return()=>{cancelled=true;supabase.removeChannel(channel)}
