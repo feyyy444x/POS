@@ -18,6 +18,7 @@ import PlatformStaffManager from './PlatformStaffManager.jsx'
 import StoreControlCenter from './StoreControlCenter.jsx'
 import AuditLogPanel from './AuditLogPanel.jsx'
 import OrganizationReports from './OrganizationReports.jsx'
+import OrganizationOperations from './OrganizationOperations.jsx'
 
 const money = (value) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value || 0))
 const today = () => new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' })
@@ -191,8 +192,8 @@ function OwnerOrganizationCenter({session,organization,tenants,busy,notice,onRef
           </div>
         </>}
         {activeMenu==='tenants'&&<><section className="owner-section-heading owner-page-heading"><div><span className="owner-kicker">ORGANIZATION WORKSPACES</span><h2>Tenant Saya</h2><p>Kelola akses ke seluruh workspace di bawah organisasi ini.</p></div><div className="owner-tenant-count">{activeTenants.length} tenant</div></section><div className="owner-tenant-toolbar"><label><Search size={17}/><input value={tenantQuery} onChange={e=>setTenantQuery(e.target.value)} placeholder="Cari nama tenant..."/></label><span>{filteredTenants.length} hasil</span></div><div className="owner-tenant-grid">{filteredTenants.map(tenant=><TenantCard tenant={tenant}/>)}{!filteredTenants.length&&<div className="owner-no-tenant">Tidak ada tenant yang cocok dengan pencarian.</div>}</div></>}
-        {activeMenu==='team'&&<ComingSoon description="Ringkasan karyawan lintas tenant dan pengaturan hak akses organisasi akan ditampilkan di sini. Pengelolaan anggota per toko tetap tersedia di workspace tenant terkait."/>}
-        {activeMenu==='monitoring'&&<ComingSoon description="Status aktivitas tenant dan kasir aktif lintas lokasi akan ditampilkan setelah koneksi monitoring organisasi tersedia."/>}
+        {activeMenu==='team'&&<OrganizationOperations mode="team" tenants={activeTenants}/>}
+        {activeMenu==='monitoring'&&<OrganizationOperations mode="monitoring" tenants={activeTenants}/>}
         {activeMenu==='reports'&&<OrganizationReports organization={organization} tenants={activeTenants}/>}
         {activeMenu==='plans'&&<section className="owner-plan-layout"><div className="owner-plan-card"><span className="owner-kicker">CURRENT SUBSCRIPTION</span><h2>{organization.activation_package_key||'Starter'}</h2><p>Paket yang berlaku untuk organisasi ini.</p><div className="owner-plan-metrics"><div><small>Kuota tenant tambahan</small><strong>{additionalTenants.length} / {Number(organization.activation_location_limit||0)}</strong></div><div><small>Sisa kuota</small><strong>{remaining}</strong></div></div></div><div className="owner-plan-side"><CreditCard size={24}/><h3>Paket & Aktivasi</h3><p>Perubahan paket dan aktivasi organisasi dikelola melalui proses aktivasi resmi NexaPos.</p><small>Data paket ditampilkan berdasarkan konfigurasi organisasi.</small></div></section>}
         {activeMenu==='settings'&&<section className="owner-settings-card"><span className="owner-kicker">ORGANIZATION PROFILE</span><h2>Pengaturan Organisasi</h2><div className="owner-setting-row"><span>Nama organisasi</span><strong>{organization.owner_name||'Belum diatur'}</strong></div><div className="owner-setting-row"><span>Email pemilik</span><strong>{organization.owner_email||session.user.email}</strong></div><div className="owner-setting-row"><span>Status organisasi</span><strong className="owner-setting-status">{organization.status||'unknown'}</strong></div><p>Pengubahan profil organisasi belum diaktifkan pada halaman ini.</p></section>}
