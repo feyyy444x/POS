@@ -575,3 +575,11 @@ test('account deletion requires exact uppercase confirmation and protects open c
   assert.match(migration, /closed_at is null/)
   assert.match(migration, /Tutup sesi kasir terlebih dahulu/)
 })
+
+
+test('Owner staff deletion uses typed HAPUS confirmation instead of browser prompt', () => {
+  assert.match(app, /ownerMemberDeleteTarget/)
+  assert.match(app, /ownerMemberDeleteText\.trim\(\)!=='HAPUS'/)
+  assert.match(app, /owner_delete_store_member/)
+  assert.match(app, /Salin HAPUS/)
+})
