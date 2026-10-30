@@ -73,7 +73,7 @@ export default function Demo() {
     <div className="demo-banner"><div><span className="demo-banner-icon"><Monitor size={18}/></span><div><strong>Anda sedang mencoba Demo NexaPos</strong><p>Jelajahi tampilan dan alur kerja. Semua data bersifat contoh dan tidak disimpan.</p></div></div><span className="demo-readonly"><CheckCircle2 size={13}/> SEMUA AKSI SIMULASI LOKAL</span></div>
     {mode==='organization' ? <div className="demo-owner-shell">
       <aside className="demo-owner-sidebar">
-        <div className="demo-owner-brand"><span className="demo-brand-mark">N</span><span><b>NexaPos</b><small>PUSAT KENDALI OWNER</small></span></div>
+        <div className="demo-owner-brand"><span className="demo-brand-mark">N</span><span><b>NexaPos</b><small>NEXASPACE · OWNER</small></span></div>
         <div className="demo-owner-identity"><span>SG</span><div><b>{demoOrganizationName}</b><small>ORGANIZATION OWNER</small></div></div>
         <div className="demo-nav-label">ORGANISASI</div>
         {['Dashboard Pengelola','Tenant Saya'].map(label=><button key={label} className={'demo-nav-item '+(ownerTab===label?'active':'')} onClick={()=>setOwnerTab(label)}>{label==='Tenant Saya'?<Store size={17}/>:<Activity size={17}/>} {label}</button>)}
@@ -86,7 +86,7 @@ export default function Demo() {
         <div className="demo-owner-sidebar-foot"><span className="demo-user-avatar">DS</span><div><b>Dina Saputri</b><small>Owner demo</small></div><span className="demo-preview-pill">DEMO</span></div>
       </aside>
       <section className="demo-owner-main">
-        <div className="demo-page-heading"><div><span className="demo-eyebrow">NEXAPOS / ORGANIZATION CONTROL CENTER</span><h1>{ownerTab}<span>.</span></h1><p>Simulasi akun Owner untuk mengelola organisasi dan seluruh workspace.</p></div><span className="demo-count">OWNER DEMO · DATA FIKTIF</span></div>
+        <div className="demo-page-heading"><div><span className="demo-eyebrow">NEXAPOS / NEXASPACE</span><h1>{ownerTab}<span>.</span></h1><p>Ruang digital Owner untuk mengelola identitas organisasi dan seluruh workspace.</p></div><span className="demo-count">OWNER DEMO · DATA FIKTIF</span></div>
         <div className="demo-owner-warning"><ShieldCheck size={16}/><span>Lingkungan demo terisolasi. Seluruh nama, angka, tenant, anggota, dan aktivitas adalah data fiktif. Tidak membaca atau mengubah database.</span></div>
         {ownerTab==='Dashboard Pengelola'&&<>
           <div className="demo-stats"><article><small>Tenant aktif</small><strong>{demoTenants.length}</strong><em>Semua data contoh</em></article><article><small>Total penjualan gabungan</small><strong>{money(demoTenants.reduce((n,t)=>n+t.sales,0))}</strong><em>Simulasi hari ini</em></article><article><small>Total transaksi</small><strong>{demoTenants.reduce((n,t)=>n+t.orders,0)}</strong><em>Lintas workspace demo</em></article></div>
