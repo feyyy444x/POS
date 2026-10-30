@@ -31,8 +31,8 @@ begin
   if char_length(v_organization_name) < 2 or char_length(v_organization_name) > 120 then
     raise exception 'Nama organisasi harus 2 sampai 120 karakter';
   end if;
-  v_email := lower(trim(p_owner_email));
-  if v_email !~ '^[^[:space:]@]+@[^[:space:]@]+\.[^[:space:]@]+$' then
+  v_email := lower(trim(coalesce(p_owner_email, '')));
+  if v_email = '' or v_email !~ '^[^[:space:]@]+@[^[:space:]@]+\.[^[:space:]@]+$' then
     raise exception 'Format email pemilik tidak valid';
   end if;
   if v_code !~ '^[a-f0-9]{32}$' then
