@@ -136,47 +136,72 @@ function Pagination({page,total,pageSize=10,onChange}) {
 
 
 function OwnerOrganizationCenter({session,organization,tenants,busy,notice,onRefresh,onSignOut,onEnterTenant}) {
+  const [activeMenu,setActiveMenu]=useState('overview')
+  const [mobileOpen,setMobileOpen]=useState(false)
+  const [tenantQuery,setTenantQuery]=useState('')
   const activeTenants=(tenants||[]).filter(item=>item.status!=='deleted'&&!item.deleted_at)
   const additionalTenants=activeTenants.filter(item=>!item.is_primary_workspace)
-  const canEnter=(tenant)=>tenant.status==='active'
-  return <main className="tenant-locked-shell" style={{alignItems:'stretch',padding:24}}>
-    <section style={{width:'min(1100px,100%)',margin:'0 auto',background:'var(--panel,#fff)',border:'1px solid var(--border,#e6e8f0)',borderRadius:22,padding:24,boxShadow:'0 18px 60px rgba(20,30,60,.08)'}}>
-      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:16,flexWrap:'wrap'}}>
-        <Brand/>
-        <button className="btn btn-outline" onClick={onSignOut}><LogOut size={15}/> Keluar</button>
+  const activeCount=activeTenants.filter(item=>item.status==='active').length
+  const remaining=Math.max(0,Number(organization.activation_location_limit||0)-additionalTenants.length)
+  const menu=[
+    {id:'overview',label:'Dashboard Pengelola',icon:LayoutDashboard,group:'ORGANISASI'},
+    {id:'tenants',label:'Tenant Saya',icon:Store,group:'ORGANISASI'},
+    {id:'team',label:'Karyawan & Hak Akses',icon:Users,group:'OPERASIONAL'},
+    {id:'monitoring',label:'Monitoring',icon:Activity,group:'OPERASIONAL'},
+    {id:'reports',label:'Laporan Gabungan',icon:BarChart3,group:'ANALISIS'},
+    {id:'plans',label:'Paket & Aktivasi',icon:CreditCard,group:'PENGELOLAAN'},
+    {id:'settings',label:'Pengaturan Organisasi',icon:Settings,group:'PENGELOLAAN'},
+    {id:'audit',label:'Audit',icon:ShieldCheck,group:'KEAMANAN'},
+  ]
+  const activeItem=menu.find(item=>item.id===activeMenu)||menu[0]
+  const filteredTenants=activeTenants.filter(item=>(item.name||'').toLowerCase().includes(tenantQuery.toLowerCase()))
+  const choose=(id)=>{setActiveMenu(id);setMobileOpen(false)}
+  const Stat=({label,value,meta,icon:Icon})=><article className="owner-stat-card"><span className="owner-stat-icon"><Icon size={18}/></span><div><small>{label}</small><strong>{value}</strong><p>{meta}</p></div></article>
+  const TenantCard=({tenant})=><article className="owner-tenant-card" key={tenant.id}>
+    <div className="owner-tenant-card-top"><span className="owner-tenant-symbol"><Store size={19}/></span><span className={'owner-status '+(tenant.status==='active'?'is-active':'')}>{tenant.status||'unknown'}</span></div>
+    <h3>{tenant.name||'Tenant tanpa nama'}</h3>
+    <p>{tenant.is_primary_workspace?'Workspace utama':'Tenant tambahan'} · {tenant.activation_package_key||organization.activation_package_key||'Paket organisasi'}</p>
+    <div className="owner-tenant-card-bottom"><span>{tenant.expires_at?'Berakhir '+new Date(tenant.expires_at).toLocaleDateString('id-ID'):'Masa aktif mengikuti paket'}</span>
+      <button className="owner-enter-button" disabled={tenant.status!=='active'||busy} onClick={()=>onEnterTenant(tenant.id)}>Masuk workspace <ArrowRight size={15}/></button>
+    </div>
+  </article>
+  const ComingSoon=({description})=><section className="owner-empty-state"><span><Activity size={22}/></span><h3>Ruang kerja {activeItem.label}</h3><p>{description}</p><small>Halaman ini sudah tersedia di navigasi. Integrasi data dan tindakan akan diaktifkan setelah sumber data organisasi tersedia, tanpa menampilkan data contoh.</small></section>
+  return <div className="owner-console">
+    <aside className={'owner-sidebar '+(mobileOpen?'owner-sidebar-open':'')}>
+      <div className="owner-brand-row"><Brand/><button className="owner-mobile-close" onClick={()=>setMobileOpen(false)} aria-label="Tutup navigasi"><X size={19}/></button></div>
+      <div className="owner-org-switch"><span className="owner-org-avatar">{initial(organization.owner_name||organization.owner_email)}</span><span><strong>{organization.owner_name||'Pemilik organisasi'}</strong><small>ORGANIZATION OWNER</small></span><span className="owner-org-dot"/></div>
+      <nav className="owner-navigation" aria-label="Navigasi organisasi">
+        {['ORGANISASI','OPERASIONAL','ANALISIS','PENGELOLAAN','KEAMANAN'].map(group=><div className="owner-nav-group" key={group}><small>{group}</small>{menu.filter(item=>item.group===group).map(item=>{const Icon=item.icon;return <button key={item.id} className={'owner-nav-link '+(activeMenu===item.id?'owner-nav-active':'')} onClick={()=>choose(item.id)}><Icon size={18}/><span>{item.label}</span>{activeMenu===item.id&&<i/>}</button>})}</div>)}
+      </nav>
+      <div className="owner-sidebar-bottom"><div className="owner-sidebar-plan"><span><CreditCard size={16}/> Paket organisasi</span><strong>{organization.activation_package_key||'Starter'}</strong><small>{remaining} kuota tenant tambahan tersisa</small></div>
+        <div className="owner-user-row"><span className="owner-user-avatar">{initial(session.user.email)}</span><span><strong>{session.user.email}</strong><small>Owner</small></span><button title="Keluar" onClick={onSignOut}><LogOut size={17}/></button></div>
       </div>
-      <div style={{marginTop:34}}>
-        <span className="eyebrow muted">NEXAPOS / ORGANIZATION CONTROL CENTER</span>
-        <h1 style={{fontSize:'clamp(28px,5vw,42px)',margin:'8px 0'}}>Pusat kendali organisasi.</h1>
-        <p className="subtle" style={{maxWidth:680}}>Kelola tenant organisasi dari satu tempat. Operasional kasir, produk, stok, dan transaksi hanya tersedia setelah masuk ke workspace tenant.</p>
-      </div>
-      {notice&&<div className="notice" role="status" style={{marginTop:18}}>{notice}</div>}
-      <div className="stats-grid" style={{marginTop:24}}>
-        <StatCard icon={Store} label="Tenant aktif" value={activeTenants.length} meta="Workspace dalam organisasi" tone="violet"/>
-        <StatCard icon={Package} label="Paket organisasi" value={organization.activation_package_key||'starter'} meta="Kuota bersama" tone="blue"/>
-        <StatCard icon={CalendarDays} label="Kuota tenant tambahan" value={Math.max(0,Number(organization.activation_location_limit||0)-additionalTenants.length)} meta="Tenant tambahan di luar workspace utama" tone="green"/>
-      </div>
-      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:12,margin:'28px 0 14px',flexWrap:'wrap'}}>
-        <div><h2 style={{margin:0}}>Tenant saya</h2><p className="subtle" style={{margin:'5px 0 0'}}>Pilih tenant untuk membuka workspace operasional.</p></div>
-        <button className="btn btn-outline" onClick={onRefresh} disabled={busy}><RefreshCw size={15}/> Muat ulang</button>
-      </div>
-      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(260px,1fr))',gap:14}}>
-        {activeTenants.map(tenant=><article key={tenant.id} className="panel" style={{padding:18}}>
-          <div style={{display:'flex',justifyContent:'space-between',gap:10,alignItems:'start'}}>
-            <div><strong style={{fontSize:16}}>{tenant.name}</strong><div className="subtle" style={{fontSize:12,marginTop:5}}>{tenant.is_primary_workspace?'Workspace utama':'Tenant tambahan'}</div></div>
-            <span className={'status-pill '+(tenant.status==='active'?'status-paid':'status-waiting')}>{tenant.status}</span>
+    </aside>
+    {mobileOpen&&<button className="owner-mobile-backdrop" onClick={()=>setMobileOpen(false)} aria-label="Tutup navigasi"/>}
+    <main className="owner-main">
+      <header className="owner-topbar"><div className="owner-topbar-left"><button className="owner-mobile-menu" onClick={()=>setMobileOpen(true)} aria-label="Buka navigasi"><Menu size={20}/></button><div><div className="owner-breadcrumb">NEXAPOS <span>/</span> PUSAT KENDALI ORGANISASI</div><h1>{activeItem.label}</h1></div></div><div className="owner-topbar-actions"><span className="owner-live-indicator"><i/> Organisasi aktif</span><button className="owner-refresh-button" onClick={onRefresh} disabled={busy}><RefreshCw size={16} className={busy?'owner-spin':''}/> <span>{busy?'Memuat':'Perbarui data'}</span></button></div></header>
+      <div className="owner-content">
+        {notice&&<div className="owner-notice" role="status">{notice}</div>}
+        {activeMenu==='overview'&&<>
+          <section className="owner-welcome"><div><span className="owner-kicker">CONTROL CENTER · {new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</span><h2>Semua tenant, <em>satu kendali.</em></h2><p>Pantau organisasi dan buka workspace tenant dari satu pusat pengelolaan.</p></div><div className="owner-welcome-mark"><Boxes size={42}/></div></section>
+          <div className="owner-stat-grid"><Stat label="Tenant aktif" value={activeCount} meta="Workspace aktif dalam organisasi" icon={Store}/><Stat label="Total tenant" value={activeTenants.length} meta="Termasuk workspace utama" icon={Boxes}/><Stat label="Kuota tambahan" value={remaining} meta="Slot tenant yang masih tersedia" icon={Package}/><Stat label="Paket organisasi" value={organization.activation_package_key||'Starter'} meta="Paket langganan saat ini" icon={CreditCard}/></div>
+          <section className="owner-section-heading"><div><span className="owner-kicker">WORKSPACE ORGANISASI</span><h2>Tenant yang dikelola</h2><p>Pilih tenant untuk melanjutkan pekerjaan operasional.</p></div><button className="owner-text-action" onClick={()=>choose('tenants')}>Lihat semua tenant <ArrowRight size={15}/></button></section>
+          <div className="owner-tenant-grid">{activeTenants.slice(0,3).map(tenant=><TenantCard tenant={tenant}/>)}
+            {!activeTenants.length&&<div className="owner-no-tenant"><Store size={24}/><strong>Belum ada tenant</strong><span>Tenant organisasi akan muncul di sini setelah tersedia.</span></div>}
           </div>
-          <div style={{marginTop:18}}>{canEnter(tenant)
-            ? <button className="btn btn-primary btn-wide" onClick={()=>onEnterTenant(tenant.id)}><ArrowRight size={15}/> Masuk workspace</button>
-            : <p className="subtle" style={{fontSize:12}}>Akses operasional tenant ini belum ditautkan ke akun Owner. Minta Super Admin menautkan akses tenant.</p>}
-        </div></article>)}
-        {!activeTenants.length&&<div className="panel"><EmptyState icon={Store} title="Belum ada tenant" text="Organisasi ini belum memiliki workspace tenant."/></div>}
+        </>}
+        {activeMenu==='tenants'&&<><section className="owner-section-heading owner-page-heading"><div><span className="owner-kicker">ORGANIZATION WORKSPACES</span><h2>Tenant Saya</h2><p>Kelola akses ke seluruh workspace di bawah organisasi ini.</p></div><div className="owner-tenant-count">{activeTenants.length} tenant</div></section><div className="owner-tenant-toolbar"><label><Search size={17}/><input value={tenantQuery} onChange={e=>setTenantQuery(e.target.value)} placeholder="Cari nama tenant..."/></label><span>{filteredTenants.length} hasil</span></div><div className="owner-tenant-grid">{filteredTenants.map(tenant=><TenantCard tenant={tenant}/>)}{!filteredTenants.length&&<div className="owner-no-tenant">Tidak ada tenant yang cocok dengan pencarian.</div>}</div></>}
+        {activeMenu==='team'&&<ComingSoon description="Ringkasan karyawan lintas tenant dan pengaturan hak akses organisasi akan ditampilkan di sini. Pengelolaan anggota per toko tetap tersedia di workspace tenant terkait."/>}
+        {activeMenu==='monitoring'&&<ComingSoon description="Status aktivitas tenant dan kasir aktif lintas lokasi akan ditampilkan setelah koneksi monitoring organisasi tersedia."/>}
+        {activeMenu==='reports'&&<ComingSoon description="Laporan penjualan gabungan lintas tenant akan menggunakan data transaksi dari tenant yang dapat diakses organisasi."/>}
+        {activeMenu==='plans'&&<section className="owner-plan-layout"><div className="owner-plan-card"><span className="owner-kicker">CURRENT SUBSCRIPTION</span><h2>{organization.activation_package_key||'Starter'}</h2><p>Paket yang berlaku untuk organisasi ini.</p><div className="owner-plan-metrics"><div><small>Kuota tenant tambahan</small><strong>{additionalTenants.length} / {Number(organization.activation_location_limit||0)}</strong></div><div><small>Sisa kuota</small><strong>{remaining}</strong></div></div></div><div className="owner-plan-side"><CreditCard size={24}/><h3>Paket & Aktivasi</h3><p>Perubahan paket dan aktivasi organisasi dikelola melalui proses aktivasi resmi NexaPos.</p><small>Data paket ditampilkan berdasarkan konfigurasi organisasi.</small></div></section>}
+        {activeMenu==='settings'&&<section className="owner-settings-card"><span className="owner-kicker">ORGANIZATION PROFILE</span><h2>Pengaturan Organisasi</h2><div className="owner-setting-row"><span>Nama organisasi</span><strong>{organization.owner_name||'Belum diatur'}</strong></div><div className="owner-setting-row"><span>Email pemilik</span><strong>{organization.owner_email||session.user.email}</strong></div><div className="owner-setting-row"><span>Status organisasi</span><strong className="owner-setting-status">{organization.status||'unknown'}</strong></div><p>Pengubahan profil organisasi belum diaktifkan pada halaman ini.</p></section>}
+        {activeMenu==='audit'&&<ComingSoon description="Riwayat aktivitas pengelolaan organisasi akan dicatat di sini setelah audit log tingkat organisasi tersedia. Audit tenant tetap mengikuti audit pada workspace masing-masing."/>}
       </div>
-      <p className="subtle" style={{fontSize:12,marginTop:24}}>Akun: {session.user.email} · Organisasi: {organization.owner_name||organization.owner_email}</p>
-    </section>
-  </main>
+      <footer className="owner-footer"><span>NexaPos Organization Control Center</span><span>Data organisasi terisolasi · {session.user.email}</span></footer>
+    </main>
+  </div>
 }
-
 function App() {
   const [session, setSession] = useState(null)
   const [authReady, setAuthReady] = useState(false)
