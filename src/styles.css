@@ -1667,3 +1667,81 @@ tbody tr:hover{background:#f7fbfd}
   .report-finance-stats .stat-card>.stat-icon{grid-row:auto}
   .report-finance-stats .stat-card>div{grid-column:1}
 }
+
+
+/* Responsive baseline across the full NexaPos application (desktop, tablet and phone). */
+html{width:100%;min-width:320px;overflow-x:hidden;scrollbar-gutter:stable}
+body,#root{width:100%;min-width:320px;max-width:100%;min-height:100%;overflow-x:clip}
+#root,.app-shell,.main-area,.page-content,.owner-shell,.owner-main,.owner-content,
+.workspace-shell,.workspace-main,.workspace-content,.panel,.panel-body,.panel-head,
+.modal,.modal-content,.form-section,.settings-section{min-width:0;max-width:100%}
+img,svg,video,canvas{max-width:100%}
+input,select,textarea{max-width:100%;min-width:0}
+button,.btn{max-width:100%;overflow-wrap:anywhere}
+.page-heading,.panel-head,.section-heading,.toolbar,.filter-row,.action-row,
+.form-actions,.modal-actions,.card-actions{min-width:0;flex-wrap:wrap}
+.page-heading>*,.panel-head>*,.section-heading>*,.toolbar>*{min-width:0}
+.page-heading h1,.page-heading h2,.panel-head h2,.panel-head h3,
+.section-heading h2,.section-heading h3,.card-title,.stat-card strong{
+  max-width:100%;overflow-wrap:anywhere;word-break:normal;
+}
+.table-wrap,.owner-table-wrap,.data-table-wrap,.table-responsive{
+  display:block;width:100%;max-width:100%;overflow-x:auto;overflow-y:hidden;
+  -webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;
+}
+table{max-width:100%;border-collapse:separate;border-spacing:0}
+th,td{overflow-wrap:anywhere;word-break:normal}
+.form-grid,.settings-grid,.dashboard-grid,.stats-grid,.summary-grid,.content-grid{
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));
+}
+.form-grid>*,.settings-grid>*,.dashboard-grid>*,.stats-grid>*,.summary-grid>*,.content-grid>*{
+  min-width:0;max-width:100%;
+}
+.modal-layer,.overlay,.dialog-overlay{padding:clamp(8px,2vw,24px)}
+.modal,.dialog,.confirm-dialog{width:min(100%,720px);max-width:100%;max-height:min(92dvh,900px);overflow:auto}
+@media(min-width:1200px){
+  .page-content{width:100%;max-width:1600px;margin-inline:auto}
+}
+@media(max-width:1024px){
+  .app-shell .main-area,.workspace-shell .main-area,.owner-shell .main-area{
+    margin-left:0;min-width:0;width:100%;
+  }
+  .sidebar{max-width:min(300px,88vw)}
+  .page-content,.owner-content,.workspace-content{padding-left:clamp(14px,2.5vw,24px);padding-right:clamp(14px,2.5vw,24px)}
+  .dashboard-grid,.content-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:768px){
+  .page-heading{align-items:flex-start;gap:12px}
+  .page-heading h1{font-size:clamp(21px,4vw,28px);line-height:1.2}
+  .page-heading p{line-height:1.55}
+  .panel{border-radius:14px}
+  .panel-head{align-items:flex-start;gap:10px}
+  .panel-head .btn,.panel-head button{max-width:100%}
+  .dashboard-grid,.content-grid,.form-grid,.settings-grid{grid-template-columns:minmax(0,1fr)}
+  .stats-grid,.summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .toolbar,.filter-row,.action-row{align-items:stretch;gap:9px}
+  .toolbar>.btn,.filter-row>.btn,.action-row>.btn{flex:1 1 auto}
+  .modal-layer,.overlay,.dialog-overlay{align-items:flex-end}
+  .modal,.dialog,.confirm-dialog{width:100%;max-height:92dvh;border-radius:18px 18px 12px 12px}
+  .form-actions,.modal-actions{gap:8px}
+  .form-actions>.btn,.modal-actions>.btn{flex:1 1 130px}
+  .pagination-bar{flex-wrap:wrap}
+}
+@media(max-width:480px){
+  .page-content,.owner-content,.workspace-content{padding:16px 12px 28px}
+  .page-heading h1{font-size:22px}
+  .panel-head{padding:14px}
+  .panel-body{padding:14px}
+  .stats-grid,.summary-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+  .stat-card,.owner-stat-card{min-width:0}
+  .toolbar,.filter-row,.action-row{flex-direction:column;align-items:stretch}
+  .toolbar>.btn,.filter-row>.btn,.action-row>.btn{width:100%}
+  .modal-layer,.overlay,.dialog-overlay{padding:7px}
+  .modal,.dialog,.confirm-dialog{max-height:94dvh}
+  .form-actions,.modal-actions{flex-direction:column-reverse}
+  .form-actions>.btn,.modal-actions>.btn{width:100%;flex:auto}
+  .pagination-bar{padding:12px}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
