@@ -127,6 +127,37 @@ create policy "cashiers start own breaks on open shifts"
     and ended_at is null
   );
 
+-- Manual cashier alerts are operational writes; retain read access but block send/read-state changes while locked.
+drop policy if exists "store managers send cashier alerts" on public.cashier_manual_alerts;
+create policy "store managers send cashier alerts"
+  on public.cashier_manual_alerts for insert to authenticated
+  with check (
+    sent_by = (select auth.uid())
+    and private.is_store_manager(store_id)
+    and private.is_store_operational(store_id)
+    and exists (
+      select 1 from public.store_members m
+      where m.store_id = cashier_manual_alerts.store_id
+        and m.user_id = cashier_manual_alerts.cashier_id
+        and m.is_active = true
+        and m.disabled_at is null
+    )
+  );
+
+drop policy if exists "cashier marks own alert read" on public.cashier_manual_alerts;
+create policy "cashier marks own alert read"
+  on public.cashier_manual_alerts for update to authenticated
+  using (
+    cashier_id = (select auth.uid())
+    and private.is_store_member(store_id)
+    and private.is_store_operational(store_id)
+  )
+  with check (
+    cashier_id = (select auth.uid())
+    and private.is_store_member(store_id)
+    and private.is_store_operational(store_id)
+  );
+
 drop policy if exists "cashiers end own breaks" on public.cashier_shift_breaks;
 create policy "cashiers end own breaks"
   on public.cashier_shift_breaks for update to authenticated
