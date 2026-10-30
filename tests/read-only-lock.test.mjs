@@ -37,6 +37,6 @@ test('cashier alert mutations are rejected when the tenant or organization is lo
 const pinRpcMigration = await readFile(new URL('supabase/migrations/20261030150100_secure_manager_reset_pin_rpc.sql', root), 'utf8')
 
 test('manager PIN reset RPC is not executable by anonymous users', () => {
-  assert.match(pinRpcMigration, /revoke all on function public\\.manager_reset_store_member_pin\\(uuid\\) from public, anon/i)
-  assert.match(pinRpcMigration, /grant execute on function public\\.manager_reset_store_member_pin\\(uuid\\) to authenticated/i)
+  assert.ok(pinRpcMigration.toLowerCase().includes('revoke all on function public.manager_reset_store_member_pin(uuid) from public, anon;'))
+  assert.ok(pinRpcMigration.toLowerCase().includes('grant execute on function public.manager_reset_store_member_pin(uuid) to authenticated;'))
 })
