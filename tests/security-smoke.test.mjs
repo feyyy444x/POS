@@ -644,7 +644,7 @@ test('Owner organization operations can invite employees and update tenant roles
 test('Owner tenant creation, entry, organization identity and Admin tenant classification remain connected', async () => {
   const app = await readFile(new URL('../src/App.jsx', import.meta.url), 'utf8')
   const adminMigration = await readFile(new URL('../supabase/migrations/20261030360000_admin_owner_membership_not_tenant_assignment.sql', import.meta.url), 'utf8')
-  const expiryMigration = await readFile(new URL('../supabase/migrations/20261030350000_owner_tenant_entry_expiry_guard.sql', import.meta.url), 'utf8')
+  const expiryMigration = await readFile(new URL('../supabase/migrations/20261030370000_owner_tenant_entry_expiry_guard.sql', import.meta.url), 'utf8')
   assert.match(app, /rpc\('owner_create_store_tenant'/)
   assert.match(app, /rpc\('owner_enter_store_tenant'/)
   assert.match(app, /rpc\('owner_list_organization_tenants'/)
