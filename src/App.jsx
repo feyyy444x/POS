@@ -1686,6 +1686,7 @@ function SuperAdminScreen({session,syncStatus,setSyncStatus,onSignOut,platformAd
       .on('postgres_changes',{event:'*',schema:'public',table:'store_settings'},()=>load())
       .on('postgres_changes',{event:'*',schema:'public',table:'store_members'},()=>{loadUsers();loadDisabledMembers()})
       .on('postgres_changes',{event:'*',schema:'public',table:'store_invites'},()=>loadUsers())
+      .on('postgres_changes',{event:'*',schema:'public',table:'owner_organizations'},()=>loadUsers())
       .subscribe()
     return ()=>{supabase.removeChannel(channel)}
   },[load,loadUsers,loadDisabledMembers])
