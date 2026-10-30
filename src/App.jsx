@@ -1504,7 +1504,10 @@ function App() {
   if(isSuperAdmin)return <SuperAdminScreen session={session} syncStatus={syncStatus} setSyncStatus={setSyncStatus} onSignOut={()=>supabase.auth.signOut()} platformAdmin={isPlatformAdmin}/>
   
   const organizationEntitlementStatus = ownerOrganization ? (ownerOrganization.status === 'active' && ownerOrganization.expires_at && new Date(ownerOrganization.expires_at) <= new Date() ? 'expired' : (ownerOrganization.status || 'active')) : 'active'
-  if (ownerOrganization && (!isOwnerTenantWorkspace || organizationEntitlementStatus !== 'active')) return <OwnerOrganizationCenter
+  const primaryWorkspace = ownerTenants.find(tenant => tenant.is_primary_workspace)
+  const primaryWorkspaceStatus = primaryWorkspace ? (primaryWorkspace.status === 'active' && primaryWorkspace.expires_at && new Date(primaryWorkspace.expires_at) <= new Date() ? 'expired' : (primaryWorkspace.status || 'pending')) : 'active'
+  const ownerCenterLockStatus = organizationEntitlementStatus !== 'active' ? organizationEntitlementStatus : primaryWorkspaceStatus
+  if (ownerOrganization && (!isOwnerTenantWorkspace || ownerCenterLockStatus !== 'active')) return <OwnerOrganizationCenter
     session={session}
     organization={ownerOrganization}
     tenants={ownerTenants}
@@ -1518,8 +1521,8 @@ function App() {
     tenantBusy={ownerTenantBusy}
     onDeleteTenant={deleteOwnerTenant}
     deleteTenantBusy={ownerTenantBusy}
-    readOnly={organizationEntitlementStatus !== 'active'}
-    lockStatus={organizationEntitlementStatus}
+    readOnly={ownerCenterLockStatus !== 'active'}
+    lockStatus={ownerCenterLockStatus}
     onLockedAction={()=>setLockNoticeOpen(true)}
     onOrganizationSaved={updated=>setOwnerOrganization(current=>current?.id===updated?.id?{...current,...updated}:current)}
     onEnterTenant={async(tenantId)=>{
