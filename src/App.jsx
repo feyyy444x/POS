@@ -23,6 +23,22 @@ import OrganizationSettings from './OrganizationSettings.jsx'
 
 const money = (value) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value || 0))
 const today = () => new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' })
+
+async function fetchOwnerOrganizationTenants() {
+  const {data,error}=await supabase.rpc('owner_list_organization_tenants')
+  if(error)return {data:null,error}
+  const tenants=data||[]
+  if(!tenants.length)return {data:[],error:null}
+  const {data:settings,error:settingsError}=await supabase.from('store_settings')
+    .select('store_id,store_name,address,phone,logo_url,updated_at')
+    .in('store_id',tenants.map(tenant=>tenant.id))
+  if(settingsError)return {data:tenants,error:settingsError}
+  const settingsByStore=new Map((settings||[]).map(row=>[row.store_id,row]))
+  return {data:tenants.map(tenant=>{
+    const profile=settingsByStore.get(tenant.id)
+    return {...tenant,name:String(profile?.store_name||'').trim()||tenant.name,store_address:profile?.address||'',store_phone:profile?.phone||'',store_logo_url:profile?.logo_url||null,settings_updated_at:profile?.updated_at||null}
+  }),error:null}
+}
 const shortTime = (value) => new Date(value).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
 const initial = (name) => (name || 'N').trim().slice(0, 1).toUpperCase()
 
@@ -546,7 +562,7 @@ function App() {
         setNotice(userFacingError(organizationError, 'Organisasi Owner belum dapat dimuat.'))
       } else if (organization?.id) {
         setOwnerOrganization(organization)
-        const {data: organizationTenants, error: tenantsError} = await supabase.rpc('owner_list_organization_tenants')
+        const {data: organizationTenants, error: tenantsError} = await fetchOwnerOrganizationTenants()
         if (tenantsError) {
           setOwnerTenants([])
           setNotice(userFacingError(tenantsError, 'Daftar tenant organisasi belum dapat dimuat.'))
@@ -622,7 +638,7 @@ function App() {
       } else {
         setOwnerOrganization(organization || null)
         if (organization?.id) {
-          const {data: organizationTenants, error: organizationTenantsError} = await supabase.rpc('owner_list_organization_tenants')
+          const {data: organizationTenants, error: organizationTenantsError} = await fetchOwnerOrganizationTenants()
           if (organizationTenantsError) {
             setOwnerTenants([])
             loadIssues.push('Daftar tenant organisasi: ' + userFacingError(organizationTenantsError))
@@ -1366,7 +1382,7 @@ function App() {
     if (error) { setNotice(userFacingError(error, 'Tenant baru belum berhasil dibuat.')); return }
     setOwnerTenantName('')
     setNotice('Tenant ' + name + ' berhasil dibuat. Paket dan masa aktif mengikuti organisasi Owner.')
-    const {data: refreshedTenants, error: refreshTenantsError} = await supabase.rpc('owner_list_organization_tenants')
+    const {data: refreshedTenants, error: refreshTenantsError} = await fetchOwnerOrganizationTenants()
     if (!refreshTenantsError) setOwnerTenants(refreshedTenants || [])
     if (data?.id) {
       setIsOwnerTenantWorkspace(true)
