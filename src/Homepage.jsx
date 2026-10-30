@@ -1,11 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   ArrowDown, ArrowRight, ArrowUpRight, BarChart3, Check, CheckCircle2, ChevronDown,
-  CircleDollarSign, Headphones, Monitor, Package, Printer, ShieldCheck, ShoppingCart,
-  Sparkles, Ticket, Users, X, Zap, Activity, Store, Workflow
+  CircleDollarSign, Monitor, Package, Printer, ShieldCheck, ShoppingCart,
+  Sparkles, Ticket, Users, X, Zap, Activity, Store, Workflow, MessageCircle, Send
 } from 'lucide-react'
 import { supabase } from './lib/supabase'
-import SupportCenter from './SupportCenter.jsx'
 import './homepage.css'
 
 const money = (value) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value || 0))
@@ -67,8 +66,36 @@ export default function Homepage() {
   const [coupon, setCoupon] = useState('')
   const [selectedPlan, setSelectedPlan] = useState('monthly')
   const [faqOpen, setFaqOpen] = useState(0)
-  const [liveChatOpen, setLiveChatOpen] = useState(false)
+  const [supportChannels, setSupportChannels] = useState({ whatsapp_enabled: false, whatsapp_number: '', telegram_enabled: true, telegram_username: 'becaaapos' })
   const [scene, setScene] = useState('kasir')
+
+  useEffect(() => {
+    if (!supabase) return
+    let mounted = true
+    const loadSupportChannels = async () => {
+      const { data, error } = await supabase.from('support_channel_settings')
+        .select('whatsapp_enabled,whatsapp_number,telegram_enabled,telegram_username')
+        .eq('id', 1).maybeSingle()
+      if (error || !mounted) return
+      setSupportChannels({
+        whatsapp_enabled: Boolean(data?.whatsapp_enabled),
+        whatsapp_number: String(data?.whatsapp_number || '').replace(/\\D/g, ''),
+        telegram_enabled: data?.telegram_enabled !== false,
+        telegram_username: String(data?.telegram_username || 'becaaapos').replace(/^@/, '').trim(),
+      })
+    }
+    loadSupportChannels()
+    const channel = supabase.channel('homepage-support-channels')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'support_channel_settings' }, loadSupportChannels)
+      .subscribe(status => { if (status === 'SUBSCRIBED') loadSupportChannels() })
+    return () => { mounted = false; supabase.removeChannel(channel) }
+  }, [])
+  const whatsappHref = supportChannels.whatsapp_enabled && supportChannels.whatsapp_number
+    ? 'https://wa.me/' + supportChannels.whatsapp_number + '?text=' + encodeURIComponent('Halo tim NexaPos, saya membutuhkan bantuan.')
+    : ''
+  const telegramHref = supportChannels.telegram_enabled && supportChannels.telegram_username
+    ? 'https://t.me/' + encodeURIComponent(supportChannels.telegram_username)
+    : ''
 
   const loadPromos = useCallback(async () => {
     if (!supabase) return
@@ -304,9 +331,9 @@ export default function Homepage() {
         <div className="living-final-actions"><a className="living-cta living-cta-light" href="#harga">Pilih paket sewa <ArrowRight size={16}/></a><a className="living-final-login" href="/login">Sudah punya akun? Login workspace <ArrowUpRight size={14}/></a></div>
       </section>
     </main>
-    <div className="living-chat-launcher">
-      {!liveChatOpen && <button type="button" className="living-chat-button" onClick={() => setLiveChatOpen(true)} aria-label="Buka pusat bantuan" title="Pusat bantuan"><img src="/nexapos-mark.svg" alt=""/><span>Pusat bantuan</span></button>}
-      {liveChatOpen && <SupportCenter session={null} onClose={() => setLiveChatOpen(false)} />}
+    <div className="living-contact-launcher" aria-label="Kontak NexaPos">
+      {whatsappHref && <a className="living-contact-button living-contact-whatsapp" href={whatsappHref} target="_blank" rel="noreferrer" aria-label="Hubungi NexaPos melalui WhatsApp" title="WhatsApp"><MessageCircle size={19}/><span>WhatsApp</span></a>}
+      {telegramHref && <a className="living-contact-button living-contact-telegram" href={telegramHref} target="_blank" rel="noreferrer" aria-label="Hubungi NexaPos melalui Telegram" title="Telegram"><Send size={18}/><span>Telegram</span></a>}
     </div>
     <footer className="living-footer"><Brand footer/><p>Kasir, tim, dan antrian dalam satu sistem yang saling terhubung.</p><div className="living-footer-links"><a href="#cerita">Cara kerja</a><a href="#fitur">Ekosistem</a><a href="#harga">Harga sewa</a><a href="#faq">FAQ</a><a href="https://t.me/becaaapos" target="_blank" rel="noreferrer">Hubungi kami</a></div><small>© {new Date().getFullYear()} NexaPos. Seluruh hak dilindungi.</small></footer>
   </div>
