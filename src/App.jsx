@@ -758,7 +758,7 @@ function App() {
     let cancelled=false
     const refreshOpenShifts=async()=>{
       const [{data:shifts,error:shiftError},{data:members,error:memberError}]=await Promise.all([
-        supabase.from('cashier_shifts').select('id,store_id,cashier_id,opened_at,opening_cash').eq('store_id',store.id).is('closed_at',null).order('opened_at',{ascending:true}),
+        supabase.from('cashier_shifts').select('id,store_id,cashier_id,cashier_name_snapshot,opened_at,opening_cash').eq('store_id',store.id).is('closed_at',null).order('opened_at',{ascending:true}),
         supabase.from('store_members').select('user_id,full_name,email,role,is_active').eq('store_id',store.id).eq('is_active',true)
       ])
       if(cancelled)return
@@ -871,7 +871,7 @@ function App() {
   const monitoringCashierRows = openCashierShifts.map(shift=>{
     const cashierOrders=orders.filter(o=>o.cashier_id===shift.cashier_id&&o.status==='paid'&&new Date(o.created_at)>=new Date(shift.opened_at)&&(!shift.closed_at||new Date(o.created_at)<=new Date(shift.closed_at)))
     const member=shift.member
-    return {...shift,displayName:member?.full_name?.trim()||member?.email||'Kasir '+String(shift.cashier_id||'').slice(0,8),transactionCount:cashierOrders.length,salesTotal:cashierOrders.reduce((sum,o)=>sum+Number(o.total||0),0)}
+    return {...shift,displayName:member?.full_name?.trim()||member?.email||shift.cashier_name_snapshot||'Kasir '+String(shift.cashier_id||'').slice(0,8),transactionCount:cashierOrders.length,salesTotal:cashierOrders.reduce((sum,o)=>sum+Number(o.total||0),0)}
   }).filter(row=>!monitoringSearch.trim()||[row.displayName,row.member?.email,row.cashier_id].some(value=>String(value||'').toLocaleLowerCase('id-ID').includes(monitoringSearch.trim().toLocaleLowerCase('id-ID'))))
   const staleShiftRows = monitoringCashierRows.map(row=>({...row,elapsedHours:Math.max(0,Math.floor((monitoringNow-new Date(row.opened_at).getTime())/3600000))})).filter(row=>row.elapsedHours>=12)
   const monitoringSalesTotal = monitoringCashierRows.reduce((sum,row)=>sum+row.salesTotal,0)
