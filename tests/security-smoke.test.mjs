@@ -742,7 +742,7 @@ test('Platform actions stay scoped to the selected company or tenant, and regist
   assert.doesNotMatch(app, /super_admin_delete_owner_organization/)
   assert.match(app, /Masa sewa perusahaan sudah berakhir[\s\S]*?Aktivasi \/ perpanjang masa sewa perusahaan/)
   assert.match(companySection, /regenerateOwnerInvite\(primary\)/)
-  assert.match(companySection, /Hapus NexaSpace/)
+  assert.match(companySection, /Hapus perusahaan, Owner, dan seluruh tenant/)
   assert.match(tenantCenter, /Aktifkan workspace/)
   assert.match(tenantCenter, /Nonaktifkan workspace/)
   assert.doesNotMatch(tenantCenter, /onActivate|Perpanjang aktivasi|Aktivasi & masa berlaku/)
