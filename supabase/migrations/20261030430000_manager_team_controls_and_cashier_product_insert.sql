@@ -127,3 +127,21 @@ grant execute on function public.invite_store_member(uuid,text,text,text,text) t
 grant execute on function public.owner_update_store_member(uuid,text,text,boolean) to authenticated;
 grant execute on function public.owner_delete_store_member(uuid) to authenticated;
 grant execute on function public.manager_reset_store_member_pin(uuid) to authenticated;
+
+create or replace function public.manager_can_manage_store_member(p_member_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $function$
+  select exists (
+    select 1 from public.store_members target
+    where target.id=p_member_id
+      and target.role <> 'owner'
+      and target.user_id <> (select auth.uid())
+      and private.is_store_manager(target.store_id)
+  )
+$function$;
+revoke all on function public.manager_can_manage_store_member(uuid) from public,anon;
+grant execute on function public.manager_can_manage_store_member(uuid) to authenticated;
