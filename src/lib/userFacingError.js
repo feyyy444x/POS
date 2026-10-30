@@ -9,6 +9,9 @@ const ERROR_MESSAGES = [
 
 export function userFacingError(error, fallback = 'Permintaan belum berhasil diproses. Coba lagi; jika masalah berlanjut, hubungi admin.') {
   const raw = typeof error === 'string' ? error : error?.message || error?.details || ''
+  if (/cashier_shifts_cashier_id_fkey|cashier_shift_breaks_cashier_id_fkey|cashier_manual_alerts_(cashier_id|sent_by)_fkey/i.test(raw)) {
+    return 'Penghapusan tertahan oleh referensi riwayat kasir. Migrasi perbaikan penghapusan akun belum diterapkan pada database ini; riwayat transaksi tidak dihapus. Hubungi admin untuk menerapkan migrasi dengan aman.'
+  }
   for (const [pattern, message] of ERROR_MESSAGES) {
     if (pattern.test(raw)) return message
   }
