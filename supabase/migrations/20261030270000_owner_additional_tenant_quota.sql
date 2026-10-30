@@ -18,7 +18,8 @@ where ranked.id = s.id;
 
 create unique index if not exists stores_one_primary_workspace_per_org
   on public.stores (organization_id)
-  where is_primary_workspace = true;
+  where is_primary_workspace = true
+    and status <> 'deleted' and deleted_at is null;
 
 create or replace function private.assign_store_organization()
 returns trigger
@@ -64,6 +65,7 @@ begin
     select 1 from public.stores s
     where s.organization_id = v_org.id
       and s.is_primary_workspace = true
+      and s.status <> 'deleted' and s.deleted_at is null
       and (tg_op <> 'UPDATE' or s.id <> new.id)
   ) into v_has_primary;
 
