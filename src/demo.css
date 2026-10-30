@@ -35,3 +35,34 @@
 .demo-receipt-dialog>small{display:block;margin:12px 0 18px;color:#68738a;text-align:center}
 .demo-receipt-dialog .demo-checkout{width:100%;justify-content:center}
 @media(max-width:520px){.demo-receipt-dialog{padding:24px 18px;border-radius:15px}.demo-receipt-overlay{padding:12px}}
+
+/* Owner organization demo shell — same visual language, isolated mock data only. */
+.demo-mode-switch{display:flex;gap:6px;align-items:center;margin-left:auto;margin-right:14px;padding:4px;border:1px solid #e4e8f0;border-radius:12px;background:#f7f8fb}
+.demo-mode-switch button{border:0;border-radius:8px;padding:9px 12px;background:transparent;color:#69758b;font-size:11px;font-weight:750;cursor:pointer}
+.demo-mode-switch button.active{background:#17243a;color:#fff;box-shadow:0 3px 10px #17243a22}
+.demo-owner-shell{display:grid;grid-template-columns:258px minmax(0,1fr);min-height:calc(100vh - 74px);background:#f6f7fb}
+.demo-owner-sidebar{position:sticky;top:0;display:flex;flex-direction:column;gap:8px;height:calc(100vh - 74px);min-height:650px;padding:22px 16px;background:#101b2e;color:#fff;overflow:auto}
+.demo-owner-brand{display:flex;align-items:center;gap:10px;padding:0 8px 22px;border-bottom:1px solid #ffffff17}
+.demo-owner-brand>span:last-child{display:grid;gap:3px}.demo-owner-brand b{font-size:16px}.demo-owner-brand small{font-size:8px;letter-spacing:.13em;color:#94a5bd}
+.demo-owner-identity{display:flex;align-items:center;gap:10px;margin:8px 0 14px;padding:12px;border:1px solid #ffffff19;border-radius:12px;background:#ffffff09}
+.demo-owner-identity>span{display:grid;place-items:center;width:34px;height:34px;border-radius:10px;background:#c5b8ff;color:#30215f;font-weight:800}
+.demo-owner-identity div,.demo-owner-sidebar-foot div{display:grid;gap:4px;min-width:0}.demo-owner-identity b,.demo-owner-sidebar-foot b{font-size:11px}.demo-owner-identity small,.demo-owner-sidebar-foot small{font-size:9px;color:#9cabc0}
+.demo-owner-sidebar .demo-nav-label{margin:14px 8px 2px;color:#71829d;font-size:9px;letter-spacing:.14em}
+.demo-owner-sidebar .demo-nav-item{width:100%;text-align:left;color:#bdc9dc}
+.demo-owner-sidebar .demo-nav-item.active{background:#293b59;color:#fff}
+.demo-owner-sidebar-foot{display:flex;align-items:center;gap:9px;margin-top:auto;padding:14px 5px 2px;border-top:1px solid #ffffff19}
+.demo-owner-sidebar-foot .demo-preview-pill{margin-left:auto}
+.demo-owner-main{min-width:0;padding:30px clamp(16px,3vw,42px) 28px}
+.demo-owner-main .demo-page-heading{margin-bottom:20px}
+.demo-owner-warning{display:flex;align-items:flex-start;gap:10px;margin:0 0 20px;padding:12px 14px;border:1px solid #cfe8df;border-radius:11px;background:#effaf5;color:#28644f;font-size:11px;line-height:1.6}
+.demo-owner-warning svg{flex:none;margin-top:1px}
+.demo-owner-tenant-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.demo-owner-tenant{min-width:0;padding:17px;border:1px solid #e7eaf1;border-radius:14px;background:#fff;box-shadow:0 8px 24px #1d2c4610}
+.demo-owner-tenant>div:first-child{display:flex;align-items:center;justify-content:space-between}
+.demo-owner-tenant h3{margin:14px 0 4px;color:#202b40;font-size:16px}
+.demo-owner-tenant>small{color:#8993a6;font-size:10px}
+.demo-owner-tenant-stats{display:flex;flex-direction:column;gap:5px;margin:16px 0;padding:12px 0;border-top:1px solid #edf0f5;border-bottom:1px solid #edf0f5;color:#78849a;font-size:10px}
+.demo-owner-tenant-stats b{color:#202b40;font-size:14px}
+.demo-owner-tenant .demo-disabled-action{width:100%;justify-content:center}
+@media(max-width:1050px){.demo-owner-tenant-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.demo-mode-switch{margin-right:6px}.demo-mode-switch button{padding:8px 9px}}
+@media(max-width:760px){.demo-topbar{flex-wrap:wrap;gap:10px}.demo-mode-switch{order:4;width:100%;margin:0}.demo-mode-switch button{flex:1}.demo-owner-shell{grid-template-columns:1fr}.demo-owner-sidebar{position:relative;height:auto;min-height:0;padding:14px;display:grid;grid-template-columns:1fr 1fr;gap:6px}.demo-owner-brand,.demo-owner-identity,.demo-owner-sidebar-foot{grid-column:1/-1}.demo-owner-brand{padding-bottom:12px}.demo-owner-sidebar .demo-nav-label{grid-column:1/-1;margin-top:8px}.demo-owner-sidebar .demo-nav-item{min-height:42px;padding:9px;font-size:10px}.demo-owner-sidebar-foot{margin-top:10px}.demo-owner-main{padding:20px 14px}.demo-owner-tenant-grid{grid-template-columns:1fr}.demo-owner-main .demo-page-heading{align-items:flex-start;gap:12px;flex-direction:column}}
