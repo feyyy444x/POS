@@ -33,7 +33,7 @@ test('Owner can delete only an inactive tenant and cannot delete the Owner organ
 })
 
 test('NexaSpace lists active tenants first and inactive tenants last', () => {
-  assert.match(app, /const isTenantOperational=item=>item\.status==='active'/)
+  assert.match(app, /const isTenantOperational=item=>organization\.status==='active'.*item\.status==='active'/)
   assert.match(app, /sort\(\(a,b\)=>Number\(isTenantOperational\(b\)\)-Number\(isTenantOperational\(a\)\)/)
 })
 
