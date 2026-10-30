@@ -1346,6 +1346,8 @@ function App() {
     if (error) { setNotice(userFacingError(error, 'Tenant baru belum berhasil dibuat.')); return }
     setOwnerTenantName('')
     setNotice('Tenant ' + name + ' berhasil dibuat. Paket dan masa aktif mengikuti organisasi Owner.')
+    const {data: refreshedTenants, error: refreshTenantsError} = await supabase.rpc('owner_list_organization_tenants')
+    if (!refreshTenantsError) setOwnerTenants(refreshedTenants || [])
     if (data?.id) {
       setLoading(true)
       setIsOwnerTenantWorkspace(true)
