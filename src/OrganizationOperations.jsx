@@ -36,7 +36,7 @@ export default function OrganizationOperations({ mode = 'team', tenants = [] }) 
     setError('')
     if (!supabase || !tenantIds.length) {
       setMembers([]); setInvites([]); setShifts([])
-      setError(!supabase ? 'Koneksi database belum tersedia.' : 'Belum ada tenant aktif pada organisasi ini.')
+      setError(!supabase ? 'Koneksi database belum tersedia.' : 'Belum ada tenant aktif pada perusahaan ini.')
       setLoading(false)
       return
     }
@@ -49,7 +49,7 @@ export default function OrganizationOperations({ mode = 'team', tenants = [] }) 
       ])
       if (loadError) {
         setMembers([]); setInvites([])
-        setError('Data karyawan lintas tenant tidak dapat dibaca. Pastikan Owner sudah tersinkron sebagai anggota organisasi. Detail: ' + loadError.message)
+        setError('Data karyawan lintas tenant tidak dapat dibaca. Pastikan Owner sudah tersinkron sebagai anggota perusahaan. Detail: ' + loadError.message)
       } else {
         setMembers(data || [])
         setInvites(inviteRows || [])
@@ -184,7 +184,7 @@ export default function OrganizationOperations({ mode = 'team', tenants = [] }) 
 
   return <section className="owner-operations-page">
     <div className="owner-section-heading owner-page-heading">
-      <div><span className="owner-kicker">{mode === 'team' ? 'ORGANIZATION PEOPLE' : 'LIVE OPERATIONS'}</span><h2>{mode === 'team' ? 'Karyawan & Hak Akses' : 'Monitoring'}</h2><p>{mode === 'team' ? 'Tambahkan karyawan, atur role, dan kelola penempatan di tenant organisasi.' : 'Pantau sesi kasir yang sedang terbuka di seluruh tenant organisasi.'}</p></div>
+      <div><span className="owner-kicker">{mode === 'team' ? 'ORGANIZATION PEOPLE' : 'LIVE OPERATIONS'}</span><h2>{mode === 'team' ? 'Karyawan & Hak Akses' : 'Monitoring'}</h2><p>{mode === 'team' ? 'Tambahkan karyawan, atur role, dan kelola penempatan di tenant perusahaan.' : 'Pantau sesi kasir yang sedang terbuka di seluruh tenant perusahaan.'}</p></div>
       <div className="owner-operations-actions">
         {mode === 'team' && <button className="btn btn-primary" onClick={() => { setInviteOpen(true); setActivationCode(''); setError('') }}><UserPlus size={16}/> Tambah karyawan</button>}
         <button className="owner-refresh-button" onClick={load} disabled={loading}>{loading ? <span className="owner-spin"><RefreshCw size={15}/></span> : <RefreshCw size={15}/>} Perbarui</button>
