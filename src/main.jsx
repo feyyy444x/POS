@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import App from './App.jsx'
 import PwaInstallPrompt from './PwaInstallPrompt.jsx'
 import './styles.css'
+import './owner-tenant-order.css'
 
 class AppErrorBoundary extends React.Component {
   constructor(props) {
