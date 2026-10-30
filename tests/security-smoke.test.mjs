@@ -34,6 +34,7 @@ const serverPromoQuoteMigration = await readFile(new URL('supabase/migrations/20
 const idempotentCheckoutMigration = await readFile(new URL('supabase/migrations/20261030230000_idempotent_checkout.sql', root), 'utf8')
 const tenantRoleMigration = await readFile(new URL('supabase/migrations/20261030240000_standardize_tenant_roles.sql', root), 'utf8')
 const organizationReportsUi = await readFile(new URL('src/OrganizationReports.jsx', root), 'utf8')
+const accountDeletionMigration = await readFile(new URL('supabase/migrations/20261030250000_preserve_cashier_identity_on_user_delete.sql', root), 'utf8')
 
 test('Netlify headers include baseline browser security protections', () => {
   for (const directive of [
