@@ -520,7 +520,7 @@ test('Owner consolidated reports aggregate only tenant IDs visible in the owner 
   assert.match(organizationReportsUi, /offset < 10000; offset \+= 1000/)
   assert.match(organizationReportsUi, /order_item.*select/)
   assert.match(app, /page==='reports-org'&&membership\.role==='owner'&&<OrganizationReports/)
-  assert.match(app, /\['reports-org','Laporan organisasi',Store\]/)
+  assert.match(app, /\['reports-org','Laporan perusahaan',Store\]/)
 })
 
 
