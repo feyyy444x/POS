@@ -714,9 +714,11 @@ function App() {
       .on('postgres_changes',{event:'*',schema:'public',table:'store_settings'},refreshOwnerTenants)
       .subscribe(status=>{if(status==='SUBSCRIBED')refreshOwnerTenants()})
     const handleFocus=()=>{if(!isOwnerTenantWorkspace)refreshOwnerTenants()}
+    const refreshInterval=window.setInterval(()=>{if(!isOwnerTenantWorkspace)refreshOwnerTenants()},15000)
     window.addEventListener('focus',handleFocus)
     return()=>{
       cancelled=true
+      window.clearInterval(refreshInterval)
       window.removeEventListener('focus',handleFocus)
       supabase.removeChannel(channel)
     }
