@@ -165,7 +165,7 @@ function OwnerOrganizationCenter({session,organization,tenants,busy,notice,onRef
   const activeItem=menu.find(item=>item.id===activeMenu)||menu[0]
   const filteredTenants=activeTenants.filter(item=>(item.name||'').toLowerCase().includes(tenantQuery.toLowerCase()))
   const choose=(id)=>{setActiveMenu(id);setMobileOpen(false)}
-  const guardLockedClick=(event)=>{if(!readOnly)return;const button=event.target?.closest?.('button');if(!button)return;const allowed=button.closest('nav')||button.closest('.owner-navigation')||button.classList.contains('owner-enter-button')||button.classList.contains('owner-mobile-menu')||button.classList.contains('owner-mobile-close')||button.classList.contains('owner-mobile-backdrop')||button.classList.contains('owner-refresh-button')||button.hasAttribute('data-lock-dismiss')||button.title==='Keluar'||/keluar|logout/i.test(button.textContent||'');if(allowed)return;event.preventDefault();event.stopPropagation();event.nativeEvent?.stopImmediatePropagation?.();onLockedAction();setLockNoticeOpen(true)}
+  const guardLockedClick=(event)=>{if(!readOnly)return;const button=event.target?.closest?.('button');if(!button)return;const allowed=button.closest('nav')||button.closest('.owner-navigation')||button.classList.contains('owner-mobile-menu')||button.classList.contains('owner-mobile-close')||button.classList.contains('owner-mobile-backdrop')||button.classList.contains('owner-refresh-button')||button.hasAttribute('data-lock-dismiss')||button.title==='Keluar'||/keluar|logout/i.test(button.textContent||'');if(allowed)return;event.preventDefault();event.stopPropagation();event.nativeEvent?.stopImmediatePropagation?.();onLockedAction();setLockNoticeOpen(true)}
   const Stat=({label,value,meta,icon:Icon})=><article className="owner-stat-card"><span className="owner-stat-icon"><Icon size={18}/></span><div><small>{label}</small><strong>{value}</strong><p>{meta}</p></div></article>
   const TenantCard=({tenant})=><article className="owner-tenant-card" key={tenant.id}>
     <div className="owner-tenant-card-top"><span className="owner-tenant-symbol"><Store size={19}/></span><span className={'owner-status '+(tenant.status==='active'&&!(tenant.expires_at&&new Date(tenant.expires_at)<=new Date())?'is-active':'')}>{tenant.expires_at&&new Date(tenant.expires_at)<=new Date()?'expired':tenant.status||'unknown'}</span></div>
@@ -1504,7 +1504,7 @@ function App() {
   if(isSuperAdmin)return <SuperAdminScreen session={session} syncStatus={syncStatus} setSyncStatus={setSyncStatus} onSignOut={()=>supabase.auth.signOut()} platformAdmin={isPlatformAdmin}/>
   
   const organizationEntitlementStatus = ownerOrganization ? (ownerOrganization.status === 'active' && ownerOrganization.expires_at && new Date(ownerOrganization.expires_at) <= new Date() ? 'expired' : (ownerOrganization.status || 'active')) : 'active'
-  if (ownerOrganization && !isOwnerTenantWorkspace) return <OwnerOrganizationCenter
+  if (ownerOrganization && (!isOwnerTenantWorkspace || organizationEntitlementStatus !== 'active')) return <OwnerOrganizationCenter
     session={session}
     organization={ownerOrganization}
     tenants={ownerTenants}
