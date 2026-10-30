@@ -151,34 +151,40 @@ export default function SupportCenter({ session, onClose, isSuperAdmin = false, 
   }, [mode, isSuperAdmin, userId, loadMessages, loadInbox])
 
   useEffect(() => {
+    const isInbox = isSuperAdmin && mode === 'inbox'
     const conversationUserId = isSuperAdmin ? activeUser?.user_id : userId
-    if (!supabase || !conversationUserId || mode !== 'chat') return
+    if (!supabase || (!isInbox && (!conversationUserId || mode !== 'chat'))) return
     const refreshMessages = () => loadMessages(conversationUserId)
-    const channel = supabase.channel('support-live-' + conversationUserId, {
+    const channel = supabase.channel(isInbox ? 'support-inbox-admin' : 'support-live-' + conversationUserId, isInbox ? undefined : {
       config: { presence: { key: presenceKeyRef.current } },
     })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'support_messages', filter: 'user_id=eq.' + conversationUserId }, payload => {
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'support_messages', ...(isInbox ? {} : { filter: 'user_id=eq.' + conversationUserId }) }, payload => {
+        if (isInbox) { loadInbox(); return }
         const changedUserId = payload.new?.user_id || payload.old?.user_id
         if (changedUserId === conversationUserId) refreshMessages()
       })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'support_conversations', filter: 'user_id=eq.' + conversationUserId }, payload => {
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'support_conversations', ...(isInbox ? {} : { filter: 'user_id=eq.' + conversationUserId }) }, payload => {
+        if (isInbox) { loadInbox(); return }
         const changedUserId = payload.new?.user_id || payload.old?.user_id
         if (changedUserId === conversationUserId) refreshMessages()
       })
-      .on('presence', { event: 'sync' }, () => {
-        const peers = Object.values(channel.presenceState()).flat()
-        const otherRole = isSuperAdmin ? 'customer' : 'admin'
-        setOtherTyping(peers.some(peer => peer.role === otherRole && peer.typing === true))
-      })
-      .subscribe(async status => {
-        setRealtimeStatus(status === 'SUBSCRIBED' ? 'Realtime tersambung' : status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' ? 'Realtime terputus, mencoba kembali…' : 'Menyambungkan realtime…')
-        if (status === 'SUBSCRIBED') {
+    if (!isInbox) channel.on('presence', { event: 'sync' }, () => {
+      const peers = Object.values(channel.presenceState()).flat()
+      const otherRole = isSuperAdmin ? 'customer' : 'admin'
+      setOtherTyping(peers.some(peer => peer.role === otherRole && peer.typing === true))
+    })
+    channel.subscribe(async status => {
+      setRealtimeStatus(status === 'SUBSCRIBED' ? 'Realtime tersambung' : status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' ? 'Realtime terputus, mencoba kembali…' : 'Menyambungkan realtime…')
+      if (status === 'SUBSCRIBED') {
+        if (isInbox) loadInbox()
+        else {
           await channel.track({ role: isSuperAdmin ? 'admin' : 'customer', typing: false })
           refreshMessages()
         }
-      })
-    presenceChannelRef.current = channel
-    const refreshOnResume = () => { if (document.visibilityState === 'visible') refreshMessages() }
+      }
+    })
+    presenceChannelRef.current = isInbox ? null : channel
+    const refreshOnResume = () => { if (document.visibilityState === 'visible') isInbox ? loadInbox() : refreshMessages() }
     window.addEventListener('focus', refreshOnResume)
     document.addEventListener('visibilitychange', refreshOnResume)
     return () => {
@@ -320,7 +326,7 @@ export default function SupportCenter({ session, onClose, isSuperAdmin = false, 
           {conversationStatus !== 'ai_active' && <button className="btn btn-small btn-outline" disabled={busy} onClick={() => changeConversationStatus('ai_active')}><Bot size={13}/> Aktifkan bot</button>}
           {conversationStatus !== 'resolved' && <button className="btn btn-small btn-outline" disabled={busy} onClick={() => changeConversationStatus('resolved')}><CheckCircle2 size={13}/> Selesaikan</button>}
         </div>}
-        <div className="support-messages">{activeMessages.map(m => <div key={m.id} className={'support-message '+(m.sender_role === (isSuperAdmin ? 'support' : 'customer') ? 'support-message-mine' : 'support-message-theirs')}><span>{m.sender_role === 'customer' ? (isSuperAdmin ? (m.user_email || activeUser?.email || 'Pengguna') : 'Anda') : m.sender_role === 'bot' ? 'NexaBot' : 'Admin NexaPos'}</span><p>{m.message}</p><small>{timeLabel(m.created_at)}</small></div>)}{!activeMessages.length && <div className="support-empty"><MessageCircle size={25}/><strong>Mulai percakapan</strong><span>Tulis pesan pertama Anda di bawah.</span></div>}{botTyping && !isSuperAdmin && <div className="support-typing-indicator" role="status" aria-live="polite"><span className="spinner"/> NexaBot sedang mengetik...</div>}{otherTyping && <div className="support-typing-indicator" role="status" aria-live="polite"><span className="spinner"/> {isSuperAdmin ? 'Pengguna sedang mengetik...' : 'Admin NexaPos sedang mengetik...'}</div>}</div>
+        <div className="support-messages">{activeMessages.map(m => <div key={m.id} className={'support-message '+(m.sender_role === (isSuperAdmin ? 'support' : 'customer') ? 'support-message-mine' : 'support-message-theirs')}><span>{m.sender_role === 'customer' ? (isSuperAdmin ? (m.user_email || activeUser?.email || 'Pengguna') : 'Anda') : m.sender_role === 'bot' ? 'NexaBot' : 'Admin NexaPos'}</span><p>{m.message}</p><small>{timeLabel(m.created_at)}</small></div>)}{!activeMessages.length && <div className="support-empty"><MessageCircle size={25}/><strong>Mulai percakapan</strong><span>Tulis pesan pertama Anda di bawah.</span></div>}{botTyping && !isSuperAdmin && <div className="support-typing-indicator" style={{display:'flex',alignItems:'center',gap:8,padding:'8px 12px',fontSize:12,color:'#64748b'}} role="status" aria-live="polite"><span className="spinner"/> NexaBot sedang mengetik...</div>}{otherTyping && <div className="support-typing-indicator" role="status" aria-live="polite"><span className="spinner"/> {isSuperAdmin ? 'Pengguna sedang mengetik...' : 'Admin NexaPos sedang mengetik...'}</div>}</div>
         <form className="support-compose" onSubmit={sendMessage}><textarea value={draft} onChange={e=>{setDraft(e.target.value);presenceChannelRef.current?.track({role:isSuperAdmin?'admin':'customer',typing:Boolean(e.target.value.trim())})}} onBlur={()=>presenceChannelRef.current?.track({role:isSuperAdmin?'admin':'customer',typing:false})} placeholder={isSuperAdmin ? 'Balas pesan pengguna...' : conversationStatus === 'waiting_admin' || conversationStatus === 'admin_active' ? 'Tulis pesan untuk tim NexaPos...' : 'Tanyakan sesuatu tentang NexaPos...'} rows={2} maxLength={3000} required/><button className="btn btn-primary" disabled={busy || !draft.trim()}>{busy ? <span className="spinner"/> : <Send size={16}/>} Kirim</button></form>
         {!isSuperAdmin && <button type="button" className="support-human-button" disabled={busy || conversationStatus === 'waiting_admin' || conversationStatus === 'admin_active'} onClick={requestHumanSupport}><Headphones size={15}/> {conversationStatus === 'resolved' ? 'Hubungi Admin lagi' : 'Hubungi Admin NexaPos'}</button>}
         {error && <p className="support-error">{error.includes('support_messages') || error.includes('relation') ? 'Fitur live chat memerlukan migrasi database pusat bantuan.' : error}</p>}
