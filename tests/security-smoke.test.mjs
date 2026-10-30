@@ -649,6 +649,8 @@ test('Owner tenant creation, entry, organization identity and Admin tenant class
   const ownerRegistrationMigration = await readFile(new URL('../supabase/migrations/20261030400000_owner_organization_name_registration_sync.sql', import.meta.url), 'utf8')
   assert.match(app, /rpc\('owner_create_store_tenant'/)
   assert.match(app, /rpc\('owner_enter_store_tenant'/)
+  assert.match(app, /await loadWorkspace\(tenantId\)/)
+  assert.match(app, /await loadWorkspace\(data\.id\)/)
   assert.match(app, /rpc\('owner_list_organization_tenants'/)
   assert.match(app, /organization_name,activation_package_key/)
   assert.match(app, /Pusat organisasi/)
