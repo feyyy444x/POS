@@ -1665,6 +1665,12 @@ function SuperAdminScreen({session,syncStatus,setSyncStatus,onSignOut,platformAd
   },[])
   useEffect(()=>{load();loadUsers()},[load,loadUsers])
   useEffect(()=>{
+    const channel=supabase.channel('super-admin-organization-profile-sync')
+      .on('postgres_changes',{event:'*',schema:'public',table:'owner_organizations'},()=>loadUsers())
+      .subscribe()
+    return()=>{supabase.removeChannel(channel)}
+  },[loadUsers])
+  useEffect(()=>{
     let mounted=true
     const loadActivationOptions=async()=>{
       const [durationResult,packageResult]=await Promise.all([
