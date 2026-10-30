@@ -4,7 +4,7 @@ const ERROR_MESSAGES = [
   [/network|fetch failed|failed to fetch|connection|timeout|timed out|\b5\d\d\b/i, 'Koneksi sedang bermasalah. Periksa internet lalu coba lagi.'],
   [/duplicate key|unique constraint|already exists|\b23505\b/i, 'Data serupa sudah ada. Periksa kembali sebelum menyimpan.'],
   [/foreign key|violates.*constraint|check constraint|invalid input syntax|\b22\w{3}\b/i, 'Data belum sesuai aturan. Periksa kembali isian yang kamu masukkan.'],
-  [/schema cache|relation .* does not exist|table .* does not exist|could not find the table|\b42p01\b/i, 'Fitur belum siap digunakan. Hubungi admin untuk memeriksa konfigurasi sistem.'],
+  [/schema cache|relation .* does not exist|table .* does not exist|could not find the table|function .* does not exist|could not find the function|\\b42p01\\b|\\b42883\\b/i, 'Fitur belum siap digunakan. Migrasi database yang dibutuhkan belum tersedia. Hubungi admin untuk memeriksa konfigurasi sistem.'],
   [/jwt|token.*expired|invalid.*token|not authenticated|\b401\b/i, 'Sesi kamu sudah berakhir. Masuk kembali lalu coba lagi.'],
 ]
 
