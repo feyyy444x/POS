@@ -115,6 +115,7 @@ end;
 $function$;
 
 drop policy if exists "managers insert operational products" on public.products;
+drop policy if exists "members insert operational products" on public.products;
 create policy "members insert operational products"
 on public.products for insert to authenticated
 with check (private.is_store_operational(store_id) and private.is_store_member(store_id));
