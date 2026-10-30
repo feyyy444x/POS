@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Check, RefreshCw, ShieldCheck, Trash2, UserCog, Users } from 'lucide-react'
+import { ArrowLeft, Check, RefreshCw, ShieldCheck, Trash2, UserCog, Users } from 'lucide-react'
 import { supabase } from './lib/supabase'
 import { userFacingError } from './lib/userFacingError'
 
@@ -13,7 +13,7 @@ const ADMIN_PERMISSIONS = [
 ]
 const defaultPermissions = () => Object.fromEntries(ADMIN_PERMISSIONS.map(([key]) => [key, true]))
 
-export default function PlatformStaffManager() {
+export default function PlatformStaffManager({ onBack }) {
   const [staff, setStaff] = useState([])
   const [email, setEmail] = useState('')
   const [fullName, setFullName] = useState('')
@@ -115,7 +115,7 @@ export default function PlatformStaffManager() {
   return <div className="page-content platform-staff-page">
     <div className="page-heading">
       <div><span className="eyebrow muted">AKSES INTERNAL NEXAPOS</span><h1>Manajemen Tim & Hak Akses</h1><p><strong>Hanya ada satu role staf platform: Admin NEXAPOS dengan FULL AKSES setara Super Admin.</strong></p></div>
-      <button className="btn btn-outline" type="button" onClick={load} disabled={loading}><RefreshCw size={15}/> Muat ulang</button>
+      <div className="staff-form-actions"><button className="btn btn-outline" type="button" onClick={onBack}><ArrowLeft size={15}/> Kembali</button><button className="btn btn-outline" type="button" onClick={load} disabled={loading}><RefreshCw size={15}/> Muat ulang</button></div>
     </div>
     {notice && <div className="notice" role="status">{notice}</div>}
     <div className="staff-layout">
