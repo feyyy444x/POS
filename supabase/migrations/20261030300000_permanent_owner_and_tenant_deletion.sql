@@ -1,4 +1,71 @@
 -- Permanent, tenant-scoped deletion for Owners and organization-wide deletion for Owner accounts.
+-- Audit triggers must not re-insert tenant foreign keys while cascading deletes are in progress.
+-- Keep the platform deletion event, but do not create dangling references for cascaded child rows.
+create or replace function private.capture_nexapos_audit_event()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $function$
+declare
+  v_before jsonb;
+  v_after jsonb;
+  v_store_id uuid;
+  v_org_id uuid;
+  v_entity_id text;
+  v_action text := tg_op;
+begin
+  if tg_op in ('UPDATE','DELETE') then v_before := to_jsonb(old); end if;
+  if tg_op in ('INSERT','UPDATE') then v_after := to_jsonb(new); end if;
+
+  if v_before is not null then
+    v_before := v_before - 'activation_code_hash' - 'pin_hash' - 'password'
+      - 'public_token' - 'access_token' - 'refresh_token' - 'token' - 'secret' - 'customer_name';
+  end if;
+  if v_after is not null then
+    v_after := v_after - 'activation_code_hash' - 'pin_hash' - 'password'
+      - 'public_token' - 'access_token' - 'refresh_token' - 'token' - 'secret' - 'customer_name';
+  end if;
+
+  if tg_table_name = 'stores' then
+    v_store_id := coalesce(nullif(v_after->>'id','')::uuid, nullif(v_before->>'id','')::uuid);
+    v_org_id := coalesce(nullif(v_after->>'organization_id','')::uuid, nullif(v_before->>'organization_id','')::uuid);
+    if tg_op = 'DELETE' then v_store_id := null; end if;
+  elsif tg_table_name = 'owner_organizations' then
+    v_org_id := coalesce(nullif(v_after->>'id','')::uuid, nullif(v_before->>'id','')::uuid);
+    if tg_op = 'DELETE' then v_org_id := null; end if;
+  else
+    v_store_id := coalesce(nullif(v_after->>'store_id','')::uuid, nullif(v_before->>'store_id','')::uuid);
+    if v_store_id is not null then
+      if tg_op = 'DELETE' and not exists (select 1 from public.stores s where s.id = v_store_id) then
+        return old;
+      end if;
+      select s.organization_id into v_org_id
+      from public.stores s where s.id = v_store_id;
+    end if;
+  end if;
+
+  v_entity_id := coalesce(
+    v_after->>'id', v_before->>'id',
+    v_after->>'store_id', v_before->>'store_id',
+    v_after->>'user_id', v_before->>'user_id'
+  );
+
+  insert into public.platform_audit_logs (
+    actor_user_id, organization_id, store_id, entity_table, entity_id,
+    action, before_data, after_data
+  ) values (
+    (select auth.uid()), v_org_id, v_store_id, tg_table_name, v_entity_id,
+    v_action, v_before, v_after
+  );
+
+  if tg_op = 'DELETE' then return old; end if;
+  return new;
+end;
+$function$;
+
+revoke all on function private.capture_nexapos_audit_event() from public, anon, authenticated;
+
 -- All operations run in one PostgreSQL transaction (the function call itself).
 
 create or replace function private.is_platform_staff_user(p_user_id uuid)
