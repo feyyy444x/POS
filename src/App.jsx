@@ -145,6 +145,7 @@ function OwnerOrganizationCenter({session,organization,tenants,busy,notice,onRef
   const [activeMenu,setActiveMenu]=useState('overview')
   const [mobileOpen,setMobileOpen]=useState(false)
   const [tenantQuery,setTenantQuery]=useState('')
+  const [profileNotice,setProfileNotice]=useState('')
   const activeTenants=(tenants||[]).filter(item=>item.status!=='deleted'&&!item.deleted_at)
   const additionalTenants=activeTenants.filter(item=>!item.is_primary_workspace)
   const activeCount=activeTenants.filter(item=>item.status==='active').length
@@ -157,6 +158,7 @@ function OwnerOrganizationCenter({session,organization,tenants,busy,notice,onRef
     {id:'reports',label:'Laporan Gabungan',icon:BarChart3,group:'ANALISIS'},
     {id:'plans',label:'Paket & Aktivasi',icon:CreditCard,group:'PENGELOLAAN'},
     {id:'settings',label:'Pengaturan Organisasi',icon:Settings,group:'PENGELOLAAN'},
+    {id:'profile',label:'Profil & Keamanan',icon:UserRound,group:'KEAMANAN'},
     {id:'audit',label:'Audit',icon:ShieldCheck,group:'KEAMANAN'},
   ]
   const activeItem=menu.find(item=>item.id===activeMenu)||menu[0]
@@ -198,6 +200,32 @@ function OwnerOrganizationCenter({session,organization,tenants,busy,notice,onRef
           </div>
         </>}
         {activeMenu==='tenants'&&<><section className="owner-section-heading owner-page-heading"><div><span className="owner-kicker">ORGANIZATION WORKSPACES</span><h2>Tenant Saya</h2><p>Kelola akses ke seluruh workspace di bawah organisasi ini.</p></div><div className="owner-tenant-count">{activeTenants.length} tenant</div></section><form className="owner-create-tenant-form" onSubmit={onCreateTenant}><div><strong>Tambah tenant baru</strong><small>Kuota tambahan tersisa: {remaining} · Workspace utama tidak dihitung sebagai tenant tambahan.</small></div><input className="text-input" value={ownerTenantName} onChange={event=>setOwnerTenantName(event.target.value)} maxLength={120} minLength={2} placeholder="Nama tenant baru" required/><button className="btn btn-primary" disabled={tenantBusy||remaining<=0||organization.status!=='active'||Boolean(organization.expires_at&&new Date(organization.expires_at)<=new Date())}>{tenantBusy?<span className="spinner"/>:<Plus size={15}/>} Buat tenant</button></form><div className="owner-tenant-toolbar"><label><Search size={17}/><input value={tenantQuery} onChange={e=>setTenantQuery(e.target.value)} placeholder="Cari nama tenant..."/></label><span>{filteredTenants.length} hasil</span></div><div className="owner-tenant-grid">{filteredTenants.map(tenant=><TenantCard tenant={tenant}/>)}{!filteredTenants.length&&<div className="owner-no-tenant">Tidak ada tenant yang cocok dengan pencarian.</div>}</div></>}
+        {activeMenu==='profile'&&<section className="owner-profile-page">
+          <section className="owner-section-heading owner-page-heading"><div><span className="owner-kicker">ACCOUNT SECURITY</span><h2>Profil & Keamanan</h2><p>Kelola identitas login, password, dan PIN keamanan akun Owner.</p></div></section>
+          {profileNotice&&<div className="owner-notice" role="status">{profileNotice}</div>}
+          <div className="owner-profile-grid">
+            <form className="panel settings-form" onSubmit={async event=>{event.preventDefault();const form=event.currentTarget;const values=new FormData(form);const fullName=String(values.get('owner_full_name')||'').trim();if(fullName.length<2){setProfileNotice('Nama minimal 2 karakter.');return}const {error}=await supabase.rpc('update_my_profile',{p_full_name:fullName});if(error){setProfileNotice(userFacingError(error,'Profil belum berhasil diperbarui.'));return}setProfileNotice('Nama profil berhasil diperbarui.')}}>
+              <div className="panel-head"><div><h3><UserRound size={17}/> Profil akun Owner</h3><p>Email login: {session.user.email}</p></div></div>
+              <label>Nama lengkap</label><input className="text-input" name="owner_full_name" defaultValue={session.user.user_metadata?.full_name||organization.owner_name||''} minLength={2} maxLength={120} required/>
+              <label>Email akun</label><input className="text-input" value={session.user.email||''} readOnly/>
+              <button className="btn btn-primary" type="submit"><Check size={16}/> Simpan profil</button>
+            </form>
+            <form className="panel settings-form" onSubmit={async event=>{event.preventDefault();const form=event.currentTarget;const values=new FormData(form);const current=String(values.get('current_pin')||'');const next=String(values.get('new_pin')||'');const confirmPin=String(values.get('confirm_pin')||'');if(!/^\d{4}$/.test(next)||next!==confirmPin){setProfileNotice('PIN baru harus tepat 4 angka dan konfirmasinya harus sama.');return}const {data,error}=await supabase.rpc('change_my_pin',{p_current_pin:current,p_new_pin:next});if(error){setProfileNotice(userFacingError(error,'PIN belum berhasil diganti.'));return}if(data!==true){setProfileNotice('PIN saat ini salah. Percobaan gagal tercatat untuk pembatasan keamanan.');return}form.reset();setProfileNotice('PIN berhasil diganti.')}}>
+              <div className="panel-head"><div><h3><ShieldCheck size={17}/> Ganti PIN</h3><p>PIN keamanan terdiri dari tepat 4 angka.</p></div></div>
+              <label>PIN saat ini</label><input className="text-input" name="current_pin" type="password" inputMode="numeric" pattern="[0-9]{4}" maxLength={4} autoComplete="off" required/>
+              <label>PIN baru</label><input className="text-input" name="new_pin" type="password" inputMode="numeric" pattern="[0-9]{4}" maxLength={4} autoComplete="new-password" required/>
+              <label>Ulangi PIN baru</label><input className="text-input" name="confirm_pin" type="password" inputMode="numeric" pattern="[0-9]{4}" maxLength={4} autoComplete="new-password" required/>
+              <button className="btn btn-primary" type="submit"><ShieldCheck size={16}/> Ganti PIN</button>
+            </form>
+            <form className="panel settings-form" onSubmit={async event=>{event.preventDefault();const form=event.currentTarget;const values=new FormData(form);const current=String(values.get('current_password')||'');const next=String(values.get('new_password')||'');const confirmPassword=String(values.get('confirm_password')||'');if(next.length<8||next!==confirmPassword){setProfileNotice('Password baru minimal 8 karakter dan konfirmasinya harus sama.');return}const reauth=await supabase.auth.signInWithPassword({email:session.user.email,password:current});if(reauth.error){setProfileNotice('Password saat ini salah.');return}const changed=await supabase.auth.updateUser({password:next});if(changed.error){setProfileNotice(userFacingError(changed.error,'Password belum berhasil diganti.'));return}form.reset();setProfileNotice('Password berhasil diganti.')}}>
+              <div className="panel-head"><div><h3><KeyRound size={17}/> Ganti password</h3><p>Gunakan password unik minimal 8 karakter.</p></div></div>
+              <label>Password saat ini</label><input className="text-input" name="current_password" type="password" autoComplete="current-password" required/>
+              <label>Password baru</label><input className="text-input" name="new_password" type="password" autoComplete="new-password" minLength={8} required/>
+              <label>Ulangi password baru</label><input className="text-input" name="confirm_password" type="password" autoComplete="new-password" minLength={8} required/>
+              <button className="btn btn-primary" type="submit"><ShieldCheck size={16}/> Ganti password</button>
+            </form>
+          </div>
+        </section>}
         {activeMenu==='team'&&<OrganizationOperations mode="team" tenants={activeTenants}/>}
         {activeMenu==='monitoring'&&<OrganizationOperations mode="monitoring" tenants={activeTenants}/>}
         {activeMenu==='reports'&&<OrganizationReports organization={organization} tenants={activeTenants}/>}
