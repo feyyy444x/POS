@@ -1393,6 +1393,9 @@ function SuperAdminScreen({session,syncStatus,setSyncStatus,onSignOut,platformAd
   const [disabledLoading,setDisabledLoading]=useState(false)
   const [deletingUserId,setDeletingUserId]=useState('')
   const [userActionId,setUserActionId]=useState('')
+  const [deleteConfirmTarget,setDeleteConfirmTarget]=useState(null)
+  const [deleteConfirmText,setDeleteConfirmText]=useState('')
+  const [deleteConfirmBusy,setDeleteConfirmBusy]=useState(false)
   const [section,setSection]=useState('dashboard')
   const [selectedTenant,setSelectedTenant]=useState(null)
   const [sectionRestored,setSectionRestored]=useState(false)
@@ -1549,15 +1552,9 @@ function SuperAdminScreen({session,syncStatus,setSyncStatus,onSignOut,platformAd
     await load()
   }
   const deleteDisabledAccount=async(member)=>{
-    const label=member.email||member.full_name||'akun ini'
     if(member.has_other_active_membership){setNotice('Akun ini masih aktif di tenant lain. Nonaktifkan seluruh keanggotaannya terlebih dahulu.');return}
-    if(!confirm('HAPUS PERMANEN akun '+label+'? Akun login akan dihapus dan tindakan ini tidak dapat dibatalkan. Data bisnis yang masih mereferensikan akun dapat membuat database menolak penghapusan.'))return
-    setDeletingUserId(member.user_id)
-    const {error}=await supabase.rpc('super_admin_delete_disabled_account',{p_user_id:member.user_id})
-    setDeletingUserId('')
-    if(error){setNotice(userFacingError(error));return}
-    setNotice('Akun '+label+' berhasil dihapus permanen.')
-    await Promise.all([loadDisabledMembers(),loadUsers()])
+    setDeleteConfirmText('')
+    setDeleteConfirmTarget({kind:'disabled',user:member})
   }
   const changeStatus=async(tenant,nextStatus)=>{
     if(nextStatus==='deleted'){
@@ -1603,14 +1600,30 @@ function SuperAdminScreen({session,syncStatus,setSyncStatus,onSignOut,platformAd
   }
   const deleteUser=async(user)=>{
     if(user.is_super_admin||user.user_id===session.user.id){setNotice('Akun Super Admin tidak dapat dihapus dari menu ini.');return}
-    const confirmation=prompt('HAPUS PERMANEN AKUN\\nKeanggotaan, undangan terkait, PIN, dan kredensial login akan dihapus.\\n\\nKetik HAPUS '+user.email+' untuk melanjutkan.')
-    if(confirmation!=='HAPUS '+user.email)return
-    setUserActionId(user.user_id)
-    const {error}=await supabase.rpc('super_admin_delete_user',{p_user_id:user.user_id})
-    setUserActionId('')
-    if(error){setNotice(userFacingError(error));return}
-    setNotice('Akun dan kredensial terkait dihapus permanen.')
-    await Promise.all([loadUsers(),loadDisabledMembers(),load()])
+    setDeleteConfirmText('')
+    setDeleteConfirmTarget({kind:'user',user})
+  }
+  const confirmDeleteAccount=async()=>{
+    if(!deleteConfirmTarget||deleteConfirmText.trim()!=='HAPUS')return
+    const {kind,user}=deleteConfirmTarget
+    const label=user.email||user.full_name||'akun ini'
+    setDeleteConfirmBusy(true)
+    if(kind==='disabled')setDeletingUserId(user.user_id)
+    else setUserActionId(user.user_id)
+    try{
+      const {error}=await supabase.rpc(kind==='disabled'?'super_admin_delete_disabled_account':'super_admin_delete_user',{p_user_id:user.user_id})
+      if(error)throw error
+      setDeleteConfirmTarget(null)
+      setDeleteConfirmText('')
+      setNotice('Akun '+label+' berhasil dihapus permanen.')
+      await Promise.all([loadUsers(),loadDisabledMembers(),load()])
+    }catch(error){
+      setNotice(userFacingError(error,'Akun belum berhasil dihapus. Periksa keterkaitan data historis lalu coba lagi.'))
+    }finally{
+      setDeleteConfirmBusy(false)
+      setDeletingUserId('')
+      setUserActionId('')
+    }
   }
   const moveUserToTenant=async(user)=>{
     if(user.is_super_admin||user.user_id===session.user.id){setNotice('Akun Super Admin dilindungi dan tidak dapat dipindahkan.');return}
@@ -1685,6 +1698,30 @@ function SuperAdminScreen({session,syncStatus,setSyncStatus,onSignOut,platformAd
     <main className="main-area">
       <header className="topbar"><div className="topbar-left"><button className="mobile-menu icon-button" onClick={()=>setMobileNav(true)} aria-label="Buka sidebar"><Menu size={20}/></button><div className="topbar-title-group"><div className="breadcrumb">Platform <span>/</span> <strong>{pageTitle}</strong></div><div className="topbar-date"><span className="desktop-date">Manajemen user, toko, dan akses platform</span><span className="mobile-date">{new Date().toLocaleDateString("id-ID",{day:"2-digit",month:"2-digit",year:"numeric"})}</span></div></div></div><div className="topbar-actions"><WibClock/><span className="role-chip"><ShieldCheck size={14}/> {platformAdmin ? 'ADMIN NEXAPOS' : 'SUPER ADMIN'}</span><span className="live-status" title={syncStatus==='connected'?'Koneksi dan Supabase Realtime terhubung':syncStatus==='unstable'?'Koneksi tidak stabil; sinkronisasi mungkin terlambat':syncStatus==='offline'?'Tidak ada koneksi jaringan':'Memeriksa koneksi'} style={{color:syncStatus==='connected'?'#16a34a':syncStatus==='unstable'?'#ca8a04':syncStatus==='offline'?'#dc2626':'#64748b'}}><i style={{backgroundColor:syncStatus==='connected'?'#16a34a':syncStatus==='unstable'?'#eab308':syncStatus==='offline'?'#dc2626':'#94a3b8'}}/>{syncStatus==='connected'?'LIVE SYNC':syncStatus==='unstable'?'SYNC LAMBAT':syncStatus==='offline'?'OFFLINE':'MEMERIKSA'}</span><button className="icon-button refresh-btn" onClick={()=>{load();loadUsers();loadDisabledMembers()}} title="Refresh halaman ini" aria-label="Refresh halaman ini"><RefreshCw size={17}/></button></div></header>
       {notice&&<div className="toast"><CheckCircle2 size={17}/><span>{notice}</span><button onClick={()=>setNotice('')}><X size={15}/></button></div>}
+      {deleteConfirmTarget&&<div role="presentation" onMouseDown={e=>{if(e.target===e.currentTarget&&!deleteConfirmBusy){setDeleteConfirmTarget(null);setDeleteConfirmText('')}}} style={{position:'fixed',inset:0,zIndex:10010,background:'rgba(12,16,32,.58)',display:'flex',alignItems:'center',justifyContent:'center',padding:18}}>
+        <section role="dialog" aria-modal="true" aria-labelledby="delete-account-title" style={{position:'relative',width:'100%',maxWidth:430,background:'var(--panel,#fff)',color:'var(--ink,#1b2035)',borderRadius:18,padding:24,boxShadow:'0 24px 80px rgba(0,0,0,.28)',border:'1px solid var(--border,#e6e8f0)'}}>
+          <button type="button" aria-label="Tutup konfirmasi hapus akun" disabled={deleteConfirmBusy} onClick={()=>{setDeleteConfirmTarget(null);setDeleteConfirmText('')}} style={{position:'absolute',top:12,right:12,width:34,height:34,borderRadius:10,border:'1px solid var(--border,#e6e8f0)',background:'transparent',color:'inherit',display:'grid',placeItems:'center',cursor:'pointer'}}><X size={17}/></button>
+          <div style={{width:46,height:46,borderRadius:14,display:'grid',placeItems:'center',background:'rgba(220,38,38,.10)',color:'#dc2626',marginBottom:14}}><Trash2 size={22}/></div>
+          <span className="eyebrow muted">TINDAKAN PERMANEN</span>
+          <h2 id="delete-account-title" style={{fontSize:20,margin:'6px 42px 8px 0'}}>Hapus akun user?</h2>
+          <p style={{fontSize:13,color:'var(--muted,#73798f)',lineHeight:1.6,margin:'0 0 14px'}}>Akun login dan akses keanggotaan akan dihapus. Riwayat transaksi dan sesi kasir tetap dipertahankan sebagai data historis.</p>
+          <div style={{border:'1px solid var(--border,#e6e8f0)',background:'var(--surface,#f7f8fc)',borderRadius:12,padding:13,marginBottom:16}}>
+            <small style={{display:'block',color:'var(--muted,#73798f)',marginBottom:4}}>Akun yang akan dihapus</small>
+            <strong style={{display:'block',overflowWrap:'anywhere'}}>{deleteConfirmTarget.user.full_name||'Tanpa nama'}</strong>
+            <span style={{fontSize:13,color:'var(--muted,#73798f)',overflowWrap:'anywhere'}}>{deleteConfirmTarget.user.email||'Email tidak tersedia'}</span>
+          </div>
+          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,marginBottom:8}}>
+            <label htmlFor="delete-account-confirm" style={{fontSize:13,fontWeight:700}}>Salin kode konfirmasi lalu ketik di bawah</label>
+            <button type="button" className="btn btn-small btn-outline" onClick={async()=>{try{await navigator.clipboard.writeText('HAPUS');setNotice('Kode konfirmasi HAPUS berhasil disalin.')}catch{setNotice('Browser tidak mengizinkan salin otomatis. Pilih teks HAPUS untuk menyalinnya.')}}}><Copy size={14}/> Salin HAPUS</button>
+          </div>
+          <div style={{fontFamily:'ui-monospace,SFMono-Regular,Menlo,monospace',fontSize:20,fontWeight:800,letterSpacing:'.16em',textAlign:'center',padding:12,border:'1px dashed #dc2626',borderRadius:10,color:'#dc2626',marginBottom:12,userSelect:'all'}}>HAPUS</div>
+          <input id="delete-account-confirm" className="text-input" autoComplete="off" value={deleteConfirmText} onChange={e=>setDeleteConfirmText(e.target.value.toUpperCase())} placeholder="Ketik HAPUS untuk mengonfirmasi" disabled={deleteConfirmBusy} />
+          <div style={{display:'flex',gap:10,marginTop:16}}>
+            <button type="button" className="btn btn-outline" style={{flex:1,justifyContent:'center'}} disabled={deleteConfirmBusy} onClick={()=>{setDeleteConfirmTarget(null);setDeleteConfirmText('')}}>Batal</button>
+            <button type="button" className="btn btn-primary" style={{flex:1,justifyContent:'center',background:'#dc2626',borderColor:'#dc2626'}} disabled={deleteConfirmBusy||deleteConfirmText.trim()!=='HAPUS'} onClick={confirmDeleteAccount}>{deleteConfirmBusy?<span className="spinner"/>:<Trash2 size={15}/>} Hapus permanen</button>
+          </div>
+        </section>
+      </div>}
       {ownerActivationCard&&<div role="presentation" onMouseDown={e=>{if(e.target===e.currentTarget){setOwnerActivationCard(null);setOwnerActivationCopied(false)}}} style={{position:'fixed',inset:0,zIndex:10000,background:'rgba(12,16,32,.48)',display:'flex',alignItems:'center',justifyContent:'center',padding:18}}>
         <section role="dialog" aria-modal="true" aria-labelledby="owner-activation-code-title" style={{position:'relative',width:'100%',maxWidth:390,background:'var(--panel,#fff)',color:'var(--ink,#1b2035)',borderRadius:18,padding:24,boxShadow:'0 24px 80px rgba(0,0,0,.24)',border:'1px solid var(--border,#e6e8f0)'}}>
           <button type="button" aria-label="Tutup kartu kode aktivasi" title="Tutup" onClick={()=>{setOwnerActivationCard(null);setOwnerActivationCopied(false)}} style={{position:'absolute',top:12,right:12,width:34,height:34,borderRadius:10,border:'1px solid var(--border,#e6e8f0)',background:'transparent',color:'inherit',display:'grid',placeItems:'center',cursor:'pointer'}}><X size={17}/></button>
