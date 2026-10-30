@@ -66,3 +66,12 @@ This matrix is the release checklist for the 16-point NexaPos master specificati
 
 ## Release decision
 **Not release-ready yet.** The implementation work in PR #20 is ongoing; migration compatibility, latest-preview verification, and authenticated E2E gates remain. Do not infer completion from this matrix alone.
+
+
+## Admin panel follow-up fixes (2026-10-30)
+- Account deletion: production FK inspection confirmed the blocker constraints are on cashier shifts, cashier break history, and cashier manual-alert actor references. The account-deletion migration changes these optional historical links to nullable references and preserves display-name snapshots; the migration is still pending production application.
+- Owner registration: form submission now retains the form element safely across the async RPC, validates required values, catches failures, and always clears the loading state. The Owner organization trigger from the organization migration is required to connect newly registered Owner workspaces to the organization model.
+- Audit log: the panel now distinguishes a missing audit table/migration from an RLS/permission error. The audit table and triggers remain pending until the audit migration is applied after the Owner organization migration.
+- Platform staff navigation: added a visible Back button to the Team & Access screen.
+- Owner package quota: introduced `is_primary_workspace` so the Super Admin-provisioned home workspace does not consume the Owner's additional-tenant allowance. Starter/Growth/Business/Enterprise limits count additional tenants only. Existing organizations are backfilled with one primary workspace; Owner creation and listing RPCs are updated accordingly.
+- None of these database migrations has been applied to production; verify them in a safe Supabase branch before production rollout.
