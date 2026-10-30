@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
-  Activity, ArrowDownRight, ArrowRight, ArrowLeft, KeyRound, Copy, BarChart3, Bell, Boxes, Check, CheckCircle2,
+  Activity, ArrowDownRight, ArrowRight, ArrowLeft, KeyRound, Copy, Building2, Power, Eye, BarChart3, Bell, Boxes, Check, CheckCircle2,
   ChevronDown, CircleDollarSign, Clock3, CreditCard, FileText, Headphones, LayoutDashboard,
   LogOut, Menu, Minus, Monitor, Package, Plus, Printer, QrCode, RefreshCw, Search,
   Settings, ShieldCheck, ShoppingBag, ShoppingCart, SkipForward, Store, Ticket, Trash2,
@@ -1731,6 +1731,8 @@ function SuperAdminScreen({session,syncStatus,setSyncStatus,onSignOut,platformAd
   const [tenants,setTenants]=useState([])
   const [organizations,setOrganizations]=useState([])
   const [organizationsLoading,setOrganizationsLoading]=useState(false)
+  const [organizationSearch,setOrganizationSearch]=useState('')
+  const [organizationStatus,setOrganizationStatus]=useState('all')
   const [users,setUsers]=useState([])
   const [loading,setLoading]=useState(true)
   const [usersLoading,setUsersLoading]=useState(false)
@@ -1828,8 +1830,10 @@ function SuperAdminScreen({session,syncStatus,setSyncStatus,onSignOut,platformAd
   const loadOrganizations=useCallback(async()=>{
     setOrganizationsLoading(true)
     const {data,error}=await supabase.from('owner_organizations').select('id,owner_user_id,owner_email,owner_name,organization_name,status,activated_at,expires_at,activation_days,activation_package_key,activation_location_limit,created_at').order('created_at',{ascending:false})
-    if(error){setOrganizations([]);setNotice(userFacingError(error,'Daftar NexaSpace belum dapat dimuat.'))}
-    else setOrganizations((data||[]).map(org=>({...org,tenant_count:tenants.filter(t=>t.organization_id===org.id).length,active_tenant_count:tenants.filter(t=>t.organization_id===org.id&&statusOf(t)==='active').length})))
+    if(error){setOrganizations([]);setNotice(userFacingError(error,'Daftar NexaSpace belum dapat dimuat.'));setOrganizationsLoading(false);return}
+    const orgs=data||[];const storeIds=tenants.filter(t=>orgs.some(o=>o.id===t.organization_id)).map(t=>t.id)
+    const {data:members}=storeIds.length?await supabase.from('store_members').select('store_id,user_id,is_active,role').in('store_id',storeIds).eq('is_active',true):{data:[]}
+    setOrganizations(orgs.map(org=>{const orgTenants=tenants.filter(t=>t.organization_id===org.id);const ids=new Set(orgTenants.map(t=>t.id));const employeeIds=new Set((members||[]).filter(m=>ids.has(m.store_id)&&m.user_id&&m.role!=='owner').map(m=>m.user_id));return {...org,tenant_count:orgTenants.filter(t=>t.status!=='deleted').length,active_tenant_count:orgTenants.filter(t=>statusOf(t)==='active').length,employee_count:employeeIds.size,primary_tenant:orgTenants.find(t=>t.is_primary_workspace)||orgTenants[0]||null}}))
     setOrganizationsLoading(false)
   },[tenants])
   const loadUsers=useCallback(async()=>{
@@ -1927,6 +1931,9 @@ function SuperAdminScreen({session,syncStatus,setSyncStatus,onSignOut,platformAd
     setNotice('Kode aktivasi baru siap disalin. Kode lama yang belum digunakan sudah diganti.')
     await load()
   }
+  const changeOrganizationStatus=async(org,nextStatus)=>{if(!org?.id)return;if(!confirm((nextStatus==='suspended'?'Nonaktifkan':'Aktifkan')+' NexaSpace '+org.organization_name+'?'))return;const {error}=await supabase.from('owner_organizations').update({status:nextStatus,updated_at:new Date().toISOString()}).eq('id',org.id);if(error){setNotice(userFacingError(error,'Status NexaSpace gagal diperbarui.'));return}setNotice('Status NexaSpace '+org.organization_name+' berhasil diperbarui.');await Promise.all([load(),loadOrganizations()])}
+  const activateOrganization=async(org)=>{if(!org?.primary_tenant){setNotice('Workspace utama organisasi tidak ditemukan.');return}await activate(org.primary_tenant);await loadOrganizations()}
+  const deleteOrganization=async(org)=>{if(!org?.id)return;const confirmation=prompt('HAPUS PERMANEN NEXASPACE\\nSeluruh tenant/workspace, akun Owner, data operasional, dan keanggotaan organisasi ini akan dihapus.\\n\\nKetik HAPUS '+org.organization_name+' untuk melanjutkan.');if(confirmation!=='HAPUS '+org.organization_name)return;if(!org.owner_user_id){setNotice('Akun Owner belum terhubung. Penghapusan organisasi ini memerlukan penanganan akun undangan terlebih dahulu.');return}const {error}=await supabase.rpc('super_admin_delete_owner_organization',{p_organization_id:org.id});if(error){setNotice(userFacingError(error,'Penghapusan NexaSpace gagal.'));return}setNotice('NexaSpace, tenant, dan akun Owner berhasil dihapus permanen.');await Promise.all([load(),loadOrganizations(),loadUsers(),loadDisabledMembers()])}
   const activate=async(tenant)=>{
     const selectedDuration=activationDurations.find(item=>item.duration_key===duration)
     const days=duration==='custom-manual'?Number(customDays):Number(selectedDuration?.duration_days)
