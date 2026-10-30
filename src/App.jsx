@@ -1608,7 +1608,7 @@ function App() {
         <input id="owner-delete-member-confirm" className="text-input" autoComplete="off" value={ownerMemberDeleteText} onChange={e=>setOwnerMemberDeleteText(e.target.value.toUpperCase())} placeholder="Ketik HAPUS untuk mengonfirmasi" disabled={ownerMemberDeleteBusy}/>
         <div style={{display:'flex',gap:10,marginTop:16}}>
           <button type="button" className="btn btn-outline" style={{flex:1,justifyContent:'center'}} disabled={ownerMemberDeleteBusy} onClick={()=>{setOwnerMemberDeleteTarget(null);setOwnerMemberDeleteText('')}}>Batal</button>
-          <button type="button" className="btn btn-primary" style={{flex:1,justifyContent:'center',background:'#dc2626',borderColor:'#dc2626'}} disabled={ownerMemberDeleteBusy||ownerMemberDeleteText.trim()!=='HAPUS'} onClick={confirmOwnerMemberDelete}>{ownerMemberDeleteBusy?<span className="spinner"/>:<Trash2 size={15}/>} Hapus permanen</button>
+          <button type="button" className="btn btn-primary" style={{flex:1,justifyContent:'center',background:'#dc2626',borderColor:'#dc2626'}} disabled={ownerMemberDeleteBusy||ownerMemberDeleteText.trim()!=='HAPUS'} onClick={confirmOwnerMemberDelete}>{ownerMemberDeleteBusy?<span className="spinner"/>:<Trash2 size={15}/>} {deleteConfirmTarget.user.organization_names?'Hapus perusahaan & Owner':'Hapus akun permanen'}</button>
         </div>
       </section>
     </div>}
