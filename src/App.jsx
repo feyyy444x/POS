@@ -137,7 +137,7 @@ function Pagination({page,total,pageSize=10,onChange}) {
 }
 
 
-function OwnerOrganizationCenter({session,organization,tenants,busy,notice,onRefresh,onSignOut,onEnterTenant,ownerTenantName,setOwnerTenantName,onCreateTenant,tenantBusy,onOrganizationSaved}) {
+function OwnerOrganizationCenter({session,organization,tenants,busy,notice,onRefresh,onSignOut,onEnterTenant,ownerTenantName,setOwnerTenantName,onCreateTenant,tenantBusy,onDeleteTenant,deleteTenantBusy,onOrganizationSaved}) {
   const [activeMenu,setActiveMenu]=useState('overview')
   const [mobileOpen,setMobileOpen]=useState(false)
   const [tenantQuery,setTenantQuery]=useState('')
@@ -164,7 +164,7 @@ function OwnerOrganizationCenter({session,organization,tenants,busy,notice,onRef
     <h3>{tenant.name||'Tenant tanpa nama'}</h3>
     <p>{tenant.is_primary_workspace?'Workspace utama':'Tenant tambahan'} · {tenant.activation_package_key||organization.activation_package_key||'Paket organisasi'}</p>
     <div className="owner-tenant-card-bottom"><span>{tenant.expires_at?'Berakhir '+new Date(tenant.expires_at).toLocaleDateString('id-ID'):'Masa aktif mengikuti paket'}</span>
-      <button className="owner-enter-button" disabled={tenant.status!=='active'||Boolean(tenant.expires_at&&new Date(tenant.expires_at)<=new Date())||organization.status!=='active'||Boolean(organization.expires_at&&new Date(organization.expires_at)<=new Date())||busy} onClick={()=>onEnterTenant(tenant.id)}>Masuk workspace <ArrowRight size={15}/></button>
+      <div className="owner-tenant-card-actions"><button className="owner-enter-button" disabled={tenant.status!=='active'||Boolean(tenant.expires_at&&new Date(tenant.expires_at)<=new Date())||organization.status!=='active'||Boolean(organization.expires_at&&new Date(organization.expires_at)<=new Date())||busy} onClick={()=>onEnterTenant(tenant.id)}>Masuk workspace <ArrowRight size={15}/></button><button type="button" className="owner-delete-tenant-button" disabled={deleteTenantBusy} onClick={()=>onDeleteTenant(tenant)}><Trash2 size={14}/> Hapus permanen</button></div>
     </div>
   </article>
   const ComingSoon=({description})=><section className="owner-empty-state"><span><Activity size={22}/></span><h3>Ruang kerja {activeItem.label}</h3><p>{description}</p><small>Halaman ini sudah tersedia di navigasi. Integrasi data dan tindakan akan diaktifkan setelah sumber data organisasi tersedia, tanpa menampilkan data contoh.</small></section>
@@ -1421,6 +1421,8 @@ function App() {
     setOwnerTenantName={setOwnerTenantName}
     onCreateTenant={createOwnerTenant}
     tenantBusy={ownerTenantBusy}
+    onDeleteTenant={deleteOwnerTenant}
+    deleteTenantBusy={ownerTenantBusy}
     onOrganizationSaved={updated=>setOwnerOrganization(current=>current?.id===updated?.id?{...current,...updated}:current)}
     onEnterTenant={async(tenantId)=>{
       const {error}=await supabase.rpc('owner_enter_store_tenant',{p_store_id:tenantId})
