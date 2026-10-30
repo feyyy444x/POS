@@ -347,7 +347,8 @@ test('Pusat Kendali Toko scopes operational reads to the selected store and labe
   assert.match(storeControlCenterUi, /\.in\('user_id', userIds\)/)
   assert.match(storeControlCenterUi, /order\('created_at', \{ ascending: false \}\)\.limit\(12\)/)
   assert.match(storeControlCenterUi, /bukan audit log lengkap untuk setiap perubahan admin/)
-  assert.match(storeControlCenterUi, /Tidak tersedia pada data tenant saat ini/)
+  assert.doesNotMatch(storeControlCenterUi, /Aktivasi & masa berlaku|Perpanjang aktivasi|Masa aktivasi/)
+  assert.match(storeControlCenterUi, /Aktifkan workspace/)
   assert.match(storeControlCenterUi, /Hak akses database mungkin membatasi sebagian data/)
 })
 
@@ -728,7 +729,7 @@ test('Platform actions stay scoped to the selected company or tenant, and regist
   const deletionMigration = await readFile(new URL('../supabase/migrations/20261030300000_permanent_owner_and_tenant_deletion.sql', import.meta.url), 'utf8')
 
   assert.ok(tenantStart >= 0 && companyStart > tenantStart)
-  assert.doesNotMatch(tenantSection, /activate\(t\)|activateOrganization|regenerateOwnerInvite|activation-toolbar|Kode aktivasi|Masa sewa perusahaan/)
+  assert.doesNotMatch(tenantSection, /activate\(t\)|activateOrganization|regenerateOwnerInvite|activation-toolbar|Kode aktivasi/)
   assert.match(tenantSection, /changeStatus\(t,'suspended'\)/)
   assert.match(tenantSection, /changeStatus\(t,'active'\)/)
   assert.match(tenantSection, /changeStatus\(t,'deleted'\)/)
