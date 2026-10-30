@@ -141,7 +141,7 @@ function Pagination({page,total,pageSize=10,onChange}) {
 }
 
 
-function OwnerOrganizationCenter({session,organization,tenants,busy,notice,onRefresh,onSignOut,onEnterTenant,ownerTenantName,setOwnerTenantName,onCreateTenant,tenantBusy,onDeleteTenant,deleteTenantBusy,onOrganizationSaved}) {
+function OwnerOrganizationCenter({session,organization,tenants,busy,notice,onRefresh,onSignOut,onEnterTenant,ownerTenantName,setOwnerTenantName,onCreateTenant,tenantBusy,onDeleteTenant,deleteTenantBusy,onOrganizationSaved,readOnly=false,lockStatus='suspended',onLockedAction=()=>{}}) {
   const [activeMenu,setActiveMenu]=useState('overview')
   const [mobileOpen,setMobileOpen]=useState(false)
   const [tenantQuery,setTenantQuery]=useState('')
@@ -164,6 +164,7 @@ function OwnerOrganizationCenter({session,organization,tenants,busy,notice,onRef
   const activeItem=menu.find(item=>item.id===activeMenu)||menu[0]
   const filteredTenants=activeTenants.filter(item=>(item.name||'').toLowerCase().includes(tenantQuery.toLowerCase()))
   const choose=(id)=>{setActiveMenu(id);setMobileOpen(false)}
+  const guardLockedClick=(event)=>{if(!readOnly)return;const button=event.target?.closest?.('button');if(!button)return;const allowed=button.closest('nav')||button.closest('.owner-navigation')||button.classList.contains('owner-mobile-menu')||button.classList.contains('owner-mobile-close')||button.classList.contains('owner-mobile-backdrop')||button.classList.contains('owner-refresh-button')||button.hasAttribute('data-lock-dismiss')||button.title==='Keluar'||/keluar|logout/i.test(button.textContent||'');if(allowed)return;event.preventDefault();event.stopPropagation();event.nativeEvent?.stopImmediatePropagation?.();onLockedAction()}
   const Stat=({label,value,meta,icon:Icon})=><article className="owner-stat-card"><span className="owner-stat-icon"><Icon size={18}/></span><div><small>{label}</small><strong>{value}</strong><p>{meta}</p></div></article>
   const TenantCard=({tenant})=><article className="owner-tenant-card" key={tenant.id}>
     <div className="owner-tenant-card-top"><span className="owner-tenant-symbol"><Store size={19}/></span><span className={'owner-status '+(tenant.status==='active'&&!(tenant.expires_at&&new Date(tenant.expires_at)<=new Date())?'is-active':'')}>{tenant.expires_at&&new Date(tenant.expires_at)<=new Date()?'expired':tenant.status||'unknown'}</span></div>
@@ -171,11 +172,11 @@ function OwnerOrganizationCenter({session,organization,tenants,busy,notice,onRef
     <p>{tenant.is_primary_workspace?'Workspace utama':'Tenant tambahan'} · {tenant.activation_package_key||organization.activation_package_key||'Paket organisasi'}</p>
     {(tenant.address||tenant.phone)&&<p className="owner-tenant-profile-meta">{[tenant.address,tenant.phone].filter(Boolean).join(' · ')}</p>}
     <div className="owner-tenant-card-bottom"><span>{tenant.expires_at?'Berakhir '+new Date(tenant.expires_at).toLocaleDateString('id-ID'):'Masa aktif mengikuti paket'}</span>
-      <div className="owner-tenant-card-actions" style={{display:"flex",gap:10,flexWrap:"wrap",alignItems:"center"}}><button className="owner-enter-button" disabled={tenant.status!=='active'||Boolean(tenant.expires_at&&new Date(tenant.expires_at)<=new Date())||organization.status!=='active'||Boolean(organization.expires_at&&new Date(organization.expires_at)<=new Date())||busy} onClick={()=>onEnterTenant(tenant.id)}>Masuk workspace <ArrowRight size={15}/></button><button type="button" className="owner-delete-tenant-button" title="Hapus tenant permanen" aria-label={"Hapus tenant "+(tenant.name||"ini")+" secara permanen"} style={{display:"inline-flex",alignItems:"center",justifyContent:"center",width:36,height:36,minWidth:36,padding:0,border:"1px solid #fecaca",borderRadius:11,background:"#fff7f7",color:"#b42318",cursor:"pointer"}} disabled={deleteTenantBusy} onClick={()=>onDeleteTenant(tenant)}><Trash2 size={16}/></button></div>
+      <div className="owner-tenant-card-actions" style={{display:"flex",gap:10,flexWrap:"wrap",alignItems:"center"}}><button className="owner-enter-button" disabled={tenant.status==='deleted'||Boolean(tenant.deleted_at)||busy} onClick={()=>onEnterTenant(tenant.id)}>Masuk workspace <ArrowRight size={15}/></button><button type="button" className="owner-delete-tenant-button" title="Hapus tenant permanen" aria-label={"Hapus tenant "+(tenant.name||"ini")+" secara permanen"} style={{display:"inline-flex",alignItems:"center",justifyContent:"center",width:36,height:36,minWidth:36,padding:0,border:"1px solid #fecaca",borderRadius:11,background:"#fff7f7",color:"#b42318",cursor:"pointer"}} disabled={deleteTenantBusy} onClick={()=>onDeleteTenant(tenant)}><Trash2 size={16}/></button></div>
     </div>
   </article>
   const ComingSoon=({description})=><section className="owner-empty-state"><span><Activity size={22}/></span><h3>Ruang kerja {activeItem.label}</h3><p>{description}</p><small>Halaman ini sudah tersedia di navigasi. Integrasi data dan tindakan akan diaktifkan setelah sumber data organisasi tersedia, tanpa menampilkan data contoh.</small></section>
-  return <div className="owner-console">
+  return <div className="owner-console" onClickCapture={guardLockedClick} onSubmitCapture={event=>{if(!readOnly)return;event.preventDefault();event.stopPropagation();event.nativeEvent?.stopImmediatePropagation?.();onLockedAction()}}>
     <aside className={'owner-sidebar '+(mobileOpen?'owner-sidebar-open':'')}>
       <div className="owner-brand-row"><Brand/><button className="owner-mobile-close" onClick={()=>setMobileOpen(false)} aria-label="Tutup navigasi"><X size={19}/></button></div>
       <div className="owner-org-switch"><span className="owner-org-avatar">{initial(organization.organization_name||organization.owner_name||organization.owner_email)}</span><span><strong>{organization.organization_name||'Organisasi belum bernama'}</strong><small>ORGANIZATION OWNER · {organization.owner_name||'Pemilik'}</small></span><span className="owner-org-dot"/></div>
@@ -191,6 +192,7 @@ function OwnerOrganizationCenter({session,organization,tenants,busy,notice,onRef
       <header className="owner-topbar"><div className="owner-topbar-left"><button className="owner-mobile-menu" onClick={()=>setMobileOpen(true)} aria-label="Buka navigasi"><Menu size={20}/></button><div><div className="owner-breadcrumb">NEXAPOS <span>/</span> NEXASPACE</div><h1>{activeItem.label}</h1></div></div><div className="owner-topbar-actions"><span className="owner-live-indicator"><i/> NexaSpace aktif</span><button className="owner-refresh-button" onClick={onRefresh} disabled={busy}><RefreshCw size={16} className={busy?'owner-spin':''}/> <span>{busy?'Memuat':'Perbarui data'}</span></button></div></header>
       <div className="owner-content">
         {notice&&<div className="owner-notice" role="status">{notice}</div>}
+        {readOnly&&<div className="owner-notice" role="status"><strong>AKSES OPERASIONAL DIKUNCI</strong><br/>{organization.organization_name||'Organisasi Anda'} — {lockStatus==='expired'?'masa aktif telah berakhir':'layanan sedang nonaktif'}. Anda tetap dapat melihat informasi NexaSpace, tetapi tindakan pengelolaan dikunci.</div>}
         {activeMenu==='overview'&&<>
           <section className="owner-welcome"><div><span className="owner-kicker">CONTROL CENTER · {new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</span><h2>Semua tenant, <em>satu kendali.</em></h2><p>Pantau organisasi dan buka workspace tenant dari satu pusat pengelolaan.</p></div><div className="owner-welcome-mark"><Boxes size={42}/></div></section>
           <div className="owner-stat-grid"><Stat label="Tenant aktif" value={activeCount} meta="Workspace aktif dalam organisasi" icon={Store}/><Stat label="Total tenant" value={activeTenants.length} meta="Termasuk workspace utama" icon={Boxes}/><Stat label="Kuota tambahan" value={remaining} meta="Slot tenant yang masih tersedia" icon={Package}/><Stat label="Paket organisasi" value={organization.activation_package_key||'Starter'} meta="Paket langganan saat ini" icon={CreditCard}/></div>
@@ -268,6 +270,7 @@ function App() {
   const [queue, setQueue] = useState([])
   const [loading, setLoading] = useState(false)
   const [notice, setNotice] = useState('')
+  const [lockNoticeOpen, setLockNoticeOpen] = useState(false)
   const [ownerMemberDeleteTarget,setOwnerMemberDeleteTarget] = useState(null)
   const [ownerMemberDeleteText,setOwnerMemberDeleteText] = useState('')
   const [ownerMemberDeleteBusy,setOwnerMemberDeleteBusy] = useState(false)
@@ -1491,6 +1494,7 @@ function App() {
   if(!pinStatus.has_pin||!pinStatus.is_verified)return <PinGate session={session} status={pinStatus} onReady={setPinStatus} onSignOut={()=>supabase.auth.signOut()}/>
   if(isSuperAdmin)return <SuperAdminScreen session={session} syncStatus={syncStatus} setSyncStatus={setSyncStatus} onSignOut={()=>supabase.auth.signOut()} platformAdmin={isPlatformAdmin}/>
   
+  const organizationEntitlementStatus = ownerOrganization ? (ownerOrganization.status === 'active' && ownerOrganization.expires_at && new Date(ownerOrganization.expires_at) <= new Date() ? 'expired' : (ownerOrganization.status || 'active')) : 'active'
   if (ownerOrganization && !isOwnerTenantWorkspace) return <OwnerOrganizationCenter
     session={session}
     organization={ownerOrganization}
@@ -1505,6 +1509,9 @@ function App() {
     tenantBusy={ownerTenantBusy}
     onDeleteTenant={deleteOwnerTenant}
     deleteTenantBusy={ownerTenantBusy}
+    readOnly={organizationEntitlementStatus !== 'active'}
+    lockStatus={organizationEntitlementStatus}
+    onLockedAction={()=>setLockNoticeOpen(true)}
     onOrganizationSaved={updated=>setOwnerOrganization(current=>current?.id===updated?.id?{...current,...updated}:current)}
     onEnterTenant={async(tenantId)=>{
       const {error}=await supabase.rpc('owner_enter_store_tenant',{p_store_id:tenantId})
@@ -1518,12 +1525,16 @@ function App() {
   if(loading&&!store)return <div className="loading-screen"><span className="spinner spinner-large"/><span>Memeriksa keanggotaan toko…</span></div>
   if(!store)return <div className="loading-screen"><span className="spinner spinner-large"/><p>{notice||'Akun ini belum terhubung ke toko. Minta Owner atau Super Admin mengirim undangan.'}</p><button className="btn btn-outline" onClick={loadWorkspace} disabled={loading}><RefreshCw size={14}/> {loading?'Memeriksa toko…':'Cek koneksi toko'}</button><button className="btn btn-ghost" onClick={()=>supabase.auth.signOut()}>Keluar</button></div>
   const effectiveStoreStatus = store.status === 'active' && store.expires_at && new Date(store.expires_at) <= new Date() ? 'expired' : (store.status || 'active')
-  if(effectiveStoreStatus !== 'active') return <TenantLockedScreen store={store} status={effectiveStoreStatus} onSignOut={()=>supabase.auth.signOut()}/>
+  const tenantReadOnly = effectiveStoreStatus !== 'active'
 
   const tenantDaysRemaining = store?.expires_at ? Math.ceil((new Date(store.expires_at).setHours(0,0,0,0)-new Date().setHours(0,0,0,0))/86400000) : null
   const tenantExpiryTone = tenantDaysRemaining === null ? '' : tenantDaysRemaining < 7 ? 'critical' : tenantDaysRemaining <= 25 ? 'warning' : 'healthy'
   const titleMap={'owner-center':'Pusat organisasi',dashboard:'Ringkasan',pos:'Kasir / POS',products:'Produk & stok',queue:'Sistem antrian',monitoring:'Monitoring kasir aktif',reports:'Laporan penjualan','reports-org':'Laporan organisasi',attendance:'Laporan absensi',cashier:'Buka / tutup kasir',settings:'Pengaturan toko',profile:'Profil & keamanan','tv-settings':'Edit Tampilan TV',tenants:'Tenant & lokasi',audit:'Audit aktivitas'}
-  return <div className="app-shell">
+  const guardTenantAction=(event)=>{if(!tenantReadOnly)return;const button=event.target?.closest?.('button');if(!button)return;const allowed=button.closest('nav')||button.classList.contains('nav-link')||button.classList.contains('nx-back-button')||button.classList.contains('admin-shortcut')||button.hasAttribute('data-nexapos-nav')||button.hasAttribute('data-lock-dismiss')||button.title==='Keluar'||/keluar|logout/i.test(button.textContent||'')||/refresh|perbarui/i.test((button.className||'')+' '+(button.getAttribute('aria-label')||''));if(allowed)return;event.preventDefault();event.stopPropagation();event.nativeEvent?.stopImmediatePropagation?.();setLockNoticeOpen(true)}
+  const guardTenantSubmit=(event)=>{if(!tenantReadOnly)return;event.preventDefault();event.stopPropagation();event.nativeEvent?.stopImmediatePropagation?.();setLockNoticeOpen(true)}
+  return <div className="app-shell" onClickCapture={guardTenantAction} onSubmitCapture={guardTenantSubmit}>
+    {tenantReadOnly&&<div className="tenant-readonly-banner" role="status" style={{margin:'14px 18px 0',padding:'14px 18px',border:'1px solid #f3c7a7',borderRadius:14,background:'#fff7ed',color:'#7c2d12'}}><strong>AKSES OPERASIONAL DIKUNCI</strong><span style={{display:'block',marginTop:4}}>{store.name||'Organisasi Anda'} · {effectiveStoreStatus==='expired'?'MASA AKTIF TELAH BERAKHIR':'STATUS TOKO NONAKTIF'} — Anda masih dapat melihat data, tetapi seluruh tindakan operasional dinonaktifkan sementara.</span></div>}
+    {lockNoticeOpen&&<OperationalLockNotice storeName={store.name||'Organisasi Anda'} status={effectiveStoreStatus} onClose={()=>setLockNoticeOpen(false)}/>}
     {ownerMemberDeleteTarget&&<div role="presentation" onMouseDown={e=>{if(e.target===e.currentTarget&&!ownerMemberDeleteBusy){setOwnerMemberDeleteTarget(null);setOwnerMemberDeleteText('')}}} style={{position:'fixed',inset:0,zIndex:10020,background:'rgba(12,16,32,.58)',display:'flex',alignItems:'center',justifyContent:'center',padding:18}}>
       <section role="dialog" aria-modal="true" aria-labelledby="owner-delete-member-title" style={{position:'relative',width:'100%',maxWidth:430,background:'var(--panel,#fff)',color:'var(--ink,#1b2035)',borderRadius:18,padding:24,boxShadow:'0 24px 80px rgba(0,0,0,.28)',border:'1px solid var(--border,#e6e8f0)'}}>
         <button type="button" aria-label="Tutup konfirmasi hapus anggota" disabled={ownerMemberDeleteBusy} onClick={()=>{setOwnerMemberDeleteTarget(null);setOwnerMemberDeleteText('')}} style={{position:'absolute',top:12,right:12,width:34,height:34,borderRadius:10,border:'1px solid var(--border,#e6e8f0)',background:'transparent',color:'inherit',display:'grid',placeItems:'center',cursor:'pointer'}}><X size={17}/></button>
@@ -1643,6 +1654,11 @@ function Receipt({receipt,settings,cashierName}){
   const items=receipt.items||[]
   const ticket=receipt.ticket
   return <div className="receipt-print"><div className="receipt-center">{settings?.logo_url&&<img className="receipt-store-logo" src={settings.logo_url} alt="Logo toko"/>}<h2>{settings?.store_name||'NexaPos Store'}</h2>{settings?.address&&<p>{settings.address}</p>}{settings?.phone&&<p>{settings.phone}</p>}<div className="receipt-rule"/><p>Struk: {order.receipt_number||'ANTRIAN'}</p><p>{new Date(order.created_at||Date.now()).toLocaleString('id-ID')}</p><p>Kasir: {cashierName||'Kasir'}</p></div><div className="receipt-rule"/>{items.map(i=><div className="receipt-item" key={i.id}><span>{i.product_name}<br/>{i.quantity} × {money(i.unit_price)}</span><strong>{money(i.line_total)}</strong></div>)}<div className="receipt-rule"/><div className="receipt-total"><span>Subtotal</span><strong>{money(order.subtotal)}</strong></div>{Number(order.discount)>0&&<div className="receipt-total"><span>Diskon</span><strong>− {money(order.discount)}</strong></div>}<div className="receipt-total receipt-grand"><span>TOTAL</span><strong>{money(order.total)}</strong></div><div className="receipt-total"><span>Pembayaran ({order.payment_method||'—'})</span><strong>{money(order.paid_amount)}</strong></div><div className="receipt-total"><span>Kembalian</span><strong>{money(order.change_amount)}</strong></div>{ticket&&<div className="receipt-queue"><small>NOMOR ANTRIAN</small><strong>{settings?.queue_prefix||'A'}{String(ticket.queue_number).padStart(3,'0')}</strong></div>}<div className="receipt-center receipt-thanks">{settings?.receipt_note?.trim()&&<p className="receipt-note">{settings.receipt_note.trim()}</p>}<p>{settings?.receipt_footer||'Terima kasih telah berbelanja'}</p><small>Powered by NexaPos</small></div></div>
+}
+
+function OperationalLockNotice({storeName,status,onClose}) {
+  const expired=status==='expired'
+  return <div role="presentation" onMouseDown={event=>{if(event.target===event.currentTarget)onClose()}} style={{position:'fixed',inset:0,zIndex:12000,background:'rgba(10,18,38,.58)',display:'flex',alignItems:'center',justifyContent:'center',padding:18}}><section role="dialog" aria-modal="true" aria-labelledby="operational-lock-title" style={{position:'relative',width:'100%',maxWidth:460,background:'#fff',color:'#182238',borderRadius:20,padding:'30px 26px 24px',boxShadow:'0 24px 80px rgba(0,0,0,.3)'}}><button type="button" data-lock-dismiss aria-label="Tutup pemberitahuan" onClick={onClose} style={{position:'absolute',right:12,top:12,width:36,height:36,borderRadius:11,border:'1px solid #e2e8f0',background:'#fff',color:'#334155',display:'grid',placeItems:'center',cursor:'pointer'}}><X size={18}/></button><span style={{display:'inline-flex',padding:'7px 10px',borderRadius:999,background:'#fff1e8',color:'#a33b12',fontSize:11,fontWeight:800,letterSpacing:'.08em'}}>NEXAPOS · AKSES TERBATAS</span><h2 id="operational-lock-title" style={{fontSize:22,lineHeight:1.25,margin:'18px 42px 8px 0'}}>AKSES OPERASIONAL DIKUNCI</h2><h3 style={{fontSize:17,margin:'0 0 18px',color:'#334155'}}>{storeName}</h3><p style={{margin:'0 0 8px',color:'#475569'}}>Status layanan Anda saat ini:</p><strong style={{display:'block',color:'#b42318',fontSize:14,marginBottom:14}}>{expired?'MASA AKTIF TELAH BERAKHIR':'TOKO NONAKTIF'}</strong><p style={{color:'#475569',lineHeight:1.65,margin:'0 0 12px'}}>Akses operasional organisasi ini sedang dihentikan sementara. Anda masih dapat melihat halaman dan informasi yang tersedia, tetapi seluruh tindakan operasional tidak dapat digunakan.</p><p style={{color:'#475569',lineHeight:1.65,margin:'0 0 12px'}}>Untuk mengaktifkan kembali layanan atau memperpanjang masa sewa, silakan hubungi Tim NexaPos dan sertakan nama organisasi <strong>{storeName}</strong>.</p><p style={{color:'#64748b',fontSize:12,lineHeight:1.6,margin:0}}>Data organisasi dan transaksi tetap tersimpan selama masa penonaktifan. Menutup pemberitahuan ini tidak mengaktifkan kembali layanan.</p></section></div>
 }
 
 function TenantLockedScreen({store,status,onSignOut}) {
