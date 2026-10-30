@@ -565,3 +565,13 @@ test('account deletion migration preserves all cashier and alert attribution for
   assert.match(accountDeletionMigration, /cashier_name_snapshot/)
   assert.match(accountDeletionMigration, /sent_by_name_snapshot/)
 })
+
+
+test('account deletion requires exact uppercase confirmation and protects open cashier sessions', () => {
+  assert.match(app, /setDeleteConfirmText\(e\.target\.value\)/)
+  assert.match(app, /deleteConfirmText\.trim\(\)!=='HAPUS'/)
+  assert.match(app, /cashier_name_snapshot/)
+  const migration = readFileSync(new URL('../supabase/migrations/20261030260000_block_deletion_with_open_cashier_shift.sql', import.meta.url), 'utf8')
+  assert.match(migration, /closed_at is null/)
+  assert.match(migration, /Tutup sesi kasir terlebih dahulu/)
+})
