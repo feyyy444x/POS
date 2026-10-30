@@ -1554,18 +1554,28 @@ function SuperAdminScreen({session,syncStatus,setSyncStatus,onSignOut,platformAd
   const expiredCount=tenants.filter(t=>statusOf(t)==='expired').length
   const submitTenant=async(event)=>{
     event.preventDefault()
-    const form=new FormData(event.currentTarget)
+    const formElement=event.currentTarget
+    const form=new FormData(formElement)
+    const storeName=String(form.get('store_name')||'').trim()
+    const ownerName=String(form.get('owner_name')||'').trim()
+    const ownerEmail=String(form.get('owner_email')||'').trim().toLowerCase()
+    if(!storeName||!ownerName||!ownerEmail){setNotice('Nama workspace, nama Owner, dan email Owner wajib diisi.');return}
     const activationCode=crypto.randomUUID().replaceAll('-','')
-    const ownerEmail=String(form.get('owner_email')||'').trim()
     setRegistering(true)
-    const {error}=await supabase.rpc('register_store_tenant',{p_store_name:String(form.get('store_name')||'').trim(),p_owner_name:String(form.get('owner_name')||'').trim(),p_owner_email:ownerEmail,p_activation_code:activationCode})
-    setRegistering(false)
-    if(error){setNotice(userFacingError(error));return}
-    event.currentTarget.reset()
-    setOwnerActivationCopied(false)
-    setOwnerActivationCard({email:ownerEmail,code:activationCode,title:'Kode aktivasi Owner'})
-    setNotice('Owner dan workspace utama berhasil didaftarkan. Kode aktivasi ditampilkan di kartu; kirimkan secara pribadi kepada Owner.')
-    await load()
+    setNotice('')
+    try{
+      const {error}=await supabase.rpc('register_store_tenant',{p_store_name:storeName,p_owner_name:ownerName,p_owner_email:ownerEmail,p_activation_code:activationCode})
+      if(error)throw error
+      formElement.reset()
+      setOwnerActivationCopied(false)
+      setOwnerActivationCard({email:ownerEmail,code:activationCode,title:'Kode aktivasi Owner'})
+      setNotice('Owner dan workspace utama berhasil didaftarkan. Kode aktivasi ditampilkan di kartu; kirimkan secara pribadi kepada Owner.')
+      await load()
+    }catch(error){
+      setNotice(userFacingError(error,'Pendaftaran Owner belum berhasil. Pastikan migrasi organisasi Owner sudah diterapkan dan email belum digunakan untuk undangan Owner yang bertabrakan.'))
+    }finally{
+      setRegistering(false)
+    }
   }
   const regenerateOwnerInvite=async(tenant)=>{
     const activationCode=crypto.randomUUID().replaceAll('-','')
