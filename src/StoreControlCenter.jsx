@@ -95,6 +95,56 @@ export default function StoreControlCenter({ tenant, onBack, onActivate, onStatu
   }, [tenant?.id, load])
 
   const status = tenant?.status === 'active' && tenant?.expires_at && new Date(tenant.expires_at) <= new Date() ? 'expired' : tenant?.status
+  const editMember = async member => {
+    if (member.role === 'owner') return
+    const fullName = window.prompt('Nama karyawan', member.full_name || '')
+    if (fullName === null) return
+    if (fullName.trim().length < 2 || fullName.trim().length > 120) { window.alert('Nama harus 2–120 karakter.'); return }
+    const roleLabel = window.prompt('Jabatan: ketik manager atau karyawan', member.role === 'admin' ? 'manager' : 'karyawan')
+    if (roleLabel === null) return
+    const role = roleLabel.trim().toLowerCase() === 'manager' ? 'admin' : roleLabel.trim().toLowerCase() === 'karyawan' ? 'cashier' : null
+    if (!role) { window.alert('Jabatan harus Manager atau Karyawan.'); return }
+    const { error } = await supabase.rpc('super_admin_update_store_member', {
+      p_member_id: member.id, p_full_name: fullName.trim(), p_role: role,
+      p_is_active: Boolean(member.is_active && !member.disabled_at),
+    })
+    if (error) { window.alert(userFacingError(error, 'Perubahan karyawan gagal.')); return }
+    await load(true)
+  }
+
+  const deleteMember = async member => {
+    if (member.role === 'owner') return
+    if (!window.confirm('Hapus keanggotaan ' + (member.full_name || member.email || 'karyawan') + ' dari tenant ini? Akun login dan riwayat transaksi tidak dihapus.')) return
+    const { error } = await supabase.rpc('super_admin_delete_store_member_assignment', { p_member_id: member.id })
+    if (error) { window.alert(userFacingError(error, 'Keanggotaan gagal dihapus.')); return }
+    await load(true)
+  }
+
+  const resetMemberPin = async member => {
+    if (member.role === 'owner' || !member.user_id) return
+    if (!window.confirm('Reset PIN ' + (member.full_name || member.email || 'karyawan') + '?')) return
+    const { error } = await supabase.rpc('super_admin_reset_user_pin', { p_user_id: member.user_id })
+    if (error) { window.alert(userFacingError(error, 'Reset PIN gagal.')); return }
+    window.alert('PIN berhasil direset. Karyawan perlu membuat PIN baru saat login berikutnya.')
+  }
+
+  const resetMemberPassword = async member => {
+    if (member.role === 'owner' || !member.user_id) return
+    const password = window.prompt('Password sementara baru (minimal 6 karakter).')
+    if (password === null) return
+    if (password.length < 6 || password.length > 128) { window.alert('Password harus 6–128 karakter.'); return }
+    const { data: sessionData } = await supabase.auth.getSession()
+    const token = sessionData?.session?.access_token
+    if (!token) { window.alert('Sesi login tidak tersedia.'); return }
+    const response = await fetch('/.netlify/functions/manage-user-password', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+      body: JSON.stringify({ userId: member.user_id, password }),
+    })
+    const result = await response.json().catch(() => ({}))
+    if (!response.ok) { window.alert(result.error || 'Reset password gagal.'); return }
+    window.alert('Password sementara berhasil diperbarui.')
+  }
+
   const activeMembers = members.filter(member => member.is_active && !member.disabled_at)
   const totalSales = orders.filter(order => order.status === 'paid').reduce((sum, order) => sum + Number(order.total || 0), 0)
   const events = useMemo(() => {
@@ -140,7 +190,7 @@ export default function StoreControlCenter({ tenant, onBack, onActivate, onStatu
         <SectionCard title="Bantuan pelanggan" description="Ringkasan percakapan milik anggota toko" icon={MessageCircle} action={<button className="text-button" onClick={onOpenSupport}>Buka pusat bantuan <ExternalLink size={13}/></button>}>{conversations.length ? <div className="store-control-conversation-list">{conversations.slice(0, 4).map(conversation => <div key={conversation.user_id}><span className="store-control-avatar"><MessageCircle size={15}/></span><div><strong>{members.find(member => member.user_id === conversation.user_id)?.full_name || members.find(member => member.user_id === conversation.user_id)?.email || 'Anggota toko'}</strong><small>{dateTime(conversation.last_message_at || conversation.updated_at)}</small></div><span className="status-pill status-waiting">{statusLabel(conversation.status)}</span></div>)}</div> : <div className="store-control-muted">Belum ada percakapan bantuan yang terkait dengan akun anggota toko yang terdaftar.</div>}</SectionCard>
       </div>}
       {tab === 'team' && <div className="store-control-grid">
-        <SectionCard title="Akun pemilik dan karyawan" description="Status keanggotaan toko" icon={Users}><div className="table-wrap"><table><thead><tr><th>Akun</th><th>Peran</th><th>Status</th><th>Bergabung</th></tr></thead><tbody>{members.map(member => <tr key={member.id}><td><strong>{member.full_name || member.email || 'Tanpa nama'}</strong><br/><small>{member.email || 'Email tidak tersedia'}</small></td><td>{member.role || '—'}</td><td><span className={'status-pill ' + (member.is_active && !member.disabled_at ? 'status-paid' : 'status-inactive')}>{member.disabled_at ? 'Dinonaktifkan' : member.is_active ? 'Aktif' : 'Nonaktif'}</span></td><td>{dateOnly(member.created_at)}</td></tr>)}</tbody></table></div>{members.length === 0 && <div className="store-control-muted">Tidak ada data keanggotaan yang dapat ditampilkan.</div>}</SectionCard>
+        <SectionCard title="Akun pemilik dan karyawan" description="Status keanggotaan toko" icon={Users}><div className="table-wrap"><table><thead><tr><th>Akun</th><th>Peran</th><th>Status</th><th>Bergabung</th><th>Aksi</th></tr></thead><tbody>{members.map(member => <tr key={member.id}><td><strong>{member.full_name || member.email || 'Tanpa nama'}</strong><br/><small>{member.email || 'Email tidak tersedia'}</small></td><td>{member.role === 'owner' ? 'Owner' : member.role === 'admin' || member.role === 'manager' ? 'Manager' : 'Karyawan'}</td><td><span className={'status-pill ' + (member.is_active && !member.disabled_at ? 'status-paid' : 'status-inactive')}>{member.disabled_at ? 'Dinonaktifkan' : member.is_active ? 'Aktif' : 'Nonaktif'}</span></td><td>{dateOnly(member.created_at)}</td><td>{member.role === 'owner' ? <span className="subtle">Dilindungi</span> : <div className="member-manage-actions"><button className="btn btn-small btn-outline" onClick={() => editMember(member)}><ShieldCheck size={13}/> Edit</button><button className="btn btn-small btn-outline" onClick={() => resetMemberPin(member)}><KeyRound size={13}/> Reset PIN</button><button className="btn btn-small btn-outline" onClick={() => resetMemberPassword(member)}><KeyRound size={13}/> Reset password</button><button className="btn btn-small btn-outline danger-icon" onClick={() => deleteMember(member)}><Trash2 size={13}/> Hapus</button></div>}</td></tr>)}</tbody></table></div>{members.length === 0 && <div className="store-control-muted">Tidak ada data keanggotaan yang dapat ditampilkan.</div>}</SectionCard>
         <SectionCard title="Undangan anggota" description="Undangan terbaru yang dibuat untuk toko ini" icon={Mail}>{invites.length ? <div className="store-control-invites">{invites.map(invite => <div key={invite.id}><span className="store-control-avatar"><UserRound size={15}/></span><div><strong>{invite.full_name || invite.email}</strong><small>{invite.email} · {invite.role}</small><small>Dibuat {dateTime(invite.created_at)} · Kedaluwarsa {dateOnly(invite.expires_at)}</small></div><span className={'status-pill ' + (invite.accepted_at ? 'status-paid' : 'status-waiting')}>{invite.accepted_at ? 'Diterima' : 'Menunggu'}</span></div>)}</div> : <div className="store-control-muted">Belum ada undangan yang tersedia.</div>}</SectionCard>
       </div>}
       {tab === 'activity' && <SectionCard title="Riwayat aktivitas toko" description="Kronologi berdasarkan catatan toko, anggota, undangan, transaksi, dan bantuan yang tersedia" icon={Activity}><div className="store-control-activity-tools"><div className="search-box"><Activity size={16}/><input value={query} onChange={event => setQuery(event.target.value)} placeholder="Cari aktivitas…"/></div><select className="text-input" value={activityFilter} onChange={event => setActivityFilter(event.target.value)}><option value="all">Semua aktivitas</option><option value="store">Profil toko</option><option value="activation">Aktivasi</option><option value="member">Anggota</option><option value="invite">Undangan</option><option value="order">Transaksi</option><option value="support">Bantuan</option></select></div><div className="store-control-timeline">{filteredEvents.map(event => <div className="store-control-event" key={event.id}><span className={'store-control-event-dot event-' + event.type}/><div><strong>{event.title}</strong><p>{event.detail}</p><small>{dateTime(event.at)}</small></div></div>)}</div>{filteredEvents.length === 0 && <div className="empty-state"><strong>Tidak ada aktivitas yang cocok</strong><p>Ubah kata kunci atau jenis aktivitas.</p></div>}<p className="store-control-footnote">Ini adalah kronologi dari data yang saat ini tersimpan, bukan audit log lengkap untuk setiap perubahan admin.</p></SectionCard>}
