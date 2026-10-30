@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   ArrowLeft, RefreshCw, Store, Users, CalendarClock, Activity, MessageCircle,
   ShieldCheck, KeyRound, ShoppingBag, Mail, Phone, MapPin, Clock3, CheckCircle2,
-  AlertTriangle, UserRound, ExternalLink
+  AlertTriangle, UserRound, ExternalLink, Trash2
 } from 'lucide-react'
 import { supabase } from './lib/supabase'
 import { userFacingError } from './lib/userFacingError'
