@@ -606,3 +606,11 @@ test('Platform staff manager has a working back callback and audit migration fai
   assert.match(app, /PlatformStaffManager onBack/)
   assert.match(audit, /Tabel audit log belum tersedia di database ini/)
 })
+
+
+test('account deletion surfaces the exact known historical cashier FK migration blocker', async () => {
+  const errors = await readFile(new URL('../src/lib/userFacingError.js', import.meta.url), 'utf8')
+  assert.match(errors, /cashier_shifts_cashier_id_fkey/)
+  assert.match(errors, /Migrasi perbaikan penghapusan akun belum diterapkan/)
+  assert.match(errors, /riwayat transaksi tidak dihapus/)
+})
