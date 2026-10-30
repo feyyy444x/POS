@@ -593,7 +593,7 @@ function App() {
     setStore(storeData); setSettings(settingData || {store_id:member.store_id,store_name:storeData?.name||member.store_name||'NexaPos Store',address:'',phone:'',receipt_footer:'Terima kasih telah berbelanja',receipt_note:'',queue_prefix:'A',queue_enabled:true,currency:'IDR'})
     if (member.role === 'owner') {
       const {data: organization, error: organizationError} = await supabase.from('owner_organizations')
-        .select('id,owner_user_id,owner_email,owner_name,activation_package_key,activation_location_limit,status,activated_at,expires_at,activation_days')
+        .select('id,owner_user_id,owner_email,owner_name,organization_name,activation_package_key,activation_location_limit,status,activated_at,expires_at,activation_days')
         .eq('owner_user_id', session.user.id).limit(1).maybeSingle()
       if (organizationError) {
         setOwnerOrganization(null)
