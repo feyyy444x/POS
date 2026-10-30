@@ -59,15 +59,31 @@ export default async (request) => {
     const storeIds = [...new Set(validInvitesByCode.map((invite) => invite.store_id))]
     const { data: stores, error: storesError } = await admin
       .from('stores')
-      .select('id,status,deleted_at')
+      .select('id,status,expires_at,deleted_at,organization_id')
       .in('id', storeIds)
     if (storesError) {
       console.error('Could not validate invitation tenant:', storesError.message)
       return json({ error: 'Status toko tidak dapat diverifikasi saat ini.' }, 500)
     }
-    const validStoreIds = new Set((stores || []).filter((store) => !store.deleted_at && store.status !== 'deleted').map((store) => store.id))
+
+    const organizationIds = [...new Set((stores || []).map((store) => store.organization_id).filter(Boolean))]
+    const { data: organizations, error: organizationsError } = organizationIds.length
+      ? await admin.from('owner_organizations').select('id,status,expires_at').in('id', organizationIds)
+      : { data: [], error: null }
+    if (organizationsError) {
+      console.error('Could not validate invitation organization:', organizationsError.message)
+      return json({ error: 'Status organisasi tidak dapat diverifikasi saat ini.' }, 500)
+    }
+    const organizationById = new Map((organizations || []).map((organization) => [organization.id, organization]))
+    const validStoreIds = new Set((stores || []).filter((store) => {
+      if (store.deleted_at || store.status !== 'active' || (store.expires_at && new Date(store.expires_at) <= new Date())) return false
+      if (!store.organization_id) return true
+      const organization = organizationById.get(store.organization_id)
+      return Boolean(organization && organization.status === 'active' &&
+        (!organization.expires_at || new Date(organization.expires_at) > new Date()))
+    }).map((store) => store.id))
     const validInvites = validInvitesByCode.filter((invite) => validStoreIds.has(invite.store_id))
-    if (!validInvites.length) return json({ error: 'Undangan berasal dari toko yang sudah dihapus.' }, 403)
+    if (!validInvites.length) return json({ error: 'Undangan tidak dapat diaktifkan karena tenant atau organisasi sedang nonaktif atau masa sewanya telah berakhir.' }, 403)
 
     let user = null
     for (let page = 1; page <= 100; page += 1) {
