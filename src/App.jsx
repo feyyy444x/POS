@@ -481,7 +481,7 @@ function App() {
     return ()=>subscription.unsubscribe()
   }, [])
 
-  const loadWorkspace = useCallback(async (preferredStoreId = selectedStoreId) => {
+  const loadWorkspace = useCallback(async (preferredStoreId = selectedStoreId, strictSelection = false) => {
     if (!session?.user || !supabase) return
     setLoading(true)
     setNotice('')
@@ -522,7 +522,19 @@ function App() {
       if (attempt < 3) await new Promise(resolve => setTimeout(resolve, 500 * (attempt + 1)))
     }
     let resolvedMembers = memberRows || []
-    if (memberError) { setNotice(userFacingError(memberError, 'Koneksi belum siap saat memuat keanggotaan. Periksa internet lalu coba lagi.')); setLoading(false); return }
+    if (memberError) {
+      if (strictSelection) setIsOwnerTenantWorkspace(false)
+      setNotice(userFacingError(memberError, 'Koneksi belum siap saat memuat keanggotaan. Periksa internet lalu coba lagi.'))
+      setLoading(false)
+      return
+    }
+    if (strictSelection && preferredStoreId && !resolvedMembers.some(m => m.store_id === preferredStoreId && m.is_active === true)) {
+      setIsOwnerTenantWorkspace(false)
+      setStore(null); setMembership(null); setSettings(null); setProducts([]); setOrders([]); setOrderItems([]); setQueue([])
+      setNotice('Tenant tidak berhasil dibuka: akses Owner belum terbaca pada tenant yang dipilih. Data tidak dialihkan ke tenant lain. Muat ulang Pusat Organisasi atau hubungi Admin jika masalah berlanjut.')
+      setLoading(false)
+      return
+    }
     if (!resolvedMembers.length) {
       // Owner organizations are control centers and do not require a store membership to sign in.
       const {data: organization, error: organizationError} = await supabase.from('owner_organizations')
@@ -563,7 +575,15 @@ function App() {
     const {data: settingRows} = await supabase.from('store_settings').select('store_id,store_name').in('store_id',resolvedMembers.map(m=>m.store_id))
     const availableMemberships = resolvedMembers.map(m=>({...m,store_name:settingRows?.find(s=>s.store_id===m.store_id)?.store_name||storeRows?.find(s=>s.id===m.store_id)?.name||'Toko'}))
     setMemberships(availableMemberships)
-    const member = availableMemberships.find(m=>m.store_id===preferredStoreId) || availableMemberships[0]
+    const selectedMember = availableMemberships.find(m=>m.store_id===preferredStoreId)
+    if (strictSelection && preferredStoreId && !selectedMember) {
+      setIsOwnerTenantWorkspace(false)
+      setStore(null); setMembership(null); setSettings(null); setProducts([]); setOrders([]); setOrderItems([]); setQueue([])
+      setNotice('Tenant yang dipilih tidak ditemukan dalam daftar akses aktif akun ini. Tenant lain tidak akan dibuka otomatis.')
+      setLoading(false)
+      return
+    }
+    const member = selectedMember || availableMemberships[0]
     if (selectedStoreId !== member.store_id) setSelectedStoreId(member.store_id)
     setMembership(member)
     const loadIssues = []
@@ -1352,7 +1372,7 @@ function App() {
       setIsOwnerTenantWorkspace(true)
       setStore(null); setMembership(null); setSettings(null); setProducts([]); setOrders([]); setOrderItems([]); setQueue([]); setCart([]); setReceipt(null)
       setSelectedStoreId(data.id)
-      await loadWorkspace(data.id)
+      await loadWorkspace(data.id, true)
     } else await loadWorkspace()
   }
 
@@ -1408,7 +1428,7 @@ function App() {
       setIsOwnerTenantWorkspace(true)
       setSelectedStoreId(tenantId)
       setStore(null);setMembership(null);setSettings(null);setProducts([]);setOrders([]);setQueue([]);setCart([]);setReceipt(null);setNotice('')
-      await loadWorkspace(tenantId)
+      await loadWorkspace(tenantId, true)
     }}
   />
   if(loading&&!store)return <div className="loading-screen"><span className="spinner spinner-large"/><span>Memeriksa keanggotaan toko…</span></div>
