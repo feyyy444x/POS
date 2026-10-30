@@ -41,5 +41,7 @@ test('Admin, Owner, and tenant workspace subscribe to shared lifecycle changes',
   assert.match(app, /table:'owner_organizations'},refreshOwnerData/)
   assert.match(app, /table:'store_members'},refreshOwnerData/)
   assert.match(app, /nexapos-tenant-lifecycle-sync-/)
+  assert.match(app, /table:'store_settings'},payload=>/)
+  assert.match(app, /table:'store_members'},payload=>/)
   assert.match(lifecycle, /alter publication supabase_realtime add table public\.%I/)
 })
