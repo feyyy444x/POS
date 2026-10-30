@@ -2010,7 +2010,7 @@ function SuperAdminScreen({session,syncStatus,setSyncStatus,onSignOut,platformAd
       if(error)throw error
       setDeleteConfirmTarget(null)
       setDeleteConfirmText('')
-      setNotice('Akun '+label+' berhasil dihapus permanen.')
+      setNotice(kind==='user'&&user.organization_names?'Perusahaan '+user.organization_names+', seluruh tenant, dan akun Owner '+label+' berhasil dihapus permanen.':'Akun '+label+' berhasil dihapus permanen.')
       await Promise.all([loadUsers(),loadDisabledMembers(),load()])
     }catch(error){
       setNotice(userFacingError(error,'Akun belum berhasil dihapus. Periksa keterkaitan data historis lalu coba lagi.'))
@@ -2098,10 +2098,10 @@ function SuperAdminScreen({session,syncStatus,setSyncStatus,onSignOut,platformAd
           <button type="button" aria-label="Tutup konfirmasi hapus akun" disabled={deleteConfirmBusy} onClick={()=>{setDeleteConfirmTarget(null);setDeleteConfirmText('')}} style={{position:'absolute',top:12,right:12,width:34,height:34,borderRadius:10,border:'1px solid var(--border,#e6e8f0)',background:'transparent',color:'inherit',display:'grid',placeItems:'center',cursor:'pointer'}}><X size={17}/></button>
           <div style={{width:46,height:46,borderRadius:14,display:'grid',placeItems:'center',background:'rgba(220,38,38,.10)',color:'#dc2626',marginBottom:14}}><Trash2 size={22}/></div>
           <span className="eyebrow muted">TINDAKAN PERMANEN</span>
-          <h2 id="delete-account-title" style={{fontSize:20,margin:'6px 42px 8px 0'}}>Hapus akun user?</h2>
-          <p style={{fontSize:13,color:'var(--muted,#73798f)',lineHeight:1.6,margin:'0 0 14px'}}>Akun login dan akses keanggotaan akan dihapus. Riwayat transaksi dan sesi kasir tetap dipertahankan sebagai data historis.</p>
+          <h2 id="delete-account-title" style={{fontSize:20,margin:'6px 42px 8px 0'}}>{deleteConfirmTarget.user.organization_names?'Hapus perusahaan & Owner?':'Hapus akun user?'}</h2>
+          <p style={{fontSize:13,color:'var(--muted,#73798f)',lineHeight:1.6,margin:'0 0 14px'}}>{deleteConfirmTarget.user.organization_names?('Aksi ini menghapus perusahaan '+deleteConfirmTarget.user.organization_names+', seluruh tenant/workspace beserta data operasionalnya, dan akun Owner. Gunakan aksi ini hanya jika memang ingin menghapus seluruh perusahaan.'): 'Akun login dan akses keanggotaan akan dihapus. Riwayat transaksi dan sesi kasir tetap dipertahankan sebagai data historis.'}</p>
           <div style={{border:'1px solid var(--border,#e6e8f0)',background:'var(--surface,#f7f8fc)',borderRadius:12,padding:13,marginBottom:16}}>
-            <small style={{display:'block',color:'var(--muted,#73798f)',marginBottom:4}}>Akun yang akan dihapus</small>
+            <small style={{display:'block',color:'var(--muted,#73798f)',marginBottom:4}}>{deleteConfirmTarget.user.organization_names?'Perusahaan dan Owner yang akan dihapus':'Akun yang akan dihapus'}</small>
             <strong style={{display:'block',overflowWrap:'anywhere'}}>{deleteConfirmTarget.user.full_name||'Tanpa nama'}</strong>
             <span style={{fontSize:13,color:'var(--muted,#73798f)',overflowWrap:'anywhere'}}>{deleteConfirmTarget.user.email||'Email tidak tersedia'}</span>
           </div>
