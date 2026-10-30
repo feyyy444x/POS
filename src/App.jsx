@@ -165,7 +165,7 @@ function OwnerOrganizationCenter({session,organization,tenants,busy,notice,onRef
   const activeItem=menu.find(item=>item.id===activeMenu)||menu[0]
   const filteredTenants=activeTenants.filter(item=>(item.name||'').toLowerCase().includes(tenantQuery.toLowerCase()))
   const choose=(id)=>{setActiveMenu(id);setMobileOpen(false)}
-  const guardLockedClick=(event)=>{if(!readOnly)return;const button=event.target?.closest?.('button');if(!button)return;const allowed=button.closest('nav')||button.closest('.owner-navigation')||button.classList.contains('owner-mobile-menu')||button.classList.contains('owner-mobile-close')||button.classList.contains('owner-mobile-backdrop')||button.classList.contains('owner-refresh-button')||button.hasAttribute('data-lock-dismiss')||button.title==='Keluar'||/keluar|logout/i.test(button.textContent||'');if(allowed)return;event.preventDefault();event.stopPropagation();event.nativeEvent?.stopImmediatePropagation?.();onLockedAction();setLockNoticeOpen(true)}
+  const guardLockedClick=(event)=>{if(!readOnly)return;const button=event.target?.closest?.('button');if(!button)return;const allowed=button.closest('nav')||button.closest('.owner-navigation')||button.classList.contains('owner-enter-button')||button.classList.contains('owner-mobile-menu')||button.classList.contains('owner-mobile-close')||button.classList.contains('owner-mobile-backdrop')||button.classList.contains('owner-refresh-button')||button.hasAttribute('data-lock-dismiss')||button.title==='Keluar'||/keluar|logout/i.test(button.textContent||'');if(allowed)return;event.preventDefault();event.stopPropagation();event.nativeEvent?.stopImmediatePropagation?.();onLockedAction();setLockNoticeOpen(true)}
   const Stat=({label,value,meta,icon:Icon})=><article className="owner-stat-card"><span className="owner-stat-icon"><Icon size={18}/></span><div><small>{label}</small><strong>{value}</strong><p>{meta}</p></div></article>
   const TenantCard=({tenant})=><article className="owner-tenant-card" key={tenant.id}>
     <div className="owner-tenant-card-top"><span className="owner-tenant-symbol"><Store size={19}/></span><span className={'owner-status '+(tenant.status==='active'&&!(tenant.expires_at&&new Date(tenant.expires_at)<=new Date())?'is-active':'')}>{tenant.expires_at&&new Date(tenant.expires_at)<=new Date()?'expired':tenant.status||'unknown'}</span></div>
@@ -252,6 +252,7 @@ function App() {
   const [membership, setMembership] = useState(null)
   const [memberships, setMemberships] = useState([])
   const [ownerOrganization, setOwnerOrganization] = useState(null)
+  const [tenantOrganizationStatus, setTenantOrganizationStatus] = useState(null)
   const [ownerTenants, setOwnerTenants] = useState([])
   const [ownerTenantName, setOwnerTenantName] = useState('')
   const [ownerTenantBusy, setOwnerTenantBusy] = useState(false)
@@ -574,6 +575,7 @@ function App() {
       return
     }
     if (!resolvedMembers.length) {
+      setTenantOrganizationStatus(null)
       // Owner organizations are control centers and do not require a store membership to sign in.
       const {data: organization, error: organizationError} = await supabase.from('owner_organizations')
         .select('id,owner_user_id,owner_email,owner_name,organization_name,activation_package_key,activation_location_limit,status,activated_at,expires_at,activation_days')
@@ -648,7 +650,12 @@ function App() {
     if (productLoadError) loadIssues.push('Produk: ' + userFacingError(productLoadError))
     if (orderLoadError) loadIssues.push('Transaksi: ' + userFacingError(orderLoadError))
     if (queueLoadError) loadIssues.push('Antrean: ' + userFacingError(queueLoadError))
-    setStore(storeData); setSettings(settingData || {store_id:member.store_id,store_name:storeData?.name||member.store_name||'NexaPos Store',address:'',phone:'',receipt_footer:'Terima kasih telah berbelanja',receipt_note:'',queue_prefix:'A',queue_enabled:true,currency:'IDR'})
+    setStore(storeData)
+    if (storeData.organization_id) {
+      const {data: tenantOrgData} = await supabase.from('owner_organizations').select('id,status,expires_at,organization_name').eq('id',storeData.organization_id).maybeSingle()
+      setTenantOrganizationStatus(tenantOrgData || null)
+    } else setTenantOrganizationStatus(null)
+    setSettings(settingData || {store_id:member.store_id,store_name:storeData?.name||member.store_name||'NexaPos Store',address:'',phone:'',receipt_footer:'Terima kasih telah berbelanja',receipt_note:'',queue_prefix:'A',queue_enabled:true,currency:'IDR'})
     if (member.role === 'owner') {
       const {data: organization, error: organizationError} = await supabase.from('owner_organizations')
         .select('id,owner_user_id,owner_email,owner_name,organization_name,activation_package_key,activation_location_limit,status,activated_at,expires_at,activation_days')
@@ -1526,7 +1533,7 @@ function App() {
   />
   if(loading&&!store)return <div className="loading-screen"><span className="spinner spinner-large"/><span>Memeriksa keanggotaan toko…</span></div>
   if(!store)return <div className="loading-screen"><span className="spinner spinner-large"/><p>{notice||'Akun ini belum terhubung ke toko. Minta Owner atau Super Admin mengirim undangan.'}</p><button className="btn btn-outline" onClick={loadWorkspace} disabled={loading}><RefreshCw size={14}/> {loading?'Memeriksa toko…':'Cek koneksi toko'}</button><button className="btn btn-ghost" onClick={()=>supabase.auth.signOut()}>Keluar</button></div>
-  const effectiveStoreStatus = store.status === 'active' && store.expires_at && new Date(store.expires_at) <= new Date() ? 'expired' : (store.status || 'active')
+  const effectiveStoreStatus = store.status !== 'active' ? (store.status || 'pending') : (tenantOrganizationStatus && tenantOrganizationStatus.status !== 'active' ? tenantOrganizationStatus.status : (tenantOrganizationStatus?.expires_at && new Date(tenantOrganizationStatus.expires_at) <= new Date() ? 'expired' : (store.expires_at && new Date(store.expires_at) <= new Date() ? 'expired' : 'active')))
   const tenantReadOnly = effectiveStoreStatus !== 'active'
 
   const tenantDaysRemaining = store?.expires_at ? Math.ceil((new Date(store.expires_at).setHours(0,0,0,0)-new Date().setHours(0,0,0,0))/86400000) : null
