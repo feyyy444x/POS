@@ -329,7 +329,7 @@ export default function Homepage() {
             return <article className={'living-plan living-plan-redesign'+(plan.popular?' is-popular':'')+(selectedPlan===plan.key?' is-selected':'')} key={plan.key} style={{'--plan-index':index}} onClick={()=>setSelectedPlan(plan.key)}>
               <div className="living-plan-top"><span>{plan.name}</span>{plan.popular&&<b>REKOMENDASI</b>}</div>
               <p className="living-plan-note">{plan.note || 'Paket aktivasi NexaPos sesuai kebutuhan bisnismu.'}</p>
-              <div className="living-plan-location"><Store size={14}/> Maksimal {Number(plan.location_limit||1)} lokasi termasuk tenant pusat</div>
+              <div className="living-plan-location"><Store size={14}/> Kuota {Number(plan.location_limit||1)} tenant tambahan di luar workspace utama</div>
               <div className="living-plan-price-label">{discount>0?'HARGA PROMO':'HARGA PAKET AKTIVASI'}</div>
               <div className="living-price living-price-redesign">{discount>0&&<del>{money(basePrice)}</del>}<strong>{money(finalPrice)}</strong><small>/ {duration?.name||'masa aktif'} ({Number(duration?.duration_days||0)} hari)</small></div>
               {discount>0&&<div className="living-saving living-saving-redesign"><Zap size={13}/> Hemat {money(discount)} <b>−{promoDiscountLabel(displayPromo)}</b></div>}
