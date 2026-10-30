@@ -195,13 +195,18 @@ begin
     raise exception 'Tenant tidak ditemukan atau sudah dihapus permanen';
   end if;
 
-  if not private.is_store_owner(p_store_id) then
-    raise exception 'Hanya Owner organisasi pemilik tenant yang dapat menghapus tenant ini';
+  if not private.is_pin_verified() then
+    raise exception 'Verifikasi PIN diperlukan untuk menghapus tenant';
   end if;
 
   select * into v_org
   from public.owner_organizations
-  where id = v_store.organization_id;
+  where id = v_store.organization_id
+    and owner_user_id = (select auth.uid())
+  for update;
+  if not found then
+    raise exception 'Tenant ini bukan milik organisasi akun Owner Anda';
+  end if;
 
   if v_store.status = 'active'
     and (v_store.expires_at is null or v_store.expires_at > now())
