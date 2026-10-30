@@ -1,4 +1,5 @@
 const ERROR_MESSAGES = [
+  [/super admin access required|verifikasi pin diperlukan|pin verification required/i, 'Verifikasi PIN Super Admin diperlukan sebelum menjalankan tindakan ini. Buka verifikasi PIN lalu coba lagi.'],
   [/row-level security|permission denied|not authorized|insufficient privilege|\b42501\b/i, 'Akses tidak diizinkan. Periksa hak akses akun atau hubungi admin.'],
   [/network|fetch failed|failed to fetch|connection|timeout|timed out|\b5\d\d\b/i, 'Koneksi sedang bermasalah. Periksa internet lalu coba lagi.'],
   [/duplicate key|unique constraint|already exists|\b23505\b/i, 'Data serupa sudah ada. Periksa kembali sebelum menyimpan.'],
