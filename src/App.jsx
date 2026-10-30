@@ -25,19 +25,7 @@ const money = (value) => new Intl.NumberFormat('id-ID', { style: 'currency', cur
 const today = () => new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' })
 
 async function fetchOwnerOrganizationTenants() {
-  const {data,error}=await supabase.rpc('owner_list_organization_tenants')
-  if(error)return {data:null,error}
-  const tenants=data||[]
-  if(!tenants.length)return {data:[],error:null}
-  const {data:settings,error:settingsError}=await supabase.from('store_settings')
-    .select('store_id,store_name,address,phone,logo_url,updated_at')
-    .in('store_id',tenants.map(tenant=>tenant.id))
-  if(settingsError)return {data:tenants,error:settingsError}
-  const settingsByStore=new Map((settings||[]).map(row=>[row.store_id,row]))
-  return {data:tenants.map(tenant=>{
-    const profile=settingsByStore.get(tenant.id)
-    return {...tenant,name:String(profile?.store_name||'').trim()||tenant.name,store_address:profile?.address||'',store_phone:profile?.phone||'',store_logo_url:profile?.logo_url||null,settings_updated_at:profile?.updated_at||null}
-  }),error:null}
+  return supabase.rpc('owner_list_organization_tenant_profiles')
 }
 const shortTime = (value) => new Date(value).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
 const initial = (name) => (name || 'N').trim().slice(0, 1).toUpperCase()
