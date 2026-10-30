@@ -1448,3 +1448,24 @@ tbody tr:hover{background:#f7fbfd}
 /* Typography inheritance fixes for organization console controls */
 .owner-nav-link{font-family:inherit;font-size:12px;font-weight:600}
 .owner-tenant-toolbar input{font-family:inherit;font-size:12px}
+
+.owner-operations-page{width:100%}
+.owner-operations-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;margin:0 0 20px}
+.owner-operations-summary>div{display:flex;align-items:center;gap:12px;padding:17px;background:#fff;border:1px solid var(--owner-line);border-radius:13px;color:#5969c7}
+.owner-operations-summary>div span{display:flex;flex-direction:column;gap:3px}
+.owner-operations-summary strong{font-size:20px;color:#202b43;letter-spacing:-.03em}
+.owner-operations-summary small{font-size:10px;color:#8993a5}
+.owner-team-search{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--owner-line);border-radius:10px;padding:0 12px;height:43px;width:100%;max-width:none;box-sizing:border-box;color:#8992a5}
+.owner-team-search input{flex:1;min-width:0;border:0;outline:0;background:transparent;font:12px inherit;color:var(--owner-ink)}
+.owner-team-search small{white-space:nowrap;font-size:10px;color:#929bad}
+.owner-table-wrap{overflow:auto;background:#fff;border:1px solid var(--owner-line);border-radius:13px}
+.owner-table-wrap table{width:100%;border-collapse:collapse;min-width:600px;text-align:left}
+.owner-table-wrap th{padding:13px 15px;background:#fafbfe;color:#929bad;font-size:9px;letter-spacing:.08em;text-transform:uppercase;font-weight:750}
+.owner-table-wrap td{padding:13px 15px;border-top:1px solid #eff1f5;color:#566176;font-size:11px;vertical-align:middle}
+.owner-table-wrap td:first-child{display:table-cell}
+.owner-table-wrap td strong,.owner-table-wrap td small{display:block}
+.owner-table-wrap td strong{color:#263149;font-size:11px;margin-bottom:3px}
+.owner-table-wrap td small{color:#9aa2b1;font-size:9px;overflow-wrap:anywhere}
+.owner-role-chip{display:inline-flex;padding:6px 9px;border-radius:20px;background:#f0f2ff;color:#5363bc;font-size:9px;font-weight:700;white-space:nowrap}
+.owner-data-footnote{margin:12px 2px;color:#9aa2b1;font-size:10px;line-height:1.6}
+@media(max-width:760px){.owner-operations-summary{gap:8px}.owner-operations-summary>div{padding:12px 9px;gap:7px}.owner-operations-summary>div svg{width:16px}.owner-operations-summary strong{font-size:16px}.owner-operations-summary small{font-size:8px}.owner-team-search{gap:7px}.owner-team-search small{font-size:9px}}
