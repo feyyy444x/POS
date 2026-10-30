@@ -157,7 +157,7 @@ function OwnerOrganizationCenter({session,organization,tenants,busy,notice,onRef
     {id:'monitoring',label:'Monitoring',icon:Activity,group:'OPERASIONAL'},
     {id:'reports',label:'Laporan Gabungan',icon:BarChart3,group:'ANALISIS'},
     {id:'plans',label:'Paket & Aktivasi',icon:CreditCard,group:'PENGELOLAAN'},
-    {id:'settings',label:'Pengaturan Organisasi',icon:Settings,group:'PENGELOLAAN'},
+    {id:'settings',label:'NexaSpace',icon:Settings,group:'PENGELOLAAN'},
     {id:'profile',label:'Profil & Keamanan',icon:UserRound,group:'KEAMANAN'},
     {id:'audit',label:'Audit',icon:ShieldCheck,group:'KEAMANAN'},
   ]
