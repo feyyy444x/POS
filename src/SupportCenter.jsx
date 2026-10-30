@@ -27,9 +27,13 @@ export default function SupportCenter({ session, onClose, isSuperAdmin = false, 
   const [channelError, setChannelError] = useState('')
   const [channelNotice, setChannelNotice] = useState('')
   const [realtimeStatus, setRealtimeStatus] = useState('Menyambungkan realtime…')
+  const [otherTyping, setOtherTyping] = useState(false)
+  const [botTyping, setBotTyping] = useState(false)
   const [position, setPosition] = useState({ x: 0, y: 0 })
   const modalRef = useRef(null)
   const dragRef = useRef(null)
+  const presenceChannelRef = useRef(null)
+  const presenceKeyRef = useRef('support-' + Math.random().toString(36).slice(2))
   const activeSession = session || guestSession
   const userId = activeSession?.user?.id
   const userEmail = activeSession?.user?.email || ''
@@ -133,7 +137,7 @@ export default function SupportCenter({ session, onClose, isSuperAdmin = false, 
       if (!item.email || item.email === 'Pengguna') item.email = message.user_email || item.email
     }
     const { data: conversations, error: statusError } = await supabase.from('support_conversations').select('user_id,status')
-    if (statusError) { setError(userFacingError(statusError, 'Status percakapan belum dapat dimuat. Pastikan migrasi AI Support sudah diterapkan.')); return }
+    if (statusError) { setError(userFacingError(statusError, 'Status percakapan belum dapat dimuat. Pastikan migrasi pusat bantuan sudah diterapkan.')); return }
     const statuses = Object.fromEntries((conversations || []).map(item => [item.user_id, item.status]))
     for (const item of grouped.values()) item.status = statuses[item.user_id] || 'ai_active'
     setInboxStatuses(statuses)
@@ -147,44 +151,50 @@ export default function SupportCenter({ session, onClose, isSuperAdmin = false, 
   }, [mode, isSuperAdmin, userId, loadMessages, loadInbox])
 
   useEffect(() => {
-    if (!supabase || (!userId && !isSuperAdmin)) return
-    const refreshMessages = () => {
-      if (mode === 'chat' && !isSuperAdmin && userId) loadMessages(userId)
-      if (mode === 'chat' && isSuperAdmin && activeUser) loadMessages(activeUser.user_id)
-      if (mode === 'inbox' && isSuperAdmin) loadInbox()
-    }
-    const channel = supabase.channel('support-live-' + (userId || 'guest'))
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'support_messages' }, payload => {
+    const isInbox = isSuperAdmin && mode === 'inbox'
+    const conversationUserId = isSuperAdmin ? activeUser?.user_id : userId
+    if (!supabase || (!isInbox && (!conversationUserId || mode !== 'chat'))) return
+    const refreshMessages = () => loadMessages(conversationUserId)
+    const channel = supabase.channel(isInbox ? 'support-inbox-admin' : 'support-live-' + conversationUserId, isInbox ? undefined : {
+      config: { presence: { key: presenceKeyRef.current } },
+    })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'support_messages', ...(isInbox ? {} : { filter: 'user_id=eq.' + conversationUserId }) }, payload => {
+        if (isInbox) { loadInbox(); return }
         const changedUserId = payload.new?.user_id || payload.old?.user_id
-        if (isSuperAdmin) {
-          if (mode === 'inbox') loadInbox()
-          else if (mode === 'chat' && activeUser?.user_id === changedUserId) loadMessages(activeUser.user_id)
-          return
-        }
-        if (changedUserId === userId && mode === 'chat') loadMessages(userId)
+        if (changedUserId === conversationUserId) refreshMessages()
       })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'support_conversations' }, payload => {
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'support_conversations', ...(isInbox ? {} : { filter: 'user_id=eq.' + conversationUserId }) }, payload => {
+        if (isInbox) { loadInbox(); return }
         const changedUserId = payload.new?.user_id || payload.old?.user_id
-        if (isSuperAdmin) {
-          if (mode === 'inbox') loadInbox()
-          else if (mode === 'chat' && activeUser?.user_id === changedUserId) loadMessages(activeUser.user_id)
-          return
+        if (changedUserId === conversationUserId) refreshMessages()
+      })
+    if (!isInbox) channel.on('presence', { event: 'sync' }, () => {
+      const peers = Object.values(channel.presenceState()).flat()
+      const otherRole = isSuperAdmin ? 'customer' : 'admin'
+      setOtherTyping(peers.some(peer => peer.role === otherRole && peer.typing === true))
+    })
+    channel.subscribe(async status => {
+      setRealtimeStatus(status === 'SUBSCRIBED' ? 'Realtime tersambung' : status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' ? 'Realtime terputus, mencoba kembali…' : 'Menyambungkan realtime…')
+      if (status === 'SUBSCRIBED') {
+        if (isInbox) loadInbox()
+        else {
+          await channel.track({ role: isSuperAdmin ? 'admin' : 'customer', typing: false })
+          refreshMessages()
         }
-        if (changedUserId === userId && mode === 'chat') loadMessages(userId)
-      })
-      .subscribe(status => {
-        setRealtimeStatus(status === 'SUBSCRIBED' ? 'Realtime tersambung' : status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' ? 'Realtime terputus, mencoba kembali…' : 'Menyambungkan realtime…')
-        if (status === 'SUBSCRIBED') refreshMessages()
-      })
-    const refreshOnResume = () => { if (document.visibilityState === 'visible') refreshMessages() }
+      }
+    })
+    presenceChannelRef.current = isInbox ? null : channel
+    const refreshOnResume = () => { if (document.visibilityState === 'visible') isInbox ? loadInbox() : refreshMessages() }
     window.addEventListener('focus', refreshOnResume)
     document.addEventListener('visibilitychange', refreshOnResume)
     return () => {
+      presenceChannelRef.current = null
+      setOtherTyping(false)
       window.removeEventListener('focus', refreshOnResume)
       document.removeEventListener('visibilitychange', refreshOnResume)
       supabase.removeChannel(channel)
     }
-  }, [userId, isSuperAdmin, mode, activeUser, loadMessages, loadInbox])
+  }, [userId, isSuperAdmin, mode, activeUser?.user_id, loadMessages, loadInbox])
 
   const continueAsGuest = async event => {
     event.preventDefault()
@@ -213,11 +223,14 @@ export default function SupportCenter({ session, onClose, isSuperAdmin = false, 
     if (!body || !targetUser || busy) return
     setBusy(true)
     setError('')
+    setBotTyping(!isSuperAdmin && conversationStatus === 'ai_active')
+    await presenceChannelRef.current?.track({ role: isSuperAdmin ? 'admin' : 'customer', typing: false })
     const result = isSuperAdmin
       ? await supabase.rpc('admin_reply_support_message', { p_user_id: targetUser, p_message: body })
       : await supabase.rpc('submit_support_message', { p_message: body, p_display_identity: isGuest ? guestIdentity : userEmail })
     setBusy(false)
-    if (result.error) { setError(userFacingError(result.error, 'Pesan belum berhasil dikirim. Pastikan migrasi AI Support sudah diterapkan, lalu coba lagi.')); return }
+    setBotTyping(false)
+    if (result.error) { setError(userFacingError(result.error, 'Pesan belum berhasil dikirim. Pastikan migrasi pusat bantuan sudah diterapkan, lalu coba lagi.')); return }
     setDraft('')
     await loadMessages(targetUser)
     if (isSuperAdmin) await loadInbox()
@@ -242,7 +255,7 @@ export default function SupportCenter({ session, onClose, isSuperAdmin = false, 
     setConversationStatus(status)
     await loadInbox()
   }
-  const statusLabel = status => ({ ai_active: 'Bot aktif', waiting_admin: 'Menunggu admin', admin_active: 'Ditangani admin', resolved: 'Selesai' }[status] || 'Bot aktif')
+  const statusLabel = status => ({ ai_active: 'NexaBot aktif', waiting_admin: 'Menunggu admin', admin_active: 'Ditangani admin', resolved: 'Selesai' }[status] || 'NexaBot aktif')
   const openTelegram = () => {
     if (!channelSettings.telegram_enabled || !currentTelegramUsername) return
     window.open('https://t.me/' + encodeURIComponent(currentTelegramUsername), '_blank', 'noopener,noreferrer')
@@ -305,16 +318,16 @@ export default function SupportCenter({ session, onClose, isSuperAdmin = false, 
         {isSuperAdmin && <button className="support-inbox-link" onClick={() => setMode('settings')}><Settings size={14}/> Pengaturan kanal bantuan</button>}
         {isSuperAdmin && <p className="support-config-note">Atur nomor WhatsApp dan username Telegram di menu pengaturan kanal bantuan.</p>}
       </div>}
-      {mode === 'chat' && <div className="support-chat-view"><button className="support-back" onClick={() => setMode('choices')}><ArrowLeft size={14}/> Kembali ke pilihan bantuan</button><div className="support-chat-intro"><strong>{isSuperAdmin ? 'Percakapan live chat' : 'Bantuan NexaPos'}</strong><small>{isSuperAdmin ? activeUser?.email : 'Bot NexaPos menjawab dari panduan terverifikasi.'}</small><span className={'support-status support-status-' + conversationStatus}>{statusLabel(conversationStatus)}</span></div>
-        {!isSuperAdmin && conversationStatus === 'waiting_admin' && <div className="support-handoff-note"><Headphones size={15}/> Permintaan Anda sudah masuk ke inbox Admin NexaPos. Bot sementara berhenti membalas otomatis.</div>}
+      {mode === 'chat' && <div className="support-chat-view"><button className="support-back" onClick={() => setMode('choices')}><ArrowLeft size={14}/> Kembali ke pilihan bantuan</button><div className="support-chat-intro"><strong>{isSuperAdmin ? 'Percakapan live chat' : 'Bantuan NexaPos'}</strong><small>{isSuperAdmin ? activeUser?.email : 'NexaBot menjawab dari panduan terverifikasi.'}</small><span className={'support-status support-status-' + conversationStatus}>{statusLabel(conversationStatus)}</span></div>
+        {!isSuperAdmin && conversationStatus === 'waiting_admin' && <div className="support-handoff-note"><Headphones size={15}/> Permintaan Anda sudah masuk ke inbox Admin NexaPos. NexaBot sementara berhenti membalas otomatis.</div>}
         {!isSuperAdmin && conversationStatus === 'admin_active' && <div className="support-handoff-note"><UserRound size={15}/> Admin NexaPos sedang menangani percakapan ini.</div>}
         {isSuperAdmin && <div className="support-admin-actions">
           {conversationStatus !== 'admin_active' && <button className="btn btn-small btn-outline" disabled={busy} onClick={() => changeConversationStatus('admin_active')}><Handshake size={13}/> Ambil alih</button>}
-          {conversationStatus !== 'ai_active' && <button className="btn btn-small btn-outline" disabled={busy} onClick={() => changeConversationStatus('ai_active')}><Bot size={13}/> Aktifkan bot</button>}
+          {conversationStatus !== 'ai_active' && <button className="btn btn-small btn-outline" disabled={busy} onClick={() => changeConversationStatus('ai_active')}><Bot size={13}/> Aktifkan NexaBot</button>}
           {conversationStatus !== 'resolved' && <button className="btn btn-small btn-outline" disabled={busy} onClick={() => changeConversationStatus('resolved')}><CheckCircle2 size={13}/> Selesaikan</button>}
         </div>}
-        <div className="support-messages">{activeMessages.map(m => <div key={m.id} className={'support-message '+(m.sender_role === (isSuperAdmin ? 'support' : 'customer') ? 'support-message-mine' : 'support-message-theirs')}><span>{m.sender_role === 'customer' ? (isSuperAdmin ? (m.user_email || activeUser?.email || 'Pengguna') : 'Anda') : m.sender_role === 'bot' ? 'NexaPos Bot' : 'Admin NexaPos'}</span><p>{m.message}</p><small>{timeLabel(m.created_at)}</small></div>)}{!activeMessages.length && <div className="support-empty"><MessageCircle size={25}/><strong>Mulai percakapan</strong><span>Tulis pesan pertama Anda di bawah.</span></div>}</div>
-        <form className="support-compose" onSubmit={sendMessage}><textarea value={draft} onChange={e=>setDraft(e.target.value)} placeholder={isSuperAdmin ? 'Balas pesan pengguna...' : conversationStatus === 'waiting_admin' || conversationStatus === 'admin_active' ? 'Tulis pesan untuk tim NexaPos...' : 'Tanyakan sesuatu tentang NexaPos...'} rows={2} maxLength={3000} required/><button className="btn btn-primary" disabled={busy || !draft.trim()}>{busy ? <span className="spinner"/> : <Send size={16}/>} Kirim</button></form>
+        <div className="support-messages">{activeMessages.map(m => <div key={m.id} className={'support-message '+(m.sender_role === (isSuperAdmin ? 'support' : 'customer') ? 'support-message-mine' : 'support-message-theirs')}><span>{m.sender_role === 'customer' ? (isSuperAdmin ? (m.user_email || activeUser?.email || 'Pengguna') : 'Anda') : m.sender_role === 'bot' ? 'NexaBot' : 'Admin NexaPos'}</span><p>{m.message}</p><small>{timeLabel(m.created_at)}</small></div>)}{!activeMessages.length && <div className="support-empty"><MessageCircle size={25}/><strong>Mulai percakapan</strong><span>Tulis pesan pertama Anda di bawah.</span></div>}{botTyping && !isSuperAdmin && <div className="support-typing-indicator" style={{display:'flex',alignItems:'center',gap:8,padding:'8px 12px',fontSize:12,color:'#64748b'}} role="status" aria-live="polite"><span className="spinner"/> NexaBot sedang mengetik...</div>}{otherTyping && <div className="support-typing-indicator" role="status" aria-live="polite"><span className="spinner"/> {isSuperAdmin ? 'Pengguna sedang mengetik...' : 'Admin NexaPos sedang mengetik...'}</div>}</div>
+        <form className="support-compose" onSubmit={sendMessage}><textarea value={draft} onChange={e=>{setDraft(e.target.value);presenceChannelRef.current?.track({role:isSuperAdmin?'admin':'customer',typing:Boolean(e.target.value.trim())})}} onBlur={()=>presenceChannelRef.current?.track({role:isSuperAdmin?'admin':'customer',typing:false})} placeholder={isSuperAdmin ? 'Balas pesan pengguna...' : conversationStatus === 'waiting_admin' || conversationStatus === 'admin_active' ? 'Tulis pesan untuk tim NexaPos...' : 'Tanyakan sesuatu tentang NexaPos...'} rows={2} maxLength={3000} required/><button className="btn btn-primary" disabled={busy || !draft.trim()}>{busy ? <span className="spinner"/> : <Send size={16}/>} Kirim</button></form>
         {!isSuperAdmin && <button type="button" className="support-human-button" disabled={busy || conversationStatus === 'waiting_admin' || conversationStatus === 'admin_active'} onClick={requestHumanSupport}><Headphones size={15}/> {conversationStatus === 'resolved' ? 'Hubungi Admin lagi' : 'Hubungi Admin NexaPos'}</button>}
         {error && <p className="support-error">{error.includes('support_messages') || error.includes('relation') ? 'Fitur live chat memerlukan migrasi database pusat bantuan.' : error}</p>}
       </div>}
