@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 
-const baseUrl = (process.env.NEXAPOS_E2E_BASE_URL || 'https://deploy-preview-15--posfeyyy.netlify.app').replace(/\/$/, '')
+const baseUrl = (process.env.NEXAPOS_E2E_BASE_URL || 'https://deploy-preview-22--posfeyyy.netlify.app').replace(/\/$/, '')
 const activationUrl = new URL('/.netlify/functions/activate-invitation', baseUrl)
 
 async function getReachableApp() {
@@ -90,7 +90,7 @@ test('activation endpoint denies a nonexistent invitation without creating an ac
 
 test('deployed preview bundle includes the NexaPos FAQ bot and human handoff UI', async () => {
   const expectedStrings = [
-    'NexaPos Bot',
+    'Joeclyn',
     'Hubungi Admin NexaPos',
     'submit_support_message',
     'request_support_handoff',
