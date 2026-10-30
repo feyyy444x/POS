@@ -191,6 +191,7 @@ function App() {
   const [ownerTenants, setOwnerTenants] = useState([])
   const [ownerTenantName, setOwnerTenantName] = useState('')
   const [ownerTenantBusy, setOwnerTenantBusy] = useState(false)
+  const [isOwnerTenantWorkspace, setIsOwnerTenantWorkspace] = useState(false)
   const [selectedStoreId, setSelectedStoreId] = useState('')
   const [selectedStoreReady, setSelectedStoreReady] = useState(false)
   const [settings, setSettings] = useState(null)
@@ -1345,7 +1346,7 @@ function App() {
     {section:'ANALYTICS',items:[['reports','Laporan penjualan',BarChart3],...(membership?.role==='owner'?[['reports-org','Laporan organisasi',Store]]:[]),['attendance','Laporan absensi',CalendarDays]]},
     {section:'CASH MANAGEMENT',items:[['cashier','Buka / tutup kasir',Wallet]]},
     {section:'PREFERENCES',items:[['settings','Pengaturan toko',Settings],['profile','Profil & keamanan',UserRound], ...(['owner','admin'].includes(membership?.role)?[['tv-settings','Edit Tampilan TV',Monitor]]:[])]},
-    {section:'MANAGEMENT',items:membership?.role==='owner'?[['team','Karyawan & akses',Users],['tenants','Tenant & lokasi',Store],['audit','Audit aktivitas',Activity]]:[]}
+    {section:'ORGANISASI',items:membership?.role==='owner'?[['owner-center','Pusat organisasi',LayoutDashboard],['team','Karyawan & akses',Users],['tenants','Tenant & lokasi',Store],['audit','Audit aktivitas',Activity]]:[]}
   ]
 
   if(!authReady || (session && !adminCheckReady))return <div className="loading-screen"><span className="spinner spinner-large"/><span>Menyiapkan NexaPos…</span></div>
@@ -1357,6 +1358,16 @@ function App() {
   
   if(loading&&!store)return <div className="loading-screen"><span className="spinner spinner-large"/><span>Memeriksa keanggotaan toko…</span></div>
   if(!store)return <div className="loading-screen"><span className="spinner spinner-large"/><p>{notice||'Akun ini belum terhubung ke toko. Minta Owner atau Super Admin mengirim undangan.'}</p><button className="btn btn-outline" onClick={loadWorkspace} disabled={loading}><RefreshCw size={14}/> {loading?'Memeriksa toko…':'Cek koneksi toko'}</button><button className="btn btn-ghost" onClick={()=>supabase.auth.signOut()}>Keluar</button></div>
+  if (ownerOrganization && membership?.role === 'owner' && !isOwnerTenantWorkspace) return <OwnerOrganizationCenter
+    session={session}
+    organization={ownerOrganization}
+    tenants={ownerTenants}
+    busy={loading}
+    notice={notice}
+    onRefresh={loadWorkspace}
+    onSignOut={()=>supabase.auth.signOut()}
+    onEnterTenant={(tenantId)=>{setIsOwnerTenantWorkspace(true);setSelectedStoreId(tenantId);setStore(null);setMembership(null);setSettings(null);setProducts([]);setOrders([]);setQueue([]);setNotice('')}}
+  />
   if (ownerOrganization && !store) return <OwnerOrganizationCenter
     session={session}
     organization={ownerOrganization}
@@ -1365,14 +1376,14 @@ function App() {
     notice={notice}
     onRefresh={loadWorkspace}
     onSignOut={()=>supabase.auth.signOut()}
-    onEnterTenant={(tenantId)=>{setSelectedStoreId(tenantId);setStore(null);setMembership(null);setSettings(null);setProducts([]);setOrders([]);setQueue([]);setNotice('')}}
+    onEnterTenant={(tenantId)=>{setIsOwnerTenantWorkspace(true);setSelectedStoreId(tenantId);setStore(null);setMembership(null);setSettings(null);setProducts([]);setOrders([]);setQueue([]);setNotice('')}}
   />
   const effectiveStoreStatus = store.status === 'active' && store.expires_at && new Date(store.expires_at) <= new Date() ? 'expired' : (store.status || 'active')
   if(effectiveStoreStatus !== 'active') return <TenantLockedScreen store={store} status={effectiveStoreStatus} onSignOut={()=>supabase.auth.signOut()}/>
 
   const tenantDaysRemaining = store?.expires_at ? Math.ceil((new Date(store.expires_at).setHours(0,0,0,0)-new Date().setHours(0,0,0,0))/86400000) : null
   const tenantExpiryTone = tenantDaysRemaining === null ? '' : tenantDaysRemaining < 7 ? 'critical' : tenantDaysRemaining <= 25 ? 'warning' : 'healthy'
-  const titleMap={dashboard:'Ringkasan',pos:'Kasir / POS',products:'Produk & stok',queue:'Sistem antrian',monitoring:'Monitoring kasir aktif',reports:'Laporan penjualan','reports-org':'Laporan organisasi',attendance:'Laporan absensi',cashier:'Buka / tutup kasir',settings:'Pengaturan toko',profile:'Profil & keamanan','tv-settings':'Edit Tampilan TV',tenants:'Tenant & lokasi',audit:'Audit aktivitas'}
+  const titleMap={'owner-center':'Pusat organisasi',dashboard:'Ringkasan',pos:'Kasir / POS',products:'Produk & stok',queue:'Sistem antrian',monitoring:'Monitoring kasir aktif',reports:'Laporan penjualan','reports-org':'Laporan organisasi',attendance:'Laporan absensi',cashier:'Buka / tutup kasir',settings:'Pengaturan toko',profile:'Profil & keamanan','tv-settings':'Edit Tampilan TV',tenants:'Tenant & lokasi',audit:'Audit aktivitas'}
   return <div className="app-shell">
     {ownerMemberDeleteTarget&&<div role="presentation" onMouseDown={e=>{if(e.target===e.currentTarget&&!ownerMemberDeleteBusy){setOwnerMemberDeleteTarget(null);setOwnerMemberDeleteText('')}}} style={{position:'fixed',inset:0,zIndex:10020,background:'rgba(12,16,32,.58)',display:'flex',alignItems:'center',justifyContent:'center',padding:18}}>
       <section role="dialog" aria-modal="true" aria-labelledby="owner-delete-member-title" style={{position:'relative',width:'100%',maxWidth:430,background:'var(--panel,#fff)',color:'var(--ink,#1b2035)',borderRadius:18,padding:24,boxShadow:'0 24px 80px rgba(0,0,0,.28)',border:'1px solid var(--border,#e6e8f0)'}}>
@@ -1401,8 +1412,9 @@ function App() {
 
     <aside className={`sidebar ${mobileNav?'sidebar-open':''}`}>
       <div className="sidebar-brand"><Brand/></div>
+      {membership?.role==='owner'&&<button className="btn btn-outline btn-small" style={{margin:'0 14px 12px'}} onClick={()=>setIsOwnerTenantWorkspace(false)}><ArrowLeft size={14}/> Pusat organisasi</button>}
       <div className="store-switch"><span className="store-avatar">{settings?.logo_url?<img className="sidebar-store-logo" src={settings.logo_url} alt={`Logo ${settings?.store_name||store.name}`}/>:<Store size={17}/>}</span><span className="store-copy">{memberships.length>1?<select className="store-select" aria-label="Pilih toko aktif" value={store.id} onChange={e=>{setSelectedStoreId(e.target.value);setStore(null);setMembership(null);setSettings(null);setProducts([]);setOrders([]);setQueue([]);setCart([]);setReceipt(null);setNotice('')}}>{memberships.map(m=><option key={m.store_id} value={m.store_id}>{m.store_name}</option>)}</select>:<strong>{settings?.store_name||store.name}</strong>}<small>{memberships.length>1?'Ganti workspace':'Workspace aktif'}</small></span>{memberships.length===1&&<ChevronDown size={15}/>}</div>
-      <nav className="side-nav">{nav.filter(group=>group.items.length).map(group=><div className="nav-group" key={group.section}><div className="nav-section">{group.section}</div>{group.items.map(([id,label,Icon])=><button key={id} className={`nav-link ${page===id?'nav-active':''}`} onClick={()=>{setPage(id);setMobileNav(false)}}><Icon size={18}/><span>{label}</span>{id==='queue'&&waitingQueue.length>0&&<em>{waitingQueue.length}</em>}</button>)}</div>)}</nav>
+      <nav className="side-nav">{nav.filter(group=>group.items.length).map(group=><div className="nav-group" key={group.section}><div className="nav-section">{group.section}</div>{group.items.map(([id,label,Icon])=><button key={id} className={`nav-link ${page===id?'nav-active':''}`} onClick={()=>{if(id==='owner-center'){setIsOwnerTenantWorkspace(false)}else{setPage(id)}setMobileNav(false)}}><Icon size={18}/><span>{label}</span>{id==='queue'&&waitingQueue.length>0&&<em>{waitingQueue.length}</em>}</button>)}</div>)}</nav>
       <div className="sidebar-bottom"><div className="support-card"><span className="support-icon"><Headphones size={17}/></span><strong>Butuh bantuan?</strong><small>Kelola bisnis dengan lebih mudah.</small><button onClick={()=>window.dispatchEvent(new CustomEvent('nexapos-open-support',{detail:{authorized:true}}))}>Pusat bantuan <ArrowRight size={13}/></button></div><div className="user-card"><span className="user-avatar">{initial(membership?.full_name||session.user.user_metadata?.full_name||session.user.user_metadata?.name||session.user.email)}</span><span className="user-copy"><strong>{membership?.full_name?.trim()||session.user.user_metadata?.full_name?.trim()||session.user.user_metadata?.name?.trim()||session.user.email}</strong><small>{membership.role}</small></span><button className="icon-button" title="Keluar" onClick={()=>supabase.auth.signOut()}><LogOut size={17}/></button></div></div>
     </aside>
     {mobileNav&&<button className="mobile-scrim" onClick={()=>setMobileNav(false)} aria-label="Tutup menu"/>}
