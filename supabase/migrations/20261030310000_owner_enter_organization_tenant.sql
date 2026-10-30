@@ -49,11 +49,18 @@ begin
     raise exception 'Tenant tidak aktif atau telah diarsipkan';
   end if;
 
+  -- The organization Owner is authorized to manage every active tenant in this
+  -- organization. Create/refresh the Owner membership for all of them so
+  -- tenant-scoped RLS also permits consolidated team, monitoring and reports.
   insert into public.store_members(store_id,user_id,role,email,full_name,is_active)
-  values(p_store_id,v_user_id,'owner',coalesce(v_email,''),coalesce(v_owner_name,''),true)
+  select s.id,v_user_id,'owner',coalesce(v_email,''),coalesce(v_owner_name,''),true
+  from public.stores s
+  where s.organization_id=v_org_id
+    and s.status='active'
+    and s.deleted_at is null
   on conflict (store_id,user_id) do update
     set role='owner', email=excluded.email,
-        full_name=excluded.full_name, is_active=true;
+        full_name=excluded.full_name, is_active=true, disabled_at=null;
 
   return true;
 end;
