@@ -148,7 +148,7 @@ function OwnerOrganizationCenter({session,organization,tenants,busy,notice,onRef
   const [profileNotice,setProfileNotice]=useState('')
   const [lockNoticeOpen,setLockNoticeOpen]=useState(false)
   const activeTenants=(tenants||[]).filter(item=>item.status!=='deleted'&&!item.deleted_at)
-  const isTenantOperational=item=>item.status==='active'&&!(item.expires_at&&new Date(item.expires_at)<=new Date())
+  const isTenantOperational=item=>organization.status==='active'&&!(organization.expires_at&&new Date(organization.expires_at)<=new Date())&&item.status==='active'&&!(item.expires_at&&new Date(item.expires_at)<=new Date())
   const additionalTenants=activeTenants.filter(item=>!item.is_primary_workspace)
   const activeCount=activeTenants.filter(isTenantOperational).length
   const remaining=Math.max(0,Number(organization.activation_location_limit||0)-additionalTenants.length)
@@ -166,7 +166,7 @@ function OwnerOrganizationCenter({session,organization,tenants,busy,notice,onRef
   const activeItem=menu.find(item=>item.id===activeMenu)||menu[0]
   const filteredTenants=activeTenants.filter(item=>(item.name||'').toLowerCase().includes(tenantQuery.toLowerCase())).sort((a,b)=>Number(isTenantOperational(b))-Number(isTenantOperational(a))||new Date(b.created_at||0)-new Date(a.created_at||0))
   const choose=(id)=>{setActiveMenu(id);setMobileOpen(false)}
-  const guardLockedClick=(event)=>{if(!readOnly)return;const button=event.target?.closest?.('button');if(!button)return;const allowed=button.closest('nav')||button.closest('.owner-navigation')||button.classList.contains('owner-mobile-menu')||button.classList.contains('owner-mobile-close')||button.classList.contains('owner-mobile-backdrop')||button.classList.contains('owner-refresh-button')||button.hasAttribute('data-lock-dismiss')||button.title==='Keluar'||/keluar|logout/i.test(button.textContent||'');if(allowed)return;event.preventDefault();event.stopPropagation();event.nativeEvent?.stopImmediatePropagation?.();onLockedAction();setLockNoticeOpen(true)}
+  const guardLockedClick=(event)=>{if(!readOnly)return;const button=event.target?.closest?.('button');if(!button)return;const allowed=button.closest('nav')||button.closest('.owner-navigation')||button.classList.contains('owner-mobile-menu')||button.classList.contains('owner-mobile-close')||button.classList.contains('owner-mobile-backdrop')||button.classList.contains('owner-refresh-button')||button.classList.contains('owner-delete-tenant-button')||button.hasAttribute('data-lock-dismiss')||button.title==='Keluar'||/keluar|logout/i.test(button.textContent||'');if(allowed)return;event.preventDefault();event.stopPropagation();event.nativeEvent?.stopImmediatePropagation?.();onLockedAction();setLockNoticeOpen(true)}
   const Stat=({label,value,meta,icon:Icon})=><article className="owner-stat-card"><span className="owner-stat-icon"><Icon size={18}/></span><div><small>{label}</small><strong>{value}</strong><p>{meta}</p></div></article>
   const TenantCard=({tenant})=><article className="owner-tenant-card" key={tenant.id}>
     <div className="owner-tenant-card-top"><span className="owner-tenant-symbol"><Store size={19}/></span><span className={'owner-status '+(tenant.status==='active'&&!(tenant.expires_at&&new Date(tenant.expires_at)<=new Date())?'is-active':'')}>{tenant.expires_at&&new Date(tenant.expires_at)<=new Date()?'expired':tenant.status||'unknown'}</span></div>
@@ -194,7 +194,7 @@ function OwnerOrganizationCenter({session,organization,tenants,busy,notice,onRef
       <header className="owner-topbar"><div className="owner-topbar-left"><button className="owner-mobile-menu" onClick={()=>setMobileOpen(true)} aria-label="Buka navigasi"><Menu size={20}/></button><div><div className="owner-breadcrumb">NEXAPOS <span>/</span> NEXASPACE</div><h1>{activeItem.label}</h1></div></div><div className="owner-topbar-actions"><span className="owner-live-indicator"><i/> NexaSpace aktif</span><button className="owner-refresh-button" onClick={onRefresh} disabled={busy}><RefreshCw size={16} className={busy?'owner-spin':''}/> <span>{busy?'Memuat':'Perbarui data'}</span></button></div></header>
       <div className="owner-content">
         {notice&&<div className="owner-notice" role="status">{notice}</div>}
-        {readOnly&&<div className="owner-notice" role="status"><strong>AKSES OPERASIONAL DIKUNCI</strong><br/>Akses operasional {organization.organization_name||'Organisasi Anda'} ini sedang dihentikan sementara. Anda masih dapat melihat halaman dan informasi yang tersedia, tetapi seluruh tindakan operasional tidak dapat digunakan.</div>}
+        {readOnly&&<div className="owner-notice" role="status"><strong>AKSES OPERASIONAL DIKUNCI</strong><br/>Akses operasional POS {organization.organization_name||'Organisasi Anda'} sedang dihentikan sementara. Anda masih dapat melihat data dan menghapus tenant yang sudah nonaktif; tindakan operasional POS tetap dikunci.</div>}
         {activeMenu==='overview'&&<>
           <section className="owner-welcome"><div><span className="owner-kicker">CONTROL CENTER · {new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</span><h2>Semua tenant, <em>satu kendali.</em></h2><p>Pantau organisasi dan buka workspace tenant dari satu pusat pengelolaan.</p></div><div className="owner-welcome-mark"><Boxes size={42}/></div></section>
           <div className="owner-stat-grid"><Stat label="Tenant aktif" value={activeCount} meta="Workspace aktif dalam organisasi" icon={Store}/><Stat label="Total tenant" value={activeTenants.length} meta="Termasuk workspace utama" icon={Boxes}/><Stat label="Kuota tambahan" value={remaining} meta="Slot tenant yang masih tersedia" icon={Package}/><Stat label="Paket organisasi" value={organization.activation_package_key||'Starter'} meta="Paket langganan saat ini" icon={CreditCard}/></div>
@@ -1498,7 +1498,8 @@ function App() {
   }
 
   const deleteOwnerTenant = async (tenant) => {
-    const isOperational = tenant.status === 'active' && !(tenant.expires_at && new Date(tenant.expires_at) <= new Date())
+    const organizationOperational = ownerOrganization?.status === 'active' && !(ownerOrganization?.expires_at && new Date(ownerOrganization.expires_at) <= new Date())
+    const isOperational = organizationOperational && tenant.status === 'active' && !(tenant.expires_at && new Date(tenant.expires_at) <= new Date())
     if (isOperational) {
       setNotice('Tenant aktif harus dinonaktifkan Admin/Super Admin terlebih dahulu sebelum dihapus.')
       return
@@ -1538,9 +1539,7 @@ function App() {
   if(isSuperAdmin)return <SuperAdminScreen session={session} syncStatus={syncStatus} setSyncStatus={setSyncStatus} onSignOut={()=>supabase.auth.signOut()} platformAdmin={isPlatformAdmin}/>
   
   const organizationEntitlementStatus = ownerOrganization ? (ownerOrganization.status === 'active' && ownerOrganization.expires_at && new Date(ownerOrganization.expires_at) <= new Date() ? 'expired' : (ownerOrganization.status || 'active')) : 'active'
-  const primaryWorkspace = ownerTenants.find(tenant => tenant.is_primary_workspace)
-  const primaryWorkspaceStatus = primaryWorkspace ? (primaryWorkspace.status === 'active' && primaryWorkspace.expires_at && new Date(primaryWorkspace.expires_at) <= new Date() ? 'expired' : (primaryWorkspace.status || 'pending')) : 'active'
-  const ownerCenterLockStatus = organizationEntitlementStatus !== 'active' ? organizationEntitlementStatus : primaryWorkspaceStatus
+  const ownerCenterLockStatus = organizationEntitlementStatus
   if (ownerOrganization && (!isOwnerTenantWorkspace || ownerCenterLockStatus !== 'active')) return <OwnerOrganizationCenter
     session={session}
     organization={ownerOrganization}
