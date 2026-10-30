@@ -651,7 +651,7 @@ test('Owner tenant creation, entry, organization identity and Admin tenant class
   assert.match(app, /rpc\('owner_enter_store_tenant'/)
   assert.match(app, /await loadWorkspace\(tenantId, true\)/)
   assert.match(app, /await loadWorkspace\(data\.id, true\)/)
-  assert.match(app, /rpc\('owner_list_organization_tenants'/)
+  assert.match(app, /rpc\('owner_list_organization_tenant_profiles'/)
   assert.match(app, /organization_name,activation_package_key/)
   assert.match(app, /organizationIds=\[\.\.\.new Set/)
   assert.match(app, /Organisasi: \{t\.organization_name/)
