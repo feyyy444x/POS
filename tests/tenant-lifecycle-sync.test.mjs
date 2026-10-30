@@ -27,6 +27,8 @@ test('Owner can delete only an inactive tenant and cannot delete the Owner organ
   assert.match(app, /Tenant aktif harus dinonaktifkan Admin\/Super Admin terlebih dahulu sebelum dihapus/)
   assert.match(app, /owner_delete_store_tenant/)
   assert.match(app, /Hapus tenant nonaktif secara permanen/)
+  assert.match(app, /const ownerCenterLockStatus = organizationEntitlementStatus/)
+  assert.match(app, /owner-delete-tenant-button/)
 })
 
 test('NexaSpace lists active tenants first and inactive tenants last', () => {
