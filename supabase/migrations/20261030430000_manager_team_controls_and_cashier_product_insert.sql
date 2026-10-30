@@ -180,6 +180,7 @@ end;
 $function$;
 
 drop policy if exists "owners and super admins read invites" on public.store_invites;
+drop policy if exists "managers and super admins read invites" on public.store_invites;
 create policy "managers and super admins read invites"
 on public.store_invites for select to authenticated
 using (private.is_store_manager(store_id) or private.is_super_admin());
