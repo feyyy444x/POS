@@ -1,6 +1,25 @@
 -- Permanent, tenant-scoped deletion for Owners and organization-wide deletion for Owner accounts.
 -- All operations run in one PostgreSQL transaction (the function call itself).
 
+create or replace function private.is_platform_staff_user(p_user_id uuid)
+returns boolean
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $function$
+declare
+  v_exists boolean := false;
+begin
+  if to_regclass('public.platform_staff_roles') is not null then
+    execute 'select exists (select 1 from public.platform_staff_roles where user_id = $1)'
+      into v_exists using p_user_id;
+  end if;
+  return coalesce(v_exists, false);
+end;
+$function$;
+revoke all on function private.is_platform_staff_user(uuid) from public, anon, authenticated;
+
 create or replace function private.delete_store_tenant_data(p_store_id uuid)
 returns void
 language plpgsql
@@ -50,7 +69,7 @@ begin
   where u.id = any(v_member_ids)
     and not exists (select 1 from public.store_members m where m.user_id = u.id)
     and not exists (select 1 from public.super_admins sa where sa.user_id = u.id)
-    and not exists (select 1 from public.platform_staff_roles psr where psr.user_id = u.id)
+    and not private.is_platform_staff_user(u.id)
     and not exists (select 1 from public.owner_organizations o where o.owner_user_id = u.id);
 end;
 $function$;
@@ -118,7 +137,7 @@ begin
   if exists (select 1 from public.super_admins sa where sa.user_id = p_user_id) then
     raise exception 'Akun Super Admin dilindungi';
   end if;
-  if exists (select 1 from public.platform_staff_roles psr where psr.user_id = p_user_id) then
+  if private.is_platform_staff_user(p_user_id) then
     raise exception 'Akun staf platform tidak dapat dihapus melalui penghapusan Owner';
   end if;
 
@@ -213,7 +232,7 @@ begin
     and u.id <> p_user_id
     and not exists (select 1 from public.store_members m where m.user_id = u.id)
     and not exists (select 1 from public.super_admins sa where sa.user_id = u.id)
-    and not exists (select 1 from public.platform_staff_roles psr where psr.user_id = u.id)
+    and not private.is_platform_staff_user(u.id)
     and not exists (select 1 from public.owner_organizations o where o.owner_user_id = u.id);
 end;
 $function$;
