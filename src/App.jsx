@@ -481,7 +481,7 @@ function App() {
     return ()=>subscription.unsubscribe()
   }, [])
 
-  const loadWorkspace = useCallback(async () => {
+  const loadWorkspace = useCallback(async (preferredStoreId = selectedStoreId) => {
     if (!session?.user || !supabase) return
     setLoading(true)
     setNotice('')
@@ -563,7 +563,7 @@ function App() {
     const {data: settingRows} = await supabase.from('store_settings').select('store_id,store_name').in('store_id',resolvedMembers.map(m=>m.store_id))
     const availableMemberships = resolvedMembers.map(m=>({...m,store_name:settingRows?.find(s=>s.store_id===m.store_id)?.store_name||storeRows?.find(s=>s.id===m.store_id)?.name||'Toko'}))
     setMemberships(availableMemberships)
-    const member = availableMemberships.find(m=>m.store_id===selectedStoreId) || availableMemberships[0]
+    const member = availableMemberships.find(m=>m.store_id===preferredStoreId) || availableMemberships[0]
     if (selectedStoreId !== member.store_id) setSelectedStoreId(member.store_id)
     setMembership(member)
     const loadIssues = []
@@ -1349,10 +1349,10 @@ function App() {
     const {data: refreshedTenants, error: refreshTenantsError} = await supabase.rpc('owner_list_organization_tenants')
     if (!refreshTenantsError) setOwnerTenants(refreshedTenants || [])
     if (data?.id) {
-      setLoading(true)
       setIsOwnerTenantWorkspace(true)
       setStore(null); setMembership(null); setSettings(null); setProducts([]); setOrders([]); setOrderItems([]); setQueue([]); setCart([]); setReceipt(null)
       setSelectedStoreId(data.id)
+      await loadWorkspace(data.id)
     } else await loadWorkspace()
   }
 
@@ -1403,12 +1403,12 @@ function App() {
     tenantBusy={ownerTenantBusy}
     onOrganizationSaved={updated=>setOwnerOrganization(current=>current?.id===updated?.id?{...current,...updated}:current)}
     onEnterTenant={async(tenantId)=>{
-      setLoading(true)
       const {error}=await supabase.rpc('owner_enter_store_tenant',{p_store_id:tenantId})
-      if(error){setNotice(userFacingError(error,'Tidak dapat membuka tenant ini.'));setLoading(false);return}
+      if(error){setNotice(userFacingError(error,'Tidak dapat membuka tenant ini.'));return}
       setIsOwnerTenantWorkspace(true)
       setSelectedStoreId(tenantId)
-      setStore(null);setMembership(null);setSettings(null);setProducts([]);setOrders([]);setQueue([]);setNotice('')
+      setStore(null);setMembership(null);setSettings(null);setProducts([]);setOrders([]);setQueue([]);setCart([]);setReceipt(null);setNotice('')
+      await loadWorkspace(tenantId)
     }}
   />
   if(loading&&!store)return <div className="loading-screen"><span className="spinner spinner-large"/><span>Memeriksa keanggotaan toko…</span></div>
