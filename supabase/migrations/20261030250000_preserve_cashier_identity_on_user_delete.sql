@@ -82,12 +82,12 @@ alter table public.cashier_manual_alerts
   add column if not exists cashier_name_snapshot text,
   add column if not exists sent_by_name_snapshot text;
 update public.cashier_manual_alerts a
-set cashier_name_snapshot = coalesce(
+set cashier_name_snapshot = coalesce(a.cashier_name_snapshot,
       (select coalesce(nullif(btrim(m.full_name),''),nullif(btrim(u.raw_user_meta_data->>'full_name'),''),nullif(btrim(u.email),''),'Kasir')
        from auth.users u left join public.store_members m on m.user_id=u.id and m.store_id=a.store_id where u.id=a.cashier_id),
       'Kasir'
     ),
-    sent_by_name_snapshot = coalesce(
+    sent_by_name_snapshot = coalesce(a.sent_by_name_snapshot,
       (select coalesce(nullif(btrim(m.full_name),''),nullif(btrim(u.raw_user_meta_data->>'full_name'),''),nullif(btrim(u.email),''),'Admin')
        from auth.users u left join public.store_members m on m.user_id=u.id and m.store_id=a.store_id where u.id=a.sent_by),
       'Admin'
