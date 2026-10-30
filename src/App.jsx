@@ -221,7 +221,7 @@ function OwnerOrganizationCenter({session,organization,tenants,busy,notice,onRef
               <div className="panel-head"><div><h3><KeyRound size={17}/> Ganti password</h3><p>Gunakan password unik minimal 6 karakter.</p></div></div>
               <label>Password saat ini</label><input className="text-input" name="current_password" type="password" autoComplete="current-password" required/>
               <label>Password baru</label><input className="text-input" name="new_password" type="password" autoComplete="new-password" minLength={6} required/>
-              <label>Ulangi password baru</label><input className="text-input" name="confirm_password" type="password" autoComplete="new-password" minLength={8} required/>
+              <label>Ulangi password baru</label><input className="text-input" name="confirm_password" type="password" autoComplete="new-password" minLength={6} required/>
               <button className="btn btn-primary" type="submit"><ShieldCheck size={16}/> Ganti password</button>
             </form>
           </div>
