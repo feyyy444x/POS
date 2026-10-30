@@ -614,3 +614,10 @@ test('account deletion surfaces the exact known historical cashier FK migration 
   assert.match(errors, /Migrasi perbaikan penghapusan akun belum diterapkan/)
   assert.match(errors, /riwayat transaksi tidak dihapus/)
 })
+
+
+test('Super Admin protected actions explain PIN verification failures', async () => {
+  const errors = await readFile(new URL('../src/lib/userFacingError.js', import.meta.url), 'utf8')
+  assert.match(errors, /Verifikasi PIN Super Admin diperlukan/)
+  assert.match(errors, /super admin access required/i)
+})
