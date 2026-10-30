@@ -188,7 +188,7 @@ function OwnerOrganizationCenter({session,organization,tenants,busy,notice,onRef
     </aside>
     {mobileOpen&&<button className="owner-mobile-backdrop" onClick={()=>setMobileOpen(false)} aria-label="Tutup navigasi"/>}
     <main className="owner-main">
-      <header className="owner-topbar"><div className="owner-topbar-left"><button className="owner-mobile-menu" onClick={()=>setMobileOpen(true)} aria-label="Buka navigasi"><Menu size={20}/></button><div><div className="owner-breadcrumb">NEXAPOS <span>/</span> PUSAT KENDALI ORGANISASI</div><h1>{activeItem.label}</h1></div></div><div className="owner-topbar-actions"><span className="owner-live-indicator"><i/> Organisasi aktif</span><button className="owner-refresh-button" onClick={onRefresh} disabled={busy}><RefreshCw size={16} className={busy?'owner-spin':''}/> <span>{busy?'Memuat':'Perbarui data'}</span></button></div></header>
+      <header className="owner-topbar"><div className="owner-topbar-left"><button className="owner-mobile-menu" onClick={()=>setMobileOpen(true)} aria-label="Buka navigasi"><Menu size={20}/></button><div><div className="owner-breadcrumb">NEXAPOS <span>/</span> NEXASPACE</div><h1>{activeItem.label}</h1></div></div><div className="owner-topbar-actions"><span className="owner-live-indicator"><i/> NexaSpace aktif</span><button className="owner-refresh-button" onClick={onRefresh} disabled={busy}><RefreshCw size={16} className={busy?'owner-spin':''}/> <span>{busy?'Memuat':'Perbarui data'}</span></button></div></header>
       <div className="owner-content">
         {notice&&<div className="owner-notice" role="status">{notice}</div>}
         {activeMenu==='overview'&&<>
@@ -233,7 +233,7 @@ function OwnerOrganizationCenter({session,organization,tenants,busy,notice,onRef
         {activeMenu==='settings'&&<OrganizationSettings organization={organization} session={session} onSaved={onOrganizationSaved}/> }
         {activeMenu==='audit'&&<AuditLogPanel scope="organization" organizationId={organization.id}/>}
       </div>
-      <footer className="owner-footer"><span>NexaPos Organization Control Center</span><span>Data organisasi terisolasi · {session.user.email}</span></footer>
+      <footer className="owner-footer"><span>NexaSpace · Owner Control Center</span><span>Data organisasi terisolasi · {session.user.email}</span></footer>
     </main>
   </div>
 }
