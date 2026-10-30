@@ -61,6 +61,7 @@ test('tenant reactivation RPC accepts active status while preserving organizatio
   assert.match(reactivation, /v_org\.status <> 'active'/)
   assert.match(reactivation, /v_org\.expires_at/)
   assert.match(reactivation, /v_store\.expires_at/)
+  assert.doesNotMatch(reactivation, /updated_at/)
   assert.match(reactivation, /v_active_tenants >= v_org\.activation_location_limit/)
   assert.match(reactivation, /private\.is_super_admin\(\)/)
   assert.match(reactivation, /private\.is_pin_verified\(\)/)
