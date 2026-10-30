@@ -154,7 +154,7 @@ function OwnerOrganizationCenter({session,organization,tenants,busy,notice,onRef
       <div className="stats-grid" style={{marginTop:24}}>
         <StatCard icon={Store} label="Tenant aktif" value={activeTenants.length} meta="Workspace dalam organisasi" tone="violet"/>
         <StatCard icon={Package} label="Paket organisasi" value={organization.activation_package_key||'starter'} meta="Kuota bersama" tone="blue"/>
-        <StatCard icon={CalendarDays} label="Kuota tenant tambahan" value={Math.max(0,Number(organization.activation_location_limit||0)-additionalTenants.length)} meta="Di luar workspace utama" tone="green"/>
+        <StatCard icon={CalendarDays} label="Kuota tenant tambahan" value={Math.max(0,Number(organization.activation_location_limit||0)-additionalTenants.length)} meta="Tenant tambahan di luar workspace utama" tone="green"/>
       </div>
       <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:12,margin:'28px 0 14px',flexWrap:'wrap'}}>
         <div><h2 style={{margin:0}}>Tenant saya</h2><p className="subtle" style={{margin:'5px 0 0'}}>Pilih tenant untuk membuka workspace operasional.</p></div>
@@ -163,7 +163,7 @@ function OwnerOrganizationCenter({session,organization,tenants,busy,notice,onRef
       <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(260px,1fr))',gap:14}}>
         {activeTenants.map(tenant=><article key={tenant.id} className="panel" style={{padding:18}}>
           <div style={{display:'flex',justifyContent:'space-between',gap:10,alignItems:'start'}}>
-            <div><strong style={{fontSize:16}}>{tenant.name}</strong><div className="subtle" style={{fontSize:12,marginTop:5}}>{tenant.has_membership?'Akses Owner tersedia':'Akses Owner organisasi'}</div></div>
+            <div><strong style={{fontSize:16}}>{tenant.name}</strong><div className="subtle" style={{fontSize:12,marginTop:5}}>{tenant.is_primary_workspace?'Workspace utama':'Tenant tambahan'}</div></div>
             <span className={'status-pill '+(tenant.status==='active'?'status-paid':'status-waiting')}>{tenant.status}</span>
           </div>
           <div style={{marginTop:18}}>{canEnter(tenant)
