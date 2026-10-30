@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Activity, RefreshCw, Search, ShieldCheck, Store, Users, UserPlus, Pencil, Copy, X, Save } from 'lucide-react'
+import { Activity, RefreshCw, Search, ShieldCheck, Store, Users, UserPlus, Pencil, Copy, X, Save, Trash2 } from 'lucide-react'
 import { supabase } from './lib/supabase'
 import { userFacingError } from './lib/userFacingError'
 
@@ -24,6 +24,7 @@ export default function OrganizationOperations({ mode = 'team', tenants = [] }) 
   const [editName, setEditName] = useState('')
   const [editRole, setEditRole] = useState('cashier')
   const [editActive, setEditActive] = useState(true)
+  const [deleting, setDeleting] = useState('')
 
   const tenantIds = useMemo(() => tenants.filter(t => t.status === 'active' && !t.deleted_at).map(t => t.id), [tenants])
   const tenantKey = tenantIds.join(',')
@@ -109,7 +110,7 @@ export default function OrganizationOperations({ mode = 'team', tenants = [] }) 
     if (member.role === 'owner') return
     setEditing(member)
     setEditName(member.full_name || '')
-    setEditRole(member.role === 'admin' ? 'admin' : 'cashier')
+    setEditRole(member.role === 'manager' || member.role === 'admin' ? 'admin' : 'cashier')
     setEditActive(Boolean(member.is_active && !member.disabled_at))
   }
 
@@ -130,7 +131,7 @@ export default function OrganizationOperations({ mode = 'team', tenants = [] }) 
     await load()
   }
 
-  return <section className="owner-operations-page">
+  const deleteMember = async member => {\n    if (member.role === 'owner') return\n    if (!window.confirm('Hapus akses ' + (member.full_name || member.email || 'karyawan') + ' dari tenant ' + (tenantNames[member.store_id] || 'ini') + '?')) return\n    setDeleting(member.id); setError(''); setNotice('')\n    const { error: deleteError } = await supabase.rpc('owner_delete_store_member', { p_member_id: member.id })\n    setDeleting('')\n    if (deleteError) { setError(userFacingError(deleteError, 'Karyawan belum berhasil dihapus.')); return }\n    setNotice('Akses karyawan berhasil dihapus dari tenant.')\n    await load()\n  }\n\n  return <section className="owner-operations-page">
     <div className="owner-section-heading owner-page-heading">
       <div><span className="owner-kicker">{mode === 'team' ? 'ORGANIZATION PEOPLE' : 'LIVE OPERATIONS'}</span><h2>{mode === 'team' ? 'Karyawan & Hak Akses' : 'Monitoring'}</h2><p>{mode === 'team' ? 'Tambahkan karyawan, atur role, dan kelola penempatan di tenant organisasi.' : 'Pantau sesi kasir yang sedang terbuka di seluruh tenant organisasi.'}</p></div>
       <div className="owner-operations-actions">
@@ -145,10 +146,10 @@ export default function OrganizationOperations({ mode = 'team', tenants = [] }) 
       <div className="owner-operations-summary"><div><Users size={19}/><span><strong>{people.size}</strong><small>Akun karyawan</small></span></div><div><Store size={19}/><span><strong>{tenantIds.length}</strong><small>Tenant aktif</small></span></div><div><ShieldCheck size={19}/><span><strong>{members.filter(m => m.role === 'owner').length}</strong><small>Penugasan Owner</small></span></div></div>
       <label className="owner-tenant-toolbar owner-team-search"><span><Search size={17}/></span><input value={query} onChange={event => setQuery(event.target.value)} placeholder="Cari nama, email, role, atau tenant..."/><small>{filteredMembers.length} penugasan</small></label>
       <div className="owner-table-wrap"><table><thead><tr><th>Nama / Email</th><th>Role</th><th>Tenant</th><th>Status</th><th>Aksi</th></tr></thead><tbody>
-        {filteredMembers.map(member => <tr key={member.id}><td><strong>{member.full_name || 'Nama belum diatur'}</strong><small>{member.email || member.user_id || '—'}</small></td><td><span className="owner-role-chip">{member.role === 'admin' ? 'Admin Tenant' : member.role === 'cashier' ? 'Kasir' : member.role === 'owner' ? 'Owner' : member.role}</span></td><td>{tenantNames[member.store_id] || 'Tenant'}</td><td><span className={'owner-status '+(member.is_active && !member.disabled_at ? 'is-active' : '')}>{member.is_active && !member.disabled_at ? 'Aktif' : 'Nonaktif'}</span></td><td>{member.role === 'owner' ? <span className="subtle">Akses Owner dilindungi</span> : <button className="btn btn-small btn-outline" onClick={() => startEdit(member)}><Pencil size={13}/> Edit akses</button>}</td></tr>)}
+        {filteredMembers.map(member => <tr key={member.id}><td><strong>{member.full_name || 'Nama belum diatur'}</strong><small>{member.email || member.user_id || '—'}</small></td><td><span className="owner-role-chip">{member.role === 'admin' || member.role === 'manager' ? 'Manager' : member.role === 'cashier' ? 'Karyawan' : member.role === 'owner' ? 'Owner' : member.role}</span></td><td>{tenantNames[member.store_id] || 'Tenant'}</td><td><span className={'owner-status '+(member.is_active && !member.disabled_at ? 'is-active' : '')}>{member.is_active && !member.disabled_at ? 'Aktif' : 'Nonaktif'}</span></td><td>{member.role === 'owner' ? <span className="subtle">Akses Owner dilindungi</span> : <div className="member-manage-actions"><button className="btn btn-small btn-outline" onClick={() => startEdit(member)}><Pencil size={13}/> Edit nama / role</button><button className="btn btn-small btn-outline danger-icon" disabled={deleting===member.id} onClick={() => deleteMember(member)}>{deleting===member.id?<RefreshCw size={13}/>:<Trash2 size={13}/>} Hapus</button></div>}</td></tr>)}
       </tbody></table>{!loading && !error && !filteredMembers.length && <div className="owner-no-tenant">Belum ada penugasan karyawan yang cocok.</div>}</div>
-      {invites.length > 0 && <div className="owner-table-wrap"><h3>Undangan karyawan</h3><table><thead><tr><th>Email</th><th>Nama</th><th>Tenant</th><th>Role</th><th>Status</th><th>Kedaluwarsa</th></tr></thead><tbody>{invites.map(invite => <tr key={invite.id}><td>{invite.email}</td><td>{invite.full_name}</td><td>{tenantNames[invite.store_id] || 'Tenant'}</td><td>{invite.role === 'admin' ? 'Admin Tenant' : 'Kasir'}</td><td>{invite.accepted_at ? 'Diterima' : 'Menunggu aktivasi'}</td><td>{dateTime(invite.expires_at)}</td></tr>)}</tbody></table></div>}
-      <p className="owner-data-footnote">Role Owner tidak dapat diubah dari halaman staf. Perubahan Admin/Kasir diproses melalui RPC yang memvalidasi kepemilikan tenant di server.</p>
+      {invites.length > 0 && <div className="owner-table-wrap"><h3>Undangan karyawan</h3><table><thead><tr><th>Email</th><th>Nama</th><th>Tenant</th><th>Role</th><th>Status</th><th>Kedaluwarsa</th></tr></thead><tbody>{invites.map(invite => <tr key={invite.id}><td>{invite.email}</td><td>{invite.full_name}</td><td>{tenantNames[invite.store_id] || 'Tenant'}</td><td>{invite.role === 'admin' || invite.role === 'manager' ? 'Manager' : 'Karyawan'}</td><td>{invite.accepted_at ? 'Diterima' : 'Menunggu aktivasi'}</td><td>{dateTime(invite.expires_at)}</td></tr>)}</tbody></table></div>}
+      <p className="owner-data-footnote">Role Owner tidak dapat diubah dari halaman staf. Manager/Karyawan diproses melalui RPC yang memvalidasi kepemilikan tenant di server.</p>
     </> : <>
       <div className="owner-operations-summary"><div><Activity size={19}/><span><strong>{shifts.length}</strong><small>Sesi kasir terbuka</small></span></div><div><Users size={19}/><span><strong>{openCashiers}</strong><small>Kasir aktif</small></span></div><div><Store size={19}/><span><strong>{new Set(shifts.map(s => s.store_id)).size}</strong><small>Tenant beroperasi</small></span></div></div>
       <div className="owner-table-wrap"><table><thead><tr><th>Kasir</th><th>Tenant</th><th>Mulai sesi</th><th>Status</th></tr></thead><tbody>
@@ -161,7 +162,7 @@ export default function OrganizationOperations({ mode = 'team', tenants = [] }) 
       <label>Tenant tempat karyawan ditugaskan<select className="text-input" value={inviteTenant} onChange={event => setInviteTenant(event.target.value)} required>{tenants.filter(t => tenantIds.includes(t.id)).map(t => <option key={t.id} value={t.id}>{t.name}</option>)}</select></label>
       <label>Nama karyawan<input className="text-input" value={inviteName} onChange={event => setInviteName(event.target.value)} minLength={2} maxLength={120} required/></label>
       <label>Email karyawan<input className="text-input" type="email" value={inviteEmail} onChange={event => setInviteEmail(event.target.value)} required/></label>
-      <label>Hak akses<select className="text-input" value={inviteRole} onChange={event => setInviteRole(event.target.value)}><option value="cashier">Kasir</option><option value="admin">Admin Tenant</option></select></label>
+      <label>Hak akses<select className="text-input" value={inviteRole} onChange={event => setInviteRole(event.target.value)}><option value="cashier">Karyawan</option><option value="admin">Manager</option></select></label>
       {error && <div className="owner-notice">{error}</div>}
       <div className="owner-modal-actions"><button type="button" className="btn btn-outline" onClick={() => setInviteOpen(false)} disabled={saving}>Batal</button><button className="btn btn-primary" disabled={saving}>{saving ? <RefreshCw size={15} className="owner-spin"/> : <UserPlus size={15}/>} Buat undangan</button></div>
     </form></div>}
