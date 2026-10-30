@@ -19,6 +19,7 @@ import StoreControlCenter from './StoreControlCenter.jsx'
 import AuditLogPanel from './AuditLogPanel.jsx'
 import OrganizationReports from './OrganizationReports.jsx'
 import OrganizationOperations from './OrganizationOperations.jsx'
+import OrganizationSettings from './OrganizationSettings.jsx'
 
 const money = (value) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value || 0))
 const today = () => new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' })
@@ -136,7 +137,7 @@ function Pagination({page,total,pageSize=10,onChange}) {
 }
 
 
-function OwnerOrganizationCenter({session,organization,tenants,busy,notice,onRefresh,onSignOut,onEnterTenant}) {
+function OwnerOrganizationCenter({session,organization,tenants,busy,notice,onRefresh,onSignOut,onEnterTenant,ownerTenantName,setOwnerTenantName,onCreateTenant,tenantBusy,onOrganizationSaved}) {
   const [activeMenu,setActiveMenu]=useState('overview')
   const [mobileOpen,setMobileOpen]=useState(false)
   const [tenantQuery,setTenantQuery]=useState('')
@@ -170,7 +171,7 @@ function OwnerOrganizationCenter({session,organization,tenants,busy,notice,onRef
   return <div className="owner-console">
     <aside className={'owner-sidebar '+(mobileOpen?'owner-sidebar-open':'')}>
       <div className="owner-brand-row"><Brand/><button className="owner-mobile-close" onClick={()=>setMobileOpen(false)} aria-label="Tutup navigasi"><X size={19}/></button></div>
-      <div className="owner-org-switch"><span className="owner-org-avatar">{initial(organization.owner_name||organization.owner_email)}</span><span><strong>{organization.owner_name||'Pemilik organisasi'}</strong><small>ORGANIZATION OWNER</small></span><span className="owner-org-dot"/></div>
+      <div className="owner-org-switch"><span className="owner-org-avatar">{initial(organization.organization_name||organization.owner_name||organization.owner_email)}</span><span><strong>{organization.organization_name||'Organisasi belum bernama'}</strong><small>ORGANIZATION OWNER · {organization.owner_name||'Pemilik'}</small></span><span className="owner-org-dot"/></div>
       <nav className="owner-navigation" aria-label="Navigasi organisasi">
         {['ORGANISASI','OPERASIONAL','ANALISIS','PENGELOLAAN','KEAMANAN'].map(group=><div className="owner-nav-group" key={group}><small>{group}</small>{menu.filter(item=>item.group===group).map(item=>{const Icon=item.icon;return <button key={item.id} className={'owner-nav-link '+(activeMenu===item.id?'owner-nav-active':'')} onClick={()=>choose(item.id)}><Icon size={18}/><span>{item.label}</span>{activeMenu===item.id&&<i/>}</button>})}</div>)}
       </nav>
@@ -191,12 +192,12 @@ function OwnerOrganizationCenter({session,organization,tenants,busy,notice,onRef
             {!activeTenants.length&&<div className="owner-no-tenant"><Store size={24}/><strong>Belum ada tenant</strong><span>Tenant organisasi akan muncul di sini setelah tersedia.</span></div>}
           </div>
         </>}
-        {activeMenu==='tenants'&&<><section className="owner-section-heading owner-page-heading"><div><span className="owner-kicker">ORGANIZATION WORKSPACES</span><h2>Tenant Saya</h2><p>Kelola akses ke seluruh workspace di bawah organisasi ini.</p></div><div className="owner-tenant-count">{activeTenants.length} tenant</div></section><div className="owner-tenant-toolbar"><label><Search size={17}/><input value={tenantQuery} onChange={e=>setTenantQuery(e.target.value)} placeholder="Cari nama tenant..."/></label><span>{filteredTenants.length} hasil</span></div><div className="owner-tenant-grid">{filteredTenants.map(tenant=><TenantCard tenant={tenant}/>)}{!filteredTenants.length&&<div className="owner-no-tenant">Tidak ada tenant yang cocok dengan pencarian.</div>}</div></>}
+        {activeMenu==='tenants'&&<><section className="owner-section-heading owner-page-heading"><div><span className="owner-kicker">ORGANIZATION WORKSPACES</span><h2>Tenant Saya</h2><p>Kelola akses ke seluruh workspace di bawah organisasi ini.</p></div><div className="owner-tenant-count">{activeTenants.length} tenant</div></section><form className="owner-create-tenant-form" onSubmit={onCreateTenant}><div><strong>Tambah tenant baru</strong><small>Kuota tambahan tersisa: {remaining} · Workspace utama tidak dihitung sebagai tenant tambahan.</small></div><input className="text-input" value={ownerTenantName} onChange={event=>setOwnerTenantName(event.target.value)} maxLength={120} minLength={2} placeholder="Nama tenant baru" required/><button className="btn btn-primary" disabled={tenantBusy||remaining<=0}>{tenantBusy?<span className="spinner"/>:<Plus size={15}/>} Buat tenant</button></form><div className="owner-tenant-toolbar"><label><Search size={17}/><input value={tenantQuery} onChange={e=>setTenantQuery(e.target.value)} placeholder="Cari nama tenant..."/></label><span>{filteredTenants.length} hasil</span></div><div className="owner-tenant-grid">{filteredTenants.map(tenant=><TenantCard tenant={tenant}/>)}{!filteredTenants.length&&<div className="owner-no-tenant">Tidak ada tenant yang cocok dengan pencarian.</div>}</div></>}
         {activeMenu==='team'&&<OrganizationOperations mode="team" tenants={activeTenants}/>}
         {activeMenu==='monitoring'&&<OrganizationOperations mode="monitoring" tenants={activeTenants}/>}
         {activeMenu==='reports'&&<OrganizationReports organization={organization} tenants={activeTenants}/>}
         {activeMenu==='plans'&&<section className="owner-plan-layout"><div className="owner-plan-card"><span className="owner-kicker">CURRENT SUBSCRIPTION</span><h2>{organization.activation_package_key||'Starter'}</h2><p>Paket yang berlaku untuk organisasi ini.</p><div className="owner-plan-metrics"><div><small>Kuota tenant tambahan</small><strong>{additionalTenants.length} / {Number(organization.activation_location_limit||0)}</strong></div><div><small>Sisa kuota</small><strong>{remaining}</strong></div></div></div><div className="owner-plan-side"><CreditCard size={24}/><h3>Paket & Aktivasi</h3><p>Perubahan paket dan aktivasi organisasi dikelola melalui proses aktivasi resmi NexaPos.</p><small>Data paket ditampilkan berdasarkan konfigurasi organisasi.</small></div></section>}
-        {activeMenu==='settings'&&<section className="owner-settings-card"><span className="owner-kicker">ORGANIZATION PROFILE</span><h2>Pengaturan Organisasi</h2><div className="owner-setting-row"><span>Nama organisasi</span><strong>{organization.owner_name||'Belum diatur'}</strong></div><div className="owner-setting-row"><span>Email pemilik</span><strong>{organization.owner_email||session.user.email}</strong></div><div className="owner-setting-row"><span>Status organisasi</span><strong className="owner-setting-status">{organization.status||'unknown'}</strong></div><p>Pengubahan profil organisasi belum diaktifkan pada halaman ini.</p></section>}
+        {activeMenu==='settings'&&<OrganizationSettings organization={organization} session={session} onSaved={onOrganizationSaved}/> }
         {activeMenu==='audit'&&<AuditLogPanel scope="organization" organizationId={organization.id}/>}
       </div>
       <footer className="owner-footer"><span>NexaPos Organization Control Center</span><span>Data organisasi terisolasi · {session.user.email}</span></footer>
@@ -525,7 +526,7 @@ function App() {
     if (!resolvedMembers.length) {
       // Owner organizations are control centers and do not require a store membership to sign in.
       const {data: organization, error: organizationError} = await supabase.from('owner_organizations')
-        .select('id,owner_user_id,owner_email,owner_name,activation_package_key,activation_location_limit,status,activated_at,expires_at,activation_days')
+        .select('id,owner_user_id,owner_email,owner_name,organization_name,activation_package_key,activation_location_limit,status,activated_at,expires_at,activation_days')
         .eq('owner_user_id', session.user.id).limit(1).maybeSingle()
       if (organizationError) {
         setOwnerOrganization(null)
@@ -1345,7 +1346,7 @@ function App() {
     if (error) { setNotice(userFacingError(error, 'Tenant baru belum berhasil dibuat.')); return }
     setOwnerTenantName('')
     setNotice('Tenant ' + name + ' berhasil dibuat. Paket dan masa aktif mengikuti organisasi Owner.')
-    if (data?.id) setSelectedStoreId(data.id)
+    if (data?.id) { setIsOwnerTenantWorkspace(true); setSelectedStoreId(data.id) }
     else await loadWorkspace()
   }
 
@@ -1390,6 +1391,11 @@ function App() {
     notice={notice}
     onRefresh={loadWorkspace}
     onSignOut={()=>supabase.auth.signOut()}
+    ownerTenantName={ownerTenantName}
+    setOwnerTenantName={setOwnerTenantName}
+    onCreateTenant={createOwnerTenant}
+    tenantBusy={ownerTenantBusy}
+    onOrganizationSaved={updated=>setOwnerOrganization(current=>current?.id===updated?.id?{...current,...updated}:current)}
     onEnterTenant={async(tenantId)=>{
       setLoading(true)
       const {error}=await supabase.rpc('owner_enter_store_tenant',{p_store_id:tenantId})
