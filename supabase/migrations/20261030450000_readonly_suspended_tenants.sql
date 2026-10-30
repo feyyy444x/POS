@@ -148,6 +148,74 @@ create policy "cashiers end own breaks"
     )
   );
 
+-- Legacy TV configuration is also a tenant mutation and must obey the same entitlement.
+drop policy if exists "Store managers add TV links" on public.store_tv_media;
+create policy "Store managers add TV links"
+  on public.store_tv_media for insert to authenticated
+  with check (
+    media_type = 'link'
+    and private.is_store_operational(store_id)
+    and exists (
+      select 1 from public.store_members sm
+      where sm.store_id = store_tv_media.store_id
+        and sm.user_id = (select auth.uid())
+        and sm.is_active = true and sm.disabled_at is null
+        and sm.role = any(array['owner','admin'])
+    )
+  );
+
+drop policy if exists "Store managers delete TV links" on public.store_tv_media;
+create policy "Store managers delete TV links"
+  on public.store_tv_media for delete to authenticated
+  using (
+    media_type = 'link'
+    and private.is_store_operational(store_id)
+    and exists (
+      select 1 from public.store_members sm
+      where sm.store_id = store_tv_media.store_id
+        and sm.user_id = (select auth.uid())
+        and sm.is_active = true and sm.disabled_at is null
+        and sm.role = any(array['owner','admin'])
+    )
+  );
+
+drop policy if exists "Store managers manage TV settings" on public.store_tv_settings;
+create policy "Store managers manage TV settings"
+  on public.store_tv_settings for all to authenticated
+  using (
+    private.is_store_operational(store_id)
+    and exists (
+      select 1 from public.store_members sm
+      where sm.store_id = store_tv_settings.store_id
+        and sm.user_id = (select auth.uid())
+        and sm.is_active = true and sm.disabled_at is null
+        and sm.role = any(array['owner','admin'])
+    )
+  )
+  with check (
+    private.is_store_operational(store_id)
+    and exists (
+      select 1 from public.store_members sm
+      where sm.store_id = store_tv_settings.store_id
+        and sm.user_id = (select auth.uid())
+        and sm.is_active = true and sm.disabled_at is null
+        and sm.role = any(array['owner','admin'])
+    )
+  );
+
+drop policy if exists "Store managers read TV settings" on public.store_tv_settings;
+create policy "Store managers read TV settings"
+  on public.store_tv_settings for select to authenticated
+  using (
+    exists (
+      select 1 from public.store_members sm
+      where sm.store_id = store_tv_settings.store_id
+        and sm.user_id = (select auth.uid())
+        and sm.is_active = true and sm.disabled_at is null
+        and sm.role = any(array['owner','admin'])
+    )
+  );
+
 -- SECURITY DEFINER checkout must enforce entitlement itself, not rely on client/RLS.
 create or replace function public.complete_sale(
   p_store_id uuid,
