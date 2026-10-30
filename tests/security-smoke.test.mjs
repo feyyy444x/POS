@@ -690,3 +690,22 @@ test('Owner tenant switching never silently falls back to a different workspace'
   assert.match(app, /Tenant lain tidak akan dibuka otomatis/)
   assert.match(app, /await loadWorkspace\(tenantId, true\)/)
 })
+
+
+test('Owner and Manager can securely manage employees, while cashiers can only insert products', async () => {
+  const managerMigration = await readFile(new URL('../supabase/migrations/20261030430000_manager_team_controls_and_cashier_product_insert.sql', import.meta.url), 'utf8')
+  const superAdminMigration = await readFile(new URL('../supabase/migrations/20261030440000_super_admin_store_member_controls.sql', import.meta.url), 'utf8')
+  const organization = await readFile(new URL('../src/OrganizationOperations.jsx', import.meta.url), 'utf8')
+  const tenantCenter = await readFile(new URL('../src/StoreControlCenter.jsx', import.meta.url), 'utf8')
+  assert.match(managerMigration, /private\.is_store_manager\(p_store_id\)/)
+  assert.match(managerMigration, /private\.is_store_manager\(v_member\.store_id\)/)
+  assert.match(managerMigration, /manager_reset_store_member_pin/)
+  assert.match(managerMigration, /private\.is_store_member\(store_id\)/)
+  assert.match(managerMigration, /revoke all on function public\.manager_reset_store_member_pin/)
+  assert.match(superAdminMigration, /private\.is_super_admin\(\)/)
+  assert.match(superAdminMigration, /super_admin_delete_store_member_assignment/)
+  assert.match(organization, /Reset PIN/)
+  assert.match(organization, /manage-store-member-password/)
+  assert.match(tenantCenter, /super_admin_update_store_member/)
+  assert.match(tenantCenter, /super_admin_delete_store_member_assignment/)
+})
