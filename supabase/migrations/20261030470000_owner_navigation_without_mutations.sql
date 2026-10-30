@@ -41,20 +41,9 @@ begin
     raise exception 'Tenant tidak ditemukan dalam organisasi ini';
   end if;
 
-  -- No INSERT/UPDATE/DELETE here. The membership row is provisioned by the
-  -- tenant-creation flow and must already exist for tenant-scoped RLS reads.
-  if not exists (
-    select 1
-    from public.store_members m
-    where m.store_id = p_store_id
-      and m.user_id = v_user_id
-      and m.role = 'owner'
-      and m.is_active = true
-      and m.disabled_at is null
-  ) then
-    raise exception 'Akses baca Owner untuk tenant ini belum terhubung. Hubungi Admin NexaPos.';
-  end if;
-
+  -- This is a navigation/authorization check only. Owner read access is
+  -- derived from owner_organizations ownership by private.can_read_store(),
+  -- not from creating or requiring a tenant employee membership.
   return true;
 end;
 $function$;
@@ -120,3 +109,101 @@ $function$;
 
 revoke all on function public.owner_list_organization_tenants() from public, anon;
 grant execute on function public.owner_list_organization_tenants() to authenticated;
+
+
+-- Owner is an organization principal, not a tenant employee. Grant scoped
+-- read access through organization ownership without weakening write helpers.
+create or replace function private.can_read_store(target_store uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $function$
+  select private.is_pin_verified()
+    and exists (
+      select 1
+      from public.stores s
+      join public.owner_organizations o on o.id = s.organization_id
+      where s.id = target_store
+        and s.status <> 'deleted'
+        and s.deleted_at is null
+        and o.owner_user_id = (select auth.uid())
+    )
+    or (
+      private.is_store_member(target_store)
+      and exists (
+        select 1 from public.stores s
+        where s.id = target_store
+          and s.status <> 'deleted'
+          and s.deleted_at is null
+      )
+    );
+$function$;
+
+revoke all on function private.can_read_store(uuid) from public, anon;
+grant execute on function private.can_read_store(uuid) to authenticated;
+
+-- Additive SELECT policies intentionally OR with the existing member policies.
+-- No INSERT/UPDATE/DELETE policy is changed by this migration.
+drop policy if exists "owner organization read tenant stores" on public.stores;
+create policy "owner organization read tenant stores" on public.stores
+for select to authenticated using (private.can_read_store(id));
+
+drop policy if exists "owner organization read tenant products" on public.products;
+create policy "owner organization read tenant products" on public.products
+for select to authenticated using (private.can_read_store(store_id));
+
+drop policy if exists "owner organization read tenant orders" on public.orders;
+create policy "owner organization read tenant orders" on public.orders
+for select to authenticated using (private.can_read_store(store_id));
+
+drop policy if exists "owner organization read tenant order items" on public.order_items;
+create policy "owner organization read tenant order items" on public.order_items
+for select to authenticated using (
+  exists (select 1 from public.orders o
+    where o.id = order_items.order_id
+      and private.can_read_store(o.store_id))
+);
+
+drop policy if exists "owner organization read tenant queue" on public.queue_tickets;
+create policy "owner organization read tenant queue" on public.queue_tickets
+for select to authenticated using (private.can_read_store(store_id));
+
+drop policy if exists "owner organization read tenant settings" on public.store_settings;
+create policy "owner organization read tenant settings" on public.store_settings
+for select to authenticated using (private.can_read_store(store_id));
+
+drop policy if exists "owner organization read tenant memberships" on public.store_members;
+create policy "owner organization read tenant memberships" on public.store_members
+for select to authenticated using (private.can_read_store(store_id));
+
+drop policy if exists "owner organization read tenant invitations" on public.store_invites;
+create policy "owner organization read tenant invitations" on public.store_invites
+for select to authenticated using (private.can_read_store(store_id));
+
+drop policy if exists "owner organization read cashier break settings" on public.cashier_break_settings;
+create policy "owner organization read cashier break settings" on public.cashier_break_settings
+for select to authenticated using (private.can_read_store(store_id));
+
+drop policy if exists "owner organization read cashier alerts" on public.cashier_manual_alerts;
+create policy "owner organization read cashier alerts" on public.cashier_manual_alerts
+for select to authenticated using (private.can_read_store(store_id));
+
+drop policy if exists "owner organization read cashier shifts" on public.cashier_shifts;
+create policy "owner organization read cashier shifts" on public.cashier_shifts
+for select to authenticated using (private.can_read_store(store_id));
+
+drop policy if exists "owner organization read cashier breaks" on public.cashier_shift_breaks;
+create policy "owner organization read cashier breaks" on public.cashier_shift_breaks
+for select to authenticated using (private.can_read_store(store_id));
+
+drop policy if exists "owner organization read tenant tv settings" on public.store_tv_settings;
+create policy "owner organization read tenant tv settings" on public.store_tv_settings
+for select to authenticated using (private.can_read_store(store_id));
+
+drop policy if exists "owner organization read tenant audit logs" on public.platform_audit_logs;
+create policy "owner organization read tenant audit logs" on public.platform_audit_logs
+for select to authenticated using (
+  store_id is not null and private.can_read_store(store_id)
+);
