@@ -649,8 +649,8 @@ test('Owner tenant creation, entry, organization identity and Admin tenant class
   const ownerRegistrationMigration = await readFile(new URL('../supabase/migrations/20261030400000_owner_organization_name_registration_sync.sql', import.meta.url), 'utf8')
   assert.match(app, /rpc\('owner_create_store_tenant'/)
   assert.match(app, /rpc\('owner_enter_store_tenant'/)
-  assert.match(app, /await loadWorkspace\(tenantId\)/)
-  assert.match(app, /await loadWorkspace\(data\.id\)/)
+  assert.match(app, /await loadWorkspace\(tenantId, true\)/)
+  assert.match(app, /await loadWorkspace\(data\.id, true\)/)
   assert.match(app, /rpc\('owner_list_organization_tenants'/)
   assert.match(app, /organization_name,activation_package_key/)
   assert.match(app, /super-admin-organization-profile-sync/)
@@ -678,4 +678,12 @@ test('Owner employee invitations require server-side PIN verification and manage
   assert.match(migration, /m\.disabled_at is null/i)
   assert.match(migration, /revoke all on function public\.invite_store_member[\s\S]*?from public, anon/i)
   assert.match(migration, /grant execute on function public\.invite_store_member[\s\S]*?to authenticated/i)
+})
+
+test('Owner tenant switching never silently falls back to a different workspace', async () => {
+  const app = await readFile(new URL('../src/App.jsx', import.meta.url), 'utf8')
+  assert.match(app, /const loadWorkspace = useCallback\(async \(preferredStoreId = selectedStoreId, strictSelection = false\)/)
+  assert.match(app, /strictSelection && preferredStoreId && !resolvedMembers\.some/)
+  assert.match(app, /Tenant lain tidak akan dibuka otomatis/)
+  assert.match(app, /await loadWorkspace\(tenantId, true\)/)
 })
