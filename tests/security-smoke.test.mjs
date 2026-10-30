@@ -544,3 +544,14 @@ test('tenant roles are standardized and legacy manager memberships retain access
   assert.doesNotMatch(app, /\['owner','admin','manager'\]/)
   assert.doesNotMatch(app, /Pilih admin, manager, atau cashier/)
 })
+
+
+test('account deletion keeps historical cashier shift attribution and requires typed confirmation card', () => {
+  assert.match(app, /cashier_name_snapshot/)
+  assert.match(app, /deleteConfirmTarget/)
+  assert.match(app, /navigator\.clipboard\.writeText\('HAPUS'\)/)
+  assert.match(app, /deleteConfirmText\.trim\(\)!=='HAPUS'/)
+  assert.match(app, /super_admin_delete_disabled_account/)
+  assert.match(app, /super_admin_delete_user/)
+  assert.match(app, /Akun belum berhasil dihapus/)
+})
