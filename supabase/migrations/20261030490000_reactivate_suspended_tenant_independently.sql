@@ -69,8 +69,7 @@ begin
 
   update public.stores
   set status = p_status,
-      deleted_at = null,
-      updated_at = now()
+      deleted_at = null
   where id = p_store_id
   returning * into v_store;
 
