@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Activity, RefreshCw, Search, ShieldCheck, Store, Users, UserPlus, Pencil, Copy, X, Save, Trash2 } from 'lucide-react'
+import { Activity, RefreshCw, Search, ShieldCheck, Store, Users, UserPlus, Pencil, Copy, X, Save, Trash2, KeyRound } from 'lucide-react'
 import { supabase } from './lib/supabase'
 import { userFacingError } from './lib/userFacingError'
 
