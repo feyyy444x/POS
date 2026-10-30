@@ -25,7 +25,7 @@ export default function AuditLogPanel({ scope = 'organization', organizationId =
     if (scope === 'organization') {
       if (!organizationId) {
         setRows([])
-        setError('Organisasi Owner belum terhubung.')
+        setError('Perusahaan Owner belum terhubung.')
         setLoading(false)
         return
       }
@@ -42,7 +42,7 @@ export default function AuditLogPanel({ scope = 'organization', organizationId =
     const { data, error: loadError } = await query
     if (loadError) {
       setRows([])
-      setError(['42P01','PGRST205'].includes(loadError.code) || /platform_audit_logs/i.test(loadError.message || '') ? 'Tabel audit log belum tersedia di database ini. Terapkan migrasi platform_audit_logs setelah migrasi organisasi Owner.' : (loadError.message || 'Akses audit log ditolak. Periksa role akun dan kebijakan RLS.'))
+      setError(['42P01','PGRST205'].includes(loadError.code) || /platform_audit_logs/i.test(loadError.message || '') ? 'Tabel audit log belum tersedia di database ini. Terapkan migrasi platform_audit_logs setelah migrasi perusahaan Owner.' : (loadError.message || 'Akses audit log ditolak. Periksa role akun dan kebijakan RLS.'))
     } else setRows(data || [])
     setLoading(false)
   }, [scope, organizationId, storeId])
@@ -64,7 +64,7 @@ export default function AuditLogPanel({ scope = 'organization', organizationId =
   return <section className="page-section">
     <div className="page-heading">
       <div><span className="eyebrow muted">SECURITY / AUDIT TRAIL</span><h1>Audit <span className="heading-accent">aktivitas.</span></h1><p>Riwayat perubahan terbaru yang dicatat database. Maksimal 100 kejadian terakhir pada cakupan akses Anda.</p></div>
-      <span className="role-chip"><ShieldCheck size={14}/> {scope === 'platform' ? 'PLATFORM' : 'ORGANISASI'}</span>
+      <span className="role-chip"><ShieldCheck size={14}/> {scope === 'platform' ? 'PLATFORM' : 'PERUSAHAAN'}</span>
     </div>
     <div className="panel tenant-list-panel">
       <div className="panel-head"><div><h3><Activity size={17}/> Riwayat audit</h3><p>Data diambil dari audit log backend; izin baca tetap dibatasi oleh RLS.</p></div><button type="button" className="btn btn-outline btn-small" onClick={load} disabled={loading}>{loading ? <span className="spinner"/> : <RefreshCw size={14}/>} Muat ulang</button></div>
