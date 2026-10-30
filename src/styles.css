@@ -15,7 +15,7 @@
 
 
 /* Tenant lifecycle and role-based workspace additions */
-.tenant-register-form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;align-items:end;padding:0 22px 22px}
+.tenant-register-form{display:grid;grid-template-columns:repeat(4,minmax(0,1fr)) auto;gap:14px;align-items:end;padding:0 22px 22px}
 .tenant-register-form>div,.activation-toolbar label{display:flex;flex-direction:column;gap:7px;min-width:0}
 .tenant-register-form label,.activation-toolbar label{font-size:12px;font-weight:700;color:var(--ink)}
 .tenant-register-form .btn{white-space:nowrap;min-height:43px}
