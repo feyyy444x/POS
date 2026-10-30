@@ -69,6 +69,14 @@ export default function OrganizationOperations({ mode = 'team', tenants = [] }) 
   }, [mode, tenantKey])
 
   useEffect(() => { load() }, [load])
+  useEffect(() => {
+    if (!supabase || !tenantIds.length) return
+    const channels = tenantIds.map(storeId => supabase.channel('owner-team-sync-' + storeId)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'store_members', filter: 'store_id=eq.' + storeId }, load)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'store_invites', filter: 'store_id=eq.' + storeId }, load)
+      .subscribe())
+    return () => { channels.forEach(channel => supabase.removeChannel(channel)) }
+  }, [tenantKey, load])
   useEffect(() => { if (!inviteTenant && tenantIds[0]) setInviteTenant(tenantIds[0]) }, [tenantKey, inviteTenant])
 
   const filteredMembers = members.filter(member => {
