@@ -583,3 +583,26 @@ test('Owner staff deletion uses typed HAPUS confirmation instead of browser prom
   assert.match(app, /owner_delete_store_member/)
   assert.match(app, /Salin HAPUS/)
 })
+
+
+test('Owner registration safely retains the form reference across async RPC and quota copy excludes home workspace', async () => {
+  assert.match(app, /const formElement=event\.currentTarget/)
+  assert.match(app, /formElement\.reset\(\)/)
+  assert.match(app, /register_store_tenant/)
+  assert.match(app, /Pendaftaran Owner belum berhasil/)
+  const migration = await readFile(new URL('../supabase/migrations/20261030270000_owner_additional_tenant_quota.sql', import.meta.url), 'utf8')
+  assert.match(migration, /is_primary_workspace/)
+  assert.match(migration, /s\.is_primary_workspace = false/)
+  assert.match(migration, /Kuota tenant tambahan/)
+  assert.match(homepageUi, /tenant tambahan di luar workspace utama/)
+  assert.doesNotMatch(homepageUi, /termasuk tenant pusat/)
+})
+
+test('Platform staff manager has a working back callback and audit migration failures are actionable', async () => {
+  const staff = await readFile(new URL('../src/PlatformStaffManager.jsx', import.meta.url), 'utf8')
+  const audit = await readFile(new URL('../src/AuditLogPanel.jsx', import.meta.url), 'utf8')
+  assert.match(staff, /onBack/)
+  assert.match(staff, /onClick=\{onBack\}/)
+  assert.match(app, /PlatformStaffManager onBack/)
+  assert.match(audit, /Tabel audit log belum tersedia di database ini/)
+})
