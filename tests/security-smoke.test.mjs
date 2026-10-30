@@ -559,9 +559,9 @@ test('account deletion keeps historical cashier shift attribution and requires t
 
 
 test('account deletion migration preserves all cashier and alert attribution foreign keys', () => {
-  assert.match(accountDeletionMigration, /cashier_shifts_cashier_id_fkey[\\s\\S]*?on delete set null/i)
-  assert.match(accountDeletionMigration, /cashier_shift_breaks_cashier_id_fkey[\\s\\S]*?on delete set null/i)
-  assert.match(accountDeletionMigration, /cashier_manual_alerts_sent_by_fkey[\\s\\S]*?on delete set null/i)
+  assert.match(accountDeletionMigration, /cashier_shifts_cashier_id_fkey[\s\S]*?on delete set null/i)
+  assert.match(accountDeletionMigration, /cashier_shift_breaks_cashier_id_fkey[\s\S]*?on delete set null/i)
+  assert.match(accountDeletionMigration, /cashier_manual_alerts_sent_by_fkey[\s\S]*?on delete set null/i)
   assert.match(accountDeletionMigration, /cashier_name_snapshot/)
   assert.match(accountDeletionMigration, /sent_by_name_snapshot/)
 })
