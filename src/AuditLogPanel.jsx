@@ -42,7 +42,7 @@ export default function AuditLogPanel({ scope = 'organization', organizationId =
     const { data, error: loadError } = await query
     if (loadError) {
       setRows([])
-      setError('Audit log belum dapat dimuat. Pastikan migrasi audit log sudah diterapkan dan akses akun sesuai.')
+      setError(['42P01','PGRST205'].includes(loadError.code) || /platform_audit_logs/i.test(loadError.message || '') ? 'Tabel audit log belum tersedia di database ini. Terapkan migrasi platform_audit_logs setelah migrasi organisasi Owner.' : (loadError.message || 'Akses audit log ditolak. Periksa role akun dan kebijakan RLS.'))
     } else setRows(data || [])
     setLoading(false)
   }, [scope, organizationId, storeId])
