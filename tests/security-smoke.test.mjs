@@ -653,6 +653,8 @@ test('Owner tenant creation, entry, organization identity and Admin tenant class
   assert.match(app, /await loadWorkspace\(data\.id\)/)
   assert.match(app, /rpc\('owner_list_organization_tenants'/)
   assert.match(app, /organization_name,activation_package_key/)
+  assert.match(app, /super-admin-organization-profile-sync/)
+  assert.match(app, /table:'owner_organizations'/)
   assert.match(app, /Pusat organisasi/)
   assert.match(adminMigration, /filter \(where m\.role <> 'owner'/i)
   assert.match(adminMigration, /organization_names text/i)
