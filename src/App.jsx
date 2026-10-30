@@ -138,7 +138,7 @@ function Pagination({page,total,pageSize=10,onChange}) {
 function OwnerOrganizationCenter({session,organization,tenants,busy,notice,onRefresh,onSignOut,onEnterTenant}) {
   const activeTenants=(tenants||[]).filter(item=>item.status!=='deleted'&&!item.deleted_at)
   const additionalTenants=activeTenants.filter(item=>!item.is_primary_workspace)
-  const canEnter=(tenant)=>Boolean(tenant.has_membership)
+  const canEnter=(tenant)=>tenant.status==='active'
   return <main className="tenant-locked-shell" style={{alignItems:'stretch',padding:24}}>
     <section style={{width:'min(1100px,100%)',margin:'0 auto',background:'var(--panel,#fff)',border:'1px solid var(--border,#e6e8f0)',borderRadius:22,padding:24,boxShadow:'0 18px 60px rgba(20,30,60,.08)'}}>
       <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:16,flexWrap:'wrap'}}>
@@ -163,7 +163,7 @@ function OwnerOrganizationCenter({session,organization,tenants,busy,notice,onRef
       <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(260px,1fr))',gap:14}}>
         {activeTenants.map(tenant=><article key={tenant.id} className="panel" style={{padding:18}}>
           <div style={{display:'flex',justifyContent:'space-between',gap:10,alignItems:'start'}}>
-            <div><strong style={{fontSize:16}}>{tenant.name}</strong><div className="subtle" style={{fontSize:12,marginTop:5}}>{tenant.is_primary_workspace?'Workspace utama':'Tenant tambahan'}</div></div>
+            <div><strong style={{fontSize:16}}>{tenant.name}</strong><div className="subtle" style={{fontSize:12,marginTop:5}}>{tenant.has_membership?'Akses Owner tersedia':'Akses Owner organisasi'}</div></div>
             <span className={'status-pill '+(tenant.status==='active'?'status-paid':'status-waiting')}>{tenant.status}</span>
           </div>
           <div style={{marginTop:18}}>{canEnter(tenant)
@@ -1356,28 +1356,25 @@ function App() {
   if(!pinStatus.has_pin||!pinStatus.is_verified)return <PinGate session={session} status={pinStatus} onReady={setPinStatus} onSignOut={()=>supabase.auth.signOut()}/>
   if(isSuperAdmin)return <SuperAdminScreen session={session} syncStatus={syncStatus} setSyncStatus={setSyncStatus} onSignOut={()=>supabase.auth.signOut()} platformAdmin={isPlatformAdmin}/>
   
+  if (ownerOrganization && !isOwnerTenantWorkspace) return <OwnerOrganizationCenter
+    session={session}
+    organization={ownerOrganization}
+    tenants={ownerTenants}
+    busy={loading}
+    notice={notice}
+    onRefresh={loadWorkspace}
+    onSignOut={()=>supabase.auth.signOut()}
+    onEnterTenant={async(tenantId)=>{
+      setLoading(true)
+      const {error}=await supabase.rpc('owner_enter_store_tenant',{p_store_id:tenantId})
+      if(error){setNotice(userFacingError(error,'Tidak dapat membuka tenant ini.'));setLoading(false);return}
+      setIsOwnerTenantWorkspace(true)
+      setSelectedStoreId(tenantId)
+      setStore(null);setMembership(null);setSettings(null);setProducts([]);setOrders([]);setQueue([]);setNotice('')
+    }}
+  />
   if(loading&&!store)return <div className="loading-screen"><span className="spinner spinner-large"/><span>Memeriksa keanggotaan toko…</span></div>
   if(!store)return <div className="loading-screen"><span className="spinner spinner-large"/><p>{notice||'Akun ini belum terhubung ke toko. Minta Owner atau Super Admin mengirim undangan.'}</p><button className="btn btn-outline" onClick={loadWorkspace} disabled={loading}><RefreshCw size={14}/> {loading?'Memeriksa toko…':'Cek koneksi toko'}</button><button className="btn btn-ghost" onClick={()=>supabase.auth.signOut()}>Keluar</button></div>
-  if (ownerOrganization && membership?.role === 'owner' && !isOwnerTenantWorkspace) return <OwnerOrganizationCenter
-    session={session}
-    organization={ownerOrganization}
-    tenants={ownerTenants}
-    busy={loading}
-    notice={notice}
-    onRefresh={loadWorkspace}
-    onSignOut={()=>supabase.auth.signOut()}
-    onEnterTenant={(tenantId)=>{setIsOwnerTenantWorkspace(true);setSelectedStoreId(tenantId);setStore(null);setMembership(null);setSettings(null);setProducts([]);setOrders([]);setQueue([]);setNotice('')}}
-  />
-  if (ownerOrganization && !store) return <OwnerOrganizationCenter
-    session={session}
-    organization={ownerOrganization}
-    tenants={ownerTenants}
-    busy={loading}
-    notice={notice}
-    onRefresh={loadWorkspace}
-    onSignOut={()=>supabase.auth.signOut()}
-    onEnterTenant={(tenantId)=>{setIsOwnerTenantWorkspace(true);setSelectedStoreId(tenantId);setStore(null);setMembership(null);setSettings(null);setProducts([]);setOrders([]);setQueue([]);setNotice('')}}
-  />
   const effectiveStoreStatus = store.status === 'active' && store.expires_at && new Date(store.expires_at) <= new Date() ? 'expired' : (store.status || 'active')
   if(effectiveStoreStatus !== 'active') return <TenantLockedScreen store={store} status={effectiveStoreStatus} onSignOut={()=>supabase.auth.signOut()}/>
 
