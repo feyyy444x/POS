@@ -23,7 +23,7 @@ test('Admin NexaPos and Super Admin can reactivate one tenant only within organi
   assert.match(lifecycle, /p_status not in \('active','pending','suspended'\)/)
   assert.match(lifecycle, /v_active_tenants >= v_org\.activation_location_limit/)
   assert.match(app, /changeStatus\(t,'active'\)/)
-  assert.match(app, /> Aktifkan<\/button>/)
+  assert.match(app, /Aktifkan workspace/)
 })
 
 test('Owner can delete only an inactive tenant and cannot delete the Owner organization through tenant removal', () => {
