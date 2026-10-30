@@ -131,7 +131,18 @@ export default function OrganizationOperations({ mode = 'team', tenants = [] }) 
     await load()
   }
 
-  const deleteMember = async member => {\n    if (member.role === 'owner') return\n    if (!window.confirm('Hapus akses ' + (member.full_name || member.email || 'karyawan') + ' dari tenant ' + (tenantNames[member.store_id] || 'ini') + '?')) return\n    setDeleting(member.id); setError(''); setNotice('')\n    const { error: deleteError } = await supabase.rpc('owner_delete_store_member', { p_member_id: member.id })\n    setDeleting('')\n    if (deleteError) { setError(userFacingError(deleteError, 'Karyawan belum berhasil dihapus.')); return }\n    setNotice('Akses karyawan berhasil dihapus dari tenant.')\n    await load()\n  }\n\n  return <section className="owner-operations-page">
+  const deleteMember = async member => {
+    if (member.role === 'owner') return
+    if (!window.confirm('Hapus akses ' + (member.full_name || member.email || 'karyawan') + ' dari tenant ' + (tenantNames[member.store_id] || 'ini') + '?')) return
+    setDeleting(member.id); setError(''); setNotice('')
+    const { error: deleteError } = await supabase.rpc('owner_delete_store_member', { p_member_id: member.id })
+    setDeleting('')
+    if (deleteError) { setError(userFacingError(deleteError, 'Karyawan belum berhasil dihapus.')); return }
+    setNotice('Akses karyawan berhasil dihapus dari tenant.')
+    await load()
+  }
+
+  return <section className="owner-operations-page">
     <div className="owner-section-heading owner-page-heading">
       <div><span className="owner-kicker">{mode === 'team' ? 'ORGANIZATION PEOPLE' : 'LIVE OPERATIONS'}</span><h2>{mode === 'team' ? 'Karyawan & Hak Akses' : 'Monitoring'}</h2><p>{mode === 'team' ? 'Tambahkan karyawan, atur role, dan kelola penempatan di tenant organisasi.' : 'Pantau sesi kasir yang sedang terbuka di seluruh tenant organisasi.'}</p></div>
       <div className="owner-operations-actions">
