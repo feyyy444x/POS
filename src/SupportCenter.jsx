@@ -137,7 +137,7 @@ export default function SupportCenter({ session, onClose, isSuperAdmin = false, 
       if (!item.email || item.email === 'Pengguna') item.email = message.user_email || item.email
     }
     const { data: conversations, error: statusError } = await supabase.from('support_conversations').select('user_id,status')
-    if (statusError) { setError(userFacingError(statusError, 'Status percakapan belum dapat dimuat. Pastikan migrasi AI Support sudah diterapkan.')); return }
+    if (statusError) { setError(userFacingError(statusError, 'Status percakapan belum dapat dimuat. Pastikan migrasi pusat bantuan sudah diterapkan.')); return }
     const statuses = Object.fromEntries((conversations || []).map(item => [item.user_id, item.status]))
     for (const item of grouped.values()) item.status = statuses[item.user_id] || 'ai_active'
     setInboxStatuses(statuses)
@@ -319,11 +319,11 @@ export default function SupportCenter({ session, onClose, isSuperAdmin = false, 
         {isSuperAdmin && <p className="support-config-note">Atur nomor WhatsApp dan username Telegram di menu pengaturan kanal bantuan.</p>}
       </div>}
       {mode === 'chat' && <div className="support-chat-view"><button className="support-back" onClick={() => setMode('choices')}><ArrowLeft size={14}/> Kembali ke pilihan bantuan</button><div className="support-chat-intro"><strong>{isSuperAdmin ? 'Percakapan live chat' : 'Bantuan NexaPos'}</strong><small>{isSuperAdmin ? activeUser?.email : 'NexaBot menjawab dari panduan terverifikasi.'}</small><span className={'support-status support-status-' + conversationStatus}>{statusLabel(conversationStatus)}</span></div>
-        {!isSuperAdmin && conversationStatus === 'waiting_admin' && <div className="support-handoff-note"><Headphones size={15}/> Permintaan Anda sudah masuk ke inbox Admin NexaPos. Bot sementara berhenti membalas otomatis.</div>}
+        {!isSuperAdmin && conversationStatus === 'waiting_admin' && <div className="support-handoff-note"><Headphones size={15}/> Permintaan Anda sudah masuk ke inbox Admin NexaPos. NexaBot sementara berhenti membalas otomatis.</div>}
         {!isSuperAdmin && conversationStatus === 'admin_active' && <div className="support-handoff-note"><UserRound size={15}/> Admin NexaPos sedang menangani percakapan ini.</div>}
         {isSuperAdmin && <div className="support-admin-actions">
           {conversationStatus !== 'admin_active' && <button className="btn btn-small btn-outline" disabled={busy} onClick={() => changeConversationStatus('admin_active')}><Handshake size={13}/> Ambil alih</button>}
-          {conversationStatus !== 'ai_active' && <button className="btn btn-small btn-outline" disabled={busy} onClick={() => changeConversationStatus('ai_active')}><Bot size={13}/> Aktifkan bot</button>}
+          {conversationStatus !== 'ai_active' && <button className="btn btn-small btn-outline" disabled={busy} onClick={() => changeConversationStatus('ai_active')}><Bot size={13}/> Aktifkan NexaBot</button>}
           {conversationStatus !== 'resolved' && <button className="btn btn-small btn-outline" disabled={busy} onClick={() => changeConversationStatus('resolved')}><CheckCircle2 size={13}/> Selesaikan</button>}
         </div>}
         <div className="support-messages">{activeMessages.map(m => <div key={m.id} className={'support-message '+(m.sender_role === (isSuperAdmin ? 'support' : 'customer') ? 'support-message-mine' : 'support-message-theirs')}><span>{m.sender_role === 'customer' ? (isSuperAdmin ? (m.user_email || activeUser?.email || 'Pengguna') : 'Anda') : m.sender_role === 'bot' ? 'NexaBot' : 'Admin NexaPos'}</span><p>{m.message}</p><small>{timeLabel(m.created_at)}</small></div>)}{!activeMessages.length && <div className="support-empty"><MessageCircle size={25}/><strong>Mulai percakapan</strong><span>Tulis pesan pertama Anda di bawah.</span></div>}{botTyping && !isSuperAdmin && <div className="support-typing-indicator" style={{display:'flex',alignItems:'center',gap:8,padding:'8px 12px',fontSize:12,color:'#64748b'}} role="status" aria-live="polite"><span className="spinner"/> NexaBot sedang mengetik...</div>}{otherTyping && <div className="support-typing-indicator" role="status" aria-live="polite"><span className="spinner"/> {isSuperAdmin ? 'Pengguna sedang mengetik...' : 'Admin NexaPos sedang mengetik...'}</div>}</div>
