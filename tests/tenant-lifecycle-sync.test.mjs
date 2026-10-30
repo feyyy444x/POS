@@ -21,7 +21,8 @@ test('Admin NexaPos and Super Admin can reactivate one tenant only within organi
 })
 
 test('Owner can delete only an inactive tenant and cannot delete the Owner organization through tenant removal', () => {
-  assert.match(lifecycle, /not private\.is_store_owner\(p_store_id\)/)
+  assert.match(lifecycle, /owner_user_id = \(select auth\.uid\(\)\)/)
+  assert.match(lifecycle, /if not private\.is_pin_verified\(\) then/)
   assert.match(lifecycle, /Tenant masih aktif\. Minta Admin\/Super Admin menonaktifkan tenant terlebih dahulu/)
   assert.match(lifecycle, /private\.delete_store_tenant_data\(p_store_id\)/)
   assert.match(app, /Tenant aktif harus dinonaktifkan Admin\/Super Admin terlebih dahulu sebelum dihapus/)
