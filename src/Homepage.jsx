@@ -13,7 +13,6 @@ const fallbackDurations = [
   { duration_key: 'weekly', name: 'Mingguan', duration_days: 7, sort_order: 2, is_active: true },
   { duration_key: 'monthly', name: 'Bulanan', duration_days: 30, sort_order: 3, is_active: true },
   { duration_key: 'yearly', name: 'Tahunan', duration_days: 365, sort_order: 4, is_active: true },
-  { duration_key: 'custom', name: 'Custom', duration_days: 15, sort_order: 5, is_active: true },
 ]
 const defaultFeatures = ['Semua fitur NexaPos', 'Kasir dan transaksi', 'Produk dan stok terpisah per tenant/lokasi', 'Laporan operasional', 'Sistem antrean dan struk']
 const fallbackPlans = [
@@ -121,7 +120,10 @@ export default function Homepage() {
         supabase.from('site_activation_durations').select('duration_key,name,duration_days,sort_order,is_active').eq('is_active', true).order('sort_order', { ascending: true }),
       ])
       if (mounted && !durationResult.error && Array.isArray(durationResult.data) && durationResult.data.length) {
-        const nextDurations = durationResult.data.map(d => ({ ...d, duration_days: Number(d.duration_days) }))
+        // Custom activation duration remains configurable in Admin, but is intentionally not offered on the public homepage.
+        const nextDurations = durationResult.data
+          .filter(d => String(d.duration_key || '').trim().toLowerCase() !== 'custom')
+          .map(d => ({ ...d, duration_days: Number(d.duration_days) }))
         setDurations(nextDurations)
         setSelectedDuration(current => nextDurations.some(d => d.duration_key === current) ? current : nextDurations[0].duration_key)
       }
