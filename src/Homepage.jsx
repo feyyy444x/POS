@@ -128,7 +128,7 @@ export default function Homepage() {
         setSelectedDuration(current => nextDurations.some(d => d.duration_key === current) ? current : nextDurations[0].duration_key)
       }
       if (mounted && !packageResult.error && Array.isArray(packageResult.data) && packageResult.data.length) {
-        setPlans(packageResult.data.filter(plan => String(plan.package_key || '').trim().toLowerCase() !== 'custom' && String(plan.name || '').trim().toLowerCase() !== 'custom').map(plan => ({
+        setPlans(packageResult.data.filter(plan => !/custom/i.test(String(plan.package_key || '')) && !/custom/i.test(String(plan.name || ''))).map(plan => ({
           ...plan,
           key: plan.package_key,
           location_limit: Number(plan.location_limit),
