@@ -35,11 +35,11 @@ const storyScenes = {
   antrian: { index: '03', eyebrow: 'SAAT PELANGGAN MENUNGGU', title: 'Antrean tetap jelas dan sederhana.', description: 'Catat nama pelanggan, nomor antrean, dan loket atau kasir yang melayani. Antrean dapat diaktifkan atau dinonaktifkan sesuai kebutuhan toko.', icon: Monitor, status: 'Antrean operasional', tag: 'QUEUE OPERATIONS' },
 }
 const requiresPromoCode = (promo) => promo?.requires_code === true || promo?.requires_code === 'true' || promo?.requires_code === 1
-const eligiblePeriods = (promo) => Array.isArray(promo?.eligible_periods)
+const eligiblePeriods = (promo) => (Array.isArray(promo?.eligible_periods)
   ? promo.eligible_periods.map(value => String(value).trim().toLowerCase())
   : typeof promo?.eligible_periods === 'string'
     ? promo.eligible_periods.split(',').map(value => value.trim().toLowerCase()).filter(Boolean)
-    : []
+    : []).filter(period => period !== 'custom')
 const promoDiscountLabel = (promo) => {
   const type = String(promo?.discount_type || '').trim().toLowerCase()
   const value = Math.max(0, Number(promo?.discount_value || 0))
