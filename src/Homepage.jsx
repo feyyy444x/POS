@@ -135,7 +135,6 @@ export default function Homepage() {
           prices: { ...(fallbackPlans.find(fallback => fallback.key === plan.package_key)?.prices || {}), ...(plan.prices && typeof plan.prices === 'object' ? plan.prices : {}) },
           key: plan.package_key,
           location_limit: Number(plan.location_limit),
-          prices: plan.prices && typeof plan.prices === 'object' ? plan.prices : {},
           popular: Boolean(plan.is_popular),
           features: Array.isArray(plan.features) ? plan.features : defaultFeatures,
         })))
