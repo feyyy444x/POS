@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   ArrowDown, ArrowRight, ArrowUpRight, BarChart3, Check, CheckCircle2, ChevronDown,
-  CircleDollarSign, Headphones, Monitor, Package, Printer, ShieldCheck, ShoppingCart,
+  CircleDollarSign, Monitor, Package, Phone, Printer, Send, ShieldCheck, ShoppingCart,
   Sparkles, Ticket, Users, X, Zap, Activity, Store, Workflow
 } from 'lucide-react'
 import { supabase } from './lib/supabase'
@@ -15,7 +15,7 @@ const fallbackDurations = [
   { duration_key: 'yearly', name: 'Tahunan', duration_days: 365, sort_order: 4, is_active: true },
   { duration_key: 'custom', name: 'Custom', duration_days: 15, sort_order: 5, is_active: true },
 ]
-const defaultFeatures = ['Semua fitur NexaPos', 'Kasir dan transaksi', 'Produk dan stok terpisah per tenant/lokasi', 'Laporan operasional', 'Sistem antrian dan struk']
+const defaultFeatures = ['Semua fitur NexaPos', 'Kasir dan transaksi', 'Produk dan stok terpisah per tenant/lokasi', 'Laporan operasional', 'Sistem antrean dan struk']
 const fallbackPlans = [
   { key: 'starter', name: 'Starter', location_limit: 3, note: 'Untuk usaha yang mulai menambah tenant operasional', prices: { daily: 5000, weekly: 15000, monthly: 49000, yearly: 490000, custom: 25000 }, features: defaultFeatures, popular: false, sort_order: 1 },
   { key: 'growth', name: 'Growth', location_limit: 5, note: 'Untuk bisnis yang mulai berkembang', prices: { daily: 10000, weekly: 30000, monthly: 99000, yearly: 990000, custom: 45000 }, features: defaultFeatures, popular: false, sort_order: 2 },
@@ -59,6 +59,7 @@ export default function Homepage() {
   const [durations, setDurations] = useState(fallbackDurations)
   const [selectedDuration, setSelectedDuration] = useState('monthly')
   const [promos, setPromos] = useState([])
+  const [supportChannels, setSupportChannels] = useState({ whatsapp_enabled: false, whatsapp_number: '', telegram_enabled: true, telegram_username: 'becaaapos' })
   const [serverQuotes, setServerQuotes] = useState({})
   const [quoteLoading, setQuoteLoading] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
@@ -91,6 +92,26 @@ export default function Homepage() {
       supabase.removeChannel(channel)
     }
   }, [loadPromos])
+  useEffect(() => {
+    if (!supabase) return
+    const loadSupportChannels = async () => {
+      const { data, error } = await supabase.from('support_channel_settings')
+        .select('whatsapp_enabled,whatsapp_number,telegram_enabled,telegram_username')
+        .eq('id', 1).maybeSingle()
+      if (error || !data) return
+      setSupportChannels({
+        whatsapp_enabled: Boolean(data.whatsapp_enabled),
+        whatsapp_number: String(data.whatsapp_number || '').replace(/\\D/g, ''),
+        telegram_enabled: Boolean(data.telegram_enabled),
+        telegram_username: String(data.telegram_username || '').replace(/^@/, '').trim(),
+      })
+    }
+    loadSupportChannels()
+    const channel = supabase.channel('homepage-support-channels')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'support_channel_settings' }, loadSupportChannels)
+      .subscribe()
+    return () => supabase.removeChannel(channel)
+  }, [])
   useEffect(() => {
     if (!supabase) return
     let mounted = true
@@ -186,7 +207,6 @@ export default function Homepage() {
       'Halo Tim NexaPos, saya ingin menanyakan penyewaan layanan.',
       'Paket: ' + plan.name + ' (' + Number(plan.location_limit || 1) + ' tenant tambahan)',
       'Masa sewa: ' + (plan.duration || selectedDuration),
-      'Durasi: ' + (plan.duration || selectedDuration),
       'Harga normal: ' + money(plan.price),
       promo ? 'Promo: ' + (promo.title || promo.promo_code || 'Promo NexaPos') : '',
       promo ? 'Perkiraan harga setelah diskon: ' + money(Number(quote?.final_price ?? plan.price)) : '',
@@ -286,7 +306,7 @@ export default function Homepage() {
 
       <section className="living-pricing living-pricing-redesign" id="harga">
         <div className="living-section-head living-reveal">
-          <div><span className="living-eyebrow">PAKET SEWA NEXAPOS / 04</span><h2>Satu sistem untuk bisnismu.<br/><em>Pilih kapasitas dan masa aktif.</em></h2></div>
+          <div><span className="living-eyebrow">PAKET SEWA NEXAPOS / 04</span><h2>Satu sistem untuk bisnismu.<br/><em>Pilih kapasitas dan masa sewa.</em></h2></div>
           <p>Gunakan fitur operasional NexaPos sesuai kebutuhan usaha. Pilih kapasitas tenant tambahan dan masa sewa yang sesuai dengan kebutuhan bisnis. Kode aktivasi diterbitkan dan diproses oleh Super Admin.</p>
         </div>
         {activePromo && <article className="living-pricing-promo living-promo-feature" aria-live="polite">
@@ -308,7 +328,7 @@ export default function Homepage() {
           <div><span className="living-eyebrow">PILIH MASA SEWA</span><p>Pilih masa sewa; harga setiap paket akan menyesuaikan.</p></div>
           <div className="living-pricing-live"><i/> HARGA & PROMO TERKINI</div>
         </div>
-        <div className="living-duration-picker" role="tablist" aria-label="Pilihan masa aktivasi">
+        <div className="living-duration-picker" role="tablist" aria-label="Pilihan masa sewa">
           {durations.map(duration=><button type="button" role="tab" aria-selected={selectedDuration===duration.duration_key} className={selectedDuration===duration.duration_key?'is-active':''} key={duration.duration_key} onClick={()=>setSelectedDuration(duration.duration_key)}><span>{duration.name}</span><small>{Number(duration.duration_days)} hari</small></button>)}
         </div>
         <div className="living-coupon living-coupon-redesign">
@@ -336,7 +356,7 @@ export default function Homepage() {
               <p className="living-plan-note">{plan.note || 'Pilihan kapasitas tenant tambahan sesuai kebutuhan bisnismu.'}</p>
               <div className="living-plan-location"><Store size={14}/> Kuota {Number(plan.location_limit||1)} tenant tambahan di luar workspace utama</div>
               <div className="living-plan-price-label">{discount>0?'HARGA PROMO':'HARGA PAKET AKTIVASI'}</div>
-              <div className="living-price living-price-redesign">{discount>0&&<del>{money(basePrice)}</del>}<strong>{money(finalPrice)}</strong><small>/ {duration?.name||'masa aktif'} ({Number(duration?.duration_days||0)} hari)</small></div>
+              <div className="living-price living-price-redesign">{discount>0&&<del>{money(basePrice)}</del>}<strong>{money(finalPrice)}</strong><small>/ {duration?.name||'masa sewa'} ({Number(duration?.duration_days||0)} hari)</small></div>
               {discount>0&&<div className="living-saving living-saving-redesign"><Zap size={13}/> Hemat {money(discount)} <b>−{promoDiscountLabel(displayPromo)}</b></div>}
               {displayPromo && !isEligible && <div className="living-plan-ineligible">Promo tidak berlaku untuk durasi ini</div>}
               <div className="living-plan-divider"/>
@@ -357,6 +377,6 @@ export default function Homepage() {
         <div className="living-final-actions"><a className="living-cta living-cta-light" href="#harga">Pilih paket sewa <ArrowRight size={16}/></a><a className="living-final-login" href="/login">Sudah punya akun? Login workspace <ArrowUpRight size={14}/></a></div>
       </section>
     </main>
-    <footer className="living-footer"><Brand footer/><p>NexaPos membantu mengelola operasional toko. NexaSpace membantu pemilik organisasi mengendalikan tenant dalam satu pusat kendali, dengan data setiap tenant tetap terpisah.</p><div className="living-footer-links"><a href="#cerita">Cara kerja</a><a href="#fitur">Ekosistem</a><a href="#harga">Harga sewa</a><a href="#faq">FAQ</a><a href="https://t.me/becaaapos" target="_blank" rel="noreferrer">Telegram</a></div><small>© {new Date().getFullYear()} NexaPos. Seluruh hak dilindungi.</small></footer>
+    <footer className="living-footer"><Brand footer/><p>NexaPos membantu mengelola operasional toko. NexaSpace membantu pemilik organisasi mengendalikan tenant dalam satu pusat kendali, dengan data setiap tenant tetap terpisah.</p><div className="living-footer-links"><a href="#cerita">Cara kerja</a><a href="#fitur">Ekosistem</a><a href="#harga">Harga sewa</a><a href="#faq">FAQ</a>{supportChannels.whatsapp_enabled && supportChannels.whatsapp_number && <a href={"https://wa.me/" + supportChannels.whatsapp_number} target="_blank" rel="noreferrer">WhatsApp</a>}{supportChannels.telegram_enabled && supportChannels.telegram_username && <a href={"https://t.me/" + supportChannels.telegram_username} target="_blank" rel="noreferrer">Telegram</a>}</div><small>© {new Date().getFullYear()} NexaPos. Seluruh hak dilindungi.</small></footer>
   </div>
 }
