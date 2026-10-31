@@ -44,3 +44,18 @@ set prices = coalesce(prices, '{}'::jsonb) || case package_key
 end,
 updated_at = now()
 where package_key in ('starter', 'growth', 'business', 'enterprise');
+
+-- Admin NexaPos and Super Admin share platform-level permissions. The older
+-- policies checked only super_admins table membership and accidentally hid
+-- inactive duration rows / blocked writes for Admin NexaPos.
+drop policy if exists "Super admins manage activation durations" on public.site_activation_durations;
+create policy "Super admins manage activation durations"
+  on public.site_activation_durations for all to authenticated
+  using (private.is_super_admin())
+  with check (private.is_super_admin());
+
+drop policy if exists "Super admins manage activation packages" on public.site_activation_packages;
+create policy "Super admins manage activation packages"
+  on public.site_activation_packages for all to authenticated
+  using (private.is_super_admin())
+  with check (private.is_super_admin());
