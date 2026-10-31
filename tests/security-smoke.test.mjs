@@ -7,6 +7,7 @@ const headers = await readFile(new URL('public/_headers', root), 'utf8')
 const activation = await readFile(new URL('netlify/functions/activate-invitation.mjs', root), 'utf8')
 const createPlatformStaff = await readFile(new URL('netlify/functions/create-platform-staff.mjs', root), 'utf8')
 const app = await readFile(new URL('src/App.jsx', root), 'utf8')
+const homepageUi = await readFile(new URL('src/Homepage.jsx', root), 'utf8')
 const appStyles = await readFile(new URL('src/styles.css', root), 'utf8')
 const queueMigration = await readFile(new URL('supabase/migrations/20261029140000_enforce_store_queue_enabled.sql', root), 'utf8')
 const writeHardeningMigration = await readFile(new URL('supabase/migrations/20261029150000_tighten_mutable_column_grants_and_queue_policy.sql', root), 'utf8')
@@ -23,6 +24,18 @@ const platformStaffManagerUi = await readFile(new URL('src/PlatformStaffManager.
 const promotionManagerUi = await readFile(new URL('src/PromotionManager.jsx', root), 'utf8')
 const subscriptionPlanManagerUi = await readFile(new URL('src/SubscriptionPlanManager.jsx', root), 'utf8')
 const storeControlCenterUi = await readFile(new URL('src/StoreControlCenter.jsx', root), 'utf8')
+const queueSettingsUi = await readFile(new URL('src/TvDisplaySettings.jsx', root), 'utf8')
+const publicQueueMigration = await readFile(new URL('supabase/migrations/20261029200000_simplify_public_queue_rpc.sql', root), 'utf8')
+const activationPackagesMigration = await readFile(new URL('supabase/migrations/20261029140200_activation_packages_pricing.sql', root), 'utf8')
+const customActivationMigration = await readFile(new URL('supabase/migrations/20261031130000_custom_activation_duration_and_quota.sql', root), 'utf8')
+const ownerOrganizationsMigration = await readFile(new URL('supabase/migrations/20261030200000_owner_organizations_and_tenant_quotas.sql', root), 'utf8')
+const auditLogsMigration = await readFile(new URL('supabase/migrations/20261030210000_platform_audit_logs.sql', root), 'utf8')
+const auditLogUi = await readFile(new URL('src/AuditLogPanel.jsx', root), 'utf8')
+const serverPromoQuoteMigration = await readFile(new URL('supabase/migrations/20261030220000_server_validate_activation_promotions.sql', root), 'utf8')
+const idempotentCheckoutMigration = await readFile(new URL('supabase/migrations/20261030230000_idempotent_checkout.sql', root), 'utf8')
+const tenantRoleMigration = await readFile(new URL('supabase/migrations/20261030240000_standardize_tenant_roles.sql', root), 'utf8')
+const organizationReportsUi = await readFile(new URL('src/OrganizationReports.jsx', root), 'utf8')
+const accountDeletionMigration = await readFile(new URL('supabase/migrations/20261030250000_preserve_cashier_identity_on_user_delete.sql', root), 'utf8')
 
 test('Netlify headers include baseline browser security protections', () => {
   for (const directive of [
@@ -210,7 +223,7 @@ test('admin managers clear stale data on load failures and prevent editing fallb
   assert.match(promotionManagerUi, /if \(queryError\) \{\s*setPromos\(\[\]\)/)
   assert.match(subscriptionPlanManagerUi, /if \(queryError\) \{\s*setPlans\(\[\]\)/)
   assert.match(subscriptionPlanManagerUi, /setPlansReady\(missingKeys\.length === 0\)/)
-  assert.match(subscriptionPlanManagerUi, /disabled=\{!plansReady \|\| savingKey===plan\.plan_key\}/)
+  assert.match(subscriptionPlanManagerUi, /disabled=\{!plansReady \|\| savingKey===plan\.package_key\}/)
   assert.match(subscriptionPlanManagerUi, /Data paket belum tersedia/)
 })
 
@@ -256,7 +269,7 @@ test('free NexaPos support bot is FAQ-only and never calls a paid external AI pr
   assert.match(supportHandoffMigration, /v_answer := 'Maaf, saya belum memiliki jawaban terverifikasi/)
   assert.doesNotMatch(supportMigration + supportHandoffMigration, /fetch\s*\(|https:\/\/api\.|OPENAI_API_KEY|GEMINI_API_KEY|ANTHROPIC_API_KEY/i)
   assert.match(supportCenter, /submit_support_message/)
-  assert.match(supportCenter, /NexaPos Bot/)
+  assert.match(supportCenter, /Joeclyn/)
 })
 
 test('support RPCs validate customer input, require authenticated sessions, and rate-limit messages', () => {
@@ -335,7 +348,8 @@ test('Pusat Kendali Toko scopes operational reads to the selected store and labe
   assert.match(storeControlCenterUi, /\.in\('user_id', userIds\)/)
   assert.match(storeControlCenterUi, /order\('created_at', \{ ascending: false \}\)\.limit\(12\)/)
   assert.match(storeControlCenterUi, /bukan audit log lengkap untuk setiap perubahan admin/)
-  assert.match(storeControlCenterUi, /Tidak tersedia pada data tenant saat ini/)
+  assert.doesNotMatch(storeControlCenterUi, /Aktivasi & masa berlaku|Perpanjang aktivasi|Masa aktivasi/)
+  assert.match(storeControlCenterUi, /Aktifkan workspace/)
   assert.match(storeControlCenterUi, /Hak akses database mungkin membatasi sebagian data/)
 })
 
@@ -355,4 +369,399 @@ test('form draft restoration handles conditional fields without overwriting fiel
 test('form draft preservation excludes credentials, activation codes, PINs, and file inputs', () => {
   assert.match(app, /\['password', 'hidden', 'file', 'submit', 'button', 'reset', 'image'\]/)
   assert.match(app, /password\|passwd\|pin\|activation\.\?code\|invite\.\?code\|token\|secret/)
+})
+
+
+test('public queue screen is token-gated, tenant-scoped, and stops exposing media/template data', () => {
+  assert.match(publicQueueMigration, /p_token IS NULL OR length\(p_token\) < 32/)
+  assert.match(publicQueueMigration, /WHERE cfg\.public_token = p_token/)
+  assert.match(publicQueueMigration, /'queue_enabled', coalesce\(ss\.queue_enabled, true\)/)
+  assert.match(publicQueueMigration, /CASE WHEN coalesce\(ss\.queue_enabled, true\) THEN/)
+  assert.doesNotMatch(publicQueueMigration, /'media'|'template'|'playlist'|'video'/)
+  assert.match(app, /new URLSearchParams\(window\.location\.search\)\.get\('token'\)/)
+  assert.match(app, /supabase\.rpc\('get_public_tv_display',\{p_token:token\}\)/)
+})
+
+test('queue settings contain no media upload or template controls and require owner/admin for writes', () => {
+  assert.match(queueSettingsUi, /\['owner', 'admin'\]\.includes\(membership\?\.role\)/)
+  assert.match(queueSettingsUi, /store_settings'\)\.upsert/)
+  assert.match(queueSettingsUi, /crypto\.getRandomValues/)
+  assert.doesNotMatch(queueSettingsUi, /store_tv_media|type=[\"']file[\"']|media_volume|selectedTemplate|uploadMedia|playlistItems/i)
+})
+
+test('password minimum is six characters in profile forms and admin reset endpoint', async () => {
+  assert.match(app, /Masukkan password sementara baru \(minimal 6 karakter\)/)
+  assert.match(app, /if\(nextPassword\.length<6\)\{setNotice\('Password minimal 6 karakter\.'\);return\}/)
+  const profileAndAuthForms = app
+  const passwordReset = await readFile(new URL('../netlify/functions/manage-user-password.mjs', import.meta.url), 'utf8')
+  assert.doesNotMatch(profileAndAuthForms, /minLength=\{8\}/)
+  assert.match(profileAndAuthForms, /minLength=\{6\}/)
+  assert.match(passwordReset, /password\.length < 6/)
+})
+
+
+test('activation package defaults match the NexaPos master specification', () => {
+  assert.match(activationPackagesMigration, /\('daily','Harian',3,1,true\)/)
+  assert.match(activationPackagesMigration, /\('weekly','Mingguan',7,2,true\)/)
+  assert.match(activationPackagesMigration, /\('monthly','Bulanan',30,3,true\)/)
+  assert.match(activationPackagesMigration, /\('yearly','Tahunan',365,4,true\)/)
+  assert.match(activationPackagesMigration, /\('starter','Starter',3,/)
+  assert.match(activationPackagesMigration, /\('growth','Growth',5,/)
+  assert.match(activationPackagesMigration, /\('business','Business',10,/)
+  assert.match(activationPackagesMigration, /\('enterprise','Enterprise',15,/)
+})
+
+test('activation package administration is protected and validates standard packages plus custom duration and quota', () => {
+  assert.match(activationPackagesMigration, /enable row level security/i)
+  assert.match(activationPackagesMigration, /private\.is_super_admin\(\)/)
+  assert.match(customActivationMigration, /private\.is_pin_verified\(\)/)
+  assert.match(customActivationMigration, /p_duration_days < 1 or p_duration_days > 36500/i)
+  assert.match(customActivationMigration, /p_location_limit < 1 or p_location_limit > 1000/i)
+  assert.match(customActivationMigration, /update public\.owner_organizations/)
+  assert.match(customActivationMigration, /update public\.stores/)
+  assert.match(app, /supabase\.rpc\('activate_store_tenant',\{p_store_id:tenant\.id,p_duration_days:days,p_package_key:packageKey,p_location_limit:quota\}\)/)
+})
+
+test('Super Admin can configure a private custom duration and package-specific public pricing', () => {
+  assert.match(subscriptionPlanManagerUi, /features: \(Array\.isArray\(plan\.features\) \? plan\.features : featureDefaults\)/)
+  assert.doesNotMatch(subscriptionPlanManagerUi, /Produk dan stok per cabang/)
+  assert.match(subscriptionPlanManagerUi, /savingKey===plan\.package_key/)
+  assert.match(subscriptionPlanManagerUi, /supabase\.from\('site_activation_durations'\)\.upsert/)
+  assert.match(subscriptionPlanManagerUi, /duration_key: 'custom'/)
+  assert.match(subscriptionPlanManagerUi, /durations\.filter\(duration=>duration\.is_active\)/)
+  assert.match(subscriptionPlanManagerUi, /duration_key !== 'custom'/)
+  assert.match(subscriptionPlanManagerUi, /updatePrice\(plan\.package_key,duration\.duration_key/)
+  assert.match(subscriptionPlanManagerUi, /supabase\.from\('site_activation_packages'\)\.upsert/)
+  assert.match(app, /activationQuotaMode==='custom'/)
+  assert.match(app, /activationDurations\.map\(item=>/)
+})
+
+test('Homepage never exposes custom duration or custom activation package choices', () => {
+  assert.match(homepageUi, /filter\(d => \['daily', 'weekly', 'monthly', 'yearly'\]/)
+  assert.match(homepageUi, /filter\(plan => \['starter', 'growth', 'business', 'enterprise'\]/)
+})
+
+
+test('homepage pricing fallback matches package defaults and does not fabricate promotions', () => {
+  assert.doesNotMatch(homepageUi, /\bupcomingPromo\b/)
+
+  assert.match(homepageUi, /duration_key: 'daily', name: 'Harian', duration_days: 3/)
+  assert.match(homepageUi, /key: 'starter', name: 'Starter', location_limit: 3/)
+  assert.match(homepageUi, /key: 'growth', name: 'Growth', location_limit: 5/)
+  assert.match(homepageUi, /key: 'business', name: 'Business', location_limit: 10/)
+  assert.match(homepageUi, /key: 'enterprise', name: 'Enterprise', location_limit: 15/)
+  assert.doesNotMatch(homepageUi, /fallbackPromo|DISKON BARU CUYYY|nexapos-new-customer-80/)
+  assert.match(homepageUi, /p\.starts_at.*p\.ends_at/)
+  assert.match(homepageUi, /const availablePromos = promos/)
+  assert.match(homepageUi, /if \(error\) \{ setPromos\(\[\]\); return \}/)
+  assert.match(homepageUi, /features: Array\.isArray\(plan\.features\) \? plan\.features : defaultFeatures/)
+})
+
+
+test('owner organizations and tenant quotas are enforced by the database, not only by the UI', () => {
+  assert.match(ownerOrganizationsMigration, /create table if not exists public\.owner_organizations/i)
+  assert.match(ownerOrganizationsMigration, /add column if not exists organization_id uuid/i)
+  assert.match(ownerOrganizationsMigration, /create or replace function public\.owner_create_store_tenant/i)
+  assert.match(ownerOrganizationsMigration, /v_count >= v_org\.activation_location_limit/i)
+  assert.match(ownerOrganizationsMigration, /for update/i)
+  assert.match(ownerOrganizationsMigration, /owner_user_id = v_user_id/i)
+  assert.match(ownerOrganizationsMigration, /private\.is_pin_verified\(\)/i)
+  assert.match(ownerOrganizationsMigration, /grant execute on function public\.owner_create_store_tenant\(text\) to authenticated/i)
+  assert.match(app, /supabase\.rpc\('owner_create_store_tenant'/)
+  assert.match(app, /page==='tenants'&&membership\.role==='owner'/)
+})
+
+test('owner tenant management lists only stores linked to the authenticated owner organization', () => {
+  assert.match(app, /from\('owner_organizations'\)/)
+  assert.match(app, /eq\('owner_user_id', session\.user\.id\)/)
+  assert.match(app, /rpc\('owner_list_organization_tenant_profiles'\)/)
+  assert.match(ownerOrganizationsMigration, /where s\.organization_id = v_org_id/i)
+  assert.match(ownerOrganizationsMigration, /has_membership boolean/i)
+  assert.match(app, /ownerTenants\.filter\(item=>item\.status!=='deleted'&&!item\.deleted_at\)/)
+})
+
+
+test('audit events are recorded server-side with scoped read policies and redacted secrets', () => {
+  assert.match(auditLogsMigration, /create table if not exists public\.platform_audit_logs/i)
+  assert.match(auditLogsMigration, /create or replace function private\.capture_nexapos_audit_event/i)
+  assert.match(auditLogsMigration, /v_before := v_before - 'activation_code_hash' - 'pin_hash'/)
+  assert.match(auditLogsMigration, /v_after := v_after - 'activation_code_hash' - 'pin_hash'/)
+  assert.match(auditLogsMigration, /Owner reads organization audit logs/)
+  assert.match(auditLogsMigration, /Super Admin reads platform audit logs/)
+  assert.match(auditLogsMigration, /revoke all on public\.platform_audit_logs from public, anon/i)
+  assert.match(auditLogUi, /from\('platform_audit_logs'\)/)
+  assert.match(app, /section==='audit'&&<AuditLogPanel scope="platform"\/>/)
+  assert.match(app, /page==='audit'&&membership\.role==='owner'&&<AuditLogPanel scope="organization"/)
+})
+
+
+test('activation discounts and vouchers are calculated against active server-side package, duration, and promotion rows', () => {
+  assert.match(serverPromoQuoteMigration, /security invoker/i)
+  assert.match(serverPromoQuoteMigration, /p\.is_active = true/i)
+  assert.match(serverPromoQuoteMigration, /d\.duration_key = p_duration_key and d\.is_active = true/i)
+  assert.match(serverPromoQuoteMigration, /upper\(trim\(p\.promo_code\)\) = v_code/i)
+  assert.match(serverPromoQuoteMigration, /p\.starts_at is null or p\.starts_at <= now\(\)/i)
+  assert.match(serverPromoQuoteMigration, /p\.ends_at is null or p\.ends_at >= now\(\)/i)
+  assert.match(serverPromoQuoteMigration, /p_duration_key = any\(p\.eligible_periods\)/i)
+  assert.match(homepageUi, /supabase\.rpc\('get_activation_quote'/)
+  assert.match(homepageUi, /serverQuotes\[plan\.key\]/)
+  assert.match(homepageUi, /serverQuotes\[selectedPlan\]\?\.promo_id/)
+  assert.doesNotMatch(homepageUi, /function discountFor\(/)
+})
+
+test('workspace browser history restores prior pages without clearing current tenant state', () => {
+  assert.match(app, /nexaposWorkspaceNav/)
+  assert.match(app, /nexaposSuperAdminNav/)
+  assert.match(app, /window\.addEventListener\('popstate'/)
+  assert.match(app, /setPage\(state\.page \|\| 'dashboard'\)/)
+  assert.match(app, /setSelectedTenant\(state\.superSelectedTenant \|\| null\)/)
+  assert.match(app, /nexapos-selected-store-v1:/)
+  assert.match(app, /nexapos-workspace-page-v1:/)
+  assert.match(app, /nexapos-scroll-v1:/)
+  assert.match(app, /Ada perubahan formulir yang belum dikonfirmasi/)
+  assert.match(app, /window\.addEventListener\('beforeunload', onBeforeUnload\)/)
+})
+
+
+test('Owner consolidated reports aggregate only tenant IDs visible in the owner organization', () => {
+  assert.match(organizationReportsUi, /tenants\.filter\(t => t\.status !== 'deleted' && !t\.deleted_at\)\.map\(t => t\.id\)/)
+  assert.match(organizationReportsUi, /from\('orders'\)\.select\('\*'\)/)
+  assert.match(organizationReportsUi, /\.in\('store_id', tenantIds\)/)
+  assert.match(organizationReportsUi, /from\('products'\)\.select\('id,store_id,cost_price'\)/)
+  assert.match(organizationReportsUi, /\.in\('id', ids\)/)
+  assert.match(organizationReportsUi, /paidOrders\.reduce/)
+  assert.match(organizationReportsUi, /\.gte\('created_at', startBoundary\)\.lt\('created_at', endBoundary\)/)
+  assert.match(organizationReportsUi, /offset < 10000; offset \+= 1000/)
+  assert.match(organizationReportsUi, /order_item.*select/)
+  assert.match(app, /page==='reports-org'&&membership\.role==='owner'&&<OrganizationReports/)
+  assert.match(app, /\['reports-org','Laporan perusahaan',Store\]/)
+})
+
+
+test('checkout retries use a tenant-scoped idempotency key to prevent duplicate sales after reconnect', () => {
+  assert.match(idempotentCheckoutMigration, /add column if not exists idempotency_key uuid/i)
+  assert.match(idempotentCheckoutMigration, /unique index if not exists orders_store_idempotency_key_uidx/i)
+  assert.match(idempotentCheckoutMigration, /pg_advisory_xact_lock\(hashtextextended\(/i)
+  assert.match(idempotentCheckoutMigration, /where store_id = p_store_id and idempotency_key = p_request_id/i)
+  assert.match(idempotentCheckoutMigration, /revoke all on function public\.complete_sale\(uuid, jsonb, numeric, text, numeric, text, boolean\) from public, anon, authenticated/i)
+  assert.match(app, /supabase\.rpc\('complete_sale_idempotent'/)
+  assert.match(app, /p_request_id:checkoutRequestIdRef\.current/)
+  assert.match(app, /checkoutRequestIdRef\.current = null/)
+  assert.doesNotMatch(app, /supabase\.rpc\('complete_sale',/)
+})
+
+
+test('tenant roles are standardized and legacy manager memberships retain access as Admin Tenant', () => {
+  assert.match(tenantRoleMigration, /update public\.store_members set role = 'admin' where role = 'manager'/i)
+  assert.match(tenantRoleMigration, /check \(role in \('owner','admin','cashier'\)\)/i)
+  assert.match(tenantRoleMigration, /m\.role in \('owner','admin'\)/i)
+  assert.match(tenantRoleMigration, /p_target_role not in \('admin','cashier'\)/i)
+  assert.doesNotMatch(app, /\['owner','admin','manager'\]/)
+  assert.doesNotMatch(app, /Pilih admin, manager, atau cashier/)
+})
+
+
+test('account deletion keeps historical cashier shift attribution and requires typed confirmation card', () => {
+  assert.match(app, /cashier_name_snapshot/)
+  assert.match(app, /deleteConfirmTarget/)
+  assert.match(app, /navigator\.clipboard\.writeText\('HAPUS'\)/)
+  assert.match(app, /deleteConfirmText\.trim\(\)!=='HAPUS'/)
+  assert.match(app, /super_admin_delete_disabled_account/)
+  assert.match(app, /super_admin_delete_user/)
+  assert.match(app, /Akun belum berhasil dihapus/)
+})
+
+
+test('account deletion migration preserves all cashier and alert attribution foreign keys', () => {
+  assert.match(accountDeletionMigration, /cashier_shifts_cashier_id_fkey[\s\S]*?on delete set null/i)
+  assert.match(accountDeletionMigration, /cashier_shift_breaks_cashier_id_fkey[\s\S]*?on delete set null/i)
+  assert.match(accountDeletionMigration, /cashier_manual_alerts_sent_by_fkey[\s\S]*?on delete set null/i)
+  assert.match(accountDeletionMigration, /cashier_name_snapshot/)
+  assert.match(accountDeletionMigration, /sent_by_name_snapshot/)
+})
+
+
+test('account deletion requires exact uppercase confirmation and protects open cashier sessions', async () => {
+  assert.match(app, /setDeleteConfirmText\(e\.target\.value\)/)
+  assert.match(app, /deleteConfirmText\.trim\(\)!=='HAPUS'/)
+  assert.match(app, /cashier_name_snapshot/)
+  const migration = await readFile(new URL('../supabase/migrations/20261030260000_block_deletion_with_open_cashier_shift.sql', import.meta.url), 'utf8')
+  assert.match(migration, /closed_at is null/)
+  assert.match(migration, /Tutup sesi kasir terlebih dahulu/)
+})
+
+
+test('Owner staff deletion uses typed HAPUS confirmation instead of browser prompt', () => {
+  assert.match(app, /ownerMemberDeleteTarget/)
+  assert.match(app, /ownerMemberDeleteText\.trim\(\)!=='HAPUS'/)
+  assert.match(app, /owner_delete_store_member/)
+  assert.match(app, /Salin HAPUS/)
+})
+
+
+test('Owner registration safely retains the form reference across async RPC and quota copy excludes home workspace', async () => {
+  assert.match(app, /const formElement=event\.currentTarget/)
+  assert.match(app, /formElement\.reset\(\)/)
+  assert.match(app, /register_store_tenant/)
+  assert.match(app, /Pendaftaran Owner belum berhasil/)
+  const migration = await readFile(new URL('../supabase/migrations/20261030270000_owner_additional_tenant_quota.sql', import.meta.url), 'utf8')
+  assert.match(migration, /is_primary_workspace/)
+  assert.match(migration, /s\.is_primary_workspace = false/)
+  assert.match(migration, /Kuota tenant tambahan/)
+  assert.match(homepageUi, /tenant tambahan di luar workspace utama/)
+  assert.doesNotMatch(homepageUi, /termasuk tenant pusat/)
+})
+
+test('Platform staff manager has a working back callback and audit migration failures are actionable', async () => {
+  const staff = await readFile(new URL('../src/PlatformStaffManager.jsx', import.meta.url), 'utf8')
+  const audit = await readFile(new URL('../src/AuditLogPanel.jsx', import.meta.url), 'utf8')
+  assert.match(staff, /onBack/)
+  assert.match(staff, /onClick=\{onBack\}/)
+  assert.match(app, /PlatformStaffManager onBack/)
+  assert.match(audit, /Tabel audit log belum tersedia di database ini/)
+})
+
+
+test('account deletion surfaces the exact known historical cashier FK migration blocker', async () => {
+  const errors = await readFile(new URL('../src/lib/userFacingError.js', import.meta.url), 'utf8')
+  assert.match(errors, /cashier_shifts_cashier_id_fkey/)
+  assert.match(errors, /Migrasi perbaikan penghapusan akun belum diterapkan/)
+  assert.match(errors, /riwayat transaksi tidak dihapus/)
+})
+
+
+test('Super Admin protected actions explain PIN verification failures', async () => {
+  const errors = await readFile(new URL('../src/lib/userFacingError.js', import.meta.url), 'utf8')
+  assert.match(errors, /Verifikasi PIN Super Admin diperlukan/)
+  assert.match(errors, /super admin access required/i)
+})
+
+
+test('Owner organization settings persist a separate organization name and refresh the shared UI state', async () => {
+  const settings = await readFile(new URL('../src/OrganizationSettings.jsx', import.meta.url), 'utf8')
+  const profileMigration = await readFile(new URL('../supabase/migrations/20261030320000_owner_organization_profile.sql', import.meta.url), 'utf8')
+  assert.match(settings, /rpc\('owner_update_organization_profile'/)
+  assert.match(settings, /onSaved\?\.\(data\)/)
+  assert.match(profileMigration, /add column if not exists organization_name text/i)
+  assert.match(profileMigration, /where owner_user_id = v_user_id/)
+})
+
+test('Owner organization operations can invite employees and update tenant roles safely', async () => {
+  const operations = await readFile(new URL('../src/OrganizationOperations.jsx', import.meta.url), 'utf8')
+  assert.match(operations, /rpc\('invite_store_member'/)
+  assert.match(operations, /rpc\('owner_update_store_member'/)
+  assert.match(operations, /Tambah karyawan/)
+  assert.match(operations, /Edit akses/)
+  assert.match(operations, /p_store_id: inviteTenant/)
+})
+
+test('Owner tenant creation, entry, organization identity and Admin tenant classification remain connected', async () => {
+  const app = await readFile(new URL('../src/App.jsx', import.meta.url), 'utf8')
+  const adminMigration = await readFile(new URL('../supabase/migrations/20261030380000_admin_owner_display_name_fallback.sql', import.meta.url), 'utf8')
+  const expiryMigration = await readFile(new URL('../supabase/migrations/20261030370000_owner_tenant_entry_and_expiry_sync.sql', import.meta.url), 'utf8')
+  const displayNameMigration = await readFile(new URL('../supabase/migrations/20261030380000_admin_owner_display_name_fallback.sql', import.meta.url), 'utf8')
+  const ownerRegistrationMigration = await readFile(new URL('../supabase/migrations/20261030400000_owner_organization_name_registration_sync.sql', import.meta.url), 'utf8')
+  assert.match(app, /rpc\('owner_create_store_tenant'/)
+  assert.match(app, /rpc\('owner_enter_store_tenant'/)
+  assert.match(app, /await loadWorkspace\(tenantId, true\)/)
+  assert.match(app, /await loadWorkspace\(data\.id, true\)/)
+  assert.match(app, /rpc\('owner_list_organization_tenant_profiles'/)
+  assert.match(app, /organization_name,activation_package_key/)
+  assert.match(app, /organizationIds=\[\.\.\.new Set/)
+  assert.match(app, /Perusahaan: \{t\.organization_name/)
+  assert.match(app, /Workspace utama/)
+  assert.match(app, /super-admin-organization-profile-sync/)
+  assert.match(app, /table:'owner_organizations'/)
+  assert.match(app, /Pusat perusahaan/)
+  assert.match(adminMigration, /filter \(where m\.role <> 'owner'/i)
+  assert.match(adminMigration, /organization_names text/i)
+  assert.match(displayNameMigration, /o2\.owner_name/i)
+  assert.match(ownerRegistrationMigration, /create trigger store_members_attach_owner_organization/i)
+  assert.match(ownerRegistrationMigration, /organization_name = coalesce/i)
+  const organizationWorkspaceMigration = await readFile(new URL('../supabase/migrations/20261030420000_separate_owner_organization_and_workspace_names.sql', import.meta.url), 'utf8')
+  assert.match(app, /name="organization_name"/)
+  assert.match(app, /p_organization_name:organizationName/)
+  assert.match(app, /Manajemen NexaSpace/)
+  assert.match(app, /Manajemen Tenant/)
+  assert.match(app, /Daftar Tenant Perusahaan/)
+  assert.match(app, /tenant_rows\.map\(tenant/)
+  assert.match(app, /employee_count:new Set\(orgMembers\.filter/)
+  assert.match(organizationWorkspaceMigration, /p_organization_name text/i)
+  assert.match(organizationWorkspaceMigration, /organization_name = v_organization_name/i)
+  assert.match(organizationWorkspaceMigration, /register_store_tenant\(text,text,text,text\)/i)
+  assert.match(expiryMigration, /v_store_expires_at <= now\(\)/i)
+  assert.match(expiryMigration, /v_org_expires_at <= now\(\)/i)
+})
+
+
+test('Owner employee invitations require server-side PIN verification and manager checks reject disabled memberships', async () => {
+  const migration = await readFile(new URL('../supabase/migrations/20261030410000_harden_owner_invites_and_manager_auth.sql', import.meta.url), 'utf8')
+  assert.match(migration, /if not private\.is_pin_verified\(\) then[\s\S]*?Verifikasi PIN diperlukan untuk mengundang karyawan/i)
+  assert.match(migration, /m\.disabled_at is null/i)
+  assert.match(migration, /revoke all on function public\.invite_store_member[\s\S]*?from public, anon/i)
+  assert.match(migration, /grant execute on function public\.invite_store_member[\s\S]*?to authenticated/i)
+})
+
+test('Owner tenant switching never silently falls back to a different workspace', async () => {
+  const app = await readFile(new URL('../src/App.jsx', import.meta.url), 'utf8')
+  assert.match(app, /const loadWorkspace = useCallback\(async \(preferredStoreId = selectedStoreId, strictSelection = false\)/)
+  assert.match(app, /strictSelection && preferredStoreId && !resolvedMembers\.some/)
+  assert.match(app, /Tenant lain tidak akan dibuka otomatis/)
+  assert.match(app, /await loadWorkspace\(tenantId, true\)/)
+})
+
+
+test('Owner and Manager can securely manage employees, while cashiers can only insert products', async () => {
+  const managerMigration = await readFile(new URL('../supabase/migrations/20261030430000_manager_team_controls_and_cashier_product_insert.sql', import.meta.url), 'utf8')
+  const superAdminMigration = await readFile(new URL('../supabase/migrations/20261030440000_super_admin_store_member_controls.sql', import.meta.url), 'utf8')
+  const organization = await readFile(new URL('../src/OrganizationOperations.jsx', import.meta.url), 'utf8')
+  const tenantCenter = await readFile(new URL('../src/StoreControlCenter.jsx', import.meta.url), 'utf8')
+  assert.match(managerMigration, /private\.is_store_manager\(p_store_id\)/)
+  assert.match(managerMigration, /private\.is_store_manager\(v_member\.store_id\)/)
+  assert.match(managerMigration, /manager_reset_store_member_pin/)
+  assert.match(managerMigration, /private\.is_store_member\(store_id\)/)
+  assert.match(managerMigration, /revoke all on function public\.manager_reset_store_member_pin/)
+  assert.match(superAdminMigration, /private\.is_super_admin\(\)/)
+  assert.match(superAdminMigration, /super_admin_delete_store_member_assignment/)
+  assert.match(organization, /Reset PIN/)
+  assert.match(organization, /manage-store-member-password/)
+  assert.match(tenantCenter, /super_admin_update_store_member/)
+  assert.match(tenantCenter, /super_admin_delete_store_member_assignment/)
+})
+
+
+test('Platform actions stay scoped to the selected company or tenant, and registration activation settings stay in NexaPos', async () => {
+  const app = await readFile(new URL('../src/App.jsx', import.meta.url), 'utf8')
+  const tenantStart = app.indexOf("{section==='stores'&&")
+  const companyStart = app.indexOf("{section==='nexaspace'&&", tenantStart)
+  const tenantSection = app.slice(tenantStart, companyStart)
+  const companySection = app.slice(companyStart, app.indexOf("{section==='users'&&", companyStart))
+  const tenantCenter = await readFile(new URL('../src/StoreControlCenter.jsx', import.meta.url), 'utf8')
+  const activationManager = await readFile(new URL('../src/SubscriptionPlanManager.jsx', import.meta.url), 'utf8')
+  const lifecycleMigration = await readFile(new URL('../supabase/migrations/20261030460000_tenant_lifecycle_quota_and_owner_delete.sql', import.meta.url), 'utf8')
+  const deletionMigration = await readFile(new URL('../supabase/migrations/20261030300000_permanent_owner_and_tenant_deletion.sql', import.meta.url), 'utf8')
+
+  assert.ok(tenantStart >= 0 && companyStart > tenantStart)
+  assert.doesNotMatch(tenantSection, /activate\(t\)|activateOrganization|regenerateOwnerInvite|activation-toolbar/)
+  assert.match(tenantSection, /changeStatus\(t,'suspended'\)/)
+  assert.match(tenantSection, /changeStatus\(t,'active'\)/)
+  assert.match(tenantSection, /changeStatus\(t,'deleted'\)/)
+  assert.match(tenantSection, /Kendali tenant/)
+  assert.match(companySection, /activateOrganization\(org\)/)
+  assert.match(companySection, /changeOrganizationStatus\(org,'suspended'\)/)
+  assert.match(companySection, /changeOrganizationStatus\(org,'active'\)/)
+  assert.match(companySection, /deleteOrganization\(org\)/)
+  assert.match(app, /rpc\('super_admin_delete_user',\{p_user_id:org\.owner_user_id\}\)/)
+  assert.doesNotMatch(app, /super_admin_delete_owner_organization/)
+  assert.match(app, /Masa sewa perusahaan sudah berakhir[\s\S]*?Aktivasi \/ perpanjang masa sewa perusahaan/)
+  assert.match(companySection, /regenerateOwnerInvite\(primary\)/)
+  assert.match(companySection, /Hapus perusahaan, Owner, dan seluruh tenant/)
+  assert.match(tenantCenter, /Aktifkan workspace/)
+  assert.match(tenantCenter, /Nonaktifkan workspace/)
+  assert.doesNotMatch(tenantCenter, /onActivate|Perpanjang aktivasi|Aktivasi & masa berlaku/)
+  assert.match(activationManager, /Paket Aktivasi & Harga/)
+  assert.match(lifecycleMigration, /update public\.owner_organizations[\s\S]*?set activation_package_key/)
+  assert.match(deletionMigration, /public\.super_admin_delete_store_tenant/)
+  assert.match(deletionMigration, /public\.super_admin_delete_user\(p_user_id uuid\)/)
+  assert.match(deletionMigration, /perform private\.delete_owner_account_and_organization\(p_user_id\)/)
 })

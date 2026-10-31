@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import App from './App.jsx'
 import PwaInstallPrompt from './PwaInstallPrompt.jsx'
 import './styles.css'
+import './owner-tenant-order.css'
 
 class AppErrorBoundary extends React.Component {
   constructor(props) {
@@ -25,7 +26,12 @@ class AppErrorBoundary extends React.Component {
           <section style={{ maxWidth: 760, margin: '8vh auto', padding: 24, border: '1px solid #fecaca', borderRadius: 16, background: '#fff' }}>
             <h1 style={{ marginTop: 0, fontSize: 24 }}>NexaPos mengalami error saat dibuka</h1>
             <p>Aplikasi mengalami kendala saat menampilkan halaman. Muat ulang halaman atau coba lagi beberapa saat.</p>
-            <p>Data transaksi tidak dihapus oleh layar ini. Detail teknis membantu menemukan sumber error.</p>
+            <p>Data transaksi tidak dihapus oleh layar ini. Detail teknis di bawah membantu menemukan sumber error.</p>
+            <details style={{ marginTop: 20, borderTop: '1px solid #e2e8f0', paddingTop: 16 }}>
+              <summary style={{ cursor: 'pointer', fontWeight: 600 }}>Detail teknis</summary>
+              <pre style={{ marginTop: 12, padding: 12, borderRadius: 8, background: '#f1f5f9', color: '#334155', whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', fontSize: 12 }}>{String(this.state.error?.message || this.state.error || 'Error tidak menyediakan pesan detail.')}</pre>
+              {this.state.error?.name && <p style={{ fontSize: 12, color: '#64748b' }}>Jenis error: {this.state.error.name}</p>}
+            </details>
           </section>
         </main>
       )

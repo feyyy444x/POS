@@ -1,0 +1,69 @@
+import test from 'node:test'
+import assert from 'node:assert/strict'
+import { readFile } from 'node:fs/promises'
+
+const app = await readFile(new URL('../src/App.jsx', import.meta.url), 'utf8')
+const errorMap = await readFile(new URL('../src/lib/userFacingError.js', import.meta.url), 'utf8')
+const lifecycle = await readFile(new URL('../supabase/migrations/20261030460000_tenant_lifecycle_quota_and_owner_delete.sql', import.meta.url), 'utf8')
+
+test('package activation is blocked until active tenant count fits the new package quota', () => {
+  assert.match(lifecycle, /v_active_tenants > v_package\.location_limit/)
+  assert.match(lifecycle, /Admin\/Super Admin harus menonaktifkan tenant yang tidak dipilih/)
+  assert.match(lifecycle, /status = 'active'/)
+})
+
+test('Outdated production activation RPC errors explain the missing migration', () => {
+  assert.match(errorMap, /status tidak diizinkan; gunakan aktivasi untuk mengaktifkan tenant/i)
+  assert.match(errorMap, /Migrasi aktivasi tenant perlu diterapkan terlebih dahulu/)
+})
+
+test('Admin NexaPos and Super Admin can reactivate one tenant only within organization quota', () => {
+  assert.match(lifecycle, /if not private\.is_super_admin\(\) then/)
+  assert.match(lifecycle, /if not private\.is_pin_verified\(\) then/)
+  assert.match(lifecycle, /p_status not in \('active','pending','suspended'\)/)
+  assert.match(lifecycle, /v_active_tenants >= v_org\.activation_location_limit/)
+  assert.match(app, /changeStatus\(t,'active'\)/)
+  assert.match(app, /Aktifkan workspace/)
+})
+
+test('Owner can delete only an inactive tenant and cannot delete the Owner organization through tenant removal', () => {
+  assert.match(lifecycle, /owner_user_id = \(select auth\.uid\(\)\)/)
+  assert.match(lifecycle, /if not private\.is_pin_verified\(\) then/)
+  assert.match(lifecycle, /Tenant masih aktif\. Minta Admin\/Super Admin menonaktifkan tenant terlebih dahulu/)
+  assert.match(lifecycle, /private\.delete_store_tenant_data\(p_store_id\)/)
+  assert.match(app, /Tenant aktif harus dinonaktifkan Admin\/Super Admin terlebih dahulu sebelum dihapus/)
+  assert.match(app, /owner_delete_store_tenant/)
+  assert.match(app, /Hapus tenant nonaktif secara permanen/)
+  assert.match(app, /const ownerCenterLockStatus = organizationEntitlementStatus/)
+  assert.match(app, /owner-delete-tenant-button/)
+})
+
+test('NexaSpace lists active tenants first and inactive tenants last', () => {
+  assert.match(app, /const isTenantOperational=item=>organization\.status==='active'.*item\.status==='active'/)
+  assert.match(app, /sort\(\(a,b\)=>Number\(isTenantOperational\(b\)\)-Number\(isTenantOperational\(a\)\)/)
+})
+
+test('Admin, Owner, and tenant workspace subscribe to shared lifecycle changes', () => {
+  assert.match(app, /table:'stores'},\(\)=>\{load\(\);loadUsers\(\)\}/)
+  assert.match(app, /table:'owner_organizations'},refreshOwnerData/)
+  assert.match(app, /table:'store_members'},refreshOwnerData/)
+  assert.match(app, /nexapos-tenant-lifecycle-sync-/)
+  assert.match(app, /table:'store_settings'},payload=>/)
+  assert.match(app, /table:'store_members'},payload=>/)
+  assert.match(lifecycle, /alter publication supabase_realtime add table public\.%I/)
+})
+
+
+const reactivation = await readFile(new URL('../supabase/migrations/20261030490000_reactivate_suspended_tenant_independently.sql', import.meta.url), 'utf8')
+
+test('tenant reactivation RPC accepts active status while preserving organization, expiry, and package quota guards', () => {
+  assert.ok(reactivation.includes("p_status not in ('active', 'pending', 'suspended')"))
+  assert.match(reactivation, /v_org\.status <> 'active'/)
+  assert.match(reactivation, /v_org\.expires_at/)
+  assert.match(reactivation, /v_store\.expires_at/)
+  assert.doesNotMatch(reactivation, /updated_at/)
+  assert.match(reactivation, /v_active_tenants >= v_org\.activation_location_limit/)
+  assert.match(reactivation, /private\.is_super_admin\(\)/)
+  assert.match(reactivation, /private\.is_pin_verified\(\)/)
+  assert.match(app, /supabase\.rpc\('set_store_tenant_status',\{p_store_id:tenant\.id,p_status:nextStatus\}\)/)
+})

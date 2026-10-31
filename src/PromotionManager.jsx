@@ -3,11 +3,12 @@ import { ArrowLeft, CalendarClock, Check, CirclePercent, Plus, RefreshCw, Save, 
 import { supabase } from './lib/supabase'
 import './admin-promotions.css'
 
-const periods = [
+const defaultPeriods = [
   { value: 'daily', label: 'Harian' },
   { value: 'weekly', label: 'Mingguan' },
   { value: 'monthly', label: 'Bulanan' },
   { value: 'yearly', label: 'Tahunan' },
+  { value: 'custom', label: 'Custom' },
 ]
 const initialForm = () => ({ title: '', description: '', discount_type: 'percent', discount_value: '10', eligible_periods: ['monthly'], promo_code: '', requires_code: false, starts_at: '', ends_at: '', is_active: false })
 const toLocalInput = (value) => {
@@ -32,6 +33,7 @@ const promotionErrorMessage = (error) => {
 
 export default function PromotionManager({ onBack, onSignOut, staffMode = false, session = null }) {
   const [promos, setPromos] = useState([])
+  const [periodOptions, setPeriodOptions] = useState(defaultPeriods)
   const [form, setForm] = useState(initialForm)
   const [editingId, setEditingId] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -51,6 +53,23 @@ export default function PromotionManager({ onBack, onSignOut, staffMode = false,
     } else setPromos(data || [])
     setLoading(false)
   }, [staffMode, session?.access_token])
+  useEffect(() => {
+    if (!supabase || staffMode) return
+    let mounted = true
+    const loadDurations = async () => {
+      const { data, error } = await supabase.from('site_activation_durations')
+        .select('duration_key,name,is_active,sort_order')
+        .eq('is_active', true).order('sort_order', { ascending: true })
+      if (!error && mounted && Array.isArray(data) && data.length) {
+        setPeriodOptions(data.map(item => ({ value: item.duration_key, label: item.name })))
+      }
+    }
+    loadDurations()
+    const channel = supabase.channel('admin-activation-durations-live')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'site_activation_durations' }, loadDurations)
+      .subscribe()
+    return () => { mounted = false; supabase.removeChannel(channel) }
+  }, [staffMode])
   useEffect(() => {
     if (!supabase) return
     load()
@@ -123,7 +142,7 @@ export default function PromotionManager({ onBack, onSignOut, staffMode = false,
         {error&&<div className="notice" role="alert">{error}</div>}
         <div className="panel settings-form" style={{ marginBottom: 20 }}><div className="panel-head"><div><h3><CirclePercent size={17}/>{editingId?'Edit promosi':'Buat promosi baru'}</h3><p>Promo akan ditampilkan di homepage ketika status dan jadwalnya memenuhi syarat.</p></div>{editingId&&<button className="btn btn-outline btn-small" onClick={reset}><X size={14}/> Batal edit</button>}</div>
           <form onSubmit={save}><label>Nama promo</label><input className="text-input" value={form.title} onChange={e=>update('title',e.target.value)} placeholder="Contoh: Promo Pelanggan Baru" required/><label>Deskripsi singkat</label><textarea className="text-input" rows="2" value={form.description} onChange={e=>update('description',e.target.value)} placeholder="Jelaskan penawaran dengan bahasa yang sopan dan jelas."/><div className="form-row"><div><label>Jenis diskon</label><select className="text-input" value={form.discount_type} onChange={e=>update('discount_type',e.target.value)}><option value="percent">Persentase (%)</option><option value="fixed">Potongan nominal (Rp)</option></select></div><div><label>Nilai diskon {form.discount_type==='percent'?'(%)':'(Rp)'}</label><input className="text-input" type="number" min="1" max={form.discount_type==='percent'?'100':undefined} step="1" value={form.discount_value} onChange={e=>update('discount_value',e.target.value)} required/></div></div>
-            <label>Masa sewa yang berlaku</label><div className="nx-admin-periods">{periods.map(p=><label key={p.value}><input type="checkbox" checked={form.eligible_periods.includes(p.value)} onChange={e=>update('eligible_periods',e.target.checked? [...form.eligible_periods,p.value]:form.eligible_periods.filter(v=>v!==p.value))}/>{p.label}</label>)}</div>
+            <label>Masa sewa yang berlaku</label><div className="nx-admin-periods">{periodOptions.map(p=><label key={p.value}><input type="checkbox" checked={form.eligible_periods.includes(p.value)} onChange={e=>update('eligible_periods',e.target.checked? [...form.eligible_periods,p.value]:form.eligible_periods.filter(v=>v!==p.value))}/>{p.label}</label>)}</div>
             <label className="nx-admin-check"><input type="checkbox" checked={form.requires_code} onChange={e=>update('requires_code',e.target.checked)}/> Wajib menggunakan kode kupon</label>
             {form.requires_code&&<><label>Kode kupon</label><input className="text-input" value={form.promo_code} onChange={e=>update('promo_code',e.target.value.toUpperCase().replace(/\s/g,''))} placeholder="NEXA20" required/></>}
             <div className="form-row"><div><label>Mulai pada (opsional)</label><input className="text-input" type="datetime-local" value={form.starts_at} onChange={e=>update('starts_at',e.target.value)}/></div><div><label>Berakhir pada (opsional)</label><input className="text-input" type="datetime-local" value={form.ends_at} onChange={e=>update('ends_at',e.target.value)}/></div></div>
@@ -132,7 +151,7 @@ export default function PromotionManager({ onBack, onSignOut, staffMode = false,
           </form>
         </div>
         <div className="panel tenant-list-panel"><div className="panel-head"><div><h3><CalendarClock size={17}/> Daftar promosi</h3><p>Promo terjadwal akan otomatis berlaku dan berakhir berdasarkan tanggal yang ditetapkan.</p></div><button className="btn btn-outline btn-small" onClick={load}><RefreshCw size={14}/> Refresh</button></div>
-          {loading?<div className="empty-state"><span className="spinner spinner-large"/></div>:promos.length===0?<div className="empty-state"><span className="empty-icon"><Ticket size={22}/></span><strong>Belum ada promosi</strong><p>Buat promosi pertama untuk menampilkannya di homepage.</p></div>:<div className="table-wrap"><table><thead><tr><th>Promosi</th><th>Diskon</th><th>Masa sewa</th><th>Jadwal</th><th>Status</th><th>Aksi</th></tr></thead><tbody>{promos.map(p=><tr key={p.id}><td><strong>{p.title}</strong><br/><small>{p.description||'Tanpa deskripsi'}{p.requires_code?' · Kupon: '+p.promo_code:' · Promo otomatis'}</small></td><td>{p.discount_type==='percent'?p.discount_value+'%':'Rp'+Number(p.discount_value).toLocaleString('id-ID')}</td><td>{(p.eligible_periods||[]).map(v=>periods.find(p=>p.value===v)?.label||v).join(', ')}</td><td><small>{p.starts_at?new Date(p.starts_at).toLocaleString('id-ID'):'Segera setelah diaktifkan'}<br/>s.d. {p.ends_at?new Date(p.ends_at).toLocaleString('id-ID'):'Tanpa batas akhir'}</small></td><td><span className={'status-pill '+(p.is_active?'status-paid':'status-inactive')}>{p.is_active?'Aktif':'Nonaktif'}</span></td><td><div className="tenant-actions"><button className="btn btn-small btn-outline" onClick={()=>edit(p)}>Edit</button><button className={'btn btn-small '+(p.is_active?'btn-outline':'btn-primary')} onClick={()=>toggle(p)}>{p.is_active?'Nonaktifkan':'Aktifkan'}</button><button className="btn btn-small btn-outline danger-icon" onClick={()=>remove(p)}><Trash2 size={13}/> Hapus</button></div></td></tr>)}</tbody></table></div>}
+          {loading?<div className="empty-state"><span className="spinner spinner-large"/></div>:promos.length===0?<div className="empty-state"><span className="empty-icon"><Ticket size={22}/></span><strong>Belum ada promosi</strong><p>Buat promosi pertama untuk menampilkannya di homepage.</p></div>:<div className="table-wrap"><table><thead><tr><th>Promosi</th><th>Diskon</th><th>Masa sewa</th><th>Jadwal</th><th>Status</th><th>Aksi</th></tr></thead><tbody>{promos.map(p=><tr key={p.id}><td><strong>{p.title}</strong><br/><small>{p.description||'Tanpa deskripsi'}{p.requires_code?' · Kupon: '+p.promo_code:' · Promo otomatis'}</small></td><td>{p.discount_type==='percent'?p.discount_value+'%':'Rp'+Number(p.discount_value).toLocaleString('id-ID')}</td><td>{(p.eligible_periods||[]).map(v=>periodOptions.find(p=>p.value===v)?.label||v).join(', ')}</td><td><small>{p.starts_at?new Date(p.starts_at).toLocaleString('id-ID'):'Segera setelah diaktifkan'}<br/>s.d. {p.ends_at?new Date(p.ends_at).toLocaleString('id-ID'):'Tanpa batas akhir'}</small></td><td><span className={'status-pill '+(p.is_active?'status-paid':'status-inactive')}>{p.is_active?'Aktif':'Nonaktif'}</span></td><td><div className="tenant-actions"><button className="btn btn-small btn-outline" onClick={()=>edit(p)}>Edit</button><button className={'btn btn-small '+(p.is_active?'btn-outline':'btn-primary')} onClick={()=>toggle(p)}>{p.is_active?'Nonaktifkan':'Aktifkan'}</button><button className="btn btn-small btn-outline danger-icon" onClick={()=>remove(p)}><Trash2 size={13}/> Hapus</button></div></td></tr>)}</tbody></table></div>}
         </div>
       </div>
     </main>
