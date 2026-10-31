@@ -27,6 +27,7 @@ const storeControlCenterUi = await readFile(new URL('src/StoreControlCenter.jsx'
 const queueSettingsUi = await readFile(new URL('src/TvDisplaySettings.jsx', root), 'utf8')
 const publicQueueMigration = await readFile(new URL('supabase/migrations/20261029200000_simplify_public_queue_rpc.sql', root), 'utf8')
 const activationPackagesMigration = await readFile(new URL('supabase/migrations/20261029140200_activation_packages_pricing.sql', root), 'utf8')
+const customActivationMigration = await readFile(new URL('supabase/migrations/20261031130000_custom_activation_duration_and_quota.sql', root), 'utf8')
 const ownerOrganizationsMigration = await readFile(new URL('supabase/migrations/20261030200000_owner_organizations_and_tenant_quotas.sql', root), 'utf8')
 const auditLogsMigration = await readFile(new URL('supabase/migrations/20261030210000_platform_audit_logs.sql', root), 'utf8')
 const auditLogUi = await readFile(new URL('src/AuditLogPanel.jsx', root), 'utf8')
@@ -410,22 +411,34 @@ test('activation package defaults match the NexaPos master specification', () =>
   assert.match(activationPackagesMigration, /\('enterprise','Enterprise',15,/)
 })
 
-test('activation package administration is protected and validates active packages and duration bounds', () => {
+test('activation package administration is protected and validates standard packages plus custom duration and quota', () => {
   assert.match(activationPackagesMigration, /enable row level security/i)
   assert.match(activationPackagesMigration, /private\.is_super_admin\(\)/)
-  assert.match(activationPackagesMigration, /p_duration_days < 1 or p_duration_days > 36500/i)
-  assert.match(activationPackagesMigration, /where package_key = p_package_key and is_active = true/i)
-  assert.match(app, /supabase\.rpc\('activate_store_tenant',\{p_store_id:tenant\.id,p_duration_days:days,p_package_key:activationPackage\}\)/)
+  assert.match(customActivationMigration, /private\.is_pin_verified\(\)/)
+  assert.match(customActivationMigration, /p_duration_days < 1 or p_duration_days > 36500/i)
+  assert.match(customActivationMigration, /p_location_limit < 1 or p_location_limit > 1000/i)
+  assert.match(customActivationMigration, /update public\.owner_organizations/)
+  assert.match(customActivationMigration, /update public\.stores/)
+  assert.match(app, /supabase\.rpc\('activate_store_tenant',\{p_store_id:tenant\.id,p_duration_days:days,p_package_key:packageKey,p_location_limit:quota\}\)/)
 })
 
-test('Super Admin can configure custom activation durations and package-specific pricing', () => {
+test('Super Admin can configure a private custom duration and package-specific public pricing', () => {
   assert.match(subscriptionPlanManagerUi, /features: \(Array\.isArray\(plan\.features\) \? plan\.features : featureDefaults\)/)
   assert.doesNotMatch(subscriptionPlanManagerUi, /Produk dan stok per cabang/)
   assert.match(subscriptionPlanManagerUi, /savingKey===plan\.package_key/)
   assert.match(subscriptionPlanManagerUi, /supabase\.from\('site_activation_durations'\)\.upsert/)
-  assert.match(subscriptionPlanManagerUi, /const addCustomDuration = async/)
+  assert.match(subscriptionPlanManagerUi, /duration_key: 'custom'/)
+  assert.match(subscriptionPlanManagerUi, /durations\.filter\(duration=>duration\.is_active\)/)
+  assert.match(subscriptionPlanManagerUi, /duration_key !== 'custom'/)
   assert.match(subscriptionPlanManagerUi, /updatePrice\(plan\.package_key,duration\.duration_key/)
   assert.match(subscriptionPlanManagerUi, /supabase\.from\('site_activation_packages'\)\.upsert/)
+  assert.match(app, /activationQuotaMode==='custom'/)
+  assert.match(app, /activationDurations\.map\(item=>/)
+})
+
+test('Homepage never exposes custom duration or custom activation package choices', () => {
+  assert.match(homepageUi, /filter\(d => \['daily', 'weekly', 'monthly', 'yearly'\]/)
+  assert.match(homepageUi, /filter\(plan => \['starter', 'growth', 'business', 'enterprise'\]/)
 })
 
 
