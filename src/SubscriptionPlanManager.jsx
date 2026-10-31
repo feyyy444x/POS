@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { ArrowLeft, CheckCircle2, Eye, EyeOff, Plus, RefreshCw, Save, ShieldCheck, Trash2 } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, Eye, EyeOff, RefreshCw, Save, ShieldCheck } from 'lucide-react'
 import { supabase } from './lib/supabase'
 import './admin-subscription-plans.css'
 
@@ -8,14 +8,13 @@ const defaultDurations = [
   { duration_key: 'weekly', name: 'Mingguan', duration_days: 7, sort_order: 2, is_active: true },
   { duration_key: 'monthly', name: 'Bulanan', duration_days: 30, sort_order: 3, is_active: true },
   { duration_key: 'yearly', name: 'Tahunan', duration_days: 365, sort_order: 4, is_active: true },
-  { duration_key: 'custom', name: 'Custom', duration_days: 15, sort_order: 5, is_active: true },
 ]
 const featureDefaults = ['Semua fitur NexaPos', 'Kasir dan transaksi', 'Produk dan stok per tenant', 'Laporan operasional', 'Sistem antrian dan struk']
 const packageDefaults = [
-  { package_key: 'starter', name: 'Starter', location_limit: 3, note: 'Untuk satu lokasi usaha', prices: { daily: 5000, weekly: 15000, monthly: 49000, yearly: 490000, custom: 25000 }, features: featureDefaults, is_popular: false, is_active: true, sort_order: 1 },
-  { package_key: 'growth', name: 'Growth', location_limit: 5, note: 'Untuk bisnis yang mulai berkembang', prices: { daily: 10000, weekly: 30000, monthly: 99000, yearly: 990000, custom: 45000 }, features: featureDefaults, is_popular: false, is_active: true, sort_order: 2 },
-  { package_key: 'business', name: 'Business', location_limit: 10, note: 'Untuk bisnis dengan beberapa lokasi', prices: { daily: 15000, weekly: 50000, monthly: 179000, yearly: 1790000, custom: 75000 }, features: featureDefaults, is_popular: true, is_active: true, sort_order: 3 },
-  { package_key: 'enterprise', name: 'Enterprise', location_limit: 15, note: 'Untuk jaringan usaha yang lebih besar', prices: { daily: 25000, weekly: 85000, monthly: 299000, yearly: 2990000, custom: 125000 }, features: featureDefaults, is_popular: false, is_active: true, sort_order: 4 },
+  { package_key: 'starter', name: 'Starter', location_limit: 3, note: 'Untuk satu lokasi usaha', prices: { daily: 5000, weekly: 15000, monthly: 49000, yearly: 490000 }, features: featureDefaults, is_popular: false, is_active: true, sort_order: 1 },
+  { package_key: 'growth', name: 'Growth', location_limit: 5, note: 'Untuk bisnis yang mulai berkembang', prices: { daily: 10000, weekly: 30000, monthly: 99000, yearly: 990000 }, features: featureDefaults, is_popular: false, is_active: true, sort_order: 2 },
+  { package_key: 'business', name: 'Business', location_limit: 10, note: 'Untuk bisnis dengan beberapa lokasi', prices: { daily: 15000, weekly: 50000, monthly: 179000, yearly: 1790000 }, features: featureDefaults, is_popular: true, is_active: true, sort_order: 3 },
+  { package_key: 'enterprise', name: 'Enterprise', location_limit: 15, note: 'Untuk jaringan usaha yang lebih besar', prices: { daily: 25000, weekly: 85000, monthly: 299000, yearly: 2990000 }, features: featureDefaults, is_popular: false, is_active: true, sort_order: 4 },
 ]
 const money = value => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value || 0))
 
@@ -47,7 +46,7 @@ export default function SubscriptionPlanManager({ onBack }) {
       const missingKeys = packageDefaults.filter(item => !savedPackages.has(item.package_key)).map(item => item.package_key)
       setPlansReady(missingKeys.length === 0)
       setPlans(packageDefaults.map(item => ({ ...item, ...(savedPackages.get(item.package_key) || {}), prices: { ...item.prices, ...(savedPackages.get(item.package_key)?.prices || {}) }, features: savedPackages.get(item.package_key)?.features || item.features })))
-      setDurations((durationResult.data || []).length ? durationResult.data.map(item => ({ ...item, duration_days: Number(item.duration_days) })) : defaultDurations)
+      setDurations((durationResult.data || []).filter(item => ['daily', 'weekly', 'monthly', 'yearly'].includes(String(item.duration_key || '').trim().toLowerCase())).map(item => ({ ...item, duration_days: Number(item.duration_days) })))
       if (missingKeys.length) setError('Data paket belum tersedia lengkap (' + missingKeys.join(', ') + '). Muat migrasi dan seed paket terlebih dahulu agar nilai default tidak tersimpan tanpa sengaja.')
     }
     setLoading(false)
@@ -68,20 +67,9 @@ export default function SubscriptionPlanManager({ onBack }) {
     if (saveError) { setError(saveError.message); return }
     setNotice('Durasi '+payload.name+' berhasil disimpan.'); await load()
   }
-  const addCustomDuration = async () => {
-    const key = 'custom-'+Date.now().toString(36)
-    const duration = { duration_key: key, name: 'Custom baru', duration_days: 15, sort_order: Math.max(0,...durations.map(item=>Number(item.sort_order)||0))+1, is_active: true }
-    setSavingKey('duration:'+key); setError(''); setNotice('')
-    const { error: insertError } = await supabase.from('site_activation_durations').insert({ ...duration, updated_at: new Date().toISOString(), updated_by: (await supabase.auth.getUser()).data.user?.id || null })
-    setSavingKey('')
-    if (insertError) { setError(insertError.message); return }
-    setPlans(current => current.map(plan => ({ ...plan, prices: { ...(plan.prices || {}), [key]: 0 } })))
-    setNotice('Durasi custom ditambahkan. Atur jumlah hari dan harga setiap paket, lalu simpan paketnya.')
-    await load()
-  }
   const savePlan = async plan => {
     setSavingKey(plan.package_key); setError(''); setNotice('')
-    const payload = { package_key: plan.package_key, name: String(plan.name||'').trim(), location_limit: Number(plan.location_limit), note: String(plan.note||'').trim(), prices: plan.prices || {}, features: (Array.isArray(plan.features) ? plan.features : featureDefaults).map(feature => String(feature || '').trim()).filter(Boolean).slice(0,30), is_popular: Boolean(plan.is_popular), is_active: Boolean(plan.is_active), sort_order: Number(plan.sort_order)||0, updated_at: new Date().toISOString(), updated_by: (await supabase.auth.getUser()).data.user?.id || null }
+    const payload = { package_key: plan.package_key, name: String(plan.name||'').trim(), location_limit: Number(plan.location_limit), note: String(plan.note||'').trim(), prices: Object.fromEntries(Object.entries(plan.prices || {}).filter(([key]) => ['daily', 'weekly', 'monthly', 'yearly'].includes(key))), features: (Array.isArray(plan.features) ? plan.features : featureDefaults).map(feature => String(feature || '').trim()).filter(Boolean).slice(0,30), is_popular: Boolean(plan.is_popular), is_active: Boolean(plan.is_active), sort_order: Number(plan.sort_order)||0, updated_at: new Date().toISOString(), updated_by: (await supabase.auth.getUser()).data.user?.id || null }
     if (!payload.name || !Number.isInteger(payload.location_limit) || payload.location_limit < 1 || payload.location_limit > 1000 || !payload.features.length || payload.features.some(feature => feature.length > 160) || !Object.keys(payload.prices).length || Object.values(payload.prices).some(value => !Number.isFinite(Number(value)) || Number(value)<0)) { setError('Nama paket, kuota lokasi, minimal satu fitur, dan semua harga harus valid. Setiap fitur maksimal 160 karakter.'); setSavingKey(''); return }
     const { error: saveError } = await supabase.from('site_activation_packages').upsert(payload, { onConflict: 'package_key' })
     setSavingKey('')
@@ -92,11 +80,11 @@ export default function SubscriptionPlanManager({ onBack }) {
 
   return <div className="app-shell super-admin-shell nx-plan-admin">
     <main className="main-area">
-      <header className="topbar"><div className="topbar-left"><button className="btn btn-outline btn-small nx-back-button" onClick={onBack}><ArrowLeft size={15}/> Kembali</button><div><div className="breadcrumb">Platform <span>/</span> <strong>Paket Aktivasi & Harga</strong></div><div className="topbar-date">Atur kuota tenant/lokasi, harga setiap durasi, dan periode custom</div></div></div><div className="topbar-actions"><span className="role-chip"><ShieldCheck size={14}/> SUPER ADMIN</span><button className="btn btn-outline btn-small" onClick={load}><RefreshCw size={14}/> Muat ulang</button></div></header>
+      <header className="topbar"><div className="topbar-left"><button className="btn btn-outline btn-small nx-back-button" onClick={onBack}><ArrowLeft size={15}/> Kembali</button><div><div className="breadcrumb">Platform <span>/</span> <strong>Paket Aktivasi & Harga</strong></div><div className="topbar-date">Atur kuota tenant/lokasi dan harga untuk empat masa aktif standar</div></div></div><div className="topbar-actions"><span className="role-chip"><ShieldCheck size={14}/> SUPER ADMIN</span><button className="btn btn-outline btn-small" onClick={load}><RefreshCw size={14}/> Muat ulang</button></div></header>
       <div className="page-content"><section className="page-section">
         <div className="page-heading"><div><span className="eyebrow muted">KONTROL AKTIVASI</span><h1>Paket aktivasi <span className="heading-accent">NexaPos.</span></h1><p>Semua paket memiliki fitur yang sama. Perbedaannya adalah kuota lokasi dan harga berdasarkan masa aktif. Kode aktivasi tetap diterbitkan oleh Super Admin.</p></div><span className="date-pill"><CheckCircle2 size={14}/> Aktivasi manual</span></div>
         {!loading && !plansReady && !error && <div className="notice">Data paket belum tersedia. Pastikan keempat paket aktivasi sudah dibuat di database sebelum mengedit harga.</div>}{notice&&<div className="toast"><CheckCircle2 size={17}/><span>{notice}</span></div>}{error&&<div className="notice">{error}</div>}
-        <div className="panel nx-duration-panel"><div className="panel-head"><div><h3>Pengaturan masa aktif</h3><p>Tambah durasi custom atau ubah jumlah hari untuk setiap periode. Durasi yang dinonaktifkan tidak tampil di homepage dan promo.</p></div><button className="btn btn-primary btn-small" onClick={addCustomDuration} disabled={saving || !plansReady || Boolean(error)}><Plus size={15}/> Tambah durasi custom</button></div>
+        <div className="panel nx-duration-panel"><div className="panel-head"><div><h3>Pengaturan masa aktif</h3><p>Atur jumlah hari untuk masa aktif harian, mingguan, bulanan, dan tahunan. Hanya empat periode standar ini yang tersedia untuk aktivasi.</p></div></div>
           {!error && plansReady && activeDurations.map(duration=><div className="nx-duration-row" key={duration.duration_key}>
             <div className="nx-duration-main"><label>Nama durasi<input className="text-input" value={duration.name} onChange={e=>updateDuration(duration.duration_key,'name',e.target.value)} maxLength={40}/></label><label>Jumlah hari<input className="text-input" type="number" min="1" max="36500" value={duration.duration_days} onChange={e=>updateDuration(duration.duration_key,'duration_days',e.target.value)}/></label><label>Urutan<input className="text-input" type="number" min="1" max="999" value={duration.sort_order} onChange={e=>updateDuration(duration.duration_key,'sort_order',e.target.value)}/></label></div>
             <div className="nx-duration-actions"><label className="nx-subscription-toggle"><input type="checkbox" checked={Boolean(duration.is_active)} onChange={e=>updateDuration(duration.duration_key,'is_active',e.target.checked)}/>{duration.is_active?<Eye size={14}/>:<EyeOff size={14}/>} Tampilkan</label><button className="btn btn-outline btn-small" disabled={savingKey==='duration:'+duration.duration_key} onClick={()=>saveDuration(duration)}><Save size={14}/> Simpan durasi</button></div>
