@@ -124,8 +124,15 @@ export default function Homepage() {
         const savedDurations = new Map(durationResult.data
           .filter(d => ['daily', 'weekly', 'monthly', 'yearly'].includes(String(d.duration_key || '').trim().toLowerCase()))
           .map(d => [d.duration_key, d]))
-        const nextDurations = fallbackDurations.map(d => ({ ...d, ...(savedDurations.get(d.duration_key) || {}), duration_days: Number(savedDurations.get(d.duration_key)?.duration_days ?? d.duration_days) }))
-          .filter(d => d.is_active)
+        // A configured database row is authoritative: only active standard durations are public.
+        // Fallback options are used only when the duration table has not been seeded yet.
+        const nextDurations = savedDurations.size
+          ? fallbackDurations.filter(d => savedDurations.has(d.duration_key)).map(d => ({
+              ...d,
+              ...savedDurations.get(d.duration_key),
+              duration_days: Number(savedDurations.get(d.duration_key)?.duration_days ?? d.duration_days),
+            }))
+          : fallbackDurations
         setDurations(nextDurations)
         setSelectedDuration(current => nextDurations.some(d => d.duration_key === current) ? current : (nextDurations.find(d => d.duration_key === 'yearly')?.duration_key || nextDurations[0]?.duration_key || 'yearly'))
       }
