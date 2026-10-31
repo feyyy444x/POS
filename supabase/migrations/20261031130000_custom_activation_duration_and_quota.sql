@@ -38,7 +38,7 @@ declare
   v_org public.owner_organizations;
   v_location_limit integer;
   v_expiry timestamptz;
-  v_active_tenants integer;
+  v_tenant_count integer;
 begin
   if not private.is_super_admin() then
     raise exception 'Super Admin access required';
@@ -92,16 +92,16 @@ begin
 
   -- Quota counts every non-deleted additional tenant, including suspended/pending
   -- workspaces. A temporary suspension must not free a tenant slot.
-  select count(*)::integer into v_active_tenants
+  select count(*)::integer into v_tenant_count
   from public.stores s
   where s.organization_id = v_org.id
     and s.is_primary_workspace = false
     and s.status <> 'deleted'
     and s.deleted_at is null;
 
-  if v_active_tenants > v_location_limit then
+  if v_tenant_count > v_location_limit then
     raise exception 'Penyesuaian tenant diperlukan sebelum aktivasi. Saat ini % tenant terdaftar, sedangkan kuota yang dipilih hanya %. Hapus tenant yang tidak digunakan terlebih dahulu.',
-      v_active_tenants, v_location_limit;
+      v_tenant_count, v_location_limit;
   end if;
 
   v_expiry := now() + make_interval(days => p_duration_days);
