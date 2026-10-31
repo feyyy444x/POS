@@ -90,15 +90,17 @@ begin
     end if;
   end if;
 
+  -- Quota counts every non-deleted additional tenant, including suspended/pending
+  -- workspaces. A temporary suspension must not free a tenant slot.
   select count(*)::integer into v_active_tenants
   from public.stores s
   where s.organization_id = v_org.id
     and s.is_primary_workspace = false
-    and s.status = 'active'
+    and s.status <> 'deleted'
     and s.deleted_at is null;
 
   if v_active_tenants > v_location_limit then
-    raise exception 'Penyesuaian tenant diperlukan sebelum aktivasi. Saat ini % tenant aktif, sedangkan kuota yang dipilih hanya %. Nonaktifkan tenant yang tidak dipilih terlebih dahulu.',
+    raise exception 'Penyesuaian tenant diperlukan sebelum aktivasi. Saat ini % tenant terdaftar, sedangkan kuota yang dipilih hanya %. Hapus tenant yang tidak digunakan terlebih dahulu.',
       v_active_tenants, v_location_limit;
   end if;
 
@@ -115,7 +117,8 @@ begin
   where id = v_org.id;
 
   update public.stores
-  set activated_at = now(),
+  set status = 'active',
+      activated_at = now(),
       expires_at = v_expiry,
       activation_days = p_duration_days,
       activation_package_key = p_package_key,
