@@ -23,6 +23,19 @@ import OrganizationSettings from './OrganizationSettings.jsx'
 
 const money = (value) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value || 0))
 const today = () => new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' })
+const activationDurationDefaults = [
+  { duration_key: 'daily', name: 'Harian', duration_days: 3, sort_order: 1, is_active: true },
+  { duration_key: 'weekly', name: 'Mingguan', duration_days: 7, sort_order: 2, is_active: true },
+  { duration_key: 'monthly', name: 'Bulanan', duration_days: 30, sort_order: 3, is_active: true },
+  { duration_key: 'yearly', name: 'Tahunan', duration_days: 365, sort_order: 4, is_active: true },
+  { duration_key: 'custom', name: 'Custom', duration_days: 15, sort_order: 5, is_active: true },
+]
+const activationPackageDefaults = [
+  { package_key: 'starter', name: 'Starter', location_limit: 3, is_active: true },
+  { package_key: 'growth', name: 'Growth', location_limit: 5, is_active: true },
+  { package_key: 'business', name: 'Business', location_limit: 10, is_active: true },
+  { package_key: 'enterprise', name: 'Enterprise', location_limit: 15, is_active: true },
+]
 
 async function fetchOwnerOrganizationTenants() {
   return supabase.rpc('owner_list_organization_tenant_profiles')
@@ -1746,8 +1759,8 @@ function SuperAdminScreen({session,syncStatus,setSyncStatus,onSignOut,platformAd
   const [activationPackage,setActivationPackage]=useState('growth')
   const [activationQuotaMode,setActivationQuotaMode]=useState('package')
   const [customTenantQuota,setCustomTenantQuota]=useState('')
-  const [activationDurations,setActivationDurations]=useState([{duration_key:'daily',name:'Harian',duration_days:3},{duration_key:'weekly',name:'Mingguan',duration_days:7},{duration_key:'monthly',name:'Bulanan',duration_days:30},{duration_key:'yearly',name:'Tahunan',duration_days:365},{duration_key:'custom',name:'Custom',duration_days:15}])
-  const [activationPackages,setActivationPackages]=useState([{package_key:'starter',name:'Starter',location_limit:3},{package_key:'growth',name:'Growth',location_limit:5},{package_key:'business',name:'Business',location_limit:10},{package_key:'enterprise',name:'Enterprise',location_limit:15}])
+  const [activationDurations,setActivationDurations]=useState(activationDurationDefaults)
+  const [activationPackages,setActivationPackages]=useState(activationPackageDefaults)
   const [disabledMembers,setDisabledMembers]=useState([])
   const [disabledLoading,setDisabledLoading]=useState(false)
   const [deletingUserId,setDeletingUserId]=useState('')
@@ -1869,15 +1882,35 @@ function SuperAdminScreen({session,syncStatus,setSyncStatus,onSignOut,platformAd
     let mounted=true
     const loadActivationOptions=async()=>{
       const [durationResult,packageResult]=await Promise.all([
-        supabase.from('site_activation_durations').select('duration_key,name,duration_days,sort_order,is_active').eq('is_active',true).order('sort_order',{ascending:true}),
-        supabase.from('site_activation_packages').select('package_key,name,location_limit,is_active,sort_order').eq('is_active',true).order('sort_order',{ascending:true}),
+        // Read inactive rows too: the Super Admin must be able to distinguish a deliberately disabled option from a missing seed row.
+        supabase.from('site_activation_durations').select('duration_key,name,duration_days,sort_order,is_active').order('sort_order',{ascending:true}),
+        supabase.from('site_activation_packages').select('package_key,name,location_limit,is_active,sort_order').order('sort_order',{ascending:true}),
       ])
       if(!mounted)return
-      if(!durationResult.error&&Array.isArray(durationResult.data)&&durationResult.data.length)setActivationDurations(durationResult.data.filter(item=>['daily','weekly','monthly','yearly','custom'].includes(String(item.duration_key||'').trim().toLowerCase())).map(item=>({...item,duration_days:Number(item.duration_days)})))
-      if(!packageResult.error&&Array.isArray(packageResult.data)&&packageResult.data.length)setActivationPackages(packageResult.data.map(item=>({...item,location_limit:Number(item.location_limit)})))
+      if(!durationResult.error&&Array.isArray(durationResult.data)){
+        const allowedKeys=new Set(activationDurationDefaults.map(item=>item.duration_key))
+        const saved=new Map(durationResult.data.filter(item=>allowedKeys.has(String(item.duration_key||'').trim().toLowerCase())).map(item=>[item.duration_key,item]))
+        const next=activationDurationDefaults.map(item=>{
+          const row=saved.get(item.duration_key)
+          return {...item,...(row||{}),duration_days:Number(row?.duration_days??item.duration_days),is_active:row?Boolean(row.is_active):item.is_active}
+        }).filter(item=>item.is_active).sort((a,b)=>Number(a.sort_order)-Number(b.sort_order))
+        if(next.length)setActivationDurations(next)
+        setDuration(current=>next.some(item=>item.duration_key===current)?current:(next.find(item=>item.duration_key==='monthly')?.duration_key||next[0]?.duration_key||'monthly'))
+      }
+      if(!packageResult.error&&Array.isArray(packageResult.data)){
+        const allowedKeys=new Set(activationPackageDefaults.map(item=>item.package_key))
+        const saved=new Map(packageResult.data.filter(item=>allowedKeys.has(String(item.package_key||'').trim().toLowerCase())).map(item=>[item.package_key,item]))
+        const next=activationPackageDefaults.map(item=>({...item,...(saved.get(item.package_key)||{}),location_limit:Number(saved.get(item.package_key)?.location_limit??item.location_limit)}))
+          .filter(item=>item.is_active).sort((a,b)=>Number(a.sort_order||0)-Number(b.sort_order||0))
+        if(next.length)setActivationPackages(next)
+      }
     }
     loadActivationOptions()
-    return()=>{mounted=false}
+    const channel=supabase.channel('super-admin-activation-options')
+      .on('postgres_changes',{event:'*',schema:'public',table:'site_activation_durations'},loadActivationOptions)
+      .on('postgres_changes',{event:'*',schema:'public',table:'site_activation_packages'},loadActivationOptions)
+      .subscribe()
+    return()=>{mounted=false;supabase.removeChannel(channel)}
   },[])
   const statusOf=(tenant)=>tenant.status||'pending'
   const loadDisabledMembers=useCallback(async()=>{setDisabledLoading(true);const {data,error}=await supabase.rpc('super_admin_list_disabled_members');if(error){setDisabledMembers([]);setNotice(userFacingError(error))}else setDisabledMembers(data||[]);setDisabledLoading(false)},[])
