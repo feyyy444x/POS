@@ -47,7 +47,8 @@ export default function SubscriptionPlanManager({ onBack }) {
       const missingKeys = packageDefaults.filter(item => !savedPackages.has(item.package_key)).map(item => item.package_key)
       setPlansReady(missingKeys.length === 0)
       setPlans(packageDefaults.map(item => ({ ...item, ...(savedPackages.get(item.package_key) || {}), prices: { ...item.prices, ...(savedPackages.get(item.package_key)?.prices || {}) }, features: savedPackages.get(item.package_key)?.features || item.features })))
-      setDurations((durationResult.data || []).filter(item => ['daily', 'weekly', 'monthly', 'yearly', 'custom'].includes(String(item.duration_key || '').trim().toLowerCase())).map(item => ({ ...item, duration_days: Number(item.duration_days) })))
+      const savedDurations = new Map((durationResult.data || []).map(item => [item.duration_key, item]))
+      setDurations(defaultDurations.map(item => ({ ...item, ...(savedDurations.get(item.duration_key) || {}), duration_days: Number(savedDurations.get(item.duration_key)?.duration_days ?? item.duration_days) })))
       if (missingKeys.length) setError('Data paket belum tersedia lengkap (' + missingKeys.join(', ') + '). Muat migrasi dan seed paket terlebih dahulu agar nilai default tidak tersimpan tanpa sengaja.')
     }
     setLoading(false)
