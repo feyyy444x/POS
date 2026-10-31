@@ -120,15 +120,15 @@ export default function Homepage() {
         supabase.from('site_activation_durations').select('duration_key,name,duration_days,sort_order,is_active').eq('is_active', true).order('sort_order', { ascending: true }),
       ])
       if (mounted && !durationResult.error && Array.isArray(durationResult.data) && durationResult.data.length) {
-        // Custom activation duration remains configurable in Admin, but is intentionally not offered on the public homepage.
+        // Homepage only offers the four supported standard activation periods.
         const nextDurations = durationResult.data
-          .filter(d => String(d.duration_key || '').trim().toLowerCase() !== 'custom')
+          .filter(d => ['daily', 'weekly', 'monthly', 'yearly'].includes(String(d.duration_key || '').trim().toLowerCase()))
           .map(d => ({ ...d, duration_days: Number(d.duration_days) }))
         setDurations(nextDurations)
         setSelectedDuration(current => nextDurations.some(d => d.duration_key === current) ? current : nextDurations[0].duration_key)
       }
       if (mounted && !packageResult.error && Array.isArray(packageResult.data) && packageResult.data.length) {
-        setPlans(packageResult.data.filter(plan => !/custom/i.test(String(plan.package_key || '')) && !/custom/i.test(String(plan.name || ''))).map(plan => ({
+        setPlans(packageResult.data.filter(plan => ['starter', 'growth', 'business', 'enterprise'].includes(String(plan.package_key || '').trim().toLowerCase()) && !/custom/i.test(String(plan.name || ''))).map(plan => ({
           ...plan,
           key: plan.package_key,
           location_limit: Number(plan.location_limit),
