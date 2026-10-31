@@ -121,15 +121,18 @@ export default function Homepage() {
       ])
       if (mounted && !durationResult.error && Array.isArray(durationResult.data) && durationResult.data.length) {
         // Homepage only offers the four supported standard activation periods.
-        const nextDurations = durationResult.data
+        const savedDurations = new Map(durationResult.data
           .filter(d => ['daily', 'weekly', 'monthly', 'yearly'].includes(String(d.duration_key || '').trim().toLowerCase()))
-          .map(d => ({ ...d, duration_days: Number(d.duration_days) }))
+          .map(d => [d.duration_key, d]))
+        const nextDurations = fallbackDurations.map(d => ({ ...d, ...(savedDurations.get(d.duration_key) || {}), duration_days: Number(savedDurations.get(d.duration_key)?.duration_days ?? d.duration_days) }))
+          .filter(d => d.is_active)
         setDurations(nextDurations)
-        setSelectedDuration(current => nextDurations.some(d => d.duration_key === current) ? current : nextDurations[0].duration_key)
+        setSelectedDuration(current => nextDurations.some(d => d.duration_key === current) ? current : (nextDurations.find(d => d.duration_key === 'yearly')?.duration_key || nextDurations[0]?.duration_key || 'yearly'))
       }
       if (mounted && !packageResult.error && Array.isArray(packageResult.data) && packageResult.data.length) {
         setPlans(packageResult.data.filter(plan => ['starter', 'growth', 'business', 'enterprise'].includes(String(plan.package_key || '').trim().toLowerCase()) && !/custom/i.test(String(plan.name || ''))).map(plan => ({
           ...plan,
+          prices: { ...(fallbackPlans.find(fallback => fallback.key === plan.package_key)?.prices || {}), ...(plan.prices && typeof plan.prices === 'object' ? plan.prices : {}) },
           key: plan.package_key,
           location_limit: Number(plan.location_limit),
           prices: plan.prices && typeof plan.prices === 'object' ? plan.prices : {},
