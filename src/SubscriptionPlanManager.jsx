@@ -8,6 +8,7 @@ const defaultDurations = [
   { duration_key: 'weekly', name: 'Mingguan', duration_days: 7, sort_order: 2, is_active: true },
   { duration_key: 'monthly', name: 'Bulanan', duration_days: 30, sort_order: 3, is_active: true },
   { duration_key: 'yearly', name: 'Tahunan', duration_days: 365, sort_order: 4, is_active: true },
+  { duration_key: 'custom', name: 'Custom', duration_days: 15, sort_order: 5, is_active: true },
 ]
 const featureDefaults = ['Semua fitur NexaPos', 'Kasir dan transaksi', 'Produk dan stok per tenant', 'Laporan operasional', 'Sistem antrian dan struk']
 const packageDefaults = [
@@ -46,14 +47,14 @@ export default function SubscriptionPlanManager({ onBack }) {
       const missingKeys = packageDefaults.filter(item => !savedPackages.has(item.package_key)).map(item => item.package_key)
       setPlansReady(missingKeys.length === 0)
       setPlans(packageDefaults.map(item => ({ ...item, ...(savedPackages.get(item.package_key) || {}), prices: { ...item.prices, ...(savedPackages.get(item.package_key)?.prices || {}) }, features: savedPackages.get(item.package_key)?.features || item.features })))
-      setDurations((durationResult.data || []).filter(item => ['daily', 'weekly', 'monthly', 'yearly'].includes(String(item.duration_key || '').trim().toLowerCase())).map(item => ({ ...item, duration_days: Number(item.duration_days) })))
+      setDurations((durationResult.data || []).filter(item => ['daily', 'weekly', 'monthly', 'yearly', 'custom'].includes(String(item.duration_key || '').trim().toLowerCase())).map(item => ({ ...item, duration_days: Number(item.duration_days) })))
       if (missingKeys.length) setError('Data paket belum tersedia lengkap (' + missingKeys.join(', ') + '). Muat migrasi dan seed paket terlebih dahulu agar nilai default tidak tersimpan tanpa sengaja.')
     }
     setLoading(false)
   }, [])
 
   useEffect(() => { load() }, [load])
-  const activeDurations = useMemo(() => durations.filter(item => item.is_active).sort((a,b) => a.sort_order-b.sort_order), [durations])
+  const activeDurations = useMemo(() => durations.filter(item => item.is_active && item.duration_key !== 'custom').sort((a,b) => a.sort_order-b.sort_order), [durations])
   const updatePlan = (key, field, value) => setPlans(current => current.map(plan => plan.package_key === key ? { ...plan, [field]: value } : plan))
   const updatePrice = (key, durationKey, value) => setPlans(current => current.map(plan => plan.package_key === key ? { ...plan, prices: { ...(plan.prices || {}), [durationKey]: value } } : plan))
   const updateDuration = (key, field, value) => setDurations(current => current.map(item => item.duration_key === key ? { ...item, [field]: value } : item))
@@ -84,8 +85,8 @@ export default function SubscriptionPlanManager({ onBack }) {
       <div className="page-content"><section className="page-section">
         <div className="page-heading"><div><span className="eyebrow muted">KONTROL AKTIVASI</span><h1>Paket aktivasi <span className="heading-accent">NexaPos.</span></h1><p>Semua paket memiliki fitur yang sama. Perbedaannya adalah kuota lokasi dan harga berdasarkan masa aktif. Kode aktivasi tetap diterbitkan oleh Super Admin.</p></div><span className="date-pill"><CheckCircle2 size={14}/> Aktivasi manual</span></div>
         {!loading && !plansReady && !error && <div className="notice">Data paket belum tersedia. Pastikan keempat paket aktivasi sudah dibuat di database sebelum mengedit harga.</div>}{notice&&<div className="toast"><CheckCircle2 size={17}/><span>{notice}</span></div>}{error&&<div className="notice">{error}</div>}
-        <div className="panel nx-duration-panel"><div className="panel-head"><div><h3>Pengaturan masa aktif</h3><p>Atur jumlah hari untuk masa aktif harian, mingguan, bulanan, dan tahunan. Hanya empat periode standar ini yang tersedia untuk aktivasi.</p></div></div>
-          {!error && plansReady && activeDurations.map(duration=><div className="nx-duration-row" key={duration.duration_key}>
+        <div className="panel nx-duration-panel"><div className="panel-head"><div><h3>Pengaturan masa aktif</h3><p>Atur jumlah hari untuk durasi 3, 7, 30, dan 365 hari. Durasi Custom dapat diisi sendiri oleh Admin dan hanya digunakan saat aktivasi perusahaan.</p></div></div>
+          {!error && plansReady && durations.filter(duration=>duration.is_active).map(duration=><div className="nx-duration-row" key={duration.duration_key}>
             <div className="nx-duration-main"><label>Nama durasi<input className="text-input" value={duration.name} onChange={e=>updateDuration(duration.duration_key,'name',e.target.value)} maxLength={40}/></label><label>Jumlah hari<input className="text-input" type="number" min="1" max="36500" value={duration.duration_days} onChange={e=>updateDuration(duration.duration_key,'duration_days',e.target.value)}/></label><label>Urutan<input className="text-input" type="number" min="1" max="999" value={duration.sort_order} onChange={e=>updateDuration(duration.duration_key,'sort_order',e.target.value)}/></label></div>
             <div className="nx-duration-actions"><label className="nx-subscription-toggle"><input type="checkbox" checked={Boolean(duration.is_active)} onChange={e=>updateDuration(duration.duration_key,'is_active',e.target.checked)}/>{duration.is_active?<Eye size={14}/>:<EyeOff size={14}/>} Tampilkan</label><button className="btn btn-outline btn-small" disabled={savingKey==='duration:'+duration.duration_key} onClick={()=>saveDuration(duration)}><Save size={14}/> Simpan durasi</button></div>
           </div>)}
