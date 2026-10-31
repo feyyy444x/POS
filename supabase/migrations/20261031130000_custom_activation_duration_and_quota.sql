@@ -25,7 +25,7 @@ create or replace function public.activate_store_tenant(
   p_store_id uuid,
   p_duration_days integer,
   p_package_key text,
-  p_location_limit integer default null
+  p_location_limit integer
 )
 returns public.stores
 language plpgsql
