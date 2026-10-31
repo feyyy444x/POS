@@ -101,7 +101,7 @@ export default function Homepage() {
       if (error || !data) return
       setSupportChannels({
         whatsapp_enabled: Boolean(data.whatsapp_enabled),
-        whatsapp_number: String(data.whatsapp_number || '').replace(/\\D/g, ''),
+        whatsapp_number: String(data.whatsapp_number || '').replace(/\D/g, ''),
         telegram_enabled: Boolean(data.telegram_enabled),
         telegram_username: String(data.telegram_username || '').replace(/^@/, '').trim(),
       })
@@ -273,7 +273,7 @@ export default function Homepage() {
           <div className="living-story-tabs" role="tablist" aria-label="Pilih alur bisnis">
             {Object.entries(storyScenes).map(([key,item]) => {
               const Icon = item.icon
-              return <button type="button" role="tab" aria-selected={scene===key} className={scene===key?'is-active':''} key={key} onClick={() => setScene(key)}><span>{item.index}</span><Icon size={18}/><b>{key==='kasir'?'Transaksi kasir':key==='tim'?'Aktivitas tim':'Sistem antrian'}</b><ArrowUpRight size={15}/></button>
+              return <button type="button" role="tab" aria-selected={scene===key} className={scene===key?'is-active':''} key={key} onClick={() => setScene(key)}><span>{item.index}</span><Icon size={18}/><b>{key==='kasir'?'Transaksi kasir':key==='tim'?'Aktivitas tim':'Sistem antrean'}</b><ArrowUpRight size={15}/></button>
             })}
             <div className="living-story-aside"><Workflow size={18}/><p>Satu alur operasional.<br/>Satu workspace.</p></div>
           </div>
@@ -355,14 +355,14 @@ export default function Homepage() {
               <div className="living-plan-top"><span>{plan.name}</span>{plan.popular&&<b>REKOMENDASI</b>}</div>
               <p className="living-plan-note">{plan.note || 'Pilihan kapasitas tenant tambahan sesuai kebutuhan bisnismu.'}</p>
               <div className="living-plan-location"><Store size={14}/> Kuota {Number(plan.location_limit||1)} tenant tambahan di luar workspace utama</div>
-              <div className="living-plan-price-label">{discount>0?'HARGA PROMO':'HARGA PAKET AKTIVASI'}</div>
+              <div className="living-plan-price-label">{discount>0?'HARGA PROMO':'HARGA PAKET SEWA'}</div>
               <div className="living-price living-price-redesign">{discount>0&&<del>{money(basePrice)}</del>}<strong>{money(finalPrice)}</strong><small>/ {duration?.name||'masa sewa'} ({Number(duration?.duration_days||0)} hari)</small></div>
               {discount>0&&<div className="living-saving living-saving-redesign"><Zap size={13}/> Hemat {money(discount)} <b>−{promoDiscountLabel(displayPromo)}</b></div>}
               {displayPromo && !isEligible && <div className="living-plan-ineligible">Promo tidak berlaku untuk durasi ini</div>}
               <div className="living-plan-divider"/>
               <ul>{planFeatures.map((feature,featureIndex)=><li key={featureIndex}><CheckCircle2 size={14}/>{feature}</li>)}</ul>
               <button className="living-cta living-plan-cta living-plan-cta-redesign" onClick={e=>{e.stopPropagation();contact(pricedPlan,displayPromo&&isEligible?displayPromo:null,serverQuote)}}>{discount>0?'Pilih paket promo':'Tanyakan paket'} <ArrowRight size={14}/></button>
-              <span className="living-plan-footnote">Aktivasi kode dilakukan oleh Super Admin</span>
+              <span className="living-plan-footnote">Kode aktivasi diterbitkan oleh Super Admin</span>
             </article>
           })}
         </div>
