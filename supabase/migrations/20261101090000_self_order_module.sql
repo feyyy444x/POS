@@ -31,7 +31,8 @@ create table if not exists public.self_service_orders (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
-create unique index if not exists orders_self_service_order_unique_idx on public.orders(self_service_order_id) where self_service_order_id is not null;\ncreate index if not exists self_service_orders_store_created_idx
+create unique index if not exists orders_self_service_order_unique_idx on public.orders(self_service_order_id) where self_service_order_id is not null;
+create index if not exists self_service_orders_store_created_idx
   on public.self_service_orders(store_id, created_at desc);
 create index if not exists self_service_orders_store_status_idx
   on public.self_service_orders(store_id, payment_status, order_status);
@@ -189,7 +190,8 @@ as $$
       and o.payment_status='awaiting_payment' and o.payment_deadline>now())
 $$;
 revoke all on function private.can_upload_self_service_proof(uuid,uuid) from public;
-grant usage on schema private to anon, authenticated;\ngrant execute on function private.can_upload_self_service_proof(uuid,uuid) to anon, authenticated;
+grant usage on schema private to anon, authenticated;
+grant execute on function private.can_upload_self_service_proof(uuid,uuid) to anon, authenticated;
 
 create or replace function public.attach_self_service_payment_proof(p_store_id uuid,p_order_id uuid,p_path text)
 returns jsonb language plpgsql security definer set search_path=''
