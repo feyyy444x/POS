@@ -131,7 +131,9 @@ export default function SelfOrderManager({store,settings,isManager=false,onNotic
       if(uploadedQrisPath)await supabase.storage.from('store-logos').remove([uploadedQrisPath])
       onNotice?.(error.message)
     }else{
-      const previousPath=qrisUrl.match(/\\/storage\\/v1\\/object\\/public\\/store-logos\\/([^?]+)/)?.[1]
+      const previousMarker='/storage/v1/object/public/store-logos/'
+      const previousIndex=qrisUrl.indexOf(previousMarker)
+      const previousPath=previousIndex>=0?qrisUrl.slice(previousIndex+previousMarker.length).split('?')[0]:null
       if(uploadedQrisPath&&previousPath&&decodeURIComponent(previousPath).startsWith(store.id+'/'))await supabase.storage.from('store-logos').remove([decodeURIComponent(previousPath)])
       setQrisUrl(nextQrisUrl||'');setQrisFile(null);onNotice?.('Pengaturan Self Order berhasil disimpan.')
     }
