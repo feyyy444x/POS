@@ -743,8 +743,9 @@ test('Platform actions stay scoped to the selected company or tenant, and regist
   const deletionMigration = await readFile(new URL('../supabase/migrations/20261030300000_permanent_owner_and_tenant_deletion.sql', import.meta.url), 'utf8')
 
   assert.ok(tenantStart >= 0 && companyStart > tenantStart)
-  assert.doesNotMatch(tenantSection, /activateOrganization|regenerateOwnerInvite|activation-toolbar/)
+  assert.doesNotMatch(tenantSection, /activateOrganization|activation-toolbar/)
   assert.match(tenantSection, /t\.workspace_mode==='single_workspace'\?activate\(t\):changeStatus\(t,'active'\)/)
+  assert.match(tenantSection, /t\.workspace_mode==='single_workspace'&&<button[\\s\\S]*?regenerateOwnerInvite\(t\)/)
   assert.match(tenantSection, /changeStatus\(t,'suspended'\)/)
   assert.match(tenantSection, /changeStatus\(t,'active'\)/)
   assert.match(tenantSection, /changeStatus\(t,'deleted'\)/)
