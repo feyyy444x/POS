@@ -3,3 +3,46 @@
 .so-qris-preview{display:block;max-width:220px;max-height:220px;object-fit:contain;border:1px solid #e2e8f0;border-radius:12px;margin:12px 0}.so-qr-download{display:grid;justify-items:center;gap:10px;padding:12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px;margin:12px 0}.so-qr-download img{width:220px;height:220px;max-width:100%;object-fit:contain;background:white}
 
 .so-qris-preview{display:block;max-width:220px;max-height:220px;object-fit:contain;border:1px solid #e2e8f0;border-radius:12px;margin:12px 0}.so-qr-download{display:grid;justify-items:center;gap:10px;padding:12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px;margin:12px 0}.so-qr-download img{width:220px;height:220px;max-width:100%;object-fit:contain;background:white}
+
+
+/* Store settings placement, compact POS inbox, and paginated order cards */
+.so-store-settings{min-width:0}
+.so-settings-state{font-size:10px;font-weight:800;padding:6px 10px;border-radius:999px;background:#f1f5f9;color:#64748b;white-space:nowrap}
+.so-settings-state.is-enabled{background:#dcfce7;color:#166534}
+.so-settings-qr{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:13px;border:1px solid #e2e8f0;border-radius:13px;background:#f8fafc}
+.so-settings-qr>div{display:grid;gap:6px;min-width:0}
+.so-settings-qr small{font-size:11px;color:#64748b;line-height:1.5}
+.so-settings-qr code{font-size:11px;overflow-wrap:anywhere;color:#334155}
+.so-settings-qr img{width:112px;height:112px;object-fit:contain;background:#fff;border-radius:8px;flex:0 0 auto}
+.so-settings-actions{display:flex;gap:8px;flex-wrap:wrap}
+.so-settings-actions .btn{flex:1;justify-content:center}
+.so-orders-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.so-orders-grid .so-order-card{margin:0;min-width:0}
+.so-pagination{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid #e2e8f0;margin-top:16px;padding-top:14px;color:#64748b;font-size:11px}
+.so-pagination>div{display:flex;align-items:center;gap:10px}
+.so-pagination strong{white-space:nowrap;color:#334155;font-size:11px}
+.so-inbox-embedded{margin:0 0 18px;border:1px solid #dbe5ec;border-radius:15px;background:#fff;overflow:hidden;box-shadow:0 5px 18px rgba(16,36,58,.04)}
+.so-inbox-toggle{display:flex;align-items:center;gap:12px;width:100%;padding:13px 15px;border:0;background:#fff;text-align:left;cursor:pointer;color:#10243a;font:inherit}
+.so-inbox-toggle-icon{width:36px;height:36px;display:grid;place-items:center;flex:0 0 auto;border-radius:11px;background:#eaf4f3;color:#0f766e}
+.so-inbox-toggle>span:nth-child(2){display:grid;gap:3px;min-width:0;flex:1}
+.so-inbox-toggle strong{font-size:13px}
+.so-inbox-toggle small{font-size:11px;color:#64748b}
+.so-inbox-count{display:inline-flex;align-items:center;justify-content:center;min-width:23px;height:23px;padding:0 7px;border-radius:999px;background:#b42318;color:white;font-size:11px;font-weight:800}
+.so-inbox-chevron{font-size:11px;color:#0f766e;font-weight:750;white-space:nowrap}
+.so-inbox-content{padding:0 14px 14px;border-top:1px solid #edf1f5}
+.so-inbox-toolbar{display:flex;justify-content:flex-end;gap:8px;padding:12px 0}
+.so-inbox-toolbar select{max-width:210px}
+.so-inbox-embedded .so-orders-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.so-inbox-embedded .so-order-card{padding:12px}
+.so-inbox-embedded .so-order-actions .btn{flex:1}
+.so-inbox-embedded .so-pagination{margin-top:12px}
+@media(max-width:760px){
+ .so-orders-grid,.so-inbox-embedded .so-orders-grid{grid-template-columns:1fr}
+ .so-pagination{align-items:flex-start;flex-direction:column}
+ .so-pagination>div{width:100%;justify-content:space-between}
+ .so-inbox-toolbar{justify-content:stretch}
+ .so-inbox-toolbar select{max-width:none;flex:1;min-width:0}
+ .so-settings-qr{align-items:flex-start}
+ .so-settings-qr img{width:88px;height:88px}
+}
+@media(max-width:420px){.so-inbox-toggle{gap:8px;padding:12px}.so-inbox-toggle-icon{width:32px;height:32px}.so-inbox-chevron{font-size:10px}.so-settings-actions{flex-direction:column}}
