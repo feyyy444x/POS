@@ -189,7 +189,7 @@ as $$
       and o.payment_status='awaiting_payment' and o.payment_deadline>now())
 $$;
 revoke all on function private.can_upload_self_service_proof(uuid,uuid) from public;
-grant execute on function private.can_upload_self_service_proof(uuid,uuid) to anon, authenticated;
+grant usage on schema private to anon, authenticated;\ngrant execute on function private.can_upload_self_service_proof(uuid,uuid) to anon, authenticated;
 
 create or replace function public.attach_self_service_payment_proof(p_store_id uuid,p_order_id uuid,p_path text)
 returns jsonb language plpgsql security definer set search_path=''
