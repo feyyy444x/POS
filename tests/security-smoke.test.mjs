@@ -438,7 +438,7 @@ test('Super Admin can configure a private custom duration and package-specific p
 
 test('Homepage never exposes custom duration or custom activation package choices', () => {
   assert.match(homepageUi, /filter\(d => \['daily', 'weekly', 'monthly', 'yearly'\]/)
-  assert.match(homepageUi, /filter\(plan => \['starter', 'growth', 'business', 'enterprise'\]/)
+  assert.match(homepageUi, /filter\(plan => \['starter', 'growth', 'business', 'enterprise', 'single_workspace'\]/)
 })
 
 
@@ -668,7 +668,8 @@ test('Owner tenant creation, entry, organization identity and Admin tenant class
   assert.match(app, /rpc\('owner_list_organization_tenant_profiles'/)
   assert.match(app, /organization_name,activation_package_key/)
   assert.match(app, /organizationIds=\[\.\.\.new Set/)
-  assert.match(app, /Perusahaan: \{t\.organization_name/)
+  assert.match(app, /workspace_mode==='single_workspace'/)
+  assert.match(app, /t\.organization_name\|\|'Belum terhubung ke perusahaan'/)
   assert.match(app, /Workspace utama/)
   assert.match(app, /super-admin-organization-profile-sync/)
   assert.match(app, /table:'owner_organizations'/)
@@ -742,7 +743,8 @@ test('Platform actions stay scoped to the selected company or tenant, and regist
   const deletionMigration = await readFile(new URL('../supabase/migrations/20261030300000_permanent_owner_and_tenant_deletion.sql', import.meta.url), 'utf8')
 
   assert.ok(tenantStart >= 0 && companyStart > tenantStart)
-  assert.doesNotMatch(tenantSection, /activate\(t\)|activateOrganization|regenerateOwnerInvite|activation-toolbar/)
+  assert.doesNotMatch(tenantSection, /activateOrganization|regenerateOwnerInvite|activation-toolbar/)
+  assert.match(tenantSection, /t\.workspace_mode==='single_workspace'\?activate\(t\):changeStatus\(t,'active'\)/)
   assert.match(tenantSection, /changeStatus\(t,'suspended'\)/)
   assert.match(tenantSection, /changeStatus\(t,'active'\)/)
   assert.match(tenantSection, /changeStatus\(t,'deleted'\)/)
