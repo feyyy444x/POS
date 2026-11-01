@@ -322,7 +322,7 @@ begin
   if tg_op='DELETE' then return old; end if;
   return new;
 end;
-$;
+$$;
 revoke all on function private.capture_self_service_order_audit() from public;
 drop trigger if exists self_service_order_audit_event on public.self_service_orders;
 create trigger self_service_order_audit_event
