@@ -132,6 +132,9 @@ begin
   if jsonb_typeof(p_items)<>'array' or jsonb_array_length(p_items)=0 or jsonb_array_length(p_items)>50 then
     raise exception 'Keranjang pesanan tidak valid';
   end if;
+  if length(coalesce(p_customer_phone,''))>30 or length(coalesce(p_customer_notes,''))>500 then
+    raise exception 'Nomor telepon atau catatan pesanan terlalu panjang';
+  end if;
   select * into v_store from public.stores where id=p_store_id and status='active'
     and deleted_at is null and (expires_at is null or expires_at>now()) for update;
   if not found or not private.is_store_operational(p_store_id) then raise exception 'Toko sedang tidak aktif'; end if;
@@ -205,6 +208,9 @@ declare v_order public.self_service_orders;
 begin
   if p_path !~ ('^'||p_store_id::text||'/'||p_order_id::text||'/[A-Za-z0-9._-]{1,120}$') then
     raise exception 'Lokasi bukti pembayaran tidak valid';
+  end if;
+  if not exists(select 1 from storage.objects where bucket_id='self-order-proofs' and name=p_path) then
+    raise exception 'Bukti pembayaran belum berhasil diunggah';
   end if;
   update public.self_service_orders set payment_proof_path=p_path,
     payment_status='pending_verification',order_status='pending_verification',updated_at=now()
