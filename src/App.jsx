@@ -3,7 +3,7 @@ import {
   Activity, ArrowDownRight, ArrowRight, ArrowLeft, KeyRound, Copy, Building2, Power, Eye, BarChart3, Bell, Boxes, Check, CheckCircle2,
   ChevronDown, CircleDollarSign, Clock3, CreditCard, FileText, Headphones, LayoutDashboard,
   LogOut, Menu, Minus, Monitor, Package, Plus, Printer, QrCode, RefreshCw, Search,
-  Settings, ShieldCheck, ShoppingCart, SkipForward, Store, Ticket, Trash2,
+  Settings, ShieldCheck, ShoppingBag, ShoppingCart, SkipForward, Store, Ticket, Trash2,
   TrendingUp, UserRound, Users, UserPlus, CalendarDays, Ban, Archive, Mail, Wallet, X
 } from 'lucide-react'
 import { isSupabaseConfigured, supabase } from './lib/supabase'
