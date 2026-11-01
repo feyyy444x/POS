@@ -20,7 +20,6 @@ const fallbackPlans = [
   { key: 'growth', name: 'Growth', location_limit: 5, note: 'Untuk bisnis yang mulai berkembang', prices: { daily: 10000, weekly: 30000, monthly: 99000, yearly: 990000 }, features: defaultFeatures, popular: false, sort_order: 2 },
   { key: 'business', name: 'Business', location_limit: 10, note: 'Untuk bisnis dengan beberapa lokasi', prices: { daily: 15000, weekly: 50000, monthly: 179000, yearly: 1790000 }, features: defaultFeatures, popular: true, sort_order: 3 },
   { key: 'enterprise', name: 'Enterprise', location_limit: 15, note: 'Untuk jaringan usaha yang lebih besar', prices: { daily: 25000, weekly: 85000, monthly: 299000, yearly: 2990000 }, features: defaultFeatures, popular: false, sort_order: 4 },
-  { key: 'single_workspace', name: 'Single Workspace', location_limit: 1, note: 'Satu workspace mandiri untuk Owner, tanpa NexaSpace dan tanpa pengelolaan tenant.', prices: { daily: 0, weekly: 0, monthly: 0, yearly: 0 }, features: ['Satu workspace POS mandiri', 'Owner memiliki akses penuh ke seluruh fitur', 'Manajemen Manager dan Karyawan', 'Produk, stok, transaksi, dan laporan', 'Antrean, pengaturan, dan struk'], popular: false, sort_order: 0 },
 ]
 const features = [
   { number: '01', icon: ShoppingCart, title: 'Transaksi kasir lebih praktis', text: 'Layani pelanggan dari satu layar: pilih produk, hitung total otomatis, proses pembayaran, dan simpan riwayat transaksi dengan lebih rapi.' },
@@ -330,8 +329,8 @@ export default function Homepage() {
 
       <section className="living-pricing living-pricing-redesign" id="harga">
         <div className="living-section-head living-reveal">
-          <div><span className="living-eyebrow">PAKET SEWA NEXAPOS / 04</span><h2>Satu sistem untuk bisnismu.<br/><em>Pilih kapasitas dan masa sewa.</em></h2></div>
-          <p>Gunakan fitur operasional NexaPos sesuai kebutuhan usaha. Pilih paket yang tersedia atau konsultasikan Paket Khusus untuk menentukan masa aktif dan jumlah tenant sesuai kebutuhan bisnismu. Kode aktivasi diterbitkan dan diproses oleh Super Admin.</p>
+          <div><span className="living-eyebrow">PAKET SEWA NEXAPOS / 04</span><h2>Satu sistem untuk bisnismu.<br/><em>Pilih model workspace dan masa sewa.</em></h2></div>
+          <p>Pilih satu workspace mandiri untuk Owner atau model NexaSpace untuk mengelola beberapa tenant. Semua paket menyediakan fitur operasional NexaPos; masa sewa dan aktivasi dikelola oleh Super Admin.</p>
         </div>
         {activePromo && <article className="living-pricing-promo living-promo-feature" aria-live="polite">
           <div className="living-promo-feature-mark"><Sparkles size={23}/><span>LIMITED<br/>OFFER</span></div>
