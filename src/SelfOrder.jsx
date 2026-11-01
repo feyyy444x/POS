@@ -81,6 +81,7 @@ export default function SelfOrderManager({store,settings,isManager=false,onNotic
   const [busy,setBusy]=useState('')
   const [enabled,setEnabled]=useState(Boolean(settings?.self_order_enabled))
   const [qrisUrl,setQrisUrl]=useState(settings?.self_order_qris_image_url||'')
+  const [qrisFile,setQrisFile]=useState(null)
   const [instructions,setInstructions]=useState(settings?.self_order_payment_instructions||'Scan QRIS, lakukan pembayaran, lalu unggah bukti pembayaran.')
   const [filter,setFilter]=useState('all')
   const [copied,setCopied]=useState(false)
@@ -125,7 +126,7 @@ export default function SelfOrderManager({store,settings,isManager=false,onNotic
     <div className="so-manager-grid">
       {isManager&&<form className="panel so-manager-settings" onSubmit={saveSettings}><div className="panel-head"><div><h3><ShoppingBag size={17}/> Pengaturan Self Order</h3><p>Aktifkan halaman pemesanan dan atur QRIS toko.</p></div></div>
         <label className="so-toggle"><input type="checkbox" checked={enabled} onChange={e=>setEnabled(e.target.checked)}/><span><strong>Aktifkan Self Order</strong><small>Pelanggan dapat mengakses menu melalui QR toko.</small></span></label>
-        <label>URL gambar QRIS merchant<input className="text-input" type="url" value={qrisUrl} onChange={e=>setQrisUrl(e.target.value)} placeholder="https://.../qris-toko.png"/></label>
+        <label>Gambar QRIS merchant<input className="text-input" type="file" accept="image/png,image/jpeg,image/webp" onChange={e=>setQrisFile(e.target.files?.[0]||null)}/><small>PNG, JPG, atau WebP · maksimal 3 MB.</small></label>{qrisFile&&<small className="so-muted">File dipilih: {qrisFile.name}</small>}{qrisUrl&&<img className="so-qris-preview" src={qrisUrl} alt="QRIS merchant saat ini"/>}
         <label>Instruksi pembayaran<textarea className="text-input" rows="3" value={instructions} onChange={e=>setInstructions(e.target.value)}/></label>
         <button className="btn btn-primary" disabled={busy==='settings'}>{busy==='settings'?'Menyimpan…':'Simpan pengaturan'}</button>
       </form>}
