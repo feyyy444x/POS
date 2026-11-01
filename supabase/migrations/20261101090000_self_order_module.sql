@@ -300,7 +300,7 @@ grant execute on function public.update_self_service_order_status(uuid,text,text
 
 create or replace function private.capture_self_service_order_audit()
 returns trigger language plpgsql security definer set search_path=''
-as $
+as $$
 declare v_store_id uuid; v_org_id uuid; v_entity_id uuid; v_before jsonb; v_after jsonb;
 begin
   if tg_op='DELETE' then
