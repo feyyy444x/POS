@@ -20,6 +20,7 @@ const fallbackPlans = [
   { key: 'growth', name: 'Growth', location_limit: 5, note: 'Untuk bisnis yang mulai berkembang', prices: { daily: 10000, weekly: 30000, monthly: 99000, yearly: 990000 }, features: defaultFeatures, popular: false, sort_order: 2 },
   { key: 'business', name: 'Business', location_limit: 10, note: 'Untuk bisnis dengan beberapa lokasi', prices: { daily: 15000, weekly: 50000, monthly: 179000, yearly: 1790000 }, features: defaultFeatures, popular: true, sort_order: 3 },
   { key: 'enterprise', name: 'Enterprise', location_limit: 15, note: 'Untuk jaringan usaha yang lebih besar', prices: { daily: 25000, weekly: 85000, monthly: 299000, yearly: 2990000 }, features: defaultFeatures, popular: false, sort_order: 4 },
+  { key: 'single_workspace', name: 'Single Workspace', location_limit: 1, note: 'Satu workspace mandiri untuk Owner, tanpa NexaSpace dan tanpa pengelolaan tenant.', prices: { daily: 0, weekly: 0, monthly: 0, yearly: 0 }, features: ['Satu workspace POS mandiri', 'Owner memiliki akses penuh ke seluruh fitur', 'Manajemen Manager dan Karyawan', 'Produk, stok, transaksi, dan laporan', 'Antrean, pengaturan, dan struk'], popular: false, sort_order: 0 },
 ]
 const features = [
   { number: '01', icon: ShoppingCart, title: 'Transaksi kasir lebih praktis', text: 'Layani pelanggan dari satu layar: pilih produk, hitung total otomatis, proses pembayaran, dan simpan riwayat transaksi dengan lebih rapi.' },
@@ -137,7 +138,7 @@ export default function Homepage() {
         setSelectedDuration(current => nextDurations.some(d => d.duration_key === current) ? current : (nextDurations.find(d => d.duration_key === 'yearly')?.duration_key || nextDurations[0]?.duration_key || 'yearly'))
       }
       if (mounted && !packageResult.error && Array.isArray(packageResult.data) && packageResult.data.length) {
-        setPlans(packageResult.data.filter(plan => ['starter', 'growth', 'business', 'enterprise'].includes(String(plan.package_key || '').trim().toLowerCase()) && !/custom/i.test(String(plan.name || ''))).map(plan => ({
+        setPlans(packageResult.data.filter(plan => ['starter', 'growth', 'business', 'enterprise', 'single_workspace'].includes(String(plan.package_key || '').trim().toLowerCase()) && !/custom/i.test(String(plan.name || ''))).map(plan => ({
           ...plan,
           prices: { ...(fallbackPlans.find(fallback => fallback.key === plan.package_key)?.prices || {}), ...(plan.prices && typeof plan.prices === 'object' ? plan.prices : {}) },
           key: plan.package_key,
@@ -228,7 +229,7 @@ export default function Homepage() {
   const contact = (plan, promo, quote) => {
     const details = [
       'Halo Tim NexaPos, saya ingin menanyakan penyewaan layanan.',
-      'Paket: ' + plan.name + ' (' + Number(plan.location_limit || 1) + ' tenant tambahan)',
+      'Paket: ' + plan.name + (plan.key === 'single_workspace' ? ' (1 workspace mandiri, tanpa NexaSpace atau tenant tambahan)' : ' (' + Number(plan.location_limit || 1) + ' tenant tambahan)'),
       'Masa sewa: ' + (plan.duration || selectedDuration),
       'Harga normal: ' + money(plan.price),
       promo ? 'Promo: ' + (promo.title || promo.promo_code || 'Promo NexaPos') : '',
@@ -376,8 +377,8 @@ export default function Homepage() {
             const planFeatures=plan.features?.length?plan.features:defaultFeatures
             return <article className={'living-plan living-plan-redesign'+(plan.popular?' is-popular':'')+(selectedPlan===plan.key?' is-selected':'')} key={plan.key} style={{'--plan-index':index}} onClick={()=>setSelectedPlan(plan.key)}>
               <div className="living-plan-top"><span>{plan.name}</span>{plan.popular&&<b>REKOMENDASI</b>}</div>
-              <p className="living-plan-note">{plan.note || 'Pilihan kapasitas tenant tambahan sesuai kebutuhan bisnismu.'}</p>
-              <div className="living-plan-location"><Store size={14}/> Kuota {Number(plan.location_limit||1)} tenant tambahan di luar workspace utama</div>
+              <p className="living-plan-note">{plan.note || (plan.key==='single_workspace'?'Satu workspace mandiri untuk Owner.':'Pilihan kapasitas tenant tambahan sesuai kebutuhan bisnismu.')}</p>
+              {plan.key==='single_workspace' ? <div className="living-plan-location"><Store size={14}/> 1 workspace mandiri · Tanpa NexaSpace</div> : <div className="living-plan-location"><Store size={14}/> Kuota {Number(plan.location_limit||1)} tenant tambahan di luar workspace utama</div>}
               <div className="living-plan-price-label">{discount>0?'HARGA PROMO':'HARGA PAKET SEWA'}</div>
               <div className="living-price living-price-redesign">{discount>0&&<del>{money(basePrice)}</del>}<strong>{money(finalPrice)}</strong><small>/ {duration?.name||'masa sewa'} ({Number(duration?.duration_days||0)} hari)</small></div>
               {discount>0&&<div className="living-saving living-saving-redesign"><Zap size={13}/> Hemat {money(discount)} <b>−{promoDiscountLabel(displayPromo)}</b></div>}
