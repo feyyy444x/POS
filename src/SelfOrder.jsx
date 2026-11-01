@@ -110,8 +110,15 @@ export default function SelfOrderManager({store,settings,isManager=false,onNotic
   useEffect(()=>{if(!store?.id)return;const channel=supabase.channel('self-order-'+store.id).on('postgres_changes',{event:'*',schema:'public',table:'self_service_orders',filter:'store_id=eq.'+store.id},load).subscribe();return()=>supabase.removeChannel(channel)},[store?.id,load])
   const saveSettings=async e=>{
     e.preventDefault();setBusy('settings')
-    const {error}=await supabase.from('store_settings').update({self_order_enabled:enabled,self_order_qris_image_url:qrisUrl.trim()||null,self_order_payment_instructions:instructions.trim()}).eq('store_id',store.id)
-    setBusy('');if(error)onNotice?.(error.message);else onNotice?.('Pengaturan Self Order berhasil disimpan.')
+    let nextQrisUrl=qrisUrl.trim()||null
+    if(qrisFile){
+      if(qrisFile.size>3*1024*1024){setBusy('');onNotice?.('Ukuran gambar QRIS maksimal 3 MB.');return}
+      const {error:uploadError}=await supabase.storage.from('store-logos').upload(store.id+'/self-order-qris',qrisFile,{upsert:true,contentType:qrisFile.type})
+      if(uploadError){setBusy('');onNotice?.(uploadError.message);return}
+      nextQrisUrl=supabase.storage.from('store-logos').getPublicUrl(store.id+'/self-order-qris').data.publicUrl
+    }
+    const {error}=await supabase.from('store_settings').update({self_order_enabled:enabled,self_order_qris_image_url:nextQrisUrl,self_order_payment_instructions:instructions.trim()}).eq('store_id',store.id)
+    setBusy('');if(error)onNotice?.(error.message);else{setQrisUrl(nextQrisUrl||'');setQrisFile(null);onNotice?.('Pengaturan Self Order berhasil disimpan.')}
   }
   const act=async(id,action)=>{
     setBusy(id+action)
