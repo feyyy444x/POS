@@ -57,8 +57,10 @@ test('Self Order migration enforces tenant isolation, private proofs, stock rese
 
 test('Self Order manager controls and QRIS upload follow tenant storage permissions', async () => {
   const ui = await read('../src/SelfOrder.jsx')
-  assert.match(ui, /isManager&&<form/)
+  assert.match(ui, /export function SelfOrderSettings/)
   assert.match(ui, /self-order-qris-/)
+  assert.match(ui, /Simpan pengaturan Self Order/)
+  assert.match(ui, /QR Code pemesanan toko/)
   assert.match(ui, /upsert:false/)
   assert.match(ui, /storage\.from\('store-logos'\)\.upload/)
   assert.match(ui, /storage\.from\('store-logos'\)\.remove/)
@@ -82,4 +84,23 @@ test('Public Self Order catalog and checkout validate activation without requiri
   assert.ok(fix.includes('private.is_store_operational(p_store_id)'))
   assert.ok(fix.includes('private.is_store_publicly_available(p_store_id)'))
   assert.ok(fix.includes('replaced_count <> 2'))
+})
+
+
+test('Self Order settings live in Store Settings while cashier POS has a realtime inbox', async () => {
+  const app = await read('../src/App.jsx')
+  const ui = await read('../src/SelfOrder.jsx')
+  assert.match(app, /SelfOrderSettings store=\{store\} settings=\{settings\}/)
+  assert.match(app, /SelfOrderManager store=\{store\} onNotice=\{setNotice\} embedded/)
+  assert.match(ui, /so-inbox-embedded/)
+  assert.match(ui, /table:'self_service_orders'/)
+  assert.match(ui, /setExpanded/)
+})
+
+test('Self Order order list uses pagination and keeps the rendered page bounded', async () => {
+  const ui = await read('../src/SelfOrder.jsx')
+  assert.match(ui, /const ORDER_PAGE_SIZE = 8/)
+  assert.match(ui, /filtered\.slice\(\(page-1\)\*ORDER_PAGE_SIZE,page\*ORDER_PAGE_SIZE\)/)
+  assert.match(ui, /so-pagination/)
+  assert.match(ui, /Halaman \{page\} \/ \{pages\}/)
 })
