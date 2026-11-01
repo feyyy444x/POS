@@ -37,6 +37,7 @@ test('Single Workspace Owner is registered through the normal owner membership a
   assert.match(app, /registrationModel==='single_workspace'/)
   assert.match(app, /Single Workspace — mandiri/)
   assert.match(app, /Durasi aktivasi Single Workspace/)
+  assert.match(app, /Perpanjang masa sewa Single Workspace/)
   assert.match(app, /member\.role === 'owner' && storeData\.workspace_mode !== 'single_workspace'/)
 })
 
