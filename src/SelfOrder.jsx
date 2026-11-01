@@ -7,7 +7,7 @@ import './SelfOrder.css'
 const idr = value => new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(Number(value||0))
 const publicUrl = storeId => window.location.origin + '/?screen=self-order&store=' + encodeURIComponent(storeId)
 const ORDER_PAGE_SIZE = 8
-const PRODUCT_PAGE_SIZE = 12
+const PRODUCT_PAGE_SIZE = 6
 
 export function SelfOrderPublic(){
   const storeId = new URLSearchParams(window.location.search).get('store')
