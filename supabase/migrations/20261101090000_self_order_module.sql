@@ -31,7 +31,7 @@ create table if not exists public.self_service_orders (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
-create index if not exists self_service_orders_store_created_idx
+create unique index if not exists orders_self_service_order_unique_idx on public.orders(self_service_order_id) where self_service_order_id is not null;\ncreate index if not exists self_service_orders_store_created_idx
   on public.self_service_orders(store_id, created_at desc);
 create index if not exists self_service_orders_store_status_idx
   on public.self_service_orders(store_id, payment_status, order_status);
