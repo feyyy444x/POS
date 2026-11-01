@@ -9,7 +9,18 @@ alter table public.site_activation_packages
   drop constraint if exists site_activation_packages_package_key_check;
 alter table public.site_activation_packages
   add constraint site_activation_packages_package_key_check
-  check (package_key in ('starter','growth','business','enterprise','special','single_workspace'));
+  check (package_key in ('starter','growth','business','enterprise','custom','special','single_workspace'));
+
+-- Keep the existing internal Custom and Khusus activation keys valid for the
+-- stores/owner_organizations foreign keys. They are not public homepage offers.
+insert into public.site_activation_packages
+  (package_key, name, location_limit, note, prices, features, is_popular, is_active, sort_order)
+values
+  ('special', 'Khusus', 1, 'Paket internal; kuota ditentukan Super Admin saat aktivasi.', '{}'::jsonb, '{}'::text[], false, true, 998)
+on conflict (package_key) do update
+set is_active = true,
+    note = excluded.note,
+    updated_at = now();
 
 insert into public.site_activation_packages
   (package_key, name, location_limit, note, prices, features, is_popular, is_active, sort_order)
