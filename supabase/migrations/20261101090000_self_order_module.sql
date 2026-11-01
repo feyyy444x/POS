@@ -158,6 +158,7 @@ begin
     select x.product_id, sum(x.quantity)::integer as quantity
     from jsonb_to_recordset(p_items) as x(product_id uuid, quantity integer)
     group by x.product_id
+    order by x.product_id
   loop
     if v_item.product_id is null or v_item.quantity is null or v_item.quantity<1 or v_item.quantity>50 then
       raise exception 'Jumlah produk tidak valid';
