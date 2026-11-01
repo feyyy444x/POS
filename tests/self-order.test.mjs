@@ -113,3 +113,15 @@ test('Customer Self Order product catalog is paginated to avoid a long stacked m
   assert.match(ui, /so-product-pagination/)
   assert.match(ui, /setProductPage\(1\)/)
 })
+
+
+test('Self Order staff actions require the authenticated employee own open shift in the same tenant', async () => {
+  const sql = await read('../supabase/migrations/20261101110000_require_open_shift_for_self_order_actions.sql')
+  assert.match(sql, /from public\\.cashier_shifts s/i)
+  assert.match(sql, /s\\.store_id = v_order\\.store_id/i)
+  assert.match(sql, /s\\.cashier_id = \\(select auth\\.uid\\(\\)\\)/i)
+  assert.match(sql, /s\\.closed_at is null/i)
+  assert.match(sql, /Buka shift kasir pribadi terlebih dahulu/i)
+  assert.match(sql, /grant execute on function public\\.update_self_service_order_status\\(uuid, text, text\\)\\s+to authenticated/i)
+  assert.doesNotMatch(sql, /to anon/i)
+})
