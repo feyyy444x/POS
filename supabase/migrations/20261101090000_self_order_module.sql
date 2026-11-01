@@ -78,7 +78,7 @@ declare v_store public.stores; v_settings public.store_settings;
 begin
   select * into v_store from public.stores where id=p_store_id and status='active'
     and deleted_at is null and (expires_at is null or expires_at>now()) for update;
-  if not found then raise exception 'Toko tidak tersedia'; end if;
+  if not found or not private.is_store_operational(p_store_id) then raise exception 'Toko tidak tersedia'; end if;
   select * into v_settings from public.store_settings where store_id=p_store_id;
   if not found or v_settings.self_order_enabled is not true then raise exception 'Self Order sedang tidak aktif'; end if;
   update public.products p set stock=p.stock+i.quantity,updated_at=now()
@@ -134,7 +134,7 @@ begin
   end if;
   select * into v_store from public.stores where id=p_store_id and status='active'
     and deleted_at is null and (expires_at is null or expires_at>now()) for update;
-  if not found then raise exception 'Toko sedang tidak aktif'; end if;
+  if not found or not private.is_store_operational(p_store_id) then raise exception 'Toko sedang tidak aktif'; end if;
   select * into v_settings from public.store_settings where store_id=p_store_id;
   if not found or v_settings.self_order_enabled is not true then raise exception 'Self Order sedang tidak aktif'; end if;
   select count(*) into v_recent_count from public.self_service_orders
