@@ -114,14 +114,27 @@ export default function SelfOrderManager({store,settings,isManager=false,onNotic
   const saveSettings=async e=>{
     e.preventDefault();setBusy('settings')
     let nextQrisUrl=qrisUrl.trim()||null
+    let uploadedQrisPath=null
     if(qrisFile){
+      const extensions={'image/png':'png','image/jpeg':'jpg','image/webp':'webp'}
+      const extension=extensions[qrisFile.type]
+      if(!extension){setBusy('');onNotice?.('Format QRIS harus PNG, JPG, atau WebP.');return}
       if(qrisFile.size>3*1024*1024){setBusy('');onNotice?.('Ukuran gambar QRIS maksimal 3 MB.');return}
-      const {error:uploadError}=await supabase.storage.from('store-logos').upload(store.id+'/self-order-qris',qrisFile,{upsert:true,contentType:qrisFile.type})
+      uploadedQrisPath=store.id+'/self-order-qris-'+Date.now()+'.'+extension
+      const {error:uploadError}=await supabase.storage.from('store-logos').upload(uploadedQrisPath,qrisFile,{upsert:false,contentType:qrisFile.type})
       if(uploadError){setBusy('');onNotice?.(uploadError.message);return}
-      nextQrisUrl=supabase.storage.from('store-logos').getPublicUrl(store.id+'/self-order-qris').data.publicUrl
+      nextQrisUrl=supabase.storage.from('store-logos').getPublicUrl(uploadedQrisPath).data.publicUrl
     }
     const {error}=await supabase.from('store_settings').update({self_order_enabled:enabled,self_order_qris_image_url:nextQrisUrl,self_order_payment_instructions:instructions.trim()}).eq('store_id',store.id)
-    setBusy('');if(error)onNotice?.(error.message);else{setQrisUrl(nextQrisUrl||'');setQrisFile(null);onNotice?.('Pengaturan Self Order berhasil disimpan.')}
+    setBusy('')
+    if(error){
+      if(uploadedQrisPath)await supabase.storage.from('store-logos').remove([uploadedQrisPath])
+      onNotice?.(error.message)
+    }else{
+      const previousPath=qrisUrl.match(/\\/storage\\/v1\\/object\\/public\\/store-logos\\/([^?]+)/)?.[1]
+      if(uploadedQrisPath&&previousPath&&decodeURIComponent(previousPath).startsWith(store.id+'/'))await supabase.storage.from('store-logos').remove([decodeURIComponent(previousPath)])
+      setQrisUrl(nextQrisUrl||'');setQrisFile(null);onNotice?.('Pengaturan Self Order berhasil disimpan.')
+    }
   }
   const act=async(id,action)=>{
     setBusy(id+action)
