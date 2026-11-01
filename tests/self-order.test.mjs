@@ -76,10 +76,10 @@ test('Self Order staff status RPC is not executable by anonymous customers and f
 
 test('Public Self Order catalog and checkout validate activation without requiring tenant membership', async () => {
   const fix = await read('../supabase/migrations/20261101100000_self_order_public_store_access_fix.sql')
-  assert.match(fix, /create or replace function private\\.is_store_publicly_available\\(target_store uuid\\)/i)
-  assert.match(fix, /o\\.status = 'active'/)
-  assert.match(fix, /o\\.expires_at is null or o\\.expires_at > now\\(\\)/)
-  assert.match(fix, /private\\.is_store_operational\\(p_store_id\\)/)
-  assert.match(fix, /private\\.is_store_publicly_available\\(p_store_id\\)/)
-  assert.match(fix, /replaced_count <> 2/)
+  assert.ok(fix.includes('create or replace function private.is_store_publicly_available(target_store uuid)'))
+  assert.ok(fix.includes("o.status = 'active'"))
+  assert.ok(fix.includes('o.expires_at is null or o.expires_at > now()'))
+  assert.ok(fix.includes('private.is_store_operational(p_store_id)'))
+  assert.ok(fix.includes('private.is_store_publicly_available(p_store_id)'))
+  assert.ok(fix.includes('replaced_count <> 2'))
 })
