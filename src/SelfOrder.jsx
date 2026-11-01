@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { ArrowLeft, Check, Clock3, Copy, ExternalLink, Image, Package, RefreshCw, ShieldCheck, ShoppingBag, Upload, X } from 'lucide-react'
+import { Check, Clock3, Copy, ExternalLink, Image, Package, RefreshCw, ShieldCheck, ShoppingBag, Upload, X } from 'lucide-react'
+import QRCode from 'qrcode'
 import { supabase } from './lib/supabase'
 import './SelfOrder.css'
 
@@ -85,7 +86,9 @@ export default function SelfOrderManager({store,settings,isManager=false,onNotic
   const [instructions,setInstructions]=useState(settings?.self_order_payment_instructions||'Scan QRIS, lakukan pembayaran, lalu unggah bukti pembayaran.')
   const [filter,setFilter]=useState('all')
   const [copied,setCopied]=useState(false)
+  const [qrDataUrl,setQrDataUrl]=useState('')
   const link=publicUrl(store.id)
+  useEffect(()=>{let active=true;QRCode.toDataURL(link,{errorCorrectionLevel:'M',margin:2,width:320,color:{dark:'#10243a',light:'#ffffff'}}).then(url=>{if(active)setQrDataUrl(url)}).catch(()=>{if(active)setQrDataUrl('')});return()=>{active=false}},[link])
   useEffect(()=>{setEnabled(Boolean(settings?.self_order_enabled));setQrisUrl(settings?.self_order_qris_image_url||'');setInstructions(settings?.self_order_payment_instructions||'Scan QRIS, lakukan pembayaran, lalu unggah bukti pembayaran.')},[settings?.self_order_enabled,settings?.self_order_qris_image_url,settings?.self_order_payment_instructions])
   const load=useCallback(async()=>{
     if(!store?.id)return
@@ -137,7 +140,7 @@ export default function SelfOrderManager({store,settings,isManager=false,onNotic
         <label>Instruksi pembayaran<textarea className="text-input" rows="3" value={instructions} onChange={e=>setInstructions(e.target.value)}/></label>
         <button className="btn btn-primary" disabled={busy==='settings'}>{busy==='settings'?'Menyimpan…':'Simpan pengaturan'}</button>
       </form>}
-      <div className="panel so-manager-link"><div className="panel-head"><div><h3><ExternalLink size={17}/> Tautan pemesanan toko</h3><p>Bagikan tautan ini atau jadikan QR Code pada materi toko.</p></div></div><code>{link}</code><button className="btn btn-outline" onClick={copy}><Copy size={16}/>{copied?'Tersalin':'Salin tautan'}</button><small>QR Code cetak dapat dibuat dari tautan ini. Pastikan Self Order telah diaktifkan.</small></div>
+      <div className="panel so-manager-link"><div className="panel-head"><div><h3><ExternalLink size={17}/> Tautan pemesanan toko</h3><p>Bagikan tautan ini atau jadikan QR Code pada materi toko.</p></div></div><code>{link}</code>{qrDataUrl&&<div className="so-qr-download"><img src={qrDataUrl} alt="QR Code Self Order toko"/><a className="btn btn-outline" href={qrDataUrl} download={`self-order-${store.id}.png`}>Unduh QR Code</a></div>}<button className="btn btn-outline" onClick={copy}><Copy size={16}/>{copied?'Tersalin':'Salin tautan'}</button><small>QR Code cetak dapat dibuat dari tautan ini. Pastikan Self Order telah diaktifkan.</small></div>
     </div>
     <div className="panel so-order-list"><div className="panel-head"><div><h3>Pesanan masuk</h3><p>Verifikasi pembayaran sebelum mulai memproses pesanan.</p></div><select className="text-input" value={filter} onChange={e=>setFilter(e.target.value)}><option value="all">Semua pesanan</option><option value="pending">Menunggu verifikasi</option><option value="paid">Sudah dibayar</option><option value="rejected">Ditolak</option></select></div>
       {loading?<p className="so-muted">Memuat pesanan…</p>:!filtered.length?<div className="so-manager-empty"><ShoppingBag size={25}/><strong>Belum ada pesanan</strong><span>Pesanan pelanggan akan tampil di sini.</span></div>:filtered.map(o=><article className="so-order-card" key={o.id}><div className="so-order-card-head"><div><strong>{o.order_number}</strong><small>{new Date(o.created_at).toLocaleString('id-ID',{timeZone:'Asia/Jakarta'})}</small></div><span className={'so-status '+o.payment_status}>{o.payment_status==='pending_verification'?'Menunggu verifikasi':o.payment_status==='paid'?'Dibayar':o.payment_status==='rejected'?'Ditolak':'Menunggu pembayaran'}</span></div><div className="so-order-customer"><strong>{o.customer_name}</strong><small>{o.customer_phone||'Nomor telepon tidak diisi'}</small>{o.customer_notes&&<p>{o.customer_notes}</p>}</div><div className="so-order-items">{(items[o.id]||[]).map(i=><div key={i.id}><span>{i.quantity} × {i.product_name}</span><strong>{idr(i.line_total)}</strong></div>)}</div><div className="so-order-total"><span>Total</span><strong>{idr(o.total)}</strong></div>{proofs[o.id]&&<a className="so-proof-link" href={proofs[o.id]} target="_blank" rel="noreferrer"><Image size={16}/> Lihat bukti pembayaran</a>}
