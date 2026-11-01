@@ -154,6 +154,6 @@ test('Khusus package activation accepts its own per-organization quota in backen
   const sql = await read('../supabase/migrations/20261101120000_support_special_activation_package.sql')
   assert.ok(sql.includes("p_package_key in ('custom', 'special')"))
   assert.ok(sql.includes("set activation_package_key = p_package_key"))
-  assert.ok(sql.includes("set activation_location_limit = v_location_limit"))
+  assert.ok(sql.includes("activation_location_limit = v_location_limit"))
   assert.ok(sql.includes('p_location_limit > 1000'))
 })
