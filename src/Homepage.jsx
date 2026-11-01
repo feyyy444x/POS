@@ -213,6 +213,18 @@ export default function Homepage() {
   const selected = plans.find(p => p.key === selectedPlan) || plans[1]
   const currentScene = storyScenes[scene] || storyScenes.kasir
   const SceneIcon = currentScene.icon
+  const contactCustom = () => {
+    const details = [
+      'Halo Tim NexaPos, saya ingin konsultasi Paket Khusus.',
+      'Saya membutuhkan masa aktif dan jumlah tenant yang disesuaikan dengan kebutuhan bisnis.',
+      'Mohon bantu informasikan pilihan durasi, kuota tenant, harga, dan proses aktivasi yang sesuai.',
+      'Nama usaha/organisasi: ',
+      'Kebutuhan jumlah tenant: ',
+      'Kebutuhan masa aktif: ',
+      'Terima kasih.'
+    ].join('\\n')
+    window.open('https://t.me/becaaapos?text=' + encodeURIComponent(details), '_blank', 'noopener,noreferrer')
+  }
   const contact = (plan, promo, quote) => {
     const details = [
       'Halo Tim NexaPos, saya ingin menanyakan penyewaan layanan.',
@@ -318,7 +330,7 @@ export default function Homepage() {
       <section className="living-pricing living-pricing-redesign" id="harga">
         <div className="living-section-head living-reveal">
           <div><span className="living-eyebrow">PAKET SEWA NEXAPOS / 04</span><h2>Satu sistem untuk bisnismu.<br/><em>Pilih kapasitas dan masa sewa.</em></h2></div>
-          <p>Gunakan fitur operasional NexaPos sesuai kebutuhan usaha. Pilih kapasitas tenant tambahan dan masa sewa yang sesuai dengan kebutuhan bisnis. Kode aktivasi diterbitkan dan diproses oleh Super Admin.</p>
+          <p>Gunakan fitur operasional NexaPos sesuai kebutuhan usaha. Pilih paket yang tersedia atau konsultasikan Paket Khusus untuk menentukan masa aktif dan jumlah tenant sesuai kebutuhan bisnismu. Kode aktivasi diterbitkan dan diproses oleh Super Admin.</p>
         </div>
         {activePromo && <article className="living-pricing-promo living-promo-feature" aria-live="polite">
           <div className="living-promo-feature-mark"><Sparkles size={23}/><span>LIMITED<br/>OFFER</span></div>
@@ -377,11 +389,23 @@ export default function Homepage() {
             </article>
           })}
         </div>
+        <article className="living-plan living-plan-redesign living-plan-custom living-reveal">
+          <div className="living-plan-top"><span>Paket Khusus</span><b>SESUAI KEBUTUHAN</b></div>
+          <p className="living-plan-note">Punya kebutuhan operasional yang berbeda? Kami bantu siapkan skema aktivasi yang menyesuaikan kebutuhan bisnismu.</p>
+          <div className="living-custom-highlight"><span><Activity size={16}/></span><div><strong>Lebih fleksibel, tanpa batasan paket standar</strong><small>Diskusikan masa aktif dan jumlah tenant yang kamu perlukan.</small></div></div>
+          <ul>
+            <li><CheckCircle2 size={14}/>Masa aktif dapat disesuaikan</li>
+            <li><CheckCircle2 size={14}/>Jumlah tenant sesuai kebutuhan</li>
+            <li><CheckCircle2 size={14}/>Dibantu tim NexaPos untuk proses aktivasi</li>
+          </ul>
+          <button className="living-cta living-plan-cta living-plan-cta-redesign" onClick={contactCustom}>Konsultasikan kebutuhan <ArrowRight size={14}/></button>
+          <span className="living-plan-footnote">Harga dan kuota dibicarakan langsung sesuai permintaan</span>
+        </article>
         {!activePromo && <div className="living-no-promo"><span><Activity size={16}/></span><div><b>Belum ada promo otomatis yang aktif</b><p>Voucher berkode tetap bisa digunakan sesuai masa berlaku dan ketentuan promo.</p></div></div>}
         <p className="living-pricing-note">Harga dan informasi promo mengikuti pengaturan aktif di Super Admin. Layanan menggunakan model sewa dengan aktivasi oleh Super Admin, bukan penagihan berulang otomatis.</p>
       </section>
 
-      <section className="living-faq" id="faq"><div className="living-section-head living-reveal"><div><span className="living-eyebrow">GOOD TO KNOW</span><h2>Sebelum mulai,<br/><em>ini yang perlu diketahui.</em></h2></div><p>Jawaban ringkas untuk membantu Anda memahami cara memulai menggunakan NexaPos.</p></div><div className="living-faq-list">{[{q:'Apa yang membedakan paket NexaPos?',a:'Fitur utama NexaPos tersedia untuk setiap paket. Pilihan paket menentukan kuota tenant tambahan, sedangkan pilihan durasi menentukan masa sewa layanan.'},{q:'Bagaimana cara mulai menggunakan NexaPos?',a:'Pilih kapasitas tenant tambahan dan masa sewa, lalu hubungi tim NexaPos melalui Telegram untuk memperoleh informasi pembayaran dan proses aktivasi oleh Super Admin.'},{q:'Apa itu NexaSpace?',a:'NexaSpace adalah pusat kendali pemilik organisasi untuk melihat dan mengelola tenant dalam satu organisasi, termasuk memilih workspace tenant yang akan dikelola. Data dan stok setiap tenant tetap terpisah.'},{q:'Apakah NexaPos mendukung printer thermal?',a:'NexaPos menyediakan alur cetak struk untuk printer thermal yang kompatibel dengan perangkat dan browser yang digunakan.'},{q:'Bisakah beberapa karyawan menjadi kasir bersamaan?',a:'Bisa. Beberapa akun karyawan dapat digunakan pada toko yang sama secara bersamaan. Setiap transaksi tetap tercatat berdasarkan akun kasir yang melayaninya.'},{q:'Apakah data usaha langsung hilang saat masa aktif berakhir?',a:'Berakhirnya masa aktif membatasi akses operasional tenant sesuai status aktivasi. Owner tetap dapat membuka NexaSpace untuk melihat informasi organisasi, sedangkan data operasional tidak otomatis dihapus hanya karena masa sewa berakhir.'}].map((item,i)=><div className={'living-faq-item'+(faqOpen===i?' is-open':'')} key={item.q}><button onClick={()=>setFaqOpen(faqOpen===i?-1:i)} aria-expanded={faqOpen===i}><span><small>0{i+1}</small>{item.q}</span><ChevronDown size={17}/></button>{faqOpen===i&&<p>{item.a}</p>}</div>)}</div></section>
+      <section className="living-faq" id="faq"><div className="living-section-head living-reveal"><div><span className="living-eyebrow">GOOD TO KNOW</span><h2>Sebelum mulai,<br/><em>ini yang perlu diketahui.</em></h2></div><p>Jawaban ringkas untuk membantu Anda memahami cara memulai menggunakan NexaPos.</p></div><div className="living-faq-list">{[{q:'Apa yang membedakan paket NexaPos?',a:'Fitur utama NexaPos tersedia untuk setiap paket. Paket reguler menentukan kuota tenant dan harga sesuai masa sewa. Paket Khusus memungkinkan masa aktif serta jumlah tenant ditentukan sesuai kebutuhan melalui konsultasi dengan tim NexaPos.'},{q:'Bagaimana cara mulai menggunakan NexaPos?',a:'Pilih salah satu paket yang tersedia, atau hubungi tim NexaPos melalui Telegram jika membutuhkan Paket Khusus dengan masa aktif dan jumlah tenant yang disesuaikan. Aktivasi diproses oleh Super Admin.'},{q:'Apa itu NexaSpace?',a:'NexaSpace adalah pusat kendali pemilik organisasi untuk melihat dan mengelola tenant dalam satu organisasi, termasuk memilih workspace tenant yang akan dikelola. Data dan stok setiap tenant tetap terpisah.'},{q:'Apakah NexaPos mendukung printer thermal?',a:'NexaPos menyediakan alur cetak struk untuk printer thermal yang kompatibel dengan perangkat dan browser yang digunakan.'},{q:'Bisakah beberapa karyawan menjadi kasir bersamaan?',a:'Bisa. Beberapa akun karyawan dapat digunakan pada toko yang sama secara bersamaan. Setiap transaksi tetap tercatat berdasarkan akun kasir yang melayaninya.'},{q:'Apakah data usaha langsung hilang saat masa aktif berakhir?',a:'Berakhirnya masa aktif membatasi akses operasional tenant sesuai status aktivasi. Owner tetap dapat membuka NexaSpace untuk melihat informasi organisasi, sedangkan data operasional tidak otomatis dihapus hanya karena masa sewa berakhir.'}].map((item,i)=><div className={'living-faq-item'+(faqOpen===i?' is-open':'')} key={item.q}><button onClick={()=>setFaqOpen(faqOpen===i?-1:i)} aria-expanded={faqOpen===i}><span><small>0{i+1}</small>{item.q}</span><ChevronDown size={17}/></button>{faqOpen===i&&<p>{item.a}</p>}</div>)}</div></section>
 
       <section className="living-final">
         <div className="living-final-orbit" aria-hidden="true"/><div className="living-final-copy living-reveal"><span className="living-eyebrow">THE NEXT MOVE IS YOURS</span><h2>Bisnis bergerak.<br/><em>Pastikan sistemnya ikut.</em></h2><p>Mulai bangun operasional yang lebih teratur dengan alur kasir, tim, produk, laporan, dan layanan pelanggan yang saling terhubung.</p></div>
