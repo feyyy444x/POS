@@ -4,13 +4,13 @@ import { readFile } from 'node:fs/promises'
 
 const read = path => readFile(new URL(path, import.meta.url), 'utf8')
 
-test('Self Order is available in the tenant workspace and public QR route', async () => {
+test('Self Order customer QR route remains public while staff settings and inbox stay in their proper locations', async () => {
   const app = await read('../src/App.jsx')
-  assert.match(app, /\['self-order','Self Order',ShoppingBag\]/)
-  assert.match(app, /page==='self-order'&&<SelfOrderManager/)
-  assert.match(app, /if\(screen==='self-order'\)return <SelfOrderPublic\/>/)
-  assert.match(app, /'self-order':'Self Order'/)
-  assert.match(app, /'self-order'/)
+  assert.match(app, /if\\(screen==='self-order'\\)return <SelfOrderPublic\\/>/)
+  assert.match(app, /<SelfOrderSettings store=\\{store\\} settings=\\{settings\\}/)
+  assert.match(app, /<SelfOrderManager store=\\{store\\} onNotice=\\{setNotice\\} embedded\\/>/)
+  assert.doesNotMatch(app, /\\['self-order','Self Order'/)
+  assert.doesNotMatch(app, /page==='self-order'&&<SelfOrderManager/)
 })
 
 test('Customer ordering reads public catalog and sends server-validated product IDs and quantities', async () => {
