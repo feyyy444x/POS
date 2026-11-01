@@ -127,3 +127,16 @@ test('Self Order staff actions require the authenticated employee own open shift
   assert.ok(sql.includes('from public, anon'))
   assert.doesNotMatch(sql, /grant execute[^;]*to anon/i)
 })
+
+
+test('homepage exposes a quote-based Paket Khusus without public price or tenant quota', async () => {
+  const homepage = await read('../src/Homepage.jsx')
+  const styles = await read('../src/homepage.css')
+  assert.match(homepage, /Paket Khusus/)
+  assert.match(homepage, /Masa aktif dapat disesuaikan/)
+  assert.match(homepage, /Jumlah tenant sesuai kebutuhan/)
+  assert.match(homepage, /contactCustom/)
+  assert.match(styles, /living-plan-custom/)
+  const customCard = homepage.slice(homepage.indexOf('className="living-plan living-plan-redesign living-plan-custom'), homepage.indexOf('{!activePromo && <div className="living-no-promo">'))
+  assert.doesNotMatch(customCard, /money\(|location_limit|Kuota [0-9]/)
+})
