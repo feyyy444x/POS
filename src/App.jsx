@@ -1875,9 +1875,11 @@ function SuperAdminScreen({session,syncStatus,setSyncStatus,onSignOut,platformAd
   useEffect(()=>{
     const channel=supabase.channel('super-admin-organization-profile-sync')
       .on('postgres_changes',{event:'*',schema:'public',table:'owner_organizations'},()=>{load();loadUsers()})
+      .on('postgres_changes',{event:'*',schema:'public',table:'stores'},()=>{load()})
+      .on('postgres_changes',{event:'*',schema:'public',table:'store_settings'},()=>{load()})
       .subscribe()
     return()=>{supabase.removeChannel(channel)}
-  },[loadUsers])
+  },[load,loadUsers])
   useEffect(()=>{
     let mounted=true
     const loadActivationOptions=async()=>{
