@@ -73,7 +73,7 @@ export function SelfOrderPublic(){
   </main>
 }
 
-export default function SelfOrderManager({store,settings,onNotice}){
+export default function SelfOrderManager({store,settings,isManager=false,onNotice}){
   const [orders,setOrders]=useState([])
   const [items,setItems]=useState({})
   const [proofs,setProofs]=useState({})
