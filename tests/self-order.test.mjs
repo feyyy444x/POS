@@ -140,3 +140,12 @@ test('homepage exposes a quote-based Paket Khusus without public price or tenant
   const customCard = homepage.slice(homepage.indexOf('className="living-plan living-plan-redesign living-plan-custom'), homepage.indexOf('{!activePromo && <div className="living-no-promo">'))
   assert.doesNotMatch(customCard, /money\(|location_limit|Kuota [0-9]/)
 })
+
+test('Super Admin activation supports Paket Khusus with a custom tenant quota', async () => {
+  const app = await read('../src/App.jsx')
+  assert.ok(app.includes("package_key: 'special', name: 'Khusus'"))
+  assert.ok(app.includes("activationPackage==='special'"))
+  assert.ok(app.includes("const packageKey=activationQuotaMode==='custom'?'custom':activationPackage"))
+  assert.ok(app.includes('p_package_key:packageKey'))
+  assert.ok(app.includes('Jumlah kuota tenant Paket Khusus'))
+})
