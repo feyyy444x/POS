@@ -124,6 +124,7 @@ declare
   v_subtotal numeric(14,2):=0;
   v_count integer:=0;
   v_expired record;
+  v_recent_count integer;
 begin
   if coalesce(length(trim(p_customer_name)),0)<2 or length(trim(p_customer_name))>100 then
     raise exception 'Nama pelanggan wajib diisi (2–100 karakter)';
@@ -136,6 +137,9 @@ begin
   if not found then raise exception 'Toko sedang tidak aktif'; end if;
   select * into v_settings from public.store_settings where store_id=p_store_id;
   if not found or v_settings.self_order_enabled is not true then raise exception 'Self Order sedang tidak aktif'; end if;
+  select count(*) into v_recent_count from public.self_service_orders
+    where store_id=p_store_id and created_at>now()-interval '1 minute';
+  if v_recent_count>=30 then raise exception 'Toko sedang menerima banyak pesanan. Coba lagi sebentar.'; end if;
 
   -- Release stock from abandoned unpaid orders before reserving new stock.
   for v_expired in
@@ -227,7 +231,7 @@ declare
   v_next_queue integer;
 begin
   select * into v_order from public.self_service_orders where id=p_order_id for update;
-  if not found or not private.is_store_member(v_order.store_id) or not private.is_store_operational(v_order.store_id) then
+  if not found or not private.is_store_member(v_order.store_id) or not private.is_store_operational(v_order.store_id) or not private.is_pin_verified() then
     raise exception 'Pesanan tidak ditemukan atau akses ditolak';
   end if;
   if p_action='approve' then
