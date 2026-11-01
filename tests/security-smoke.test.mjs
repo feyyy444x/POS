@@ -429,7 +429,7 @@ test('Super Admin can configure a private custom duration and package-specific p
   assert.match(subscriptionPlanManagerUi, /supabase\.from\('site_activation_durations'\)\.upsert/)
   assert.match(subscriptionPlanManagerUi, /duration_key: 'custom'/)
   assert.match(subscriptionPlanManagerUi, /durations\.filter\(duration=>duration\.is_active\)/)
-  assert.match(subscriptionPlanManagerUi, /duration_key !== 'custom'/)
+  assert.match(subscriptionPlanManagerUi, /const pricingDurations = useMemo\(\(\) => \['daily', 'weekly', 'monthly', 'yearly'\]/)
   assert.match(subscriptionPlanManagerUi, /updatePrice\(plan\.package_key,duration\.duration_key/)
   assert.match(subscriptionPlanManagerUi, /supabase\.from\('site_activation_packages'\)\.upsert/)
   assert.match(app, /activationQuotaMode==='custom'/)
