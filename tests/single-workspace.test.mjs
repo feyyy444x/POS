@@ -32,6 +32,7 @@ test('Single Workspace Owner is registered through the normal owner membership a
   assert.match(app, /workspace_mode==='single_workspace'/)
   assert.match(app, /if \(ownerOrganization && !isOwnerTenantWorkspace\) return <OwnerOrganizationCenter/)
   assert.match(app, /registrationModel==='single_workspace'/)
+  assert.match(app, /member\.role === 'owner' && storeData\.workspace_mode !== 'single_workspace'/)
 })
 
 test('Single Workspace subscription is configurable in Admin and only public when activated there', async () => {
