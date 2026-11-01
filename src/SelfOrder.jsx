@@ -123,12 +123,12 @@ export default function SelfOrderManager({store,settings,isManager=false,onNotic
   return <section className="page-section self-order-manager">
     <div className="page-heading"><div><span className="eyebrow muted">CUSTOMER EXPERIENCE / DIGITAL ORDERING</span><h1>Self <span className="heading-accent">Order.</span></h1><p>Kelola pemesanan pelanggan melalui tautan QR toko dan verifikasi pembayaran.</p></div><button className="btn btn-outline" onClick={load}><RefreshCw size={16}/> Refresh</button></div>
     <div className="so-manager-grid">
-      <form className="panel so-manager-settings" onSubmit={saveSettings}><div className="panel-head"><div><h3><ShoppingBag size={17}/> Pengaturan Self Order</h3><p>Aktifkan halaman pemesanan dan atur QRIS toko.</p></div></div>
+      {isManager&&<form className="panel so-manager-settings" onSubmit={saveSettings}><div className="panel-head"><div><h3><ShoppingBag size={17}/> Pengaturan Self Order</h3><p>Aktifkan halaman pemesanan dan atur QRIS toko.</p></div></div>
         <label className="so-toggle"><input type="checkbox" checked={enabled} onChange={e=>setEnabled(e.target.checked)}/><span><strong>Aktifkan Self Order</strong><small>Pelanggan dapat mengakses menu melalui QR toko.</small></span></label>
         <label>URL gambar QRIS merchant<input className="text-input" type="url" value={qrisUrl} onChange={e=>setQrisUrl(e.target.value)} placeholder="https://.../qris-toko.png"/></label>
         <label>Instruksi pembayaran<textarea className="text-input" rows="3" value={instructions} onChange={e=>setInstructions(e.target.value)}/></label>
         <button className="btn btn-primary" disabled={busy==='settings'}>{busy==='settings'?'Menyimpan…':'Simpan pengaturan'}</button>
-      </form>
+      </form>}
       <div className="panel so-manager-link"><div className="panel-head"><div><h3><ExternalLink size={17}/> Tautan pemesanan toko</h3><p>Bagikan tautan ini atau jadikan QR Code pada materi toko.</p></div></div><code>{link}</code><button className="btn btn-outline" onClick={copy}><Copy size={16}/>{copied?'Tersalin':'Salin tautan'}</button><small>QR Code cetak dapat dibuat dari tautan ini. Pastikan Self Order telah diaktifkan.</small></div>
     </div>
     <div className="panel so-order-list"><div className="panel-head"><div><h3>Pesanan masuk</h3><p>Verifikasi pembayaran sebelum mulai memproses pesanan.</p></div><select className="text-input" value={filter} onChange={e=>setFilter(e.target.value)}><option value="all">Semua pesanan</option><option value="pending">Menunggu verifikasi</option><option value="paid">Sudah dibayar</option><option value="rejected">Ditolak</option></select></div>
