@@ -46,3 +46,32 @@
  .so-settings-qr img{width:88px;height:88px}
 }
 @media(max-width:420px){.so-inbox-toggle{gap:8px;padding:12px}.so-inbox-toggle-icon{width:32px;height:32px}.so-inbox-chevron{font-size:10px}.so-settings-actions{flex-direction:column}}
+
+
+/* Compact customer catalog: six products per page and POS-style cards */
+.so-product-grid{grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+.so-product{padding:10px;gap:9px;border-radius:14px;align-items:flex-start;box-shadow:0 2px 8px rgba(16,36,58,.035)}
+.so-product-image{width:48px;height:48px;flex:0 0 48px;border-radius:11px}
+.so-product-image svg{width:20px;height:20px}
+.so-product-info{gap:1px}
+.so-product-info small{font-size:9px;line-height:1.25}
+.so-product-info strong{font-size:12px;line-height:1.3;margin:2px 0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:31px}
+.so-product-info b{font-size:12px;line-height:1.25}
+.so-quantity{gap:7px;margin-top:6px}
+.so-quantity button{width:25px;height:25px;border-radius:7px;font-size:16px;line-height:1}
+.so-quantity span{font-size:12px;min-width:12px;text-align:center}
+@media(max-width:760px){
+ .so-product-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ .so-product{padding:9px;gap:7px}
+ .so-product-image{width:40px;height:40px;flex-basis:40px}
+ .so-product-info strong{font-size:11px;min-height:29px}
+ .so-product-info b{font-size:11px}
+ .so-quantity{gap:5px}
+ .so-quantity button{width:24px;height:24px}
+}
+@media(max-width:360px){
+ .so-product{padding:7px;gap:6px}
+ .so-product-image{width:34px;height:34px;flex-basis:34px}
+ .so-product-info strong{font-size:10px}
+ .so-product-info b{font-size:10px}
+}
