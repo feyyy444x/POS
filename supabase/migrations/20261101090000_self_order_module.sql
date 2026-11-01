@@ -283,7 +283,7 @@ begin
     update public.self_service_orders set order_status=p_action,updated_at=now()
       where id=p_order_id returning * into v_order;
     if p_action in ('ready','completed') and v_order.queue_ticket_id is not null then
-      update public.queue_tickets set status=case when p_action='ready' then 'called' else 'completed' end,
+      update public.queue_tickets set status=case when p_action='ready' then 'called' else 'done' end,
         called_at=case when p_action='ready' then now() else called_at end,
         completed_at=case when p_action='completed' then now() else completed_at end
       where id=v_order.queue_ticket_id;
