@@ -54,6 +54,7 @@ declare
   v_email text;
   v_org public.owner_organizations;
   v_count integer;
+  v_has_primary boolean;
 begin
   if new.workspace_mode = 'single_workspace' then
     new.organization_id := null;
@@ -73,7 +74,9 @@ begin
       insert into public.owner_organizations (
         owner_email, owner_name, activation_package_key, activation_location_limit, status
       )
-      values (v_email, coalesce(new.owner_name, ''), 'starter', 3, 'pending')
+      values (
+        v_email, coalesce(new.owner_name, ''), 'starter', 3, 'pending'
+      )
       returning * into v_org;
     end if;
     new.organization_id := v_org.id;
@@ -87,15 +90,26 @@ begin
     end if;
   end if;
 
+  select exists (
+    select 1 from public.stores s
+    where s.organization_id = v_org.id
+      and s.is_primary_workspace = true
+      and s.status <> 'deleted' and s.deleted_at is null
+      and (tg_op <> 'UPDATE' or s.id <> new.id)
+  ) into v_has_primary;
+
+  new.is_primary_workspace := not v_has_primary;
+
   select count(*)::integer into v_count
   from public.stores s
   where s.organization_id = v_org.id
+    and s.is_primary_workspace = false
     and s.status <> 'deleted'
     and s.deleted_at is null
     and (tg_op <> 'UPDATE' or s.id <> new.id);
 
-  if v_count >= v_org.activation_location_limit then
-    raise exception 'Kuota tenant paket % sudah penuh (% tenant). Tingkatkan paket sebelum menambah tenant.',
+  if not new.is_primary_workspace and v_count >= v_org.activation_location_limit then
+    raise exception 'Kuota tenant tambahan paket % sudah penuh (% tenant tambahan). Tingkatkan paket sebelum menambah tenant.',
       v_org.activation_package_key, v_org.activation_location_limit;
   end if;
 
