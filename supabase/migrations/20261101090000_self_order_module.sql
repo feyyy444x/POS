@@ -76,10 +76,17 @@ as $$
 declare v_store public.stores; v_settings public.store_settings;
 begin
   select * into v_store from public.stores where id=p_store_id and status='active'
-    and deleted_at is null and (expires_at is null or expires_at>now());
+    and deleted_at is null and (expires_at is null or expires_at>now()) for update;
   if not found then raise exception 'Toko tidak tersedia'; end if;
   select * into v_settings from public.store_settings where store_id=p_store_id;
   if not found or v_settings.self_order_enabled is not true then raise exception 'Self Order sedang tidak aktif'; end if;
+  update public.products p set stock=p.stock+i.quantity,updated_at=now()
+  from public.self_service_order_items i join public.self_service_orders o on o.id=i.self_service_order_id
+  where o.store_id=p_store_id and o.payment_status='awaiting_payment'
+    and o.payment_deadline<=now() and p.id=i.product_id;
+  update public.self_service_orders set payment_status='rejected',order_status='cancelled',
+    rejection_note='Waktu pembayaran habis',updated_at=now()
+  where store_id=p_store_id and payment_status='awaiting_payment' and payment_deadline<=now();
   return jsonb_build_object(
     'store_id',v_store.id,
     'store_name',v_settings.store_name,
