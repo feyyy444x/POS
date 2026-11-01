@@ -16,6 +16,16 @@ test('Single Workspace is a distinct store mode and bypasses Owner organization 
   assert.doesNotMatch(registration, /insert into public\.owner_organizations/i)
 })
 
+test('Adding Single Workspace preserves the existing Khusus custom-tenant quota activation path', async () => {
+  const sql = await read('../supabase/migrations/20261101140000_single_workspace_subscription.sql')
+  const activation = sql.slice(sql.indexOf('create or replace function public.activate_store_tenant('), sql.indexOf('revoke all on function public.activate_store_tenant(uuid, integer, text, integer)'))
+  assert.match(activation, /p_package_key in \('custom', 'special'\)/)
+  assert.match(activation, /where package_key = p_package_key/)
+  assert.match(activation, /v_location_limit := p_location_limit/)
+  assert.match(activation, /p_location_limit < 1 or p_location_limit > 1000/)
+  assert.match(activation, /Paket Khusus sedang nonaktif/)
+})
+
 test('Single Workspace activation is independent of organization package quota and expiry', async () => {
   const sql = await read('../supabase/migrations/20261101140000_single_workspace_subscription.sql')
   const activation = sql.slice(sql.indexOf('create or replace function public.activate_single_workspace'), sql.indexOf('revoke all on function public.activate_single_workspace'))
