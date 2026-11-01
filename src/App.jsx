@@ -37,6 +37,8 @@ const activationPackageDefaults = [
   { package_key: 'business', name: 'Business', location_limit: 10, is_active: true },
   { package_key: 'enterprise', name: 'Enterprise', location_limit: 15, is_active: true },
   { package_key: 'special', name: 'Khusus', location_limit: 1, is_active: true, sort_order: 5 },
+  { package_key: 'single_workspace', name: 'Single Workspace', location_limit: 1, is_active: true, sort_order: 0 },
+
 ]
 
 async function fetchOwnerOrganizationTenants() {
@@ -1758,6 +1760,7 @@ function SuperAdminScreen({session,syncStatus,setSyncStatus,onSignOut,platformAd
   const [ownerActivationCard,setOwnerActivationCard]=useState(null)
   const [ownerActivationCopied,setOwnerActivationCopied]=useState(false)
   const [registering,setRegistering]=useState(false)
+  const [registrationModel,setRegistrationModel]=useState('nexaspace')
   const [duration,setDuration]=useState('monthly')
   const [activationPackage,setActivationPackage]=useState('growth')
   const [activationQuotaMode,setActivationQuotaMode]=useState('package')
@@ -1830,7 +1833,7 @@ function SuperAdminScreen({session,syncStatus,setSyncStatus,onSignOut,platformAd
   const pageSize=8
   const load=useCallback(async()=>{
     setLoading(true)
-    const {data,error}=await supabase.from('stores').select('id,name,owner_name,owner_email,status,activated_at,expires_at,activation_days,activation_package_key,activation_location_limit,organization_id,is_primary_workspace,created_at,deleted_at').order('created_at',{ascending:false})
+    const {data,error}=await supabase.from('stores').select('id,name,owner_name,owner_email,status,activated_at,expires_at,activation_days,activation_package_key,activation_location_limit,organization_id,is_primary_workspace,workspace_mode,created_at,deleted_at').order('created_at',{ascending:false})
     if(error){setTenants([]);setNotice(userFacingError(error));setLoading(false);return}
     const storeIds=(data||[]).map(tenant=>tenant.id)
     const organizationIds=[...new Set((data||[]).map(tenant=>tenant.organization_id).filter(Boolean))]
@@ -1941,17 +1944,19 @@ function SuperAdminScreen({session,syncStatus,setSyncStatus,onSignOut,platformAd
     const storeName=String(form.get('store_name')||'').trim()
     const ownerName=String(form.get('owner_name')||'').trim()
     const ownerEmail=String(form.get('owner_email')||'').trim().toLowerCase()
-    if(!organizationName||!storeName||!ownerName||!ownerEmail){setNotice('Nama perusahaan, nama workspace utama, nama Owner, dan email Owner wajib diisi.');return}
+    if((registrationModel==='nexaspace'&&!organizationName)||!storeName||!ownerName||!ownerEmail){setNotice(registrationModel==='single_workspace'?'Nama workspace, nama Owner, dan email Owner wajib diisi.':'Nama perusahaan, nama workspace utama, nama Owner, dan email Owner wajib diisi.');return}
     const activationCode=crypto.randomUUID().replaceAll('-','')
     setRegistering(true)
     setNotice('')
     try{
-      const {error}=await supabase.rpc('register_store_tenant',{p_store_name:storeName,p_owner_name:ownerName,p_owner_email:ownerEmail,p_activation_code:activationCode,p_organization_name:organizationName})
+      const {error}=registrationModel==='single_workspace'
+        ? await supabase.rpc('register_single_workspace',{p_store_name:storeName,p_owner_name:ownerName,p_owner_email:ownerEmail,p_activation_code:activationCode})
+        : await supabase.rpc('register_store_tenant',{p_store_name:storeName,p_owner_name:ownerName,p_owner_email:ownerEmail,p_activation_code:activationCode,p_organization_name:organizationName})
       if(error)throw error
       formElement.reset()
       setOwnerActivationCopied(false)
       setOwnerActivationCard({email:ownerEmail,code:activationCode,title:'Kode aktivasi Owner'})
-      setNotice('Perusahaan dan workspace utama berhasil didaftarkan secara terpisah. Kode aktivasi ditampilkan di kartu; kirimkan secara pribadi kepada Owner.')
+      setNotice(registrationModel==='single_workspace'?'Single Workspace berhasil didaftarkan tanpa NexaSpace. Kode aktivasi ditampilkan di kartu; kirimkan secara pribadi kepada Owner.':'Perusahaan dan workspace utama berhasil didaftarkan secara terpisah. Kode aktivasi ditampilkan di kartu; kirimkan secara pribadi kepada Owner.')
       await load()
     }catch(error){
       setNotice(userFacingError(error,'Pendaftaran Owner belum berhasil. Pastikan migrasi perusahaan Owner sudah diterapkan dan email belum digunakan untuk undangan Owner yang bertabrakan.'))
@@ -1978,6 +1983,13 @@ function SuperAdminScreen({session,syncStatus,setSyncStatus,onSignOut,platformAd
     const selectedDuration=activationDurations.find(item=>item.duration_key===duration)
     const days=Number(selectedDuration?.duration_days)
     if(!selectedDuration||!Number.isInteger(days)||days<1||days>36500){setNotice('Pilih durasi aktivasi yang valid.');return}
+    if(tenant.workspace_mode==='single_workspace'){
+      const {error}=await supabase.rpc('activate_single_workspace',{p_store_id:tenant.id,p_duration_days:days})
+      if(error){setNotice(userFacingError(error));return}
+      setNotice('Single Workspace '+(tenant.name||'Owner')+' berhasil diaktifkan selama '+days+' hari. Tidak ada NexaSpace atau kuota tenant.')
+      await load()
+      return
+    }
     const selectedPackage=activationQuotaMode==='package'?activationPackages.find(item=>item.package_key===activationPackage):null
     const isSpecialPackage=activationQuotaMode==='package'&&activationPackage==='special'
     const useCustomQuota=activationQuotaMode==='custom'||isSpecialPackage
@@ -2183,18 +2195,18 @@ function SuperAdminScreen({session,syncStatus,setSyncStatus,onSignOut,platformAd
           <div className="panel tenant-list-panel">
             <div className="panel-head"><div><h3><Store size={17}/> Daftar Tenant / Workspace</h3><p>Aktifkan, nonaktifkan, buka kendali, atau hapus hanya tenant yang dipilih.</p></div><button className="btn btn-outline btn-small" onClick={load}><RefreshCw size={14}/> Refresh daftar tenant</button></div>
             <div className="admin-filter-row"><div className="search-box"><Search size={17}/><input value={tenantSearch} onChange={e=>{setTenantSearch(e.target.value);setTenantPage(1)}} placeholder="Cari nama tenant, perusahaan, Owner, atau ID…"/></div><select className="text-input" value={tenantStatus} onChange={e=>{setTenantStatus(e.target.value);setTenantPage(1)}}><option value="all">Semua status</option><option value="active">Aktif</option><option value="pending">Menunggu</option><option value="suspended">Nonaktif</option><option value="deleted">Tenant terhapus</option></select></div>
-            {loading?<div className="empty-state"><span className="spinner spinner-large"/></div>:filteredTenants.length===0?<EmptyState icon={Store} title="Tenant tidak ditemukan" text="Ubah kata kunci atau filter status."/>:<><div className="table-wrap"><table><thead><tr><th>Tenant / workspace</th><th>Perusahaan pemilik</th><th>Dibuat</th><th>Status workspace</th><th>Aksi tenant</th></tr></thead><tbody>{filteredTenants.slice((tenantPage-1)*pageSize,tenantPage*pageSize).map(t=>{const status=statusOf(t);const parentCompany=organizations.find(org=>org.id===t.organization_id);const companyAllowsWorkspace=parentCompany?.status==='active'&&(!parentCompany.expires_at||new Date(parentCompany.expires_at)>new Date());return <tr key={t.id}><td><strong>{t.name||'Tenant tanpa nama'}</strong><br/><small>{t.is_primary_workspace?'Workspace utama':'Tenant tambahan'}</small><br/><small>{t.owner_name||'Nama Owner belum tersedia'} · {t.owner_email||'Email belum tersedia'}</small></td><td>Perusahaan: {t.organization_name||'Belum terhubung ke perusahaan'}</td><td>{t.created_at?new Date(t.created_at).toLocaleDateString('id-ID',{timeZone:'Asia/Jakarta'}):'—'}</td><td><span className={'status-pill '+(status==='active'?'status-paid':status==='pending'?'status-waiting':'status-inactive')}>{({active:'Aktif',pending:'Menunggu',expired:'Masa sewa perusahaan berakhir',suspended:'Nonaktif',deleted:'Terhapus'})[status]||status}</span></td><td><div className="tenant-actions"><button className="btn btn-small btn-outline" title={'Buka pusat kendali tenant '+t.name} onClick={()=>{setSelectedTenant(t);setSection('store-control')}}><Activity size={13}/> Kendali tenant</button>{status==='active'?<button className="btn btn-small btn-outline" title={'Nonaktifkan workspace '+t.name} onClick={()=>changeStatus(t,'suspended')}><Ban size={13}/> Nonaktifkan workspace</button>:status!=='deleted'&&<button className="btn btn-small btn-outline" title={companyAllowsWorkspace?'Aktifkan workspace '+t.name:'Aktifkan masa sewa perusahaan terlebih dahulu'} disabled={!companyAllowsWorkspace} onClick={()=>changeStatus(t,'active')}><Power size={13}/> Aktifkan workspace</button>}<button className="btn btn-small btn-outline danger-icon" title={'Hapus hanya tenant '+t.name} onClick={()=>changeStatus(t,'deleted')}><Trash2 size={14}/> Hapus tenant</button></div></td></tr>})}</tbody></table></div><Pagination page={tenantPage} total={filteredTenants.length} pageSize={pageSize} onChange={setTenantPage}/></>}
+            {loading?<div className="empty-state"><span className="spinner spinner-large"/></div>:filteredTenants.length===0?<EmptyState icon={Store} title="Tenant tidak ditemukan" text="Ubah kata kunci atau filter status."/>:<><div className="table-wrap"><table><thead><tr><th>Tenant / workspace</th><th>Perusahaan pemilik</th><th>Dibuat</th><th>Status workspace</th><th>Aksi tenant</th></tr></thead><tbody>{filteredTenants.slice((tenantPage-1)*pageSize,tenantPage*pageSize).map(t=>{const status=statusOf(t);const parentCompany=organizations.find(org=>org.id===t.organization_id);const companyAllowsWorkspace=t.workspace_mode==='single_workspace'||(parentCompany?.status==='active'&&(!parentCompany.expires_at||new Date(parentCompany.expires_at)>new Date()));return <tr key={t.id}><td><strong>{t.name||'Tenant tanpa nama'}</strong><br/><small>{t.is_primary_workspace?'Workspace utama':'Tenant tambahan'}</small><br/><small>{t.owner_name||'Nama Owner belum tersedia'} · {t.owner_email||'Email belum tersedia'}</small></td><td>{t.workspace_mode==='single_workspace'?<><strong>Single Workspace</strong><br/><small>Owner mandiri · tanpa NexaSpace</small></>:'Perusahaan: '+(t.organization_name||'Belum terhubung ke perusahaan')}</td><td>{t.created_at?new Date(t.created_at).toLocaleDateString('id-ID',{timeZone:'Asia/Jakarta'}):'—'}</td><td><span className={'status-pill '+(status==='active'?'status-paid':status==='pending'?'status-waiting':'status-inactive')}>{({active:'Aktif',pending:'Menunggu',expired:'Masa sewa perusahaan berakhir',suspended:'Nonaktif',deleted:'Terhapus'})[status]||status}</span></td><td><div className="tenant-actions"><button className="btn btn-small btn-outline" title={'Buka pusat kendali tenant '+t.name} onClick={()=>{setSelectedTenant(t);setSection('store-control')}}><Activity size={13}/> Kendali tenant</button>{status==='active'?<button className="btn btn-small btn-outline" title={'Nonaktifkan workspace '+t.name} onClick={()=>changeStatus(t,'suspended')}><Ban size={13}/> Nonaktifkan workspace</button>:status!=='deleted'&&<button className="btn btn-small btn-outline" title={t.workspace_mode==='single_workspace'?'Aktifkan / perpanjang Single Workspace':companyAllowsWorkspace?'Aktifkan workspace '+t.name:'Aktifkan masa sewa perusahaan terlebih dahulu'} disabled={!companyAllowsWorkspace} onClick={()=>t.workspace_mode==='single_workspace'?activate(t):changeStatus(t,'active')}><Power size={13}/> {t.workspace_mode==='single_workspace'?'Aktifkan / perpanjang':'Aktifkan workspace'}</button>}<button className="btn btn-small btn-outline danger-icon" title={'Hapus hanya tenant '+t.name} onClick={()=>changeStatus(t,'deleted')}><Trash2 size={14}/> Hapus tenant</button></div></td></tr>})}</tbody></table></div><Pagination page={tenantPage} total={filteredTenants.length} pageSize={pageSize} onChange={setTenantPage}/></>}
           </div>
         </section>}
         {section==='nexaspace'&&<section className="page-section">
   <div className="page-heading"><div><span className="eyebrow muted">OWNER / COMPANY CONTROL</span><h1>Manajemen <span className="heading-accent">NexaSpace.</span></h1><p>Daftarkan dan kelola perusahaan beserta akun Owner. NexaSpace adalah pusat pengelola; tenant adalah workspace operasional.</p></div><span className="date-pill"><Building2 size={14}/> {organizations.length} perusahaan</span></div>
-  <div className="panel super-register-panel"><div className="panel-head"><div><h3><UserPlus size={17}/> Daftarkan perusahaan</h3><p>Pendaftaran membuat NexaSpace Owner dan satu tenant utama yang terhubung.</p></div></div>
+  <div className="panel super-register-panel"><div className="panel-head"><div><h3><UserPlus size={17}/> Pendaftaran Owner NexaPos</h3><p>Pilih model langganan. Single Workspace langsung menjadi workspace milik Owner tanpa membuat NexaSpace.</p></div></div>
   <form className="tenant-register-form" onSubmit={submitTenant}>
     <div><label>Nama perusahaan</label><input className="text-input" name="organization_name" placeholder="Contoh: PT Nexa Niaga Nusantara" maxLength={120} required/></div>
-    <div><label>Nama tenant utama (workspace)</label><input className="text-input" name="store_name" placeholder="Contoh: Nexa Niaga Pusat" maxLength={120} required/></div>
-    <div><label>Nama Owner perusahaan</label><input className="text-input" name="owner_name" placeholder="Nama lengkap Owner" maxLength={120} required/></div>
-    <div><label>Email untuk akses NexaSpace</label><input className="text-input" type="email" name="owner_email" placeholder="owner@perusahaan.com" required/></div>
-    <button className="btn btn-primary" disabled={registering}>{registering?<span className="spinner"/>:<Plus size={16}/>} Daftarkan Perusahaan</button>
+    <div><label>Nama workspace</label><input className="text-input" name="store_name" placeholder="Contoh: Nexa Niaga Pusat" maxLength={120} required/></div>
+    <div><label>Nama Owner</label><input className="text-input" name="owner_name" placeholder="Nama lengkap Owner" maxLength={120} required/></div>
+    <div><label>Email Owner</label><input className="text-input" type="email" name="owner_email" placeholder="owner@perusahaan.com" required/></div>
+    <button className="btn btn-primary" disabled={registering}>{registering?<span className="spinner"/>:<Plus size={16}/>} {registrationModel==='single_workspace'?'Daftarkan Single Workspace':'Daftarkan Perusahaan NexaSpace'}</button>
   </form></div>
   <div className="panel activation-toolbar"><div className="panel-head"><div><h3><KeyRound size={17}/> Aktivasi pendaftaran perusahaan</h3><p>Tentukan masa sewa dan kuota tenant perusahaan. Kuota dapat mengikuti paket standar atau diisi sendiri tanpa mengubah harga paket homepage.</p></div></div><div className="activation-toolbar"><label>Metode kuota tenant <select className="text-input" value={activationQuotaMode} onChange={e=>setActivationQuotaMode(e.target.value)}><option value="package">Pilih paket</option><option value="custom">Custom — isi kuota sendiri</option></select></label>{activationQuotaMode==='package'?<><label>Paket perusahaan <select className="text-input" value={activationPackage} onChange={e=>setActivationPackage(e.target.value)}>{activationPackages.map(item=><option key={item.package_key} value={item.package_key}>{item.package_key==='special'?'Khusus — sesuai permintaan':item.name+(item.package_key==='special'?'':' · kuota '+item.location_limit+' tenant tambahan')}</option>)}</select></label>{activationPackage==='special'&&<label>Jumlah kuota tenant Paket Khusus <input className="text-input" type="number" min="1" max="1000" step="1" value={customTenantQuota} onChange={e=>setCustomTenantQuota(e.target.value)} placeholder="Tentukan kuota tenant sesuai permintaan"/></label>}</>:<label>Jumlah kuota tenant tambahan <input className="text-input" type="number" min="1" max="1000" step="1" value={customTenantQuota} onChange={e=>setCustomTenantQuota(e.target.value)} placeholder="Masukkan jumlah kuota tenant"/></label>}<label>Masa sewa perusahaan <select className="text-input" value={duration} onChange={e=>setDuration(e.target.value)}>{activationDurations.map(item=><option key={item.duration_key} value={item.duration_key}>{item.name} · {item.duration_days} hari</option>)}</select></label></div></div>
   <div className="panel tenant-list-panel"><div className="panel-head"><div><h3><Building2 size={17}/> Daftar Perusahaan NexaSpace</h3><p>Setiap baris mewakili satu perusahaan dan akun Owner. Setiap aksi perusahaan berlaku pada perusahaan terpilih sesuai ruang lingkupnya.</p></div><button className="btn btn-outline btn-small" onClick={()=>{loadOrganizations();load()}} title="Refresh"><RefreshCw size={14}/></button></div>
