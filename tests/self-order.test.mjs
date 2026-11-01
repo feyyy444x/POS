@@ -36,7 +36,7 @@ test('Tenant staff can verify and progress orders through the guarded status RPC
 })
 
 test('Self Order migration enforces tenant isolation, private proofs, stock reservations and POS settlement', async () => {
-  const sql = await read('../supabase/migrations/20261101090000_self_order_module.sql')
+  const sql = await read('../supabase/migrations/20261101083205_self_order_module.sql')
   assert.match(sql, /alter table public\.self_service_orders enable row level security/i)
   assert.match(sql, /private\.is_store_member\(store_id\)/)
   assert.match(sql, /create policy "public customers upload self order payment proof"/)
