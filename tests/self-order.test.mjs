@@ -104,3 +104,12 @@ test('Self Order order list uses pagination and keeps the rendered page bounded'
   assert.match(ui, /so-pagination/)
   assert.match(ui, /Halaman \{page\} \/ \{pages\}/)
 })
+
+
+test('Customer Self Order product catalog is paginated to avoid a long stacked menu', async () => {
+  const ui = await read('../src/SelfOrder.jsx')
+  assert.match(ui, /const PRODUCT_PAGE_SIZE = 12/)
+  assert.match(ui, /visibleProducts=selected\.slice\(\(productPage-1\)\*PRODUCT_PAGE_SIZE,productPage\*PRODUCT_PAGE_SIZE\)/)
+  assert.match(ui, /so-product-pagination/)
+  assert.match(ui, /setProductPage\(1\)/)
+})
