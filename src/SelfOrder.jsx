@@ -7,6 +7,7 @@ import './SelfOrder.css'
 const idr = value => new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(Number(value||0))
 const publicUrl = storeId => window.location.origin + '/?screen=self-order&store=' + encodeURIComponent(storeId)
 const ORDER_PAGE_SIZE = 8
+const PRODUCT_PAGE_SIZE = 12
 
 export function SelfOrderPublic(){
   const storeId = new URLSearchParams(window.location.search).get('store')
@@ -19,6 +20,7 @@ export function SelfOrderPublic(){
   const [order,setOrder] = useState(null)
   const [busy,setBusy] = useState(false)
   const [category,setCategory] = useState('Semua')
+  const [productPage,setProductPage] = useState(1)
   const load = useCallback(async()=>{
     if(!storeId){setError('QR Code toko tidak valid.');setLoading(false);return}
     setLoading(true)
@@ -30,6 +32,8 @@ export function SelfOrderPublic(){
   useEffect(()=>{load()},[load])
   const categories=useMemo(()=>['Semua',...new Set((catalog?.products||[]).map(p=>p.category||'Umum'))],[catalog])
   const selected=(catalog?.products||[]).filter(p=>(category==='Semua'||(p.category||'Umum')===category))
+  const productPages=Math.max(1,Math.ceil(selected.length/PRODUCT_PAGE_SIZE))
+  const visibleProducts=selected.slice((productPage-1)*PRODUCT_PAGE_SIZE,productPage*PRODUCT_PAGE_SIZE)
   const lines=Object.entries(cart).map(([id,quantity])=>({product:catalog?.products?.find(p=>p.id===id),quantity})).filter(x=>x.product&&x.quantity>0)
   const total=lines.reduce((sum,x)=>sum+Number(x.product.price)*x.quantity,0)
   const setQty=(id,delta)=>setCart(prev=>{const next={...prev};const qty=Math.max(0,Math.min(50,(next[id]||0)+delta));if(qty)next[id]=qty;else delete next[id];return next})
@@ -53,8 +57,9 @@ export function SelfOrderPublic(){
   return <main className="so-public">
     <header className="so-public-header"><div className="so-brand-mark">N</div><div><strong>{catalog.store_name||'Toko NexaPos'}</strong><small>{catalog.address||'Pemesanan digital'}</small></div><span className="so-live">SELF ORDER</span></header>
     <section className="so-hero"><span className="so-eyebrow">PESAN DENGAN MUDAH</span><h1>Pesan favoritmu,<br/><em>tanpa antre.</em></h1><p>Pilih menu, periksa pesanan, lalu lakukan pembayaran melalui QRIS.</p></section>
-    <div className="so-categories">{categories.map(item=><button key={item} className={category===item?'active':''} onClick={()=>setCategory(item)}>{item}</button>)}</div>
-    <section className="so-product-grid">{selected.map(product=><article className="so-product" key={product.id}><div className="so-product-image"><Package size={23}/></div><div className="so-product-info"><small>{product.category||'Umum'}</small><strong>{product.name}</strong><b>{idr(product.price)}</b><div className="so-quantity"><button onClick={()=>setQty(product.id,-1)} aria-label={'Kurangi '+product.name}>−</button><span>{cart[product.id]||0}</span><button onClick={()=>setQty(product.id,1)} aria-label={'Tambah '+product.name}>+</button></div></div></article>)}</section>
+    <div className="so-categories">{categories.map(item=><button key={item} className={category===item?'active':''} onClick={()=>{setCategory(item);setProductPage(1)}}>{item}</button>)}</div>
+    <section className="so-product-grid">{visibleProducts.map(product=><article className="so-product" key={product.id}><div className="so-product-image"><Package size={23}/></div><div className="so-product-info"><small>{product.category||'Umum'}</small><strong>{product.name}</strong><b>{idr(product.price)}</b><div className="so-quantity"><button onClick={()=>setQty(product.id,-1)} aria-label={'Kurangi '+product.name}>−</button><span>{cart[product.id]||0}</span><button onClick={()=>setQty(product.id,1)} aria-label={'Tambah '+product.name}>+</button></div></div></article>)}</section>
+    {selected.length>PRODUCT_PAGE_SIZE&&<div className="so-pagination so-product-pagination"><span>Menampilkan {((productPage-1)*PRODUCT_PAGE_SIZE)+1}–{Math.min(productPage*PRODUCT_PAGE_SIZE,selected.length)} dari {selected.length} menu</span><div><button className="btn btn-outline btn-small" disabled={productPage<=1} onClick={()=>setProductPage(p=>p-1)}><ChevronLeft size={15}/> Sebelumnya</button><strong>Halaman {productPage} / {productPages}</strong><button className="btn btn-outline btn-small" disabled={productPage>=productPages} onClick={()=>setProductPage(p=>p+1)}>Berikutnya <ChevronRight size={15}/></button></div></div>}
     <section className="so-checkout">
       <div className="so-checkout-heading"><div><span className="so-eyebrow">CHECKOUT</span><h2>Ringkasan pesanan</h2></div><span>{lines.length} produk</span></div>
       {lines.length?lines.map(x=><div className="so-line" key={x.product.id}><span>{x.quantity} × {x.product.name}</span><strong>{idr(x.product.price*x.quantity)}</strong></div>):<p className="so-muted">Keranjang masih kosong.</p>}
