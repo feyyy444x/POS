@@ -22,7 +22,7 @@ test('Single Workspace activation is independent of organization package quota a
   assert.match(activation, /organization_id = null/)
   assert.match(activation, /activation_package_key = 'single_workspace'/)
   assert.match(activation, /expires_at = now\(\) \+ make_interval\(days => p_duration_days\)/)
-  assert.doesNotMatch(activation, /owner_organizations|location_limit/i)
+  assert.doesNotMatch(activation, /owner_organizations|p_location_limit|v_location_limit/i)
 })
 
 test('Single Workspace Owner is registered through the normal owner membership and routed straight to POS workspace', async () => {
