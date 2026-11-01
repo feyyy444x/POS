@@ -350,9 +350,4 @@ using (bucket_id='self-order-proofs' and exists (
     and private.is_store_member(o.store_id)
 ));
 
-do $$
-begin
-  if not exists(select 1 from pg_publication_tables where pubname='supabase_realtime' and schemaname='public' and tablename='self_service_orders') then
-    alter publication supabase_realtime add table public.self_service_orders;
-  end if;
-end $$;
+alter publication supabase_realtime add table public.self_service_orders;
