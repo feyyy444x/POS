@@ -24,7 +24,7 @@ values
      'Produk, stok, transaksi, dan laporan',
      'Antrean, pengaturan, dan struk'
    ]::text[],
-   false, true, 0)
+   false, false, 0)
 on conflict (package_key) do update
 set name = excluded.name,
     note = excluded.note,
