@@ -195,7 +195,9 @@ returns boolean language sql stable security definer set search_path=''
 as $$
   select exists(select 1 from public.self_service_orders o
     where o.id=p_order_id and o.store_id=p_store_id
-      and o.payment_status='awaiting_payment' and o.payment_deadline>now())
+      and o.payment_status='awaiting_payment' and o.payment_deadline>now()
+      and not exists(select 1 from storage.objects so where so.bucket_id='self-order-proofs'
+        and so.name like p_store_id::text||'/'||p_order_id::text||'/%'))
 $$;
 revoke all on function private.can_upload_self_service_proof(uuid,uuid) from public;
 grant usage on schema private to anon, authenticated;
