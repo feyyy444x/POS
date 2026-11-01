@@ -24,6 +24,7 @@ create table if not exists public.self_service_orders (
   payment_proof_path text,
   pos_order_id uuid references public.orders(id) on delete set null,
   queue_ticket_id uuid references public.queue_tickets(id) on delete set null,
+  payment_deadline timestamptz not null default (now()+interval '30 minutes'),
   verified_by uuid references auth.users(id) on delete set null,
   verified_at timestamptz,
   rejection_note text,
@@ -114,6 +115,7 @@ declare
   v_product public.products;
   v_subtotal numeric(14,2):=0;
   v_count integer:=0;
+  v_expired record;
 begin
   if coalesce(length(trim(p_customer_name)),0)<2 or length(trim(p_customer_name))>100 then
     raise exception 'Nama pelanggan wajib diisi (2–100 karakter)';
@@ -126,6 +128,19 @@ begin
   if not found then raise exception 'Toko sedang tidak aktif'; end if;
   select * into v_settings from public.store_settings where store_id=p_store_id;
   if not found or v_settings.self_order_enabled is not true then raise exception 'Self Order sedang tidak aktif'; end if;
+
+  -- Release stock from abandoned unpaid orders before reserving new stock.
+  for v_expired in
+    select id from public.self_service_orders
+    where store_id=p_store_id and payment_status='awaiting_payment'
+      and payment_deadline<=now() for update
+  loop
+    update public.products p set stock=p.stock+i.quantity,updated_at=now()
+    from public.self_service_order_items i
+    where i.self_service_order_id=v_expired.id and p.id=i.product_id;
+    update public.self_service_orders set payment_status='rejected',order_status='cancelled',
+      rejection_note='Waktu pembayaran habis',updated_at=now() where id=v_expired.id;
+  end loop;
 
   insert into public.self_service_orders(store_id,customer_name,customer_phone,customer_notes)
   values(p_store_id,trim(p_customer_name),nullif(trim(coalesce(p_customer_phone,'')),''),nullif(trim(coalesce(p_customer_notes,'')),''))
@@ -164,7 +179,7 @@ returns boolean language sql stable security definer set search_path=''
 as $$
   select exists(select 1 from public.self_service_orders o
     where o.id=p_order_id and o.store_id=p_store_id
-      and o.payment_status='awaiting_payment' and o.created_at>now()-interval '45 minutes')
+      and o.payment_status='awaiting_payment' and o.payment_deadline>now())
 $$;
 revoke all on function private.can_upload_self_service_proof(uuid,uuid) from public;
 grant execute on function private.can_upload_self_service_proof(uuid,uuid) to anon, authenticated;
@@ -180,7 +195,7 @@ begin
   update public.self_service_orders set payment_proof_path=p_path,
     payment_status='pending_verification',order_status='pending_verification',updated_at=now()
   where id=p_order_id and store_id=p_store_id and payment_status='awaiting_payment'
-    and created_at>now()-interval '45 minutes'
+    and payment_deadline>now()
   returning * into v_order;
   if not found then raise exception 'Pesanan tidak ditemukan atau waktu unggah telah berakhir'; end if;
   return jsonb_build_object('id',v_order.id,'order_number',v_order.order_number,
