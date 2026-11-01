@@ -54,3 +54,22 @@ test('Self Order migration enforces tenant isolation, private proofs, stock rese
   assert.match(sql, /alter publication supabase_realtime add table public\.self_service_orders/)
   assert.match(sql, /revoke all on public\.self_service_orders from anon, authenticated/i)
 })
+
+test('Self Order manager controls and QRIS upload follow tenant storage permissions', async () => {
+  const ui = await read('../src/SelfOrder.jsx')
+  assert.match(ui, /isManager&&<form/)
+  assert.match(ui, /self-order-qris-/)
+  assert.match(ui, /upsert:false/)
+  assert.match(ui, /storage\.from\('store-logos'\)\.upload/)
+  assert.match(ui, /storage\.from\('store-logos'\)\.remove/)
+})
+
+test('Self Order staff status RPC is not executable by anonymous customers and foreign keys are indexed', async () => {
+  const permissions = await read('../supabase/migrations/20261101083230_self_order_status_rpc_revoke_anon.sql')
+  assert.match(permissions, /revoke execute on function public\.update_self_service_order_status\(uuid,text,text\) from anon/i)
+  const indexes = await read('../supabase/migrations/20261101083319_self_order_foreign_key_indexes.sql')
+  assert.match(indexes, /self_service_order_items_product_id_idx/)
+  assert.match(indexes, /self_service_orders_pos_order_id_idx/)
+  assert.match(indexes, /self_service_orders_queue_ticket_id_idx/)
+  assert.match(indexes, /self_service_orders_verified_by_idx/)
+})
