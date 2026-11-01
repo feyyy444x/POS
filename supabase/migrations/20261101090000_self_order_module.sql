@@ -286,6 +286,33 @@ $$;
 revoke all on function public.update_self_service_order_status(uuid,text,text) from public;
 grant execute on function public.update_self_service_order_status(uuid,text,text) to authenticated;
 
+create or replace function private.capture_self_service_order_audit()
+returns trigger language plpgsql security definer set search_path=''
+as $
+declare v_store_id uuid; v_org_id uuid; v_before jsonb; v_after jsonb;
+begin
+  v_store_id:=coalesce(new.store_id,old.store_id);
+  select organization_id into v_org_id from public.stores where id=v_store_id;
+  if tg_op in ('UPDATE','DELETE') then
+    v_before:=jsonb_build_object('order_number',old.order_number,'total',old.total,
+      'payment_status',old.payment_status,'order_status',old.order_status);
+  end if;
+  if tg_op in ('INSERT','UPDATE') then
+    v_after:=jsonb_build_object('order_number',new.order_number,'total',new.total,
+      'payment_status',new.payment_status,'order_status',new.order_status);
+  end if;
+  insert into public.platform_audit_logs(actor_user_id,organization_id,store_id,entity_table,entity_id,action,before_data,after_data)
+  values(auth.uid(),v_org_id,v_store_id,'self_service_orders',coalesce(new.id,old.id)::text,tg_op,v_before,v_after);
+  if tg_op='DELETE' then return old; end if;
+  return new;
+end;
+$;
+revoke all on function private.capture_self_service_order_audit() from public;
+drop trigger if exists self_service_order_audit_event on public.self_service_orders;
+create trigger self_service_order_audit_event
+after insert or update or delete on public.self_service_orders
+for each row execute function private.capture_self_service_order_audit();
+
 insert into storage.buckets(id,name,public,file_size_limit,allowed_mime_types)
 values('self-order-proofs','self-order-proofs',false,5242880,array['image/jpeg','image/png','image/webp','application/pdf'])
 on conflict (id) do update set public=false,file_size_limit=5242880,allowed_mime_types=excluded.allowed_mime_types;
