@@ -74,7 +74,7 @@ export default function Homepage() {
       .eq('is_active', true)
     if (error) { setPromos([]); return }
     const now = Date.now()
-    setPromos((data || []).filter(p => !p.ends_at || new Date(p.ends_at).getTime() >= now))
+    setPromos((data || []).filter(p => ((!p.starts_at || new Date(p.starts_at).getTime() <= now) && (!p.ends_at || new Date(p.ends_at).getTime() >= now)) || (p.starts_at && new Date(p.starts_at).getTime() > now && (!p.ends_at || new Date(p.ends_at).getTime() >= now))))
   }, [])
   useEffect(() => {
     if (!supabase) return
@@ -146,7 +146,7 @@ export default function Homepage() {
             key: plan.package_key,
             location_limit: Number(plan.location_limit),
             popular: Boolean(plan.is_popular),
-            features: Array.isArray(plan.features) ? plan.features : [],
+            features: Array.isArray(plan.features) ? plan.features : defaultFeatures,
           })))
       }
     }
@@ -318,7 +318,7 @@ export default function Homepage() {
             return <article className={'arch-plan'+(plan.popular?' is-popular':'')+(selectedPlan===plan.key?' is-selected':'')} key={plan.key}>
               <div className="arch-plan-top"><span>0{index+1} / {plan.name.toUpperCase()}</span>{plan.popular&&<b>REKOMENDASI</b>}</div>
               <p>{plan.note || 'Pilihan kapasitas sesuai kebutuhan operasional.'}</p>
-              {plan.key==='single_workspace' ? <div className="arch-plan-quota"><Store size={14}/> 1 workspace mandiri</div> : <div className="arch-plan-quota"><Store size={14}/> Kuota {Number(plan.location_limit||1)} tenant tambahan</div>}
+              {plan.key==='single_workspace' ? <div className="arch-plan-quota"><Store size={14}/> 1 workspace mandiri</div> : <div className="arch-plan-quota"><Store size={14}/> Kuota {Number(plan.location_limit||1)} tenant tambahan di luar workspace utama</div>}
               <div className="arch-plan-price-label">{discount>0?'HARGA SETELAH PROMO':'HARGA SEWA'}</div>
               {discount>0&&<del>{money(basePrice)}</del>}<strong className="arch-plan-price">{money(finalPrice)}</strong><small className="arch-plan-period">/ {duration?.name||'durasi'} · {Number(duration?.duration_days||0)} hari</small>
               {discount>0&&<span className="arch-plan-saving">Hemat {money(discount)} · {promoDiscountLabel(displayPromo)}</span>}
@@ -328,7 +328,7 @@ export default function Homepage() {
             </article>
           }) : <div className="arch-pricing-unavailable"><ShieldCheck size={20}/><div><b>Informasi paket belum tersedia.</b><p>Harga dan pilihan aktivasi akan ditampilkan setelah konfigurasi paket aktif berhasil dimuat. Silakan masuk kembali nanti atau hubungi tim NexaPos melalui kanal dukungan yang tersedia.</p></div></div>}
         </div>
-        <article className="arch-special-plan"><div><span className="arch-overline">CUSTOM ARRANGEMENT / PAKET KHUSUS</span><h3>Operasional dengan kebutuhan khusus?</h3><p>Diskusikan masa aktif dan jumlah tenant sesuai kebutuhan. Harga dan kuota tidak ditampilkan secara publik; detail ditentukan melalui konsultasi dan proses aktivasi oleh Admin.</p></div><button type="button" disabled={!supportAvailable} onClick={contactCustom}>{supportAvailable ? "Konsultasikan kebutuhan" : "Kanal konsultasi belum tersedia"} <ArrowUpRight size={15}/></button></article>
+        <article className="living-plan living-plan-redesign living-plan-custom arch-special-plan"><div><span className="arch-overline">CUSTOM ARRANGEMENT / PAKET KHUSUS</span><h3>Operasional dengan kebutuhan khusus?</h3><p>Diskusikan masa aktif dan jumlah tenant sesuai kebutuhan. Harga dan kuota tidak ditampilkan secara publik; detail ditentukan melalui konsultasi dan proses aktivasi oleh Admin.</p><ul><li>Masa aktif dapat disesuaikan</li><li>Jumlah tenant sesuai kebutuhan</li></ul></div><button type="button" disabled={!supportAvailable} onClick={contactCustom}>{supportAvailable ? "Konsultasikan kebutuhan" : "Kanal konsultasi belum tersedia"} <ArrowUpRight size={15}/></button></article>
         <p className="arch-activation-footnote">Informasi harga dan promo mengikuti data serta ketentuan aktif di sistem. Aktivasi bukan penagihan berulang otomatis.</p>
       </section>
 
