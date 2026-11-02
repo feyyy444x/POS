@@ -407,3 +407,26 @@ tbody tr:hover{background:#f7fbf9}
 .nx-access-portal{isolation:isolate}
 @keyframes nx-page-enter{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 @media(prefers-reduced-motion:reduce){.nx-platform-shell .page-content,.nx-workspace-shell .page-content,.nx-owner-shell .owner-content{animation:none}}
+
+
+/* Access portal: a dedicated sign-in composition, not a split legacy template */
+.nx-access-portal{min-height:100svh;display:grid;place-items:center;padding:clamp(18px,4vw,54px);background:radial-gradient(ellipse at 12% 8%,#d6f1eb 0,transparent 32%),radial-gradient(ellipse at 92% 90%,#dbe7f1 0,transparent 34%),#f3f6f5;color:#13243a}
+.nx-access-portal .access-grid{width:min(100%,520px);position:relative;z-index:1;padding:clamp(24px,5vw,44px);border:1px solid #dce7e3;border-radius:22px;background:#ffffffed;box-shadow:0 30px 90px #102b3b13;backdrop-filter:blur(18px)}
+.nx-access-portal .access-topline{display:flex;align-items:center;justify-content:space-between;gap:14px;padding-bottom:22px;border-bottom:1px solid #e8eeeb}
+.nx-access-portal .access-system-label,.nx-access-portal .access-index{font-size:9px;font-weight:800;letter-spacing:.16em;color:#73847f}
+.nx-access-portal .access-content{padding-top:34px}
+.nx-access-portal .access-heading{font:800 clamp(30px,6vw,43px)/1.06 'Plus Jakarta Sans',sans-serif;letter-spacing:-.075em;color:#10263a;margin:9px 0 12px}
+.nx-access-portal .access-kicker{font-size:10px;font-weight:800;letter-spacing:.14em;color:#119b8f}
+.nx-access-portal .access-form{display:flex;flex-direction:column;gap:16px;margin-top:27px}
+.nx-access-portal .access-field{display:flex;flex-direction:column;gap:8px;color:#435751;font-size:11px;font-weight:700}
+.nx-access-portal .access-field input,.nx-access-portal .access-field select{width:100%;min-height:48px;border:1px solid #dbe5e1;border-radius:10px;padding:0 13px;background:#fbfdfc;color:#152a3b;outline:none;transition:border-color .2s,box-shadow .2s}
+.nx-access-portal .access-field input:focus,.nx-access-portal .access-field select:focus{border-color:#12a99b;box-shadow:0 0 0 4px #12a99b19}
+.nx-access-portal .access-submit{width:100%;min-height:50px;display:flex;align-items:center;justify-content:center;gap:12px;border:0;border-radius:10px;background:#10283b;color:#fff;font-weight:800;transition:transform .2s,background .2s}
+.nx-access-portal .access-submit:hover{transform:translateY(-2px);background:#087f79}
+.nx-access-portal .access-mode-switch{display:flex;justify-content:center;gap:7px;flex-wrap:wrap;margin-top:18px;color:#65756f;font-size:11px}
+.nx-access-portal .access-mode-switch button{border:0;background:none;color:#078c81;font-weight:800}
+.nx-access-portal .access-security-note{margin-top:24px;padding:12px 14px;border-radius:10px;background:#eef6f3;color:#62756f;font-size:10px;line-height:1.7}
+.nx-access-portal .access-footer{margin-top:25px;color:#82918c;font-size:9px;letter-spacing:.1em}
+.nx-access-portal .access-background-word{position:absolute;bottom:3%;right:4%;font:900 clamp(60px,15vw,190px)/.8 'Plus Jakarta Sans';letter-spacing:-.1em;color:#10283b05;pointer-events:none}
+.nx-access-portal .access-geometry{border-color:#1aa99b20}
+@media(max-width:520px){.nx-access-portal{padding:12px}.nx-access-portal .access-grid{padding:24px 19px;border-radius:17px}.nx-access-portal .access-content{padding-top:25px}}
