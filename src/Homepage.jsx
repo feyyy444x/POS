@@ -1,48 +1,40 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
-  ArrowDown, ArrowRight, ArrowUpRight, BarChart3, Building2, Check, CheckCircle2, ChevronDown,
-  CircleDollarSign, Monitor, Package, Phone, Printer, Send, ShieldCheck, ShoppingCart,
+  ArrowDown, ArrowRight, ArrowUpRight, BarChart3, Check, CheckCircle2, ChevronDown,
+  CircleDollarSign, Headphones, Monitor, Package, Printer, ShieldCheck, ShoppingCart,
   Sparkles, Ticket, Users, X, Zap, Activity, Store, Workflow
 } from 'lucide-react'
 import { supabase } from './lib/supabase'
+import SupportCenter from './SupportCenter.jsx'
+import './homepage.css'
 
 const money = (value) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value || 0))
-const fallbackDurations = [
-  { duration_key: 'daily', name: 'Harian', duration_days: 3, sort_order: 1, is_active: true },
-  { duration_key: 'weekly', name: 'Mingguan', duration_days: 7, sort_order: 2, is_active: true },
-  { duration_key: 'monthly', name: 'Bulanan', duration_days: 30, sort_order: 3, is_active: true },
-  { duration_key: 'yearly', name: 'Tahunan', duration_days: 365, sort_order: 4, is_active: true },
-]
-const defaultFeatures = ['Semua fitur NexaPos', 'POS dan transaksi', 'Produk dan stok terpisah per tenant/lokasi', 'Laporan operasional', 'Sistem antrean dan struk']
+const fallbackPromo = { id: 'nexapos-new-customer-80', title: 'DISKON PELANGGAN BARU', description: 'DISKON BARU CUYYY', discount_type: 'percent', discount_value: 80, eligible_periods: ['daily', 'weekly', 'monthly', 'yearly'], requires_code: false, is_active: true, starts_at: '2026-10-29T11:40:00+00:00', ends_at: '2026-12-30T11:40:00+00:00' }
 const fallbackPlans = [
-  { key: 'starter', name: 'Starter', location_limit: 3, note: 'Untuk usaha yang mulai menambah tenant operasional', prices: { daily: 5000, weekly: 15000, monthly: 49000, yearly: 490000 }, features: defaultFeatures, popular: false, sort_order: 1 },
-  { key: 'growth', name: 'Growth', location_limit: 5, note: 'Untuk bisnis yang mulai berkembang', prices: { daily: 10000, weekly: 30000, monthly: 99000, yearly: 990000 }, features: defaultFeatures, popular: false, sort_order: 2 },
-  { key: 'business', name: 'Business', location_limit: 10, note: 'Untuk bisnis dengan beberapa lokasi', prices: { daily: 15000, weekly: 50000, monthly: 179000, yearly: 1790000 }, features: defaultFeatures, popular: true, sort_order: 3 },
-  { key: 'enterprise', name: 'Enterprise', location_limit: 15, note: 'Untuk jaringan usaha yang lebih besar', prices: { daily: 25000, weekly: 85000, monthly: 299000, yearly: 2990000 }, features: defaultFeatures, popular: false, sort_order: 4 },
+  { key: 'daily', name: 'Harian', duration: '1 hari', price: 3000, note: 'Coba alur kerja untuk kebutuhan harian' },
+  { key: 'weekly', name: 'Mingguan', duration: '7 hari', price: 15000, note: 'Fleksibel untuk operasional mingguan' },
+  { key: 'monthly', name: 'Bulanan', duration: '30 hari', price: 35000, note: 'Untuk operasional bisnis yang rutin', popular: true },
+  { key: 'yearly', name: 'Tahunan', duration: '365 hari', price: 300000, note: 'Lebih praktis untuk penggunaan jangka panjang' },
 ]
 const features = [
-  { number: '01', icon: ShoppingCart, title: 'POS dan checkout terstruktur', text: 'Pilih produk, atur kuantitas, periksa keranjang, hitung total, proses pembayaran, dan simpan transaksi dalam satu alur yang dirancang untuk pelayanan cepat.' },
-  { number: '02', icon: Users, title: 'Beberapa kasir bekerja bersamaan', text: 'Setiap Karyawan menggunakan akun masing-masing. Transaksi tetap mencatat identitas petugas yang mengerjakannya sehingga aktivitas tim lebih mudah ditelusuri.' },
-  { number: '03', icon: Package, title: 'Katalog dan inventaris per tenant', text: 'Kelola kategori, produk, harga, dan persediaan pada workspace masing-masing. Stok antar-tenant terpisah dan tidak dapat dipindahkan lintas tenant.' },
-  { number: '04', icon: BarChart3, title: 'Laporan penjualan dan modal', text: 'Tinjau riwayat transaksi, ringkasan penjualan, rentang tanggal, serta informasi harga modal dan estimasi keuntungan berdasarkan data operasional.' },
-  { number: '05', icon: Activity, title: 'Sesi kasir dan kehadiran', text: 'Pantau pembukaan dan penutupan kasir, aktivitas kehadiran, serta status istirahat sesuai alur operasional tenant.' },
-  { number: '06', icon: Monitor, title: 'Antrean pelayanan sederhana', text: 'Tampilkan nama pesanan, nomor antrean, dan loket atau kasir yang melayani. Fitur antrean dapat diaktifkan atau dinonaktifkan sesuai kebutuhan.' },
-  { number: '07', icon: Workflow, title: 'Pemesanan mandiri pelanggan', text: 'Berikan jalur pemesanan mandiri melalui perangkat pelanggan. Katalog, ketersediaan produk, dan proses pesanan mengikuti konfigurasi tenant.' },
-  { number: '08', icon: ShieldCheck, title: 'Tim dan hak akses', text: 'Atur peran Owner, Manager, dan Karyawan. Pengelolaan anggota, status akun, serta reset PIN atau kata sandi mengikuti kewenangan akun.' },
-  { number: '09', icon: Printer, title: 'Bukti transaksi siap dicetak', text: 'Sediakan struk transaksi yang dapat dicetak melalui printer thermal yang kompatibel dengan perangkat, browser, dan konfigurasi yang digunakan.' },
-  { number: '10', icon: Activity, title: 'Riwayat dan audit aktivitas', text: 'Telusuri aktivitas penting sesuai cakupan akses organisasi atau tenant untuk membantu menjaga keterlacakan perubahan dan operasional.' },
+  { number: '01', icon: ShoppingCart, title: 'Kasir untuk kerja sehari-hari', text: 'Pilih produk, hitung total, proses pembayaran, dan catat transaksi dalam satu alur yang praktis.' },
+  { number: '02', icon: Users, title: 'Banyak kasir, satu toko', text: 'Beberapa akun karyawan dapat melayani pelanggan secara bersamaan. Setiap transaksi tetap tercatat sesuai akun yang mengerjakannya.' },
+  { number: '03', icon: Monitor, title: 'Alur antrian lebih jelas', text: 'Kelola nomor antrian secara digital dan tampilkan panggilan di layar TV untuk membantu pelanggan mengetahui giliran layanan.' },
+  { number: '04', icon: Package, title: 'Produk dan stok terkelola', text: 'Kelola katalog, kategori, harga, dan informasi stok agar tim punya acuan produk yang lebih rapi.' },
+  { number: '05', icon: BarChart3, title: 'Riwayat dan laporan operasional', text: 'Telusuri catatan transaksi dan pantau ringkasan penjualan untuk membantu memahami aktivitas toko.' },
+  { number: '06', icon: Printer, title: 'Struk untuk kebutuhan toko', text: 'Gunakan alur cetak struk melalui printer thermal yang kompatibel dengan perangkat dan browser yang dipakai.' },
 ]
 const storyScenes = {
-  kasir: { index: '01', eyebrow: 'SAAT TRANSAKSI DIMULAI', title: 'Dari pilih produk hingga transaksi tercatat.', description: 'Karyawan memilih produk, memeriksa total, memproses pembayaran, lalu menyimpan transaksi dalam satu alur kerja.', icon: ShoppingCart, status: 'Transaksi tersimpan', tag: 'POS WORKSPACE' },
-  tim: { index: '02', eyebrow: 'SAAT TIM BEKERJA BERSAMA', title: 'Setiap Karyawan bekerja dengan akunnya.', description: 'Karyawan dapat menggunakan akun masing-masing secara bersamaan. Transaksi tetap tercatat atas nama akun yang mengerjakannya.', icon: Users, status: 'Akun tim terhubung', tag: 'TEAM OPERATIONS' },
-  antrean: { index: '03', eyebrow: 'SAAT PELANGGAN MENUNGGU', title: 'Antrean tetap jelas dan sederhana.', description: 'Catat nama pelanggan, nomor antrean, dan loket atau petugas yang melayani. Antrean dapat diaktifkan atau dinonaktifkan sesuai kebutuhan toko.', icon: Monitor, status: 'Antrean operasional', tag: 'QUEUE OPERATIONS' },
+  kasir: { index: '01', eyebrow: 'SAAT TRANSAKSI DIMULAI', title: 'Satu transaksi. Data langsung tercatat.', description: 'Kasir memilih produk, memproses pembayaran, dan menyelesaikan transaksi dari satu alur kerja.', icon: ShoppingCart, status: 'Transaksi tersimpan', tag: 'POS WORKSPACE' },
+  tim: { index: '02', eyebrow: 'SAAT TIM BEKERJA BERSAMA', title: 'Setiap karyawan punya identitas.', description: 'Akun karyawan bekerja bersamaan, sehingga aktivitas dan transaksi tetap dapat ditelusuri sesuai akun yang digunakan.', icon: Users, status: 'Akun tim terhubung', tag: 'TEAM OPERATIONS' },
+  antrian: { index: '03', eyebrow: 'SAAT PELANGGAN MENUNGGU', title: 'Antrian ikut tersinkron.', description: 'Nomor antrian dikelola secara digital dan dapat ditampilkan di layar TV agar pelanggan tahu giliran mereka.', icon: Monitor, status: 'Layar antrian aktif', tag: 'LIVE QUEUE' },
 }
 const requiresPromoCode = (promo) => promo?.requires_code === true || promo?.requires_code === 'true' || promo?.requires_code === 1
-const eligiblePeriods = (promo) => (Array.isArray(promo?.eligible_periods)
+const eligiblePeriods = (promo) => Array.isArray(promo?.eligible_periods)
   ? promo.eligible_periods.map(value => String(value).trim().toLowerCase())
   : typeof promo?.eligible_periods === 'string'
     ? promo.eligible_periods.split(',').map(value => value.trim().toLowerCase()).filter(Boolean)
-    : []).filter(period => period !== 'custom')
+    : []
 const promoDiscountLabel = (promo) => {
   const type = String(promo?.discount_type || '').trim().toLowerCase()
   const value = Math.max(0, Number(promo?.discount_value || 0))
@@ -50,344 +42,272 @@ const promoDiscountLabel = (promo) => {
     ? Math.min(value, 100) + '%'
     : money(value)
 }
+function discountFor(plan, promo) {
+  if (!promo || promo.is_active === false) return 0
+  const eligible = eligiblePeriods(promo)
+  const key = String(plan?.key || plan?.plan_key || '').trim().toLowerCase()
+  if (eligible.length && !eligible.includes(key)) return 0
+  const price = Math.max(0, Number(plan?.price || 0))
+  const value = Math.max(0, Number(promo.discount_value || 0))
+  const type = String(promo.discount_type || '').trim().toLowerCase()
+  const isPercent = ['percent', 'percentage', 'percentual', 'persen'].includes(type)
+  if (isPercent) return Math.min(price, Math.round(price * Math.min(value, 100) / 100))
+  return Math.min(price, value)
+}
 function Brand({ footer = false }) {
-  return <a className={'nx-brand' + (footer ? ' nx-brand-footer' : '')} href="/" aria-label="NexaPos beranda">
+  return <a className={'living-brand' + (footer ? ' living-brand-footer' : '')} href="/" aria-label="NexaPos beranda">
     <img src="/nexapos-mark.svg" alt="" />
     <span>Nexa<span>Pos</span><small>SMART COMMERCE</small></span>
   </a>
 }
 export default function Homepage() {
-  const [plans, setPlans] = useState([])
-  const [durations, setDurations] = useState([])
-  const [selectedDuration, setSelectedDuration] = useState('monthly')
+  const [plans, setPlans] = useState(fallbackPlans)
   const [promos, setPromos] = useState([])
-  const [supportChannels, setSupportChannels] = useState({ whatsapp_enabled: false, whatsapp_number: '', telegram_enabled: false, telegram_username: '' })
-  const [serverQuotes, setServerQuotes] = useState({})
-  const [quoteLoading, setQuoteLoading] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [coupon, setCoupon] = useState('')
-  const [selectedPlan, setSelectedPlan] = useState('growth')
+  const [selectedPlan, setSelectedPlan] = useState('monthly')
   const [faqOpen, setFaqOpen] = useState(0)
+  const [liveChatOpen, setLiveChatOpen] = useState(false)
   const [scene, setScene] = useState('kasir')
 
   const loadPromos = useCallback(async () => {
-    if (!supabase) { setPromos([]); return }
+    if (!supabase) return
     const { data, error } = await supabase.from('site_promotions')
       .select('id,title,description,discount_type,discount_value,eligible_periods,promo_code,requires_code,starts_at,ends_at,is_active')
       .eq('is_active', true)
-    if (error) { setPromos([]); return }
+    if (error) return
     const now = Date.now()
-    setPromos((data || []).filter(p => ((!p.starts_at || new Date(p.starts_at).getTime() <= now) && (!p.ends_at || new Date(p.ends_at).getTime() >= now)) || (p.starts_at && new Date(p.starts_at).getTime() > now && (!p.ends_at || new Date(p.ends_at).getTime() >= now))))
+    setPromos((data || []).filter(p => !p.ends_at || new Date(p.ends_at).getTime() >= now))
   }, [])
   useEffect(() => {
     if (!supabase) return
     loadPromos()
     const channel = supabase.channel('homepage-promotions-live')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'site_promotions' }, loadPromos)
-      .subscribe()
-    const refresh = () => { if (document.visibilityState === 'visible') loadPromos() }
-    window.addEventListener('focus', refresh)
-    document.addEventListener('visibilitychange', refresh)
+      .subscribe(status => { if (status === 'SUBSCRIBED') loadPromos() })
+    const refreshOnResume = () => { if (document.visibilityState === 'visible') loadPromos() }
+    window.addEventListener('focus', refreshOnResume)
+    document.addEventListener('visibilitychange', refreshOnResume)
     return () => {
-      window.removeEventListener('focus', refresh)
-      document.removeEventListener('visibilitychange', refresh)
+      window.removeEventListener('focus', refreshOnResume)
+      document.removeEventListener('visibilitychange', refreshOnResume)
       supabase.removeChannel(channel)
     }
   }, [loadPromos])
   useEffect(() => {
     if (!supabase) return
     let mounted = true
-    const loadSupportChannels = async () => {
-      const { data, error } = await supabase.from('support_channel_settings')
-        .select('whatsapp_enabled,whatsapp_number,telegram_enabled,telegram_username')
-        .eq('id', 1).maybeSingle()
-      if (error || !data || !mounted) return
-      setSupportChannels({
-        whatsapp_enabled: Boolean(data.whatsapp_enabled),
-        whatsapp_number: String(data.whatsapp_number || '').replace(/\D/g, ''),
-        telegram_enabled: Boolean(data.telegram_enabled),
-        telegram_username: String(data.telegram_username || '').replace(/^@/, '').trim(),
-      })
-    }
-    loadSupportChannels()
-    const channel = supabase.channel('homepage-support-channels')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'support_channel_settings' }, loadSupportChannels)
-      .subscribe()
-    return () => { mounted = false; supabase.removeChannel(channel) }
-  }, [])
-  useEffect(() => {
-    if (!supabase) { setPlans([]); setDurations([]); return }
-    let mounted = true
-    const loadPricing = async () => {
-      const [packageResult, durationResult] = await Promise.all([
-        supabase.from('site_activation_packages').select('package_key,name,location_limit,note,prices,features,is_popular,is_active,sort_order').eq('is_active', true).order('sort_order', { ascending: true }),
-        supabase.from('site_activation_durations').select('duration_key,name,duration_days,sort_order,is_active').eq('is_active', true).order('sort_order', { ascending: true }),
-      ])
-      if (!mounted) return
-      if (durationResult.error) {
-        setDurations([])
-      } else {
-        const allowed = new Map((durationResult.data || [])
-          .filter(d => ['daily', 'weekly', 'monthly', 'yearly'].includes(String(d.duration_key || '').trim().toLowerCase()))
-          .map(d => [d.duration_key, d]))
-        const next = fallbackDurations.filter(d => allowed.has(d.duration_key)).map(d => ({
-          ...d, ...allowed.get(d.duration_key),
-          duration_days: Number(allowed.get(d.duration_key)?.duration_days ?? d.duration_days),
-        }))
-        setDurations(next)
-        setSelectedDuration(current => next.some(d => d.duration_key === current) ? current : (next.find(d => d.duration_key === 'monthly')?.duration_key || next[0]?.duration_key || ''))
-      }
-      if (packageResult.error) {
-        setPlans([])
-      } else {
-        setPlans((packageResult.data || [])
-          .filter(plan => ['starter', 'growth', 'business', 'enterprise', 'single_workspace'].includes(String(plan.package_key || '').trim().toLowerCase()))
-          .filter(plan => !/custom/i.test(String(plan.name || '')))
-          .map(plan => ({
-            ...plan,
-            prices: plan.prices && typeof plan.prices === 'object' ? plan.prices : {},
-            key: plan.package_key,
-            location_limit: Number(plan.location_limit),
-            popular: Boolean(plan.is_popular),
-            features: Array.isArray(plan.features) ? plan.features : defaultFeatures,
-          })))
+    const loadPlans = async () => {
+      const { data, error } = await supabase.from('site_subscription_plans')
+        .select('plan_key,name,duration,price,note,features,is_popular,is_active,sort_order')
+        .eq('is_active', true).order('sort_order', { ascending: true })
+      if (!error && mounted && Array.isArray(data) && data.length) {
+        setPlans(data.map(plan => ({ ...plan, key: plan.plan_key, price: Number(plan.price), popular: Boolean(plan.is_popular), features: Array.isArray(plan.features) ? plan.features : [] })))
       }
     }
-    loadPricing()
-    const packageChannel = supabase.channel('homepage-activation-packages-live')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'site_activation_packages' }, loadPricing)
-      .subscribe()
-    const durationChannel = supabase.channel('homepage-activation-durations-live')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'site_activation_durations' }, loadPricing)
-      .subscribe()
-    const refresh = () => { if (document.visibilityState === 'visible') loadPricing() }
+    loadPlans()
+    const channel = supabase.channel('homepage-subscription-plans-live')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'site_subscription_plans' }, loadPlans)
+      .subscribe(status => { if (status === 'SUBSCRIBED') loadPlans() })
+    const refresh = () => { if (document.visibilityState === 'visible') loadPlans() }
     window.addEventListener('focus', refresh)
     document.addEventListener('visibilitychange', refresh)
     return () => {
       mounted = false
       window.removeEventListener('focus', refresh)
       document.removeEventListener('visibilitychange', refresh)
-      supabase.removeChannel(packageChannel)
-      supabase.removeChannel(durationChannel)
+      supabase.removeChannel(channel)
     }
   }, [])
   useEffect(() => {
-    if (!supabase || !plans.length || !selectedDuration) { setServerQuotes({}); setQuoteLoading(false); return }
-    let cancelled = false
-    setServerQuotes({})
-    setQuoteLoading(true)
-    Promise.all(plans.map(async plan => {
-      const { data, error } = await supabase.rpc('get_activation_quote', {
-        p_package_key: plan.key,
-        p_duration_key: selectedDuration,
-        p_promo_code: coupon.trim() || null,
+    if (typeof IntersectionObserver === 'undefined') return
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible')
+          observer.unobserve(entry.target)
+        }
       })
-      return [plan.key, !error && data?.ok ? data : null]
-    })).then(entries => { if (!cancelled) setServerQuotes(Object.fromEntries(entries)) })
-      .catch(() => { if (!cancelled) setServerQuotes({}) })
-      .finally(() => { if (!cancelled) setQuoteLoading(false) })
-    return () => { cancelled = true }
-  }, [plans, selectedDuration, coupon])
-
-  const availablePromos = promos
+    }, { threshold: 0.12, rootMargin: '0px 0px -35px 0px' })
+    document.querySelectorAll('.living-reveal:not(.is-visible)').forEach(element => observer.observe(element))
+    return () => observer.disconnect()
+  }, [promos.length])
+  const availablePromos = promos.length ? promos : [fallbackPromo]
   const automaticPromo = availablePromos.find(p => !requiresPromoCode(p) && (!p.starts_at || new Date(p.starts_at).getTime() <= Date.now()))
+  const upcomingPromo = availablePromos.find(p => !requiresPromoCode(p) && p.starts_at && new Date(p.starts_at).getTime() > Date.now())
   const couponPromo = useMemo(() => {
     const code = coupon.trim().toUpperCase()
     if (!code) return null
     return availablePromos.find(p => requiresPromoCode(p) && String(p.promo_code || '').trim().toUpperCase() === code) || null
   }, [coupon, availablePromos])
-  const activePromo = coupon.trim() ? couponPromo : automaticPromo
+  const activePromo = coupon.trim() ? couponPromo : (automaticPromo || upcomingPromo)
   const promoStartsLater = Boolean(activePromo?.starts_at && new Date(activePromo.starts_at).getTime() > Date.now())
-  const supportAvailable = Boolean((supportChannels.telegram_enabled && supportChannels.telegram_username) || (supportChannels.whatsapp_enabled && supportChannels.whatsapp_number))
-  const openSupport = (details) => {
-    const message = encodeURIComponent(details)
-    if (supportChannels.telegram_enabled && supportChannels.telegram_username) {
-      window.open('https://t.me/' + supportChannels.telegram_username + '?text=' + message, '_blank', 'noopener,noreferrer')
-      return
-    }
-    if (supportChannels.whatsapp_enabled && supportChannels.whatsapp_number) {
-      window.open('https://wa.me/' + supportChannels.whatsapp_number + '?text=' + message, '_blank', 'noopener,noreferrer')
-    }
+  const selected = plans.find(p => p.key === selectedPlan) || plans[2]
+  const currentScene = storyScenes[scene] || storyScenes.kasir
+  const SceneIcon = currentScene.icon
+  const contact = (plan, promo) => {
+    const details = [
+      'Halo Tim NexaPos, saya ingin menanyakan penyewaan layanan.',
+      'Masa sewa: ' + plan.name + ' (' + plan.duration + ')',
+      'Harga normal: ' + money(plan.price),
+      promo ? 'Promo: ' + (promo.title || promo.promo_code || 'Promo NexaPos') : '',
+      promo ? 'Perkiraan harga setelah diskon: ' + money(plan.price - discountFor(plan, { ...promo, requires_code: false })) : '',
+      coupon.trim() ? 'Kode kupon: ' + coupon.trim().toUpperCase() : '',
+      'Mohon informasi mengenai proses aktivasi dan pembayaran. Terima kasih.'
+    ].filter(Boolean).join('\n')
+    window.open('https://t.me/becaaapos?text=' + encodeURIComponent(details), '_blank', 'noopener,noreferrer')
   }
-  const contactCustom = () => openSupport([
-    'Halo Tim NexaPos, saya ingin konsultasi Paket Khusus.',
-    'Saya membutuhkan masa aktif dan jumlah tenant yang disesuaikan dengan kebutuhan bisnis.',
-    'Nama usaha/organisasi: ',
-    'Kebutuhan jumlah tenant: ',
-    'Kebutuhan masa aktif: ',
-    'Mohon informasi pilihan dan proses aktivasinya. Terima kasih.'
-  ].join('\n'))
-  const contact = (plan, promo, quote) => openSupport([
-    'Halo Tim NexaPos, saya ingin menanyakan aktivasi layanan.',
-    'Paket: ' + plan.name + (plan.key === 'single_workspace' ? ' (satu workspace mandiri)' : ' (' + Number(plan.location_limit || 1) + ' tenant tambahan)'),
-    'Masa sewa: ' + (plan.duration || selectedDuration),
-    'Harga yang ditampilkan: ' + money(plan.price),
-    promo ? 'Promo: ' + (promo.title || promo.promo_code || 'Promo NexaPos') : '',
-    promo ? 'Perkiraan harga setelah diskon: ' + money(Number(quote?.final_price ?? plan.price)) : '',
-    coupon.trim() ? 'Kode voucher: ' + coupon.trim().toUpperCase() : '',
-    'Mohon informasi mengenai proses aktivasi dan pembayaran. Terima kasih.'
-  ].filter(Boolean).join('\n'))
-  return <div className="nexa-public-site">
-    <header className="nx-nav">
+  return <div className="living-home">
+    <header className="living-nav">
       <Brand />
-      <button className="nx-menu-toggle" onClick={() => setMenuOpen(!menuOpen)} aria-label={menuOpen ? 'Tutup navigasi' : 'Buka navigasi'}>{menuOpen ? <X size={20}/> : <span><i/><i/></span>}</button>
-      <nav className={menuOpen ? 'nx-nav-links is-open' : 'nx-nav-links'}>
-        <a href="#sistem" onClick={() => setMenuOpen(false)}>Sistem</a>
-        <a href="#ruang-kerja" onClick={() => setMenuOpen(false)}>Workspace</a>
-        <a href="#kapabilitas" onClick={() => setMenuOpen(false)}>Fitur</a>
-        <a href="#alur-operasional" onClick={() => setMenuOpen(false)}>Operasional</a>
-        <a href="#aktivasi" onClick={() => setMenuOpen(false)}>Aktivasi</a>
-        <a href="#dukungan" onClick={() => setMenuOpen(false)}>Dukungan</a>
+      <button className="living-menu-toggle" onClick={() => setMenuOpen(!menuOpen)} aria-label={menuOpen ? 'Tutup navigasi' : 'Buka navigasi'}>{menuOpen ? <X /> : <span className="living-menu-lines"><i /><i /></span>}</button>
+      <nav className={menuOpen ? 'living-nav-links is-open' : 'living-nav-links'}>
+        <a href="#cerita" onClick={() => setMenuOpen(false)}>Cara kerja</a>
+        <a href="#fitur" onClick={() => setMenuOpen(false)}>Ekosistem</a>
+        <a href="#harga" onClick={() => setMenuOpen(false)}>Harga</a>
         <a href="#faq" onClick={() => setMenuOpen(false)}>FAQ</a>
       </nav>
-      <div className="nx-nav-actions"><a className="nx-login" href="/login">Masuk <ArrowUpRight size={14}/></a><a className="nx-nav-cta" href="#aktivasi">Jelajahi aktivasi <ArrowRight size={14}/></a></div>
+      <div className="living-nav-actions"><a className="living-login" href="/login">Login workspace <ArrowUpRight size={14}/></a><a className="living-cta living-cta-nav" href="#harga">Mulai jelajahi <ArrowRight size={15}/></a></div>
     </header>
-
     <main>
-      <section className="nx-hero">
-        <div className="nx-hero-atmosphere" aria-hidden="true"><span className="nx-orbit nx-orbit-one"/><span className="nx-orbit nx-orbit-two"/><span className="nx-orbit nx-orbit-three"/><span className="nx-hero-cross nx-cross-a"/><span className="nx-hero-cross nx-cross-b"/></div>
-        <div className="nx-hero-copy">
-          <div className="nx-kicker"><i/> SISTEM OPERASIONAL BISNIS / NEXAPOS</div>
-          <h1>Satu sistem.<br/><em>Bisnis bergerak.</em></h1>
-          <p>Kelola transaksi, produk, stok, tim, antrean, pemesanan mandiri, dan laporan dalam alur kerja yang saling terhubung. Pilih NexaSpace untuk mengelola beberapa tenant atau Single Workspace untuk operasional mandiri.</p>
-          <div className="nx-hero-actions"><a className="nx-primary-cta" href="#sistem">Jelajahi NexaPos <ArrowRight size={16}/></a><a className="nx-secondary-cta" href="/?screen=demo">Lihat demo interaktif <ArrowUpRight size={15}/></a></div>
-          <div className="nx-hero-proof"><span><i/> MULTI-CASHIER READY</span><span>ROLE-BASED ACCESS</span><span>LIVE OPERATIONS</span></div>
+      <section className="living-hero">
+        <div className="living-hero-grid" aria-hidden="true" />
+        <div className="living-hero-noise" aria-hidden="true" />
+        <div className="living-hero-orbit orbit-large" aria-hidden="true" />
+        <div className="living-hero-orbit orbit-small" aria-hidden="true" />
+        <div className="living-hero-copy">
+          <div className="living-kicker"><span className="living-live-dot" /> ONE CONNECTED BUSINESS SYSTEM <span className="living-kicker-line" /></div>
+          <h1>Satu workspace.<br/><span>Kendali operasional.</span></h1>
+          <p>Kelola transaksi kasir, produk dan stok, aktivitas karyawan, laporan penjualan, serta sistem antrian dalam satu workspace NexaPos.</p>
+          <div className="living-hero-actions"><a className="living-cta" href="#cerita">Jelajahi cara kerja <ArrowDown size={16}/></a><a className="living-cta living-demo-cta" href="/?screen=demo">Coba Demo Interaktif <ArrowUpRight size={14}/></a><a className="living-text-link" href="/login">Sudah punya akun? <span>Masuk workspace <ArrowUpRight size={14}/></span></a></div>
+          <div className="living-hero-index"><span>01 — THE LIVING SYSTEM</span><span>SCROLL TO EXPLORE ↓</span></div>
         </div>
-        <div className="nx-product-stage" aria-label="Ilustrasi sistem operasional NexaPos">
-          <div className="nx-stage-label nx-stage-label-top"><span>OPERATIONAL SYSTEM</span><b>NP / 01</b></div>
-          <div className="nx-stage-backplate"/>
-          <div className="nx-stage-core"><img src="/nexapos-mark.svg" alt=""/><b>NEXAPOS</b><small>SMART COMMERCE</small></div>
-          <div className="nx-stage-card nx-stage-sales"><span><ShoppingCart size={15}/> CHECKOUT</span><strong>Transaksi</strong><small>Alur penjualan</small><i><b/></i></div>
-          <div className="nx-stage-card nx-stage-stock"><span><Package size={15}/> INVENTORY</span><strong>Produk & stok</strong><small>Per tenant</small><i><b/></i></div>
-          <div className="nx-stage-card nx-stage-team"><span><Users size={15}/> TEAM ACCESS</span><strong>Tim operasional</strong><small>Peran & izin</small><i><b/></i></div>
-          <div className="nx-stage-card nx-stage-insight"><span><BarChart3 size={15}/> BUSINESS DATA</span><strong>Laporan</strong><small>Aktivitas bisnis</small><i><b/></i></div>
-          <div className="nx-stage-ring"/>
-          <div className="nx-stage-label nx-stage-label-bottom"><span>CONNECTED WORKFLOWS</span><span>SCROLL TO EXPLORE ↓</span></div>
+        <div className="living-stage" aria-label="Ilustrasi alur NexaPos">
+          <div className="living-stage-ring ring-one" /><div className="living-stage-ring ring-two" /><div className="living-stage-ring ring-three" />
+          <div className="living-stage-label label-top"><span>CONNECTED OPERATIONS</span><i /></div>
+          <div className="living-stage-core"><img src="/nexapos-mark.svg" alt="" /><span>ONE SYSTEM</span></div>
+          <div className="living-node node-pos"><span className="living-node-icon"><ShoppingCart size={18}/></span><small>01 / POS</small><b>Transaksi</b><i>LIVE</i></div>
+          <div className="living-node node-team"><span className="living-node-icon"><Users size={18}/></span><small>02 / TEAM</small><b>Tim bekerja</b><i>SYNC</i></div>
+          <div className="living-node node-queue"><span className="living-node-icon"><Monitor size={18}/></span><small>03 / QUEUE</small><b>Antrian TV</b><i>LIVE</i></div>
+          <div className="living-node node-stock"><span className="living-node-icon"><Package size={18}/></span><small>04 / STOCK</small><b>Produk</b><i>SYNC</i></div>
+          <svg className="living-connectors" viewBox="0 0 600 600" fill="none" aria-hidden="true"><path d="M300 300 L165 170"/><path d="M300 300 L445 160"/><path d="M300 300 L450 425"/><path d="M300 300 L150 435"/></svg>
+          <div className="living-stage-caption"><span className="living-caption-pulse" /> REAL-TIME WORKFLOW <span>•</span> BUILT FOR BUSINESS</div>
         </div>
+        <div className="living-hero-bottom"><span>SCROLL-LED PRODUCT STORY</span><span>DESIGNED AROUND REAL WORKFLOWS</span><span>01 / 04</span></div>
       </section>
 
-      <section className="nx-manifesto" id="sistem">
-        <div className="nx-section-index"><span>01</span><small>THE FRAMEWORK</small></div>
-        <div className="nx-manifesto-main"><span className="nx-overline">OPERASIONAL YANG TERHUBUNG</span><h2>Bukan sekadar mencatat transaksi.<br/><em>Susun cara bisnis bekerja.</em></h2></div>
-        <p className="nx-manifesto-note">Kelola pekerjaan harian dari satu sistem: layani pelanggan, atur katalog dan persediaan, berikan akses kepada tim, serta tinjau aktivitas penjualan.</p>
+      <section className="living-manifesto living-reveal">
+        <div className="living-manifesto-index">NEXAPOS / 2026</div>
+        <div className="living-manifesto-copy"><span>SEBUAH USAHA ADALAH ALUR YANG SALING TERHUBUNG.</span><h2>Ketika satu hal bergerak,<br/><em>semuanya ikut bergerak.</em></h2></div>
+        <div className="living-manifesto-note">Bukan hanya untuk mencatat pembayaran. NexaPos menghubungkan aktivitas kasir, akun karyawan, produk, laporan, dan antrian dalam satu ruang kerja.</div>
       </section>
 
-      <section className="nx-workspace-section" id="ruang-kerja">
-        <div className="nx-section-heading"><div><span className="nx-overline">02 / WORKSPACE ARCHITECTURE</span><h2>Pilih struktur kerja<br/><em>yang sesuai dengan bisnismu.</em></h2></div><p>Setiap model workspace memiliki tujuan berbeda. Pemisahan ini menjaga pengelolaan organisasi dan kegiatan operasional tetap jelas.</p></div>
-        <div className="nx-workspace-grid">
-          <article className="nx-workspace-card nx-workspace-organization">
-            <div className="nx-workspace-card-top"><span>MODEL 01 / MULTI-TENANT</span><Building2 size={18}/></div>
-            <div className="nx-workspace-graphic nx-org-graphic"><div className="nx-org-core"><img src="/nexapos-mark.svg" alt=""/><b>NexaSpace</b><small>ORGANIZATION HUB</small></div><span className="nx-org-branch branch-one">TENANT 01</span><span className="nx-org-branch branch-two">TENANT 02</span><span className="nx-org-branch branch-three">TENANT 03</span></div>
-            <div className="nx-workspace-copy"><span className="nx-overline">UNTUK PEMILIK ORGANISASI</span><h3>NexaSpace</h3><p>Pusat kendali Owner untuk melihat organisasi, mengelola tenant sesuai kuota, mengatur anggota, memantau aktivitas, dan berpindah workspace.</p><ul><li><Check size={14}/> Direktori dan pengelolaan tenant</li><li><Check size={14}/> Kuota serta masa aktivasi</li><li><Check size={14}/> Tim dan laporan organisasi</li></ul><a href="/login">Masuk melalui akun Owner <ArrowUpRight size={15}/></a></div>
-          </article>
-          <article className="nx-workspace-card nx-workspace-independent">
-            <div className="nx-workspace-card-top"><span>MODEL 02 / SINGLE WORKSPACE</span><Store size={18}/></div>
-            <div className="nx-workspace-graphic nx-single-graphic"><div className="nx-single-frame"><span>INDEPENDENT</span><strong>01</strong><small>BUSINESS WORKSPACE</small></div><div className="nx-single-axis"/></div>
-            <div className="nx-workspace-copy"><span className="nx-overline">UNTUK OWNER MANDIRI</span><h3>Single Workspace</h3><p>Model workspace mandiri untuk Owner yang mengelola satu operasional POS tanpa pusat organisasi NexaSpace atau manajemen tenant.</p><ul><li><Check size={14}/> Satu workspace POS independen</li><li><Check size={14}/> Owner mengelola fitur workspace</li><li><Check size={14}/> Tim, produk, stok, dan transaksi</li></ul><span className="nx-availability-note">Ketersediaan penawaran mengikuti status paket yang diaktifkan Admin.</span></div>
-          </article>
-        </div>
-      </section>
-
-      <section className="nx-process">
-        <div className="nx-process-head"><span className="nx-overline">03 / OPERATIONAL SEQUENCE</span><h2>Setiap aktivitas punya<br/><em>tempat dan urutannya.</em></h2></div>
-        <div className="nx-process-list">
-          <article><span>01</span><div><ShoppingCart size={20}/><h3>Layani transaksi</h3><p>Pilih produk, periksa keranjang, proses pembayaran, cetak struk, dan simpan riwayat transaksi.</p></div><small>POINT OF SALE</small></article>
-          <article><span>02</span><div><Package size={20}/><h3>Kelola katalog & stok</h3><p>Atur kategori, produk, harga, dan persediaan di workspace masing-masing.</p></div><small>INVENTORY</small></article>
-          <article><span>03</span><div><Users size={20}/><h3>Atur tim dan akses</h3><p>Berikan akun serta hak akses sesuai peran Owner, Manager, atau Karyawan.</p></div><small>TEAM OPERATIONS</small></article>
-          <article><span>04</span><div><BarChart3 size={20}/><h3>Tinjau hasil operasional</h3><p>Gunakan laporan penjualan, rentang tanggal, data modal, serta riwayat transaksi untuk memahami aktivitas bisnis.</p></div><small>BUSINESS INSIGHT</small></article>
-        </div>
-      </section>
-
-      <section className="nx-capabilities" id="kapabilitas">
-        <div className="nx-section-heading"><div><span className="nx-overline">04 / PRODUCT CAPABILITIES</span><h2>Dirancang untuk<br/><em>pekerjaan yang nyata.</em></h2></div><p>Deskripsi berikut mengikuti kemampuan produk yang tersedia. Ketersediaan setiap tindakan tetap mengikuti peran, izin, dan konfigurasi workspace.</p></div>
-        <div className="nx-capability-grid">{features.map(({number,icon:Icon,title,text})=><article className="nx-capability" key={number}><div className="nx-capability-top"><span>{number}</span><Icon size={20}/></div><h3>{title}</h3><p>{text}</p><span className="nx-capability-rule"/></article>)}</div>
-        <div className="nx-capability-foot"><span><ShieldCheck size={16}/> AKSES BERDASARKAN PERAN</span><p>Owner, Manager, dan Karyawan melihat fungsi sesuai kewenangannya. Data dan stok setiap tenant tetap terpisah.</p></div>
-      </section>
-
-      <section className="nx-operating-suite" id="alur-operasional">
-        <div className="nx-operating-suite-head">
-          <div><span className="nx-overline">05 / THE COMPLETE OPERATING SUITE</span><h2>Setiap bagian bisnis<br/><em>terhubung dalam alurnya.</em></h2></div>
-          <p>NexaPos tidak berhenti di kasir. Pengelolaan persediaan, tim, pelayanan pelanggan, dan evaluasi bisnis berada dalam rangkaian operasional yang saling mendukung.</p>
-        </div>
-        <div className="nx-suite-grid">
-          <article className="nx-suite-item"><span>01 / INVENTORY CONTROL</span><Package size={22}/><h3>Stok per workspace</h3><p>Kelola produk dan persediaan setiap tenant secara terpisah. Tidak ada transfer stok antar-tenant.</p></article>
-          <article className="nx-suite-item"><span>02 / CASHIER OPERATIONS</span><Activity size={22}/><h3>Kasir dan kehadiran</h3><p>Pantau sesi buka/tutup kasir, aktivitas Karyawan, serta status istirahat dalam alur tenant.</p></article>
-          <article className="nx-suite-item"><span>03 / CUSTOMER ORDERING</span><Workflow size={22}/><h3>Self Order</h3><p>Aktifkan pemesanan mandiri agar pelanggan dapat membuat pesanan dari perangkat mereka.</p></article>
-          <article className="nx-suite-item"><span>04 / SERVICE QUEUE</span><Monitor size={22}/><h3>Antrean pelayanan</h3><p>Kelola nomor, nama pesanan, dan loket atau kasir tanpa fitur media atau video antrean.</p></article>
-          <article className="nx-suite-item"><span>05 / BUSINESS REPORTS</span><BarChart3 size={22}/><h3>Analisis penjualan</h3><p>Gunakan rentang tanggal, riwayat transaksi, dan rincian modal untuk mengevaluasi hasil operasional.</p></article>
-          <article className="nx-suite-item"><span>06 / TEAM GOVERNANCE</span><ShieldCheck size={22}/><h3>Pengelolaan akses</h3><p>Atur Manager dan Karyawan, izin, status akun, serta pemulihan PIN atau kata sandi sesuai hak akses.</p></article>
-          <article className="nx-suite-item"><span>07 / TRACEABILITY</span><Activity size={22}/><h3>Audit aktivitas</h3><p>Telusuri perubahan dan aktivitas yang tercatat sesuai cakupan akses platform, organisasi, atau tenant.</p></article>
-          <article className="nx-suite-item"><span>08 / RECEIPT FLOW</span><Printer size={22}/><h3>Struk transaksi</h3><p>Berikan bukti transaksi yang dapat dicetak pada perangkat dan printer yang kompatibel.</p></article>
-        </div>
-        <div className="nx-suite-support" id="dukungan">
-          <div><span className="nx-overline">NEXAPOS SUPPORT</span><h3>Bantuan yang mengikuti alur kerja.</h3><p>NexaBot membantu pengguna memahami penggunaan NexaPos dari dalam workspace. Jika dibutuhkan, percakapan dapat diteruskan kepada Admin NexaPos. Untuk pertanyaan sebelum aktivasi, gunakan kanal kontak publik yang tersedia.</p></div>
-          <div className="nx-suite-support-links">
-            {supportChannels.whatsapp_enabled&&supportChannels.whatsapp_number&&<a href={'https://wa.me/'+supportChannels.whatsapp_number} target="_blank" rel="noreferrer"><Phone size={15}/> WhatsApp</a>}
-            {supportChannels.telegram_enabled&&supportChannels.telegram_username&&<a href={'https://t.me/'+supportChannels.telegram_username} target="_blank" rel="noreferrer"><Send size={15}/> Telegram</a>}
-            <a href="/login">Masuk ke workspace <ArrowUpRight size={15}/></a>
+      <section className="living-story" id="cerita">
+        <div className="living-story-intro living-reveal"><span className="living-eyebrow">THE SYSTEM IN MOTION / 01—03</span><h2>Ikuti alurnya.<br/><span>Lihat semuanya terhubung.</span></h2><p>Pilih bagian yang ingin Anda kenali—mulai dari transaksi, kerja tim, hingga alur antrian.</p></div>
+        <div className="living-story-layout">
+          <div className="living-story-tabs" role="tablist" aria-label="Pilih alur bisnis">
+            {Object.entries(storyScenes).map(([key,item]) => {
+              const Icon = item.icon
+              return <button type="button" role="tab" aria-selected={scene===key} className={scene===key?'is-active':''} key={key} onClick={() => setScene(key)}><span>{item.index}</span><Icon size={18}/><b>{key==='kasir'?'Transaksi kasir':key==='tim'?'Aktivitas tim':'Sistem antrian'}</b><ArrowUpRight size={15}/></button>
+            })}
+            <div className="living-story-aside"><Workflow size={18}/><p>Satu alur operasional.<br/>Satu workspace.</p></div>
+          </div>
+          <div className="living-story-demo" key={scene}>
+            <div className="living-demo-top"><span>{currentScene.tag}</span><span><i/> SYSTEM FLOW</span></div>
+            <div className="living-demo-copy"><span className="living-demo-index">{currentScene.index} / 03</span><span className="living-eyebrow">{currentScene.eyebrow}</span><h3>{currentScene.title}</h3><p>{currentScene.description}</p><div className="living-demo-status"><span className="living-demo-status-icon"><SceneIcon size={19}/></span><span><small>STATUS SIMULASI</small><b>{currentScene.status}</b></span><CheckCircle2 size={19}/></div></div>
+            <div className="living-demo-graphic">
+              {scene==='kasir' && <><div className="living-receipt"><div className="living-receipt-head"><span>NEXAPOS / POS</span><span>ORDER #0128</span></div><div className="living-receipt-item"><span>Kopi susu</span><b>Rp18.000</b></div><div className="living-receipt-item"><span>Roti panggang</span><b>Rp15.000</b></div><div className="living-receipt-total"><span>TOTAL</span><b>Rp33.000</b></div><div className="living-receipt-paid"><Check size={14}/> PEMBAYARAN TERCATAT</div></div><div className="living-demo-orb"><ShoppingCart size={24}/><span>TRANSACTION<br/>COMPLETE</span></div></>}
+              {scene==='tim' && <><div className="living-team-stack"><div><span className="living-avatar avatar-a">A</span><span><b>Kasir A</b><small>Transaksi #0128</small></span><i>Aktif</i></div><div><span className="living-avatar avatar-b">B</span><span><b>Kasir B</b><small>Transaksi #0129</small></span><i>Aktif</i></div><div><span className="living-avatar avatar-c">C</span><span><b>Kasir C</b><small>Transaksi #0130</small></span><i>Aktif</i></div></div><div className="living-demo-orb"><Users size={24}/><span>MULTI-USER<br/>WORKSPACE</span></div></>}
+              {scene==='antrian' && <><div className="living-tv-card"><span>NOW CALLING</span><strong>A012</strong><b>Silakan ke Kasir 2</b><div><i/><i/><i/><i/><i/><i/><i/></div></div><div className="living-demo-orb"><Monitor size={24}/><span>LIVE QUEUE<br/>DISPLAY</span></div></>}
+            </div>
+            <div className="living-demo-foot"><span>DEMO ILUSTRATIF • BUKAN DATA LIVE</span><span>EXPLORE NEXT <ArrowRight size={13}/></span></div>
           </div>
         </div>
       </section>
 
-      <section className="nx-activation" id="aktivasi">
-        <div className="nx-activation-heading"><div><span className="nx-overline">06 / ACTIVATION & RENTAL</span><h2>Pilih masa sewa.<br/><em>Sesuaikan kapasitas.</em></h2></div><p>NexaPos menggunakan model sewa dengan aktivasi yang diproses oleh Super Admin. Harga, paket, dan promo mengikuti konfigurasi aktif.</p></div>
-        {activePromo && <article className="nx-promo"><div><span className="nx-overline">PENAWARAN AKTIF</span><h3>{activePromo.title || 'Penawaran NexaPos'}</h3><p>{activePromo.description || 'Ketentuan promo mengikuti paket dan masa sewa yang memenuhi syarat.'}</p></div><strong>{promoDiscountLabel(activePromo)}<small>POTONGAN</small></strong><span className="nx-promo-note">{requiresPromoCode(activePromo) ? 'Voucher memerlukan kode' : promoStartsLater ? 'Promo segera dimulai' : 'Promo otomatis jika memenuhi syarat'}</span></article>}
-        <div className="nx-duration-row"><div><span className="nx-overline">PILIH MASA AKTIF</span><p>Harga menyesuaikan durasi yang dipilih.</p></div><div className="nx-duration-options" role="tablist" aria-label="Pilihan masa sewa">{durations.map(duration=><button type="button" role="tab" aria-selected={selectedDuration===duration.duration_key} className={selectedDuration===duration.duration_key?'is-active':''} key={duration.duration_key} onClick={()=>setSelectedDuration(duration.duration_key)}><b>{duration.name}</b><small>{Number(duration.duration_days)} hari</small></button>)}</div></div>
-        <div className="nx-voucher-row"><label htmlFor="nx-voucher"><Ticket size={15}/> Kode voucher</label><div><input id="nx-voucher" value={coupon} onChange={event=>setCoupon(event.target.value.toUpperCase())} placeholder="Masukkan kode jika memilikinya"/>{coupon&&<button type="button" onClick={()=>setCoupon('')} aria-label="Hapus kode voucher"><X size={15}/></button>}</div><small>{coupon ? quoteLoading ? 'Memeriksa voucher ke server…' : serverQuotes[selectedPlan]?.promo_id ? 'Voucher terverifikasi untuk paket dan durasi ini.' : 'Kode belum valid untuk pilihan paket dan durasi ini.' : 'Voucher hanya berlaku sesuai ketentuan promo.'}</small></div>
-        {availablePromos.some(p=>requiresPromoCode(p)) && <div className="nx-voucher-list">{availablePromos.filter(p=>requiresPromoCode(p)).map(p=><article key={p.id}><div><b>{p.title || 'Voucher NexaPos'}</b><p>{p.description || 'Masukkan kode untuk memeriksa kelayakan penawaran.'}</p><small>Potongan {promoDiscountLabel(p)}</small></div><button type="button" onClick={()=>setCoupon(p.promo_code||'')} disabled={!p.promo_code}>Gunakan kode <ArrowRight size={13}/></button></article>)}</div>}
-        <div className="nx-plan-grid">
-          {plans.length && durations.length ? plans.map((plan,index)=>{
-            const duration=durations.find(d=>d.duration_key===selectedDuration) || durations[0]
-            const rawPrice=Number(plan.prices?.[selectedDuration]); const hasPrice=Number.isFinite(rawPrice)&&rawPrice>0; const basePrice=hasPrice?rawPrice:0
-            const pricedPlan={...plan,price:basePrice,duration:duration?.name||selectedDuration,duration_days:Number(duration?.duration_days||0)}
-            const serverQuote=serverQuotes[plan.key]
-            const displayPromo=serverQuote?.promo_id?{id:serverQuote.promo_id,title:serverQuote.promo_title,description:serverQuote.promo_description,discount_type:serverQuote.discount_type,discount_value:serverQuote.discount_value,eligible_periods:serverQuote.eligible_periods,promo_code:serverQuote.promo_code,requires_code:serverQuote.requires_code,starts_at:serverQuote.starts_at,ends_at:serverQuote.ends_at}:null
-            const discount=displayPromo?Math.max(0,Number(serverQuote?.discount||0)):0
-            const finalPrice=Math.max(0,Number(serverQuote?.final_price ?? basePrice))
-            return <article className={'nx-plan'+(plan.popular?' is-popular':'')+(selectedPlan===plan.key?' is-selected':'')} key={plan.key}>
-              <div className="nx-plan-top"><span>0{index+1} / {plan.name.toUpperCase()}</span>{plan.popular&&<b>REKOMENDASI</b>}</div>
-              <p>{plan.note || 'Pilihan kapasitas sesuai kebutuhan operasional.'}</p>
-              {plan.key==='single_workspace' ? <div className="nx-plan-quota"><Store size={14}/> 1 workspace mandiri</div> : <div className="nx-plan-quota"><Store size={14}/> Kuota {Number(plan.location_limit||1)} tenant tambahan di luar workspace utama</div>}
-              <div className="nx-plan-price-label">{discount>0?'HARGA SETELAH PROMO':'HARGA SEWA'}</div>
-              {discount>0&&hasPrice&&<del>{money(basePrice)}</del>}<strong className="nx-plan-price">{hasPrice?money(finalPrice):'Harga belum tersedia'}</strong><small className="nx-plan-period">{hasPrice?'/ '+(duration?.name||'durasi')+' · '+Number(duration?.duration_days||0)+' hari':'Konfirmasi harga melalui Admin NexaPos'}</small>
-              {discount>0&&<span className="nx-plan-saving">Hemat {money(discount)} · {promoDiscountLabel(displayPromo)}</span>}
-              <ul>{(plan.features?.length?plan.features:defaultFeatures).map((feature,i)=><li key={i}><Check size={14}/>{feature}</li>)}</ul>
-              <button type="button" disabled={!supportAvailable||!hasPrice} onClick={()=>{setSelectedPlan(plan.key);contact(pricedPlan,displayPromo,serverQuote)}}>{!hasPrice ? "Harga belum tersedia" : supportAvailable ? "Tanyakan paket ini" : "Kanal konsultasi belum tersedia"} <ArrowUpRight size={15}/></button>
-              <small className="nx-plan-foot">Kode aktivasi diterbitkan oleh Super Admin.</small>
-            </article>
-          }) : <div className="nx-pricing-unavailable"><ShieldCheck size={20}/><div><b>Informasi paket belum tersedia.</b><p>Harga dan pilihan aktivasi akan ditampilkan setelah konfigurasi paket aktif berhasil dimuat. Silakan masuk kembali nanti atau hubungi tim NexaPos melalui kanal dukungan yang tersedia.</p></div></div>}
+      <section className="living-bridge">
+        <div className="living-bridge-line" aria-hidden="true" />
+        <div className="living-bridge-copy living-reveal"><span className="living-eyebrow">FROM ONE ACTION TO THE NEXT</span><h2>Lebih sedikit proses terpisah.<br/><em>Lebih banyak hal yang terhubung.</em></h2><p>Hubungkan pekerjaan kasir, pencatatan transaksi, pengelolaan produk, dan layanan antrian tanpa kehilangan gambaran aktivitas toko.</p><a className="living-inline-link" href="#fitur">Jelajahi ekosistem <ArrowRight size={15}/></a></div>
+        <div className="living-bridge-map living-reveal"><div className="living-map-core"><img src="/nexapos-mark.svg" alt=""/><span>NexaPos</span></div><div className="living-map-item map-one"><ShoppingCart size={17}/><span>Transaksi</span></div><div className="living-map-item map-two"><Users size={17}/><span>Karyawan</span></div><div className="living-map-item map-three"><Monitor size={17}/><span>Antrian TV</span></div><div className="living-map-item map-four"><BarChart3 size={17}/><span>Laporan</span></div><div className="living-map-link link-one"/><div className="living-map-link link-two"/><div className="living-map-link link-three"/><div className="living-map-link link-four"/></div>
+      </section>
+
+      {activePromo && <section className="living-promo-spotlight" aria-label="Promo NexaPos"><div className="living-promo-spotlight-orbit" aria-hidden="true"/><div className="living-promo-spotlight-label"><Sparkles size={16}/> PROMO KHUSUS PELANGGAN BARU <span className="living-live-dot"/></div><div className="living-promo-spotlight-main"><div><span className="living-eyebrow">PENAWARAN TERBATAS / NEXAPOS</span><h2>{activePromo.title || 'Penawaran khusus NexaPos'}</h2><p>{activePromo.description || 'Dapatkan harga khusus untuk masa akses NexaPos pilihanmu.'}</p><div className="living-promo-spotlight-meta"><span><CheckCircle2 size={14}/> Berlaku untuk semua paket</span><span><Activity size={14}/> Mulai 29 Oktober 2026 · 18.40 WIB</span></div></div><div className="living-promo-spotlight-value"><small>DISKON</small><strong>{promoDiscountLabel(activePromo)}</strong><span>{promoStartsLater ? 'Segera dimulai' : 'Potongan otomatis'}</span></div></div><a className="living-cta living-cta-light" href="#harga">Lihat harga setelah diskon <ArrowRight size={15}/></a></section>}
+
+      <section className="living-features" id="fitur">
+        <div className="living-section-head living-reveal"><div><span className="living-eyebrow">BUILT AROUND YOUR BUSINESS</span><h2>Semua bagian punya peran.<br/><em>Semuanya saling mendukung.</em></h2></div><p>Kenali fitur utama NexaPos untuk transaksi harian, kerja beberapa akun kasir, pengelolaan produk, laporan, dan layanan antrian.</p></div>
+        <div className="living-feature-list">{features.map(({number,icon:Icon,title,text},index)=><article className="living-feature-row living-reveal" key={number}><span className="living-feature-number">{number}</span><span className="living-feature-icon"><Icon size={23}/></span><div className="living-feature-copy"><h3>{title}</h3><p>{text}</p></div><span className="living-feature-meta">{index===0?'POINT OF SALE':index===1?'MULTI-ACCOUNT':index===2?'QUEUE DISPLAY':index===3?'CATALOGUE':index===4?'REPORTING':'THERMAL PRINT'}</span><ArrowUpRight className="living-feature-arrow" size={20}/></article>)}</div>
+      </section>
+
+
+      <section className="living-pricing living-pricing-redesign" id="harga">
+        <div className="living-section-head living-reveal">
+          <div><span className="living-eyebrow">PILIH AKSES NEXAPOS / 04</span><h2>Satu sistem untuk bisnismu.<br/><em>Pilih masa aksesnya.</em></h2></div>
+          <p>Gunakan satu workspace untuk transaksi kasir, akun karyawan yang bekerja bersamaan, katalog dan stok, laporan operasional, serta sistem antrian yang bisa disesuaikan dengan kebutuhan toko.</p>
         </div>
-        <article className="nx-plan nx-plan-redesign nx-plan-custom nx-special-plan"><div><span className="nx-overline">CUSTOM ARRANGEMENT / PAKET KHUSUS</span><h3>Operasional dengan kebutuhan khusus?</h3><p>Diskusikan masa aktif dan jumlah tenant sesuai kebutuhan. Harga dan kuota tidak ditampilkan secara publik; detail ditentukan melalui konsultasi dan proses aktivasi oleh Admin.</p><ul><li>Masa aktif dapat disesuaikan</li><li>Jumlah tenant sesuai kebutuhan</li></ul></div><button type="button" disabled={!supportAvailable} onClick={contactCustom}>{supportAvailable ? "Konsultasikan kebutuhan" : "Kanal konsultasi belum tersedia"} <ArrowUpRight size={15}/></button></article>
-        {/* Pricing audit boundary: {!activePromo && <div className="living-no-promo"> */}
-        <p className="nx-activation-footnote">Informasi harga dan promo mengikuti data serta ketentuan aktif di sistem. Aktivasi bukan penagihan berulang otomatis.</p>
+        {activePromo && <article className="living-pricing-promo living-promo-feature" aria-live="polite">
+          <div className="living-promo-feature-mark"><Sparkles size={23}/><span>LIMITED<br/>OFFER</span></div>
+          <div className="living-promo-feature-copy">
+            <div className="living-promo-kicker"><span className="living-live-dot"/> {promoStartsLater ? 'PROMO SEGERA HADIR' : requiresPromoCode(activePromo) ? 'VOUCHER TERSEDIA' : 'PROMO DARI NEXAPOS'} <span className="living-promo-kicker-line"/></div>
+            <h3>{activePromo.title || 'Penawaran khusus NexaPos'}</h3>
+            <p>{activePromo.description || 'Dapatkan harga khusus untuk masa akses NexaPos pilihanmu.'}</p>
+            <div className="living-promo-details">
+              <span><CheckCircle2 size={14}/> Berlaku untuk {eligiblePeriods(activePromo).map(period=>({daily:'Harian',weekly:'Mingguan',monthly:'Bulanan',yearly:'Tahunan'}[period]||period)).join(', ')||'semua paket'}</span>
+              {activePromo.starts_at && <span><Activity size={14}/> Mulai 29 Oktober 2026 pukul 18.40 WIB</span>}{activePromo.ends_at && <span><Activity size={14}/> Berakhir {new Date(activePromo.ends_at).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric',timeZone:'Asia/Jakarta'})}</span>}
+              {requiresPromoCode(activePromo) && activePromo.promo_code && <span><Ticket size={14}/> Kode: {activePromo.promo_code}</span>}
+            </div>
+          </div>
+          <div className="living-promo-feature-discount"><small>POTONGAN</small><strong>{promoDiscountLabel(activePromo)}</strong><span>{promoStartsLater ? 'Harga promo ditampilkan sebelum mulai' : requiresPromoCode(activePromo) ? 'Gunakan kode promo' : 'Otomatis di harga paket'}</span></div>
+        </article>}
+        <div className="living-pricing-toolbar">
+          <div><span className="living-eyebrow">PILIHAN MASA AKSES</span><p>Harga diperbarui mengikuti pengaturan Superadmin.</p></div>
+          <div className="living-pricing-live"><i/> HARGA & PROMO TERKINI</div>
+        </div>
+        <div className="living-coupon living-coupon-redesign">
+          <label htmlFor="living-coupon"><Ticket size={15}/> Punya kode voucher?</label>
+          <div><input id="living-coupon" value={coupon} onChange={e=>setCoupon(e.target.value.toUpperCase())} placeholder="Ketik kode voucher di sini"/>{coupon && <button type="button" onClick={()=>setCoupon('')} aria-label="Hapus kode kupon"><X size={15}/></button>}</div>
+          {coupon && <small className={couponPromo?'is-valid':''}>{couponPromo?'✓ '+(couponPromo.title||'Voucher NexaPos')+' siap digunakan pada paket yang memenuhi syarat.':'Kode belum cocok atau masa promo sudah berakhir.'}</small>}
+        </div>
+        {availablePromos.some(p=>requiresPromoCode(p)) && <div className="living-voucher-list living-voucher-list-redesign">{availablePromos.filter(p=>requiresPromoCode(p)).map(p=><article className={couponPromo?.id===p.id?'is-active':''} key={p.id}>
+          <div><span><Ticket size={14}/>{p.title||'Voucher NexaPos'}</span><p>{p.description||'Masukkan kode untuk menggunakan penawaran ini.'}</p><small>Potongan {promoDiscountLabel(p)} · {eligiblePeriods(p).map(period=>({daily:'Harian',weekly:'Mingguan',monthly:'Bulanan',yearly:'Tahunan'}[period]||period)).join(', ')||'Semua paket'}</small></div>
+          <button type="button" onClick={()=>setCoupon(p.promo_code||'')} disabled={!p.promo_code}>{p.promo_code?'Pakai voucher':'Kode tidak tersedia'} <ArrowRight size={13}/></button>
+        </article>)}</div>}
+        <div className="living-plan-grid living-plan-grid-redesign">
+          {plans.map((plan,index)=>{
+            const displayPromo=coupon.trim()?(couponPromo?{...couponPromo,requires_code:false}:null):(automaticPromo || upcomingPromo);
+            const eligible=displayPromo ? eligiblePeriods(displayPromo) : [];
+            const isEligible=!eligible.length||eligible.includes(String(plan.key||plan.plan_key||'').toLowerCase());
+            const discount=isEligible?discountFor(plan,displayPromo):0;
+            const finalPrice=Math.max(0,Number(plan.price||0)-discount);
+            const planFeatures=plan.features?.length?plan.features:['Kasir dan pencatatan transaksi','Akun karyawan bekerja bersamaan','Produk, kategori, dan stok','Sistem antrian digital','Laporan operasional'];
+            return <article className={'living-plan living-plan-redesign'+(plan.popular?' is-popular':'')+(selectedPlan===plan.key?' is-selected':'')} key={plan.key} style={{'--plan-index':index}} onClick={()=>setSelectedPlan(plan.key)}>
+              <div className="living-plan-top"><span>{plan.name}</span>{plan.popular&&<b>REKOMENDASI</b>}</div>
+              <p className="living-plan-note">{plan.note || 'Akses NexaPos sesuai kebutuhan bisnismu.'}</p>
+              <div className="living-plan-price-label">{discount>0?'HARGA PROMO':'HARGA PAKET'}</div>
+              <div className="living-price living-price-redesign">{discount>0&&<del>{money(plan.price)}</del>}<strong>{money(finalPrice)}</strong><small>/ {plan.duration || ({daily:'1 hari',weekly:'7 hari',monthly:'30 hari',yearly:'365 hari'}[plan.key]||'masa akses')}</small></div>
+              {discount>0&&<div className="living-saving living-saving-redesign"><Zap size={13}/> Hemat {money(discount)} <b>−{promoDiscountLabel(displayPromo)}</b></div>}
+              {displayPromo && !isEligible && <div className="living-plan-ineligible">Promo tidak berlaku untuk durasi ini</div>}
+              <div className="living-plan-divider"/>
+              <ul>{planFeatures.map((feature,featureIndex)=><li key={featureIndex}><CheckCircle2 size={14}/>{feature}</li>)}</ul>
+              <button className="living-cta living-plan-cta living-plan-cta-redesign" onClick={e=>{e.stopPropagation();contact(plan,displayPromo&&isEligible?displayPromo:null)}}>{discount>0?'Pilih paket promo':'Tanyakan paket'} <ArrowRight size={14}/></button>
+              <span className="living-plan-footnote">Konfirmasi aktivasi melalui tim NexaPos</span>
+            </article>
+          })}
+        </div>
+        {!activePromo && <div className="living-no-promo"><span><Activity size={16}/></span><div><b>Belum ada promo otomatis yang aktif</b><p>Pantau halaman ini untuk penawaran terbaru. Voucher berkode dapat dimasukkan pada kolom di atas.</p></div></div>}
+        <p className="living-pricing-note">Harga dan informasi promo mengikuti pengaturan aktif di Superadmin. Ketentuan akhir, proses pembayaran, dan aktivasi akan dikonfirmasi oleh tim NexaPos sebelum penyewaan.</p>
       </section>
 
-      <section className="nx-faq" id="faq">
-        <div className="nx-faq-heading"><span className="nx-overline">07 / FREQUENTLY ASKED QUESTIONS</span><h2>Hal penting,<br/><em>sebelum mulai.</em></h2><p>Jawaban ini menjelaskan model kerja dan batasan NexaPos berdasarkan fungsi produk saat ini.</p></div>
-        <div className="nx-faq-list">{[
-          {q:'Apa yang dapat dikelola melalui NexaPos?',a:'NexaPos mencakup POS dan checkout, katalog serta stok per tenant, sesi kasir, kehadiran dan istirahat, tim dan hak akses, laporan penjualan dan modal, antrean, Self Order, struk, serta audit aktivitas. Fitur yang terlihat mengikuti peran, izin, dan konfigurasi workspace.'},
-          {q:'Apa perbedaan NexaSpace dan Single Workspace?',a:'NexaSpace adalah pusat kendali Owner untuk organisasi dengan beberapa tenant. Single Workspace adalah model terpisah untuk Owner yang mengelola satu workspace mandiri tanpa NexaSpace. Penawaran Single Workspace hanya tersedia ketika paketnya diaktifkan Admin.'},
-          {q:'Bagaimana cara mendapatkan akses?',a:'Pilih paket dan masa sewa yang tersedia, lalu hubungi kanal dukungan NexaPos. Aktivasi diproses oleh Super Admin dan kode aktivasi diberikan melalui proses yang ditetapkan.'},
-          {q:'Apakah semua paket memiliki fitur yang sama?',a:'Paket reguler menggunakan kemampuan operasional NexaPos yang sama. Perbedaan paket reguler terutama pada kuota tenant dan harga berdasarkan masa sewa. Rincian yang tampil mengikuti konfigurasi aktif.'},
-          {q:'Apakah stok dapat dipindahkan antar-tenant?',a:'Tidak. Produk dan stok dikelola pada masing-masing tenant. Data stok antar-tenant tetap terisolasi dan tidak tersedia fitur transfer stok lintas tenant.'},
-          {q:'Bisakah beberapa Karyawan bertransaksi bersamaan?',a:'Ya. Beberapa akun dapat bekerja pada tenant yang sama secara bersamaan. Identitas akun yang mengerjakan transaksi tetap dicatat.'},
-          {q:'Apa yang ditampilkan pada antrean?',a:'Antrean operasional menampilkan nomor antrean, nama pelanggan, dan konter atau kasir/loket. Fitur media, video, dan template TV tidak termasuk dalam sistem antrean saat ini.'},
-          {q:'Apakah masa aktif berakhir berarti data langsung dihapus?',a:'Tidak. Berakhirnya masa aktif membatasi operasi tenant sesuai status aktivasi. Data tidak otomatis dihapus hanya karena masa aktif berakhir; akses Owner ke NexaSpace mengikuti aturan status organisasi.'},
-          {q:'Apakah NexaPos mendukung cetak struk?',a:'NexaPos menyediakan fungsi cetak struk. Kompatibilitas printer thermal bergantung pada perangkat, browser, koneksi, dan konfigurasi printer yang digunakan.'},
-          {q:'Apakah tersedia pemesanan mandiri?',a:'Fitur Self Order tersedia untuk tenant yang mengaktifkan dan mengonfigurasinya. Pelanggan dapat membuat pesanan melalui halaman pemesanan mandiri; katalog, ketersediaan produk, dan pemrosesan pesanan mengikuti konfigurasi serta stok tenant.'},
-          {q:'Apakah NexaPos memiliki bantuan di dalam workspace?',a:'NexaBot tersedia sebagai pendamping penggunaan NexaPos di dalam workspace. Jika pertanyaan membutuhkan bantuan lanjutan, percakapan dapat diteruskan kepada Admin NexaPos. Kanal WhatsApp dan Telegram digunakan untuk dukungan publik sesuai pengaturan yang aktif.'},
-          {q:'Apakah Owner dapat mengelola anggota dan tenant?',a:'Pada model NexaSpace, Owner dapat mengelola tenant sesuai kuota dan kewenangan organisasi, mengatur anggota, serta mengakses workspace tenant. Single Workspace tidak menggunakan pengelolaan organisasi atau tenant.'},
-          {q:'Apakah paket Khusus menampilkan harga dan kuota?',a:'Tidak. Paket Khusus merupakan penawaran konsultasi. Masa aktif dan jumlah tenant disesuaikan melalui proses konsultasi dan ditentukan oleh Admin saat aktivasi.'},
-          {q:'Bagaimana keamanan akses data antar-tenant?',a:'Setiap tenant memiliki ruang operasional dan stoknya sendiri. Akses data mengikuti keanggotaan, peran, izin, dan kebijakan isolasi organisasi.'}
-        ].map((item,i)=><article className={faqOpen===i?'is-open':''} key={item.q}><button type="button" aria-expanded={faqOpen===i} onClick={()=>setFaqOpen(faqOpen===i?-1:i)}><span><small>0{i+1}</small>{item.q}</span><ChevronDown size={17}/></button>{faqOpen===i&&<p>{item.a}</p>}</article>)}</div>
-      </section>
+      <section className="living-faq" id="faq"><div className="living-section-head living-reveal"><div><span className="living-eyebrow">GOOD TO KNOW</span><h2>Sebelum mulai,<br/><em>ini yang perlu diketahui.</em></h2></div><p>Jawaban ringkas untuk membantu Anda memahami cara memulai menggunakan NexaPos.</p></div><div className="living-faq-list">{[{q:'Apakah semua masa sewa mendapatkan fitur yang sama?',a:'Paket masa akses ditujukan untuk menggunakan fitur aplikasi yang sama. Perbedaannya ada pada jangka waktu akses; detail paket akan dikonfirmasi oleh tim NexaPos.'},{q:'Bagaimana cara mulai menyewa NexaPos?',a:'Pilih masa sewa yang sesuai, lalu hubungi tim NexaPos melalui Telegram untuk memperoleh informasi proses pembayaran dan aktivasi.'},{q:'Apakah NexaPos mendukung printer thermal?',a:'NexaPos menyediakan alur cetak struk untuk printer thermal yang kompatibel dengan perangkat dan browser yang digunakan.'},{q:'Bisakah beberapa kasir bekerja bersamaan?',a:'NexaPos dirancang untuk mendukung beberapa akun karyawan dalam satu toko. Setiap transaksi mengikuti akun yang digunakan, sesuai hak aksesnya.'},{q:'Bagaimana jika masa akses berakhir?',a:'Hubungi tim NexaPos untuk memeriksa status masa akses dan memperoleh informasi perpanjangan.'}].map((item,i)=><div className={'living-faq-item'+(faqOpen===i?' is-open':'')} key={item.q}><button onClick={()=>setFaqOpen(faqOpen===i?-1:i)} aria-expanded={faqOpen===i}><span><small>0{i+1}</small>{item.q}</span><ChevronDown size={17}/></button>{faqOpen===i&&<p>{item.a}</p>}</div>)}</div></section>
 
-      <section className="nx-contact">
-        <div><span className="nx-overline">08 / START WITH THE RIGHT WORKSPACE</span><h2>Siapkan sistem<br/><em>untuk langkah berikutnya.</em></h2><p>Jelajahi model workspace, periksa pilihan aktivasi yang tersedia, atau masuk jika akun NexaPos Anda sudah aktif.</p></div>
-        <div className="nx-contact-actions"><a href="#aktivasi" className="nx-primary-cta">Lihat pilihan aktivasi <ArrowRight size={15}/></a><a href="/login" className="nx-contact-login">Sudah punya akun? Masuk ke workspace <ArrowUpRight size={15}/></a></div>
+      <section className="living-final">
+        <div className="living-final-orbit" aria-hidden="true"/><div className="living-final-copy living-reveal"><span className="living-eyebrow">THE NEXT MOVE IS YOURS</span><h2>Bisnis bergerak.<br/><em>Pastikan sistemnya ikut.</em></h2><p>Jelajahi alur kerja NexaPos dan lihat bagaimana kasir, tim, produk, laporan, serta antrian dapat mendukung operasional toko.</p></div>
+        <div className="living-final-actions"><a className="living-cta living-cta-light" href="#harga">Pilih paket sewa <ArrowRight size={16}/></a><a className="living-final-login" href="/login">Sudah punya akun? Login workspace <ArrowUpRight size={14}/></a></div>
       </section>
     </main>
-    <footer className="nx-footer"><Brand footer/><p>NexaPos — sistem operasional untuk transaksi, produk, stok, tim, dan pengelolaan workspace bisnis.</p><div>{supportChannels.whatsapp_enabled&&supportChannels.whatsapp_number&&<a href={'https://wa.me/'+supportChannels.whatsapp_number} target="_blank" rel="noreferrer"><Phone size={14}/> WhatsApp</a>}{supportChannels.telegram_enabled&&supportChannels.telegram_username&&<a href={'https://t.me/'+supportChannels.telegram_username} target="_blank" rel="noreferrer"><Send size={14}/> Telegram</a>}<a href="/login">Login <ArrowUpRight size={14}/></a></div><small>© {new Date().getFullYear()} NexaPos. Seluruh hak dilindungi.</small></footer>
+    <div className="living-chat-launcher">
+      {!liveChatOpen && <button type="button" className="living-chat-button" onClick={() => setLiveChatOpen(true)} aria-label="Buka pusat bantuan" title="Pusat bantuan"><img src="/nexapos-mark.svg" alt=""/><span>Pusat bantuan</span></button>}
+      {liveChatOpen && <SupportCenter session={null} onClose={() => setLiveChatOpen(false)} />}
+    </div>
+    <footer className="living-footer"><Brand footer/><p>Kasir, tim, dan antrian dalam satu sistem yang saling terhubung.</p><div className="living-footer-links"><a href="#cerita">Cara kerja</a><a href="#fitur">Ekosistem</a><a href="#harga">Harga sewa</a><a href="#faq">FAQ</a><a href="https://t.me/becaaapos" target="_blank" rel="noreferrer">Hubungi kami</a></div><small>© {new Date().getFullYear()} NexaPos. Seluruh hak dilindungi.</small></footer>
   </div>
-
 }
