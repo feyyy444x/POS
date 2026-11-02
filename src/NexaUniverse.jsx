@@ -124,8 +124,9 @@ function compile(gl, type, source) {
 }
 
 const sceneFor = (heading, path) => {
-  if ((path === '/' || path.endsWith('/index.html')) && !document.querySelector('.app-shell')) return 0
   const value = (heading + ' ' + path).toLowerCase()
+  if (path.includes('login') || path.includes('auth') || document.querySelector('.access-portal, .nx-access-portal, .access-content')) return 9
+  if ((path === '/' || path.endsWith('/index.html')) && !document.querySelector('.app-shell')) return 0
   if (value.includes('pos') || value.includes('checkout') || value.includes('kasir')) return 1
   if (value.includes('produk') || value.includes('stok') || value.includes('inventory')) return 2
   if (value.includes('laporan') || value.includes('report')) return 3
