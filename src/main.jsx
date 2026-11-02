@@ -6,6 +6,7 @@ import MotionSystem from './MotionSystem.jsx'
 import './styles.css'
 import './owner-tenant-order.css'
 import './nexa-design-system.css'
+import './nexa-architecture-workspaces.css'
 
 class AppErrorBoundary extends React.Component {
   constructor(props) {
