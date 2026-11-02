@@ -2,8 +2,7 @@ import { useEffect } from 'react'
 
 /**
  * NexaPos motion layer.
- * Adds progressive enhancement only: no business state, routing, or data writes.
- * Respects reduced-motion preferences and never intercepts pointer interactions.
+ * Progressive visual enhancement only; it never changes business state or data.
  */
 export default function MotionSystem() {
   useEffect(() => {
@@ -15,16 +14,14 @@ export default function MotionSystem() {
     body.classList.add('nexa-motion-ready')
     if (reduceMotion) {
       body.classList.add('nexa-motion-reduced')
-      return () => {
-        body.classList.remove('nexa-motion-ready', 'nexa-motion-reduced')
-      }
+      return () => body.classList.remove('nexa-motion-ready', 'nexa-motion-reduced')
     }
 
     let cursor = null
     let cursorFrame = 0
-    const magneticTargets = new Set()
     let pointerX = window.innerWidth / 2
     let pointerY = window.innerHeight / 2
+    const magneticTargets = new Set()
 
     if (finePointer) {
       cursor = document.createElement('span')
@@ -73,26 +70,23 @@ export default function MotionSystem() {
 
     const enhance = (scope) => {
       if (!scope?.querySelectorAll && !scope?.matches) return
-      const revealTargets = matching(scope,
-        '.living-home section, .living-reveal, .stat-card, .owner-stat-card, .owner-tenant-card, .report-card, .dashboard-card'
-      )
-      revealTargets.forEach((element) => {
-        if (element.dataset.nexaMotionReveal) return
-        element.dataset.nexaMotionReveal = 'true'
-        element.classList.add('nexa-motion-reveal')
-        if (revealObserver) revealObserver.observe(element)
-        else element.classList.add('nexa-is-visible')
-      })
 
-      const pageTargets = matching(scope, '.page-section, .owner-page')
-      pageTargets.forEach((element) => {
+      matching(scope, '.living-home section, .living-reveal, .stat-card, .owner-stat-card, .owner-tenant-card, .report-card, .dashboard-card')
+        .forEach((element) => {
+          if (element.dataset.nexaMotionReveal) return
+          element.dataset.nexaMotionReveal = 'true'
+          element.classList.add('nexa-motion-reveal')
+          if (revealObserver) revealObserver.observe(element)
+          else element.classList.add('nexa-is-visible')
+        })
+
+      matching(scope, '.page-section, .owner-page').forEach((element) => {
         if (element.dataset.nexaPageEnter) return
         element.dataset.nexaPageEnter = 'true'
         element.classList.add('nexa-page-enter')
       })
 
-      const magnetic = matching(scope, '.living-cta, .btn-primary, .nav-link, .owner-nav-link')
-      magnetic.forEach((element) => {
+      matching(scope, '.living-cta, .btn-primary, .nav-link, .owner-nav-link').forEach((element) => {
         if (element.dataset.nexaMagnetic) return
         element.dataset.nexaMagnetic = 'true'
         element.classList.add('nexa-magnetic')
@@ -112,12 +106,12 @@ export default function MotionSystem() {
         magneticTargets.add({ element, move, leave })
       })
 
-      const surfaces = matching(scope,
-      surfaces.forEach((element) => {
-        if (element.dataset.nexaMotionSurface) return
-        element.dataset.nexaMotionSurface = 'true'
-        element.classList.add('nexa-motion-surface')
-      })
+      matching(scope, '.panel, .owner-section, .owner-setting-card, .workspace-card, .living-plan, .living-feature-card')
+        .forEach((element) => {
+          if (element.dataset.nexaMotionSurface) return
+          element.dataset.nexaMotionSurface = 'true'
+          element.classList.add('nexa-motion-surface')
+        })
     }
 
     enhance(document)
