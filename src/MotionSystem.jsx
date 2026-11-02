@@ -22,6 +22,7 @@ export default function MotionSystem() {
 
     let cursor = null
     let cursorFrame = 0
+    const magneticTargets = new Set()
     let pointerX = window.innerWidth / 2
     let pointerY = window.innerHeight / 2
 
@@ -39,6 +40,8 @@ export default function MotionSystem() {
       root.style.setProperty('--nexa-pointer-y', pointerY + 'px')
       root.style.setProperty('--nexa-parallax-x', ((pointerX / Math.max(window.innerWidth, 1)) - 0.5).toFixed(3))
       root.style.setProperty('--nexa-parallax-y', ((pointerY / Math.max(window.innerHeight, 1)) - 0.5).toFixed(3))
+      root.style.setProperty('--nexa-tilt-x', (((pointerY / Math.max(window.innerHeight, 1)) - 0.5) * -4).toFixed(2) + 'deg')
+      root.style.setProperty('--nexa-tilt-y', (((pointerX / Math.max(window.innerWidth, 1)) - 0.5) * 4).toFixed(2) + 'deg')
       if (cursor && !cursorFrame) {
         cursorFrame = window.requestAnimationFrame(() => {
           cursor.style.transform = 'translate3d(' + pointerX + 'px,' + pointerY + 'px,0)'
@@ -61,9 +64,16 @@ export default function MotionSystem() {
       }, { threshold: 0.12, rootMargin: '0px 0px -36px 0px' })
     }
 
+    const matching = (scope, selector) => {
+      const items = []
+      if (scope?.matches?.(selector)) items.push(scope)
+      if (scope?.querySelectorAll) items.push(...scope.querySelectorAll(selector))
+      return items
+    }
+
     const enhance = (scope) => {
-      if (!scope?.querySelectorAll) return
-      const revealTargets = scope.querySelectorAll(
+      if (!scope?.querySelectorAll && !scope?.matches) return
+      const revealTargets = matching(scope,
         '.living-home section, .living-reveal, .stat-card, .owner-stat-card, .owner-tenant-card, .report-card, .dashboard-card'
       )
       revealTargets.forEach((element) => {
@@ -74,9 +84,35 @@ export default function MotionSystem() {
         else element.classList.add('nexa-is-visible')
       })
 
-      const surfaces = scope.querySelectorAll(
-        '.panel, .owner-section, .owner-setting-card, .workspace-card, .living-plan, .living-feature-card'
-      )
+      const pageTargets = matching(scope, '.page-section, .owner-page')
+      pageTargets.forEach((element) => {
+        if (element.dataset.nexaPageEnter) return
+        element.dataset.nexaPageEnter = 'true'
+        element.classList.add('nexa-page-enter')
+      })
+
+      const magnetic = matching(scope, '.living-cta, .btn-primary, .nav-link, .owner-nav-link')
+      magnetic.forEach((element) => {
+        if (element.dataset.nexaMagnetic) return
+        element.dataset.nexaMagnetic = 'true'
+        element.classList.add('nexa-magnetic')
+        const move = (event) => {
+          const rect = element.getBoundingClientRect()
+          const x = (event.clientX - rect.left - rect.width / 2) * 0.10
+          const y = (event.clientY - rect.top - rect.height / 2) * 0.10
+          element.style.setProperty('--nexa-magnet-x', x.toFixed(1) + 'px')
+          element.style.setProperty('--nexa-magnet-y', y.toFixed(1) + 'px')
+        }
+        const leave = () => {
+          element.style.setProperty('--nexa-magnet-x', '0px')
+          element.style.setProperty('--nexa-magnet-y', '0px')
+        }
+        element.addEventListener('pointermove', move, { passive: true })
+        element.addEventListener('pointerleave', leave, { passive: true })
+        magneticTargets.add({ element, move, leave })
+      })
+
+      const surfaces = matching(scope,
       surfaces.forEach((element) => {
         if (element.dataset.nexaMotionSurface) return
         element.dataset.nexaMotionSurface = 'true'
@@ -106,6 +142,11 @@ export default function MotionSystem() {
       window.removeEventListener('pointermove', updatePointer)
       window.removeEventListener('pointerdown', onPointerDown)
       window.removeEventListener('pointerup', onPointerUp)
+      magneticTargets.forEach(({ element, move, leave }) => {
+        element.removeEventListener('pointermove', move)
+        element.removeEventListener('pointerleave', leave)
+      })
+      magneticTargets.clear()
       if (cursorFrame) window.cancelAnimationFrame(cursorFrame)
       cursor?.remove()
       body.classList.remove('nexa-motion-ready', 'nexa-pointer-pressed')
@@ -113,6 +154,8 @@ export default function MotionSystem() {
       root.style.removeProperty('--nexa-pointer-y')
       root.style.removeProperty('--nexa-parallax-x')
       root.style.removeProperty('--nexa-parallax-y')
+      root.style.removeProperty('--nexa-tilt-x')
+      root.style.removeProperty('--nexa-tilt-y')
     }
   }, [])
 
