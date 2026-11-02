@@ -22,12 +22,16 @@ const fallbackPlans = [
   { key: 'enterprise', name: 'Enterprise', location_limit: 15, note: 'Untuk jaringan usaha yang lebih besar', prices: { daily: 25000, weekly: 85000, monthly: 299000, yearly: 2990000 }, features: defaultFeatures, popular: false, sort_order: 4 },
 ]
 const features = [
-  { number: '01', icon: ShoppingCart, title: 'Transaksi lebih praktis', text: 'Layani pelanggan dari satu layar: pilih produk, hitung total otomatis, proses pembayaran, dan simpan riwayat transaksi dengan lebih rapi.' },
-  { number: '02', icon: Users, title: 'Banyak Karyawan, tetap terpantau', text: 'Berikan akun masing-masing kepada karyawan. Beberapa Karyawan dapat melayani pelanggan secara bersamaan, sementara setiap transaksi tetap memiliki identitas Karyawan yang mengerjakannya.' },
-  { number: '03', icon: Monitor, title: 'Antrean sesuai alur pelayanan', text: 'Catat nama pelanggan, nomor antrean, dan loket atau petugas yang melayani. Aktifkan atau nonaktifkan fitur antrean sesuai kebutuhan toko.' },
-  { number: '04', icon: Package, title: 'Produk dan stok lebih tertata', text: 'Susun katalog, kategori, harga, dan informasi persediaan dalam satu tempat agar tim lebih mudah menemukan produk dan memantau kebutuhan stok.' },
-  { number: '05', icon: BarChart3, title: 'Laporan untuk memahami usaha', text: 'Lihat riwayat transaksi dan ringkasan penjualan untuk membantu memantau aktivitas toko serta menjadi bahan evaluasi operasional.' },
-  { number: '06', icon: Printer, title: 'Struk transaksi siap dicetak', text: 'Selesaikan transaksi dengan bukti pembayaran yang dapat dicetak melalui printer thermal yang kompatibel dengan perangkat dan browser Anda.' },
+  { number: '01', icon: ShoppingCart, title: 'POS dan checkout terstruktur', text: 'Pilih produk, atur kuantitas, periksa keranjang, hitung total, proses pembayaran, dan simpan transaksi dalam satu alur yang dirancang untuk pelayanan cepat.' },
+  { number: '02', icon: Users, title: 'Beberapa kasir bekerja bersamaan', text: 'Setiap Karyawan menggunakan akun masing-masing. Transaksi tetap mencatat identitas petugas yang mengerjakannya sehingga aktivitas tim lebih mudah ditelusuri.' },
+  { number: '03', icon: Package, title: 'Katalog dan inventaris per tenant', text: 'Kelola kategori, produk, harga, dan persediaan pada workspace masing-masing. Stok antar-tenant terpisah dan tidak dapat dipindahkan lintas tenant.' },
+  { number: '04', icon: BarChart3, title: 'Laporan penjualan dan modal', text: 'Tinjau riwayat transaksi, ringkasan penjualan, rentang tanggal, serta informasi harga modal dan estimasi keuntungan berdasarkan data operasional.' },
+  { number: '05', icon: Activity, title: 'Sesi kasir dan kehadiran', text: 'Pantau pembukaan dan penutupan kasir, aktivitas kehadiran, serta status istirahat sesuai alur operasional tenant.' },
+  { number: '06', icon: Monitor, title: 'Antrean pelayanan sederhana', text: 'Tampilkan nama pesanan, nomor antrean, dan loket atau kasir yang melayani. Fitur antrean dapat diaktifkan atau dinonaktifkan sesuai kebutuhan.' },
+  { number: '07', icon: Workflow, title: 'Pemesanan mandiri pelanggan', text: 'Berikan jalur pemesanan mandiri melalui perangkat pelanggan. Katalog, ketersediaan produk, dan proses pesanan mengikuti konfigurasi tenant.' },
+  { number: '08', icon: ShieldCheck, title: 'Tim dan hak akses', text: 'Atur peran Owner, Manager, dan Karyawan. Pengelolaan anggota, status akun, serta reset PIN atau kata sandi mengikuti kewenangan akun.' },
+  { number: '09', icon: Printer, title: 'Bukti transaksi siap dicetak', text: 'Sediakan struk transaksi yang dapat dicetak melalui printer thermal yang kompatibel dengan perangkat, browser, dan konfigurasi yang digunakan.' },
+  { number: '10', icon: Activity, title: 'Riwayat dan audit aktivitas', text: 'Telusuri aktivitas penting sesuai cakupan akses organisasi atau tenant untuk membantu menjaga keterlacakan perubahan dan operasional.' },
 ]
 const storyScenes = {
   kasir: { index: '01', eyebrow: 'SAAT TRANSAKSI DIMULAI', title: 'Dari pilih produk hingga transaksi tercatat.', description: 'Karyawan memilih produk, memeriksa total, memproses pembayaran, lalu menyimpan transaksi dalam satu alur kerja.', icon: ShoppingCart, status: 'Transaksi tersimpan', tag: 'POS WORKSPACE' },
@@ -245,7 +249,7 @@ export default function Homepage() {
         <div className="arch-hero-copy">
           <div className="arch-kicker"><span/> BUSINESS OPERATIONS / DIGITAL ARCHITECTURE</div>
           <h1>Bangun alur.<br/><em>Kendalikan bisnis.</em></h1>
-          <p>NexaPos menyatukan transaksi, produk, stok, tim, dan laporan dalam workspace operasional. Untuk pemilik multi-tenant, NexaSpace menjadi pusat kendali organisasi.</p>
+          <p>NexaPos menghubungkan POS, checkout, katalog produk, stok per tenant, tim, sesi kasir, antrean, pemesanan mandiri, dan laporan dalam satu sistem operasional. Pilih NexaSpace untuk mengelola beberapa tenant atau Single Workspace untuk menjalankan satu workspace secara mandiri.</p>
           <div className="arch-hero-actions"><a className="arch-primary-cta" href="#sistem">Kenali sistem <ArrowDown size={16}/></a><a className="arch-secondary-cta" href="/?screen=demo">Lihat demo interaktif <ArrowUpRight size={15}/></a></div>
           <div className="arch-hero-foot"><span>01 — SYSTEM OVERVIEW</span><span>SCROLL TO EXPLORE</span></div>
         </div>
@@ -287,10 +291,10 @@ export default function Homepage() {
       <section className="arch-process">
         <div className="arch-process-head"><span className="arch-overline">03 / OPERATIONAL SEQUENCE</span><h2>Setiap aktivitas punya<br/><em>tempat dan urutannya.</em></h2></div>
         <div className="arch-process-list">
-          <article><span>01</span><div><ShoppingCart size={20}/><h3>Layani transaksi</h3><p>Pilih produk, periksa keranjang, proses pembayaran, dan simpan riwayat transaksi.</p></div><small>POINT OF SALE</small></article>
+          <article><span>01</span><div><ShoppingCart size={20}/><h3>Layani transaksi</h3><p>Pilih produk, periksa keranjang, proses pembayaran, cetak struk, dan simpan riwayat transaksi.</p></div><small>POINT OF SALE</small></article>
           <article><span>02</span><div><Package size={20}/><h3>Kelola katalog & stok</h3><p>Atur kategori, produk, harga, dan persediaan di workspace masing-masing.</p></div><small>INVENTORY</small></article>
           <article><span>03</span><div><Users size={20}/><h3>Atur tim dan akses</h3><p>Berikan akun serta hak akses sesuai peran Owner, Manager, atau Karyawan.</p></div><small>TEAM OPERATIONS</small></article>
-          <article><span>04</span><div><BarChart3 size={20}/><h3>Tinjau hasil operasional</h3><p>Gunakan riwayat transaksi dan laporan untuk memahami aktivitas bisnis.</p></div><small>BUSINESS INSIGHT</small></article>
+          <article><span>04</span><div><BarChart3 size={20}/><h3>Tinjau hasil operasional</h3><p>Gunakan laporan penjualan, rentang tanggal, data modal, serta riwayat transaksi untuk memahami aktivitas bisnis.</p></div><small>BUSINESS INSIGHT</small></article>
         </div>
       </section>
 
@@ -298,6 +302,31 @@ export default function Homepage() {
         <div className="arch-section-heading"><div><span className="arch-overline">04 / PRODUCT CAPABILITIES</span><h2>Dirancang untuk<br/><em>pekerjaan yang nyata.</em></h2></div><p>Deskripsi berikut mengikuti kemampuan produk yang tersedia. Ketersediaan setiap tindakan tetap mengikuti peran, izin, dan konfigurasi workspace.</p></div>
         <div className="arch-capability-grid">{features.map(({number,icon:Icon,title,text})=><article className="arch-capability" key={number}><div className="arch-capability-top"><span>{number}</span><Icon size={20}/></div><h3>{title}</h3><p>{text}</p><span className="arch-capability-rule"/></article>)}</div>
         <div className="arch-capability-foot"><span><ShieldCheck size={16}/> AKSES BERDASARKAN PERAN</span><p>Owner, Manager, dan Karyawan melihat fungsi sesuai kewenangannya. Data dan stok setiap tenant tetap terpisah.</p></div>
+      </section>
+
+      <section className="arch-operating-suite" id="alur-operasional">
+        <div className="arch-operating-suite-head">
+          <div><span className="arch-overline">05 / THE COMPLETE OPERATING SUITE</span><h2>Setiap bagian bisnis<br/><em>terhubung dalam alurnya.</em></h2></div>
+          <p>NexaPos tidak berhenti di kasir. Pengelolaan persediaan, tim, pelayanan pelanggan, dan evaluasi bisnis berada dalam rangkaian operasional yang saling mendukung.</p>
+        </div>
+        <div className="arch-suite-grid">
+          <article className="arch-suite-item"><span>01 / INVENTORY CONTROL</span><Package size={22}/><h3>Stok per workspace</h3><p>Kelola produk dan persediaan setiap tenant secara terpisah. Tidak ada transfer stok antar-tenant.</p></article>
+          <article className="arch-suite-item"><span>02 / CASHIER OPERATIONS</span><Activity size={22}/><h3>Kasir dan kehadiran</h3><p>Pantau sesi buka/tutup kasir, aktivitas Karyawan, serta status istirahat dalam alur tenant.</p></article>
+          <article className="arch-suite-item"><span>03 / CUSTOMER ORDERING</span><Workflow size={22}/><h3>Self Order</h3><p>Aktifkan pemesanan mandiri agar pelanggan dapat membuat pesanan dari perangkat mereka.</p></article>
+          <article className="arch-suite-item"><span>04 / SERVICE QUEUE</span><Monitor size={22}/><h3>Antrean pelayanan</h3><p>Kelola nomor, nama pesanan, dan loket atau kasir tanpa fitur media atau video antrean.</p></article>
+          <article className="arch-suite-item"><span>05 / BUSINESS REPORTS</span><BarChart3 size={22}/><h3>Analisis penjualan</h3><p>Gunakan rentang tanggal, riwayat transaksi, dan rincian modal untuk mengevaluasi hasil operasional.</p></article>
+          <article className="arch-suite-item"><span>06 / TEAM GOVERNANCE</span><ShieldCheck size={22}/><h3>Pengelolaan akses</h3><p>Atur Manager dan Karyawan, izin, status akun, serta pemulihan PIN atau kata sandi sesuai hak akses.</p></article>
+          <article className="arch-suite-item"><span>07 / TRACEABILITY</span><Activity size={22}/><h3>Audit aktivitas</h3><p>Telusuri perubahan dan aktivitas yang tercatat sesuai cakupan akses platform, organisasi, atau tenant.</p></article>
+          <article className="arch-suite-item"><span>08 / RECEIPT FLOW</span><Printer size={22}/><h3>Struk transaksi</h3><p>Berikan bukti transaksi yang dapat dicetak pada perangkat dan printer yang kompatibel.</p></article>
+        </div>
+        <div className="arch-suite-support" id="dukungan">
+          <div><span className="arch-overline">NEXAPOS SUPPORT</span><h3>Bantuan yang mengikuti alur kerja.</h3><p>NexaBot membantu pengguna memahami penggunaan NexaPos dari dalam workspace. Jika dibutuhkan, percakapan dapat diteruskan kepada Admin NexaPos. Untuk pertanyaan sebelum aktivasi, gunakan kanal kontak publik yang tersedia.</p></div>
+          <div className="arch-suite-support-links">
+            {supportChannels.whatsapp_enabled&&supportChannels.whatsapp_number&&<a href={'https://wa.me/'+supportChannels.whatsapp_number} target="_blank" rel="noreferrer"><Phone size={15}/> WhatsApp</a>}
+            {supportChannels.telegram_enabled&&supportChannels.telegram_username&&<a href={'https://t.me/'+supportChannels.telegram_username} target="_blank" rel="noreferrer"><Send size={15}/> Telegram</a>}
+            <a href="/login">Masuk ke workspace <ArrowUpRight size={15}/></a>
+          </div>
+        </div>
       </section>
 
       <section className="arch-activation" id="aktivasi">
@@ -336,7 +365,7 @@ export default function Homepage() {
       <section className="arch-faq" id="faq">
         <div className="arch-faq-heading"><span className="arch-overline">06 / FREQUENTLY ASKED QUESTIONS</span><h2>Hal penting,<br/><em>sebelum mulai.</em></h2><p>Jawaban ini menjelaskan model kerja dan batasan NexaPos berdasarkan fungsi produk saat ini.</p></div>
         <div className="arch-faq-list">{[
-          {q:'Apa yang dapat dikelola melalui NexaPos?',a:'NexaPos menyediakan alur POS untuk transaksi, pengelolaan produk dan stok, tim dan hak akses, laporan, serta antrean operasional. Fitur yang terlihat mengikuti peran dan izin akun.'},
+          {q:'Apa yang dapat dikelola melalui NexaPos?',a:'NexaPos mencakup POS dan checkout, katalog serta stok per tenant, sesi kasir, kehadiran dan istirahat, tim dan hak akses, laporan penjualan dan modal, antrean, Self Order, struk, serta audit aktivitas. Fitur yang terlihat mengikuti peran, izin, dan konfigurasi workspace.'},
           {q:'Apa perbedaan NexaSpace dan Single Workspace?',a:'NexaSpace adalah pusat kendali Owner untuk organisasi dengan beberapa tenant. Single Workspace adalah model terpisah untuk Owner yang mengelola satu workspace mandiri tanpa NexaSpace. Penawaran Single Workspace hanya tersedia ketika paketnya diaktifkan Admin.'},
           {q:'Bagaimana cara mendapatkan akses?',a:'Pilih paket dan masa sewa yang tersedia, lalu hubungi kanal dukungan NexaPos. Aktivasi diproses oleh Super Admin dan kode aktivasi diberikan melalui proses yang ditetapkan.'},
           {q:'Apakah semua paket memiliki fitur yang sama?',a:'Paket reguler menggunakan kemampuan operasional NexaPos yang sama. Perbedaan paket reguler terutama pada kuota tenant dan harga berdasarkan masa sewa. Rincian yang tampil mengikuti konfigurasi aktif.'},
@@ -345,7 +374,11 @@ export default function Homepage() {
           {q:'Apa yang ditampilkan pada antrean?',a:'Antrean operasional menampilkan nomor antrean, nama pelanggan, dan konter atau kasir/loket. Fitur media, video, dan template TV tidak termasuk dalam sistem antrean saat ini.'},
           {q:'Apakah masa aktif berakhir berarti data langsung dihapus?',a:'Tidak. Berakhirnya masa aktif membatasi operasi tenant sesuai status aktivasi. Data tidak otomatis dihapus hanya karena masa aktif berakhir; akses Owner ke NexaSpace mengikuti aturan status organisasi.'},
           {q:'Apakah NexaPos mendukung cetak struk?',a:'NexaPos menyediakan fungsi cetak struk. Kompatibilitas printer thermal bergantung pada perangkat, browser, koneksi, dan konfigurasi printer yang digunakan.'},
-          {q:'Apakah tersedia pemesanan mandiri?',a:'Fitur Self Order tersedia pada aplikasi untuk tenant yang mengaktifkan dan mengonfigurasinya. Ketersediaan menu dan proses pemesanan mengikuti pengaturan tenant.'}
+          {q:'Apakah tersedia pemesanan mandiri?',a:'Fitur Self Order tersedia untuk tenant yang mengaktifkan dan mengonfigurasinya. Pelanggan dapat membuat pesanan melalui halaman pemesanan mandiri; katalog, ketersediaan produk, dan pemrosesan pesanan mengikuti konfigurasi serta stok tenant.'},
+          {q:'Apakah NexaPos memiliki bantuan di dalam workspace?',a:'NexaBot tersedia sebagai pendamping penggunaan NexaPos di dalam workspace. Jika pertanyaan membutuhkan bantuan lanjutan, percakapan dapat diteruskan kepada Admin NexaPos. Kanal WhatsApp dan Telegram digunakan untuk dukungan publik sesuai pengaturan yang aktif.'},
+          {q:'Apakah Owner dapat mengelola anggota dan tenant?',a:'Pada model NexaSpace, Owner dapat mengelola tenant sesuai kuota dan kewenangan organisasi, mengatur anggota, serta mengakses workspace tenant. Single Workspace tidak menggunakan pengelolaan organisasi atau tenant.'},
+          {q:'Apakah paket Khusus menampilkan harga dan kuota?',a:'Tidak. Paket Khusus merupakan penawaran konsultasi. Masa aktif dan jumlah tenant disesuaikan melalui proses konsultasi dan ditentukan oleh Admin saat aktivasi.'},
+          {q:'Bagaimana keamanan akses data antar-tenant?',a:'Setiap tenant memiliki ruang operasional dan stoknya sendiri. Akses data mengikuti keanggotaan, peran, izin, dan kebijakan isolasi organisasi.'}
         ].map((item,i)=><article className={faqOpen===i?'is-open':''} key={item.q}><button type="button" aria-expanded={faqOpen===i} onClick={()=>setFaqOpen(faqOpen===i?-1:i)}><span><small>0{i+1}</small>{item.q}</span><ChevronDown size={17}/></button>{faqOpen===i&&<p>{item.a}</p>}</article>)}</div>
       </section>
 
