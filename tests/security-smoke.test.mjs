@@ -345,7 +345,7 @@ test('foreign-key index migration covers all staff and platform actor references
 })
 
 test('Pusat Kendali Toko scopes operational reads to the selected store and labels timeline limitations honestly', () => {
-  assert.match(app, /import StoreControlCenter from '\.\/StoreControlCenter\.jsx'/)
+  assert.match(app, /const StoreControlCenter = lazy\(\(\) => import\('\.\/StoreControlCenter\.jsx'\)\)/)
   assert.match(app, /setSelectedTenant\(t\);setSection\('store-control'\)/)
   assert.match(app, /section==='store-control'&&<StoreControlCenter tenant=\{selectedTenant\}/)
   assert.match(storeControlCenterUi, /\.eq\('store_id', tenant\.id\)/)
@@ -662,7 +662,7 @@ test('Owner organization operations can invite employees and update tenant roles
 test('Owner tenant creation, entry, organization identity and Admin tenant classification remain connected', async () => {
   const app = await readFile(new URL('../src/App.jsx', import.meta.url), 'utf8')
   const adminMigration = await readFile(new URL('../supabase/migrations/20261030043837_admin_owner_display_name_fallback.sql', import.meta.url), 'utf8')
-  const expiryMigration = await readFile(new URL('../supabase/migrations/20261030370000_owner_tenant_entry_and_expiry_sync.sql', import.meta.url), 'utf8')
+  const expiryMigration = await readFile(new URL('../supabase/migration_archive/20261030370000_owner_tenant_entry_and_expiry_sync.sql', import.meta.url), 'utf8')
   const displayNameMigration = await readFile(new URL('../supabase/migrations/20261030043837_admin_owner_display_name_fallback.sql', import.meta.url), 'utf8')
   const ownerRegistrationMigration = await readFile(new URL('../supabase/migrations/20261030043910_owner_organization_name_registration_sync.sql', import.meta.url), 'utf8')
   assert.match(app, /rpc\('owner_create_store_tenant'/)
@@ -717,7 +717,7 @@ test('Owner tenant switching never silently falls back to a different workspace'
 
 
 test('Owner and Manager can securely manage employees, while cashiers can only insert products', async () => {
-  const managerMigration = await readFile(new URL('../supabase/migrations/20261030430000_manager_team_controls_and_cashier_product_insert.sql', import.meta.url), 'utf8')
+  const managerMigration = await readFile(new URL('../supabase/migration_archive/20261030430000_manager_team_controls_and_cashier_product_insert.sql', import.meta.url), 'utf8')
   const superAdminMigration = await readFile(new URL('../supabase/migrations/20261030440000_super_admin_store_member_controls.sql', import.meta.url), 'utf8')
   const organization = await readFile(new URL('../src/OrganizationOperations.jsx', import.meta.url), 'utf8')
   const tenantCenter = await readFile(new URL('../src/StoreControlCenter.jsx', import.meta.url), 'utf8')
@@ -788,9 +788,9 @@ test('queue display is limited to customer name, queue number and counter; media
 
 test('Support Center conversations stream through scoped Realtime', () => {
   assert.match(supportCenterUi, /table:\s*'support_conversations'/)
-  assert.match(supportConversationRealtimeMigration, /ALTER PUBLICATION supabase_realtime ADD TABLE public\\.support_conversations/)
+  assert.ok(supportConversationRealtimeMigration.includes('ALTER PUBLICATION supabase_realtime ADD TABLE public.support_conversations'))
   assert.match(supportConversationRealtimeMigration, /pg_publication_tables/)
-  assert.match(supportConversationRealtimeMigration, /to_regclass\\('public\\.support_conversations'\\)/)
+  assert.ok(supportConversationRealtimeMigration.includes("to_regclass('public.support_conversations')"))
 })
 
 
