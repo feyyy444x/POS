@@ -1816,3 +1816,83 @@ body.nexa-pointer-pressed .nexa-cursor-aura{width:38px;height:38px;margin:-19px 
   .nexa-motion-surface{transition:none}
   .nexa-cursor-aura{display:none}
 }
+
+
+/* THE LIVING SYSTEM — application-wide premium visual language */
+:root{
+  --ink:#102d50;--muted:#718092;--line:#e2e9eb;--surface:#ffffff;--bg:#f4f7f7;
+  --purple:#08b996;--purple-dark:#066b58;
+}
+body{background:var(--bg);color:var(--ink)}
+.app-shell{background:linear-gradient(180deg,#f7f9f9 0%,#f2f6f6 100%)}
+.sidebar{background:linear-gradient(180deg,#fff 0%,#f8fbfa 100%);border-right-color:#e3ebeb;box-shadow:8px 0 28px #102d5006}
+.sidebar .brand{color:#102d50}
+.sidebar .brand-accent{color:#078f7a}
+.store-switch{border-color:#e3ebeb;background:#fbfdfd}
+.nav-link,.sidebar-link{transition:background .25s var(--nexa-motion-ease),color .25s,border-color .25s,transform .25s}
+.nav-link:hover,.sidebar-link:hover{background:#eaf7f4;color:#087e70;transform:translateX(2px)}
+.nav-link.active,.sidebar-link.active{background:linear-gradient(100deg,#e5f7f2,#f2faf7);color:#087e70}
+.main-area{background:transparent}
+.topbar{background:#ffffffed;border-bottom-color:#e3ebeb;backdrop-filter:blur(18px);box-shadow:0 5px 24px #102d5005}
+.panel,.stat-card{border-color:#e4ebec;border-radius:18px;box-shadow:0 10px 32px #102d5008}
+.panel{background:#fff}
+.stat-card{padding:21px}
+.tone-violet{background:#e5f7f2;color:#087e70}
+.tone-blue{background:#eaf3f8;color:#2b718f}
+.tone-orange{background:#fbf2e8;color:#b7793c}
+.tone-green{background:#e8f7ef;color:#23845c}
+.btn{border-radius:12px;min-height:38px}
+.btn-primary{background:linear-gradient(135deg,#08b996,#087c6b);box-shadow:0 8px 22px #08b99624}
+.btn-primary:hover:not(:disabled){background:linear-gradient(135deg,#20cba7,#066b58);box-shadow:0 12px 28px #08b99632}
+.btn-outline{border-color:#dce7e8;color:#23435b;background:#fff}
+.btn-outline:hover:not(:disabled){border-color:#78cbbb;background:#f2faf8;color:#087e70}
+.field,.text-input,select,textarea{border-color:#dfe8e9;border-radius:13px;transition:border-color .25s,box-shadow .25s,background .25s}
+.field:focus-within,.text-input:focus,select:focus,textarea:focus{border-color:#51c8ad;box-shadow:0 0 0 4px #08b99614}
+.table-wrap,.owner-table-wrap{border-radius:14px}
+th{background:#f5f9f8;color:#738696}
+td{color:#526579}
+tbody tr:hover{background:#f2faf7}
+.owner-console{background:linear-gradient(180deg,#f7f9f9 0%,#f0f5f4 100%);--owner-ink:#102d50;--owner-muted:#718092;--owner-line:#e2e9eb}
+.owner-sidebar{background:linear-gradient(180deg,#fff 0%,#f8fbfa 100%);border-right-color:#e2e9eb}
+.owner-org-switch{background:#f8fbfa;border-color:#e1e9e9}
+.owner-org-avatar,.owner-user-avatar{background:#e3f6f1;color:#087e70}
+.owner-topbar{background:#ffffffeb;border-bottom-color:#e2e9eb;backdrop-filter:blur(18px)}
+.owner-nav-link:hover{background:#eff8f5;color:#087e70}
+.owner-nav-active{background:#e5f7f2!important;color:#087e70!important}
+.owner-stat-card,.owner-tenant-card{border-color:#e2e9eb;border-radius:18px;box-shadow:0 10px 30px #102d5008}
+.owner-stat-icon,.owner-tenant-symbol{background:#e5f7f2;color:#087e70}
+.owner-live-indicator i{background:#16b98d;box-shadow:0 0 0 4px #16b98d18}
+.auth-shell{
+  display:grid;grid-template-columns:minmax(0,1fr);place-items:center;
+  min-height:100svh;padding:clamp(16px,4vw,40px);
+  background:radial-gradient(ellipse at 50% 0%,#16476a 0%,transparent 48%),
+    radial-gradient(ellipse at 90% 90%,#087c6b22 0%,transparent 42%),
+    linear-gradient(145deg,#07172b 0%,#102d50 55%,#0a243b 100%);
+}
+.auth-left{display:none}
+.auth-right{width:100%;min-height:calc(100svh - 32px);padding:0;background:transparent;display:grid;place-items:center}
+.auth-card{
+  width:min(100%,460px);padding:clamp(25px,4vw,42px);
+  border:1px solid #d9e9e7;border-radius:26px;
+  box-shadow:0 35px 100px #020b1c55,0 1px 0 #ffffff;
+  background:linear-gradient(145deg,#fff 0%,#f9fcfb 100%);
+}
+.auth-card-brand{display:flex;justify-content:center;margin-bottom:28px}
+.auth-card-brand .brand{color:#102d50}
+.auth-card-brand .brand-accent{color:#078f7a}
+.auth-card-brand .brand-mark{background:linear-gradient(140deg,#08b996,#066b58);box-shadow:0 8px 25px #08b99635}
+.auth-card-icon{background:#e5f7f2;color:#087e70}
+.auth-hero h1 span{color:#55e5bd}
+.auth-orb{opacity:.65;animation:nexa-auth-orbit 24s linear infinite}
+.orb-one{left:auto;right:10%;top:8%}
+.orb-two{left:4%;top:24%;animation-direction:reverse}
+@keyframes nexa-auth-orbit{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@media(max-width:768px){
+  .topbar{padding-inline:14px}
+  .auth-right{min-height:calc(100svh - 32px)}
+  .auth-card{border-radius:22px}
+}
+@media(prefers-reduced-motion:reduce){
+  .auth-orb{animation:none}
+  .nav-link,.sidebar-link{transition:none}
+}
