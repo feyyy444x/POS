@@ -21,6 +21,6 @@ The live database migration ledger contained the equivalent or newer behavior fo
 - `20261030440000_super_admin_store_member_controls.sql`: not applied; the current Admin UI does not call these RPCs, so this unused feature is not shipped.
 - `20261101120000_support_special_activation_package.sql`: the live activation RPC already contains the Khusus/custom quota path.
 
-## Active migration rule
+## Realtime correction\n\n`support_conversations` was added to `supabase_realtime` in migration `20261102130341_nexapos_realtime_support_conversations`. The table already has RLS enabled and a SELECT policy scoped to the conversation owner or Super Admin.\n\n## Active migration rule
 
-Only files directly inside `supabase/migrations/` are active migrations. The active directory is reconciled to the production ledger; archived files are reference material only. Do not move these files back or apply them manually.
+Only files directly inside `supabase/migrations/` are active migrations. The active directory is reconciled to the production ledger: 102 active SQL files match 102 production migration records as of 2026-11-02, including `20261102130341_nexapos_realtime_support_conversations`. Archived files are reference material only. Do not move these files back or apply them manually.
