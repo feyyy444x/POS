@@ -2244,7 +2244,7 @@ function QueueScreen(){
   const loadPublic=useCallback(async()=>{
     if(!token||!supabase)return
     const {data,error:loadError}=await supabase.rpc('get_public_tv_display',{p_token:token})
-    if(loadError||!data?.store_id){setPublicDisplay(null);setError(userFacingError(loadError, 'URL TV tidak valid, sudah dicabut, atau tenant tidak aktif.'));return}
+    if(loadError||!data?.store_id){setPublicDisplay(null);setError(userFacingError(loadError, 'URL layar antrean tidak valid, sudah dicabut, atau tenant tidak aktif.'));return}
     setError('')
     setPublicDisplay(data)
   },[token])
