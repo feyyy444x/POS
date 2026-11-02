@@ -22,8 +22,12 @@ jobs:
           node-version: 22
       - name: Install dependencies
         run: npm install --no-fund
-      - name: Audit dependencies for high or critical vulnerabilities
-        run: npm audit --audit-level=high
+      - name: Verify Capacitor CLI and resolved glob dependencies
+        run: |
+          npx cap --version
+          npm ls glob minimatch
+      - name: Audit dependencies for moderate or higher vulnerabilities
+        run: npm audit --audit-level=moderate
       - name: Run static security regression checks
         run: node --test tests/security-smoke.test.mjs tests/read-only-lock.test.mjs tests/tenant-lifecycle-sync.test.mjs tests/self-order.test.mjs tests/single-workspace.test.mjs
       - name: Build production bundle
