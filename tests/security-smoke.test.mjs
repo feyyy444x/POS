@@ -31,6 +31,8 @@ const storeControlCenterUi = await readFile(new URL('src/StoreControlCenter.jsx'
 const queueSettingsUi = await readFile(new URL('src/TvDisplaySettings.jsx', root), 'utf8')
 const queueRetirementMigration = await readFile(new URL('supabase/migrations/20261102115018_remove_queue_media_and_tv_templates.sql', root), 'utf8')
 const supportConversationRealtimeMigration = await readFile(new URL('supabase/migrations/20261102130341_nexapos_realtime_support_conversations.sql', root), 'utf8')
+const supportTypingMigration = await readFile(new URL('supabase/migrations/20261102132519_support_admin_typing_presence.sql', root), 'utf8')
+const supportCenterTypingUi = await readFile(new URL('src/SupportCenter.jsx', root), 'utf8')
 const supportCenterUi = await readFile(new URL('src/SupportCenter.jsx', root), 'utf8')
 const publicQueueMigration = await readFile(new URL('supabase/migrations/20261030032823_simplify_public_queue_rpc.sql', root), 'utf8')
 const activationPackagesMigration = await readFile(new URL('supabase/migrations/20261030032820_activation_packages_pricing.sql', root), 'utf8')
@@ -825,4 +827,17 @@ test('queue demo no longer exposes TV templates or media controls', () => {
   assert.ok(demoUi.includes('Layar antrean'))
   assert.doesNotMatch(demoUi, /Tampilan TV|Ganti template TV|Pengaturan media TV|playlist|video/i)
   assert.ok(demoUi.includes('Loket 1'))
+})
+
+
+test('Admin NexaPos and customer typing indicators are private and realtime', () => {
+  assert.ok(supportTypingMigration.includes('ADD COLUMN IF NOT EXISTS user_typing_at'))
+  assert.ok(supportTypingMigration.includes('ADD COLUMN IF NOT EXISTS admin_typing_at'))
+  assert.ok(supportTypingMigration.includes('private.is_super_admin()'))
+  assert.ok(supportTypingMigration.includes('private.is_pin_verified()'))
+  assert.ok(supportTypingMigration.includes('REVOKE ALL ON FUNCTION public.set_support_typing_status(uuid, boolean) FROM PUBLIC, anon'))
+  assert.ok(supportCenterTypingUi.includes("rpc('set_support_typing_status'"))
+  assert.ok(supportCenterTypingUi.includes('NexaBot sedang mengetik...'))
+  assert.ok(supportCenterTypingUi.includes('Admin NexaPos sedang mengetik...'))
+  assert.ok(supportCenterTypingUi.includes('sedang mengetik...'))
 })
