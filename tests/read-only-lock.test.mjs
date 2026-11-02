@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises'
 
 const root = new URL('../', import.meta.url)
 const app = await readFile(new URL('src/App.jsx', root), 'utf8')
-const migration = await readFile(new URL('supabase/migrations/20261030450000_readonly_suspended_tenants.sql', root), 'utf8')
+const migration = await readFile(new URL('supabase/migrations/20261030142837_readonly_suspended_tenants.sql', root), 'utf8')
 
 test('locked tenants retain read access and show a dismissible lock card', () => {
   assert.match(app, /const tenantReadOnly = effectiveStoreStatus !== 'active'/)
