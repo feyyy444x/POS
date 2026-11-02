@@ -26,6 +26,7 @@ export default function SupportCenter({ session, onClose, isSuperAdmin = false, 
   const typingTimeoutRef = useRef(null)
   const typingActiveRef = useRef(false)
   const typingTargetRef = useRef(null)
+  const remoteTypingTimeoutRef = useRef({ admin: null, user: null })
   const pendingBotSinceRef = useRef(null)
   const [error, setError] = useState('')
   const [channelSettings, setChannelSettings] = useState(defaultChannelSettings)
@@ -118,6 +119,20 @@ export default function SupportCenter({ session, onClose, isSuperAdmin = false, 
     await loadChannelSettings()
   }
 
+  const updateRemoteTyping = (kind, timestamp) => {
+    const setter = kind === 'admin' ? setAdminTyping : setUserTyping
+    const fresh = Boolean(timestamp && Date.now() - new Date(timestamp).getTime() < 7000)
+    setter(fresh)
+    const previous = remoteTypingTimeoutRef.current[kind]
+    if (previous) window.clearTimeout(previous)
+    remoteTypingTimeoutRef.current[kind] = fresh
+      ? window.setTimeout(() => {
+          setter(false)
+          remoteTypingTimeoutRef.current[kind] = null
+        }, 7000)
+      : null
+  }
+
   const loadMessages = useCallback(async (targetUserId = userId) => {
     if (!targetUserId || !supabase) return
     const { data, error: queryError } = await supabase.from('support_messages').select('*').eq('user_id', targetUserId).order('created_at', { ascending: true }).limit(300)
@@ -133,9 +148,8 @@ export default function SupportCenter({ session, onClose, isSuperAdmin = false, 
     }
     const { data: conversation } = await supabase.from('support_conversations').select('status,admin_typing_at,user_typing_at').eq('user_id', targetUserId).maybeSingle()
     setConversationStatus(conversation?.status || 'ai_active')
-    const typingIsFresh = value => Boolean(value && Date.now() - new Date(value).getTime() < 7000)
-    setAdminTyping(typingIsFresh(conversation?.admin_typing_at))
-    setUserTyping(typingIsFresh(conversation?.user_typing_at))
+    updateRemoteTyping('admin', conversation?.admin_typing_at)
+    updateRemoteTyping('user', conversation?.user_typing_at)
     setError('')
   }, [userId])
 
@@ -190,6 +204,7 @@ export default function SupportCenter({ session, onClose, isSuperAdmin = false, 
     if (typingActiveRef.current && typingTargetRef.current) {
       publishTypingStatus(false, typingTargetRef.current)
     }
+    Object.values(remoteTypingTimeoutRef.current).forEach(timeout => { if (timeout) window.clearTimeout(timeout) })
   }, [publishTypingStatus])
 
   const loadInbox = useCallback(async () => {
@@ -238,20 +253,19 @@ export default function SupportCenter({ session, onClose, isSuperAdmin = false, 
       .on('postgres_changes', { event: '*', schema: 'public', table: 'support_conversations' }, payload => {
         const row = payload.new || payload.old || {}
         const changedUserId = row.user_id
-        const typingIsFresh = value => Boolean(value && Date.now() - new Date(value).getTime() < 7000)
         const messageStateChanged = payload.eventType === 'INSERT'
           || payload.new?.status !== payload.old?.status
           || payload.new?.last_message_at !== payload.old?.last_message_at
         if (isSuperAdmin) {
           if (mode === 'inbox') loadInbox()
           else if (mode === 'chat' && activeUser?.user_id === changedUserId) {
-            setUserTyping(typingIsFresh(row.user_typing_at))
+            updateRemoteTyping('user', row.user_typing_at)
             if (messageStateChanged) loadMessages(activeUser.user_id)
           }
           return
         }
         if (changedUserId === userId && mode === 'chat') {
-          setAdminTyping(typingIsFresh(row.admin_typing_at))
+          updateRemoteTyping('admin', row.admin_typing_at)
           if (messageStateChanged) loadMessages(userId)
         }
       })
@@ -409,7 +423,7 @@ export default function SupportCenter({ session, onClose, isSuperAdmin = false, 
           {conversationStatus !== 'ai_active' && <button className="btn btn-small btn-outline" disabled={busy} onClick={() => changeConversationStatus('ai_active')}><Bot size={13}/> Aktifkan NexaBot</button>}
           {conversationStatus !== 'resolved' && <button className="btn btn-small btn-outline" disabled={busy} onClick={() => changeConversationStatus('resolved')}><CheckCircle2 size={13}/> Selesaikan</button>}
         </div>}
-        <div className="support-messages">{activeMessages.map(m => <div key={m.id} className={'support-message '+(m.sender_role === (isSuperAdmin ? 'support' : 'customer') ? 'support-message-mine' : 'support-message-theirs')}><span>{m.sender_role === 'customer' ? (isSuperAdmin ? (m.user_email || activeUser?.email || 'Pengguna') : 'Anda') : m.sender_role === 'bot' ? 'NexaBot' : 'Admin NexaPos'}</span><p>{m.message}</p><small>{timeLabel(m.created_at)}</small></div>)}{!activeMessages.length && <div className="support-empty"><MessageCircle size={25}/><strong>Mulai percakapan</strong><span>Tulis pesan pertama Anda di bawah.</span></div>}{botTyping && !isSuperAdmin && <div className="support-typing-indicator" role="status" aria-live="polite"><span className="spinner"/> NexaBot sedang mengetik...</div>}{adminTyping && !isSuperAdmin && conversationStatus === 'admin_active' && <div className="support-typing-indicator" role="status" aria-live="polite"><span className="spinner"/> Admin NexaPos sedang mengetik...</div>}{userTyping && isSuperAdmin && <div className="support-typing-indicator" role="status" aria-live="polite"><span className="spinner"/> {activeUser?.email || 'Pengguna'} sedang mengetik...</div>}</div>
+        <div className="support-messages">{activeMessages.map(m => <div key={m.id} className={'support-message '+(m.sender_role === (isSuperAdmin ? 'support' : 'customer') ? 'support-message-mine' : 'support-message-theirs')}><span>{m.sender_role === 'customer' ? (isSuperAdmin ? (m.user_email || activeUser?.email || 'Pengguna') : 'Anda') : m.sender_role === 'bot' ? 'NexaBot' : 'Admin NexaPos'}</span><p>{m.message}</p><small>{timeLabel(m.created_at)}</small></div>)}{!activeMessages.length && <div className="support-empty"><MessageCircle size={25}/><strong>Mulai percakapan</strong><span>Tulis pesan pertama Anda di bawah.</span></div>}{botTyping && !isSuperAdmin && <div className="support-typing-indicator" role="status" aria-live="polite"><span className="spinner"/> NexaBot sedang mengetik...</div>}{adminTyping && !isSuperAdmin && <div className="support-typing-indicator" role="status" aria-live="polite"><span className="spinner"/> Admin NexaPos sedang mengetik...</div>}{userTyping && isSuperAdmin && <div className="support-typing-indicator" role="status" aria-live="polite"><span className="spinner"/> {activeUser?.email || 'Pengguna'} sedang mengetik...</div>}</div>
         <form className="support-compose" onSubmit={sendMessage}><textarea value={draft} onChange={e=>handleDraftChange(e.target.value)} placeholder={isSuperAdmin ? 'Balas pesan pengguna...' : conversationStatus === 'waiting_admin' || conversationStatus === 'admin_active' ? 'Tulis pesan untuk tim NexaPos...' : 'Tanyakan sesuatu tentang NexaPos...'} rows={2} maxLength={3000} required/><button className="btn btn-primary" disabled={busy || !draft.trim()}>{busy ? <span className="spinner"/> : <Send size={16}/>} Kirim</button></form>
         {!isSuperAdmin && <button type="button" className="support-human-button" disabled={busy || conversationStatus === 'waiting_admin' || conversationStatus === 'admin_active'} onClick={requestHumanSupport}><Headphones size={15}/> {conversationStatus === 'resolved' ? 'Hubungi Admin lagi' : 'Hubungi Admin NexaPos'}</button>}
         {error && <p className="support-error">{error.includes('support_messages') || error.includes('relation') ? 'Fitur live chat memerlukan migrasi database pusat bantuan.' : error}</p>}
