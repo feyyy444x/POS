@@ -10,7 +10,7 @@ const defaultDurations = [
   { duration_key: 'yearly', name: 'Tahunan', duration_days: 365, sort_order: 4, is_active: true },
   { duration_key: 'custom', name: 'Custom', duration_days: 15, sort_order: 5, is_active: true },
 ]
-const featureDefaults = ['Semua fitur NexaPos', 'Kasir dan transaksi', 'Produk dan stok per tenant', 'Laporan operasional', 'Sistem antrian dan struk']
+const featureDefaults = ['Semua fitur NexaPos', 'Karyawan dan transaksi POS', 'Produk dan stok per tenant', 'Laporan operasional', 'Sistem antrean dan struk']
 const packageDefaults = [
   { package_key: 'starter', name: 'Starter', location_limit: 3, note: 'Untuk satu lokasi usaha', prices: { daily: 5000, weekly: 15000, monthly: 49000, yearly: 490000 }, features: featureDefaults, is_popular: false, is_active: true, sort_order: 1 },
   { package_key: 'growth', name: 'Growth', location_limit: 5, note: 'Untuk bisnis yang mulai berkembang', prices: { daily: 10000, weekly: 30000, monthly: 99000, yearly: 990000 }, features: featureDefaults, is_popular: false, is_active: true, sort_order: 2 },
