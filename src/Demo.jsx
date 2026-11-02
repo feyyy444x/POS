@@ -3,12 +3,12 @@ import { Activity, ArrowLeft, ArrowUpRight, Bell, CalendarDays, Check, CheckCirc
 import './demo.css'
 
 const products = [
-  { id: 1, name: 'Kopi Susu Aren', category: 'Minuman', price: 18000, stock: 24, icon: '☕', color: 'coffee' },
-  { id: 2, name: 'Matcha Latte', category: 'Minuman', price: 22000, stock: 16, icon: '🍵', color: 'matcha' },
-  { id: 3, name: 'Croissant Butter', category: 'Makanan', price: 16000, stock: 12, icon: '🥐', color: 'bread' },
-  { id: 4, name: 'Chocolate Cookie', category: 'Makanan', price: 12000, stock: 30, icon: '🍪', color: 'cookie' },
-  { id: 5, name: 'Iced Americano', category: 'Minuman', price: 15000, stock: 20, icon: '🧊', color: 'ice' },
-  { id: 6, name: 'Cheese Danish', category: 'Makanan', price: 19000, stock: 8, icon: '🧀', color: 'cheese' },
+  { id: 1, name: 'Kopi Susu Aren', category: 'Minuman', price: 18000, stock: 24, icon: 'KS', color: 'coffee' },
+  { id: 2, name: 'Matcha Latte', category: 'Minuman', price: 22000, stock: 16, icon: 'ML', color: 'matcha' },
+  { id: 3, name: 'Croissant Butter', category: 'Makanan', price: 16000, stock: 12, icon: 'CB', color: 'bread' },
+  { id: 4, name: 'Chocolate Cookie', category: 'Makanan', price: 12000, stock: 30, icon: 'CC', color: 'cookie' },
+  { id: 5, name: 'Iced Americano', category: 'Minuman', price: 15000, stock: 20, icon: 'IA', color: 'ice' },
+  { id: 6, name: 'Cheese Danish', category: 'Makanan', price: 19000, stock: 8, icon: 'CD', color: 'cheese' },
 ]
 const initialCart = [{ id: 1, qty: 1 }, { id: 3, qty: 1 }]
 const money = (value) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(value)
@@ -41,7 +41,7 @@ export default function Demo() {
     return current.map(item => item.id === id ? { ...item, qty: item.qty + delta } : item).filter(item => item.qty > 0)
   })
   const simulate = (label) => setNotice(label + ' berhasil disimulasikan. Perubahan hanya ada di sesi demo ini dan tidak dikirim ke database.')
-  const addDemoProduct = () => { const id=Math.max(0,...localProducts.map(p=>p.id))+1; setLocalProducts(current=>[...current,{id,name:'Produk Demo '+id,category:'Makanan',price:10000,stock:10,icon:'🧁',color:'bread'}]); simulate('Tambah produk demo') }
+  const addDemoProduct = () => { const id=Math.max(0,...localProducts.map(p=>p.id))+1; setLocalProducts(current=>[...current,{id,name:'Produk Demo '+id,category:'Makanan',price:10000,stock:10,icon:'PD',color:'bread'}]); simulate('Tambah produk demo') }
   const editDemoProduct = (product) => { const name=window.prompt('Nama produk demo',product.name); if(name?.trim()){setLocalProducts(current=>current.map(p=>p.id===product.id?{...p,name:name.trim()}:p));simulate('Edit produk demo')} }
   const deleteDemoProduct = (product) => { if(window.confirm('Hapus '+product.name+' dari data demo saja?')){setLocalProducts(current=>current.filter(p=>p.id!==product.id));setCart(current=>current.filter(item=>item.id!==product.id));simulate('Hapus produk demo')} }
   const nextQueueNumber = () => Math.max(0, ...queueRows.map(row => Number(String(row[0]).slice(1)) || 0)) + 1
