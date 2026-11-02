@@ -258,3 +258,63 @@ table tbody tr:hover{background:#f3f3ed!important}
 @media(hover:none),(pointer:coarse){
   .nexa-motion-surface:hover,.arch-plan:hover,.arch-suite-item:hover,.owner-tenant-card:hover{transform:none!important}
 }
+
+/* Actual public-site component map (Homepage.jsx). */
+.nexa-public-site{--nx-public-ink:#17232c;--nx-public-deep:#111a20;--nx-public-paper:#f1f0eb;--nx-public-accent:#9bb8ac;background:var(--nx-public-paper)!important;color:var(--nx-public-ink)!important;overflow:clip}
+.nx-nav{background:rgba(241,240,235,.94)!important;border-bottom:1px solid #d9d9d1!important;backdrop-filter:blur(14px)!important}
+.nx-nav .nx-brand{color:#17232c!important}
+.nx-nav .nx-brand span span{color:#587b6b!important}
+.nx-nav .nx-brand small{color:#78827d!important}
+.nx-nav-actions a,.nx-login{color:#5f6b66!important}
+.nx-nav-cta{background:#17232c!important;color:#f5f3ed!important;border-radius:5px!important;box-shadow:none!important}
+.nx-nav-cta:hover{background:#31534b!important}
+.nx-hero{background:#141f25!important;color:#f3f1ea!important;isolation:isolate}
+.nx-hero:before,.nx-hero:after{background-image:none!important}
+.nx-hero-atmosphere{opacity:.62!important;filter:saturate(.25)!important}
+.nx-orbit{border-color:rgba(205,218,207,.14)!important;box-shadow:none!important;filter:none!important}
+.nx-hero-cross{background:#b9c8bc!important;opacity:.18!important;box-shadow:none!important}
+.nx-hero-copy h1,.nx-hero h1{color:#f3f1ea!important}
+.nx-hero-copy h1 em,.nx-hero h1 em{color:#b2c5ba!important}
+.nx-kicker,.nx-overline,.nx-section-index{color:#aebfb2!important}
+.nx-kicker i{background:#aebfb2!important;box-shadow:none!important}
+.nx-hero-copy>p{color:#c0c8c1!important}
+.nx-primary-cta{background:#d5ddd5!important;color:#17232c!important;border-radius:5px!important;box-shadow:none!important}
+.nx-primary-cta:hover{background:#e5e8e0!important;box-shadow:none!important}
+.nx-secondary-cta{border-color:rgba(238,239,231,.35)!important;color:#f3f1ea!important}
+.nx-product-stage{filter:none!important}
+.nx-stage-backplate,.nx-stage-core,.nx-stage-card,.nx-stage-ring{box-shadow:none!important}
+.nx-stage-backplate{background:linear-gradient(145deg,#29363a,#1c292d)!important;border-color:rgba(220,226,216,.15)!important}
+.nx-stage-core{background:#d6ddd4!important;color:#17232c!important}
+.nx-stage-card{background:#e9e9e1!important;color:#17232c!important;border-color:#c9cec4!important}
+.nx-stage-ring{border-color:rgba(202,216,205,.24)!important}
+.nx-stage-label{color:#c0c9c1!important}
+.nx-manifesto,.nx-workspace-section,.nx-process,.nx-capabilities,.nx-activation,.nx-faq,.nx-contact{background:#f1f0eb!important;color:#17232c!important}
+.nx-manifesto-main h2,.nx-section-heading h2,.nx-process h2,.nx-capabilities h2,.nx-activation h2,.nx-faq h2,.nx-contact h2{color:#17232c!important}
+.nx-manifesto-main h2 em,.nx-section-heading h2 em,.nx-process h2 em,.nx-capabilities h2 em,.nx-activation h2 em,.nx-faq h2 em,.nx-contact h2 em{color:#587b6b!important}
+.nx-workspace-card,.nx-capability,.nx-plan,.nx-faq-item,.nx-promo{background:#faf9f5!important;border-color:#d9d9d1!important;box-shadow:var(--nx-shadow-xs)!important}
+.nx-workspace-card:hover,.nx-capability:hover,.nx-plan:hover{transform:translateY(-3px);box-shadow:var(--nx-shadow-sm)!important}
+.nx-workspace-card-top,.nx-capability-top,.nx-plan-top{color:#68756f!important}
+.nx-workspace-graphic,.nx-org-graphic,.nx-single-graphic{background:#e7e8e0!important;box-shadow:none!important}
+.nx-org-core,.nx-single-frame{background:#243238!important;box-shadow:none!important}
+.nx-org-branch,.nx-single-axis{background:#718a7c!important;box-shadow:none!important}
+.nx-availability-note,.nx-activation-footnote,.nx-promo-note{color:#69756f!important}
+.nx-operating-suite{background:#1b282d!important;color:#f2f1eb!important}
+.nx-operating-suite h2,.nx-operating-suite h3{color:#f2f1eb!important}
+.nx-operating-suite-head>p,.nx-suite-item p{color:#c1c9c2!important}
+.nx-suite-grid{border-color:rgba(229,232,221,.18)!important}
+.nx-suite-item{border-color:rgba(229,232,221,.18)!important}
+.nx-suite-item>span{color:#b0c3b7!important}
+.nx-suite-item h3{color:#f2f1eb!important}
+.nx-suite-item:hover{background:rgba(215,221,213,.055)!important}
+.nx-plan-price,.nx-plan h3,.nx-plan-quota{color:#17232c!important}
+.nx-plan-redesign,.nx-special-plan{border-color:#9eafa3!important}
+.nx-plan-custom{background:#e9e9e1!important}
+.nx-footer{background:#111a20!important;color:#d8ddd5!important}
+.nx-footer a{color:#c2cbc3!important}
+@media(max-width:760px){
+  .nx-nav{padding-inline:16px!important}
+  .nx-hero{padding:72px 20px 60px!important}
+  .nx-product-stage{min-height:300px}
+  .nx-workspace-grid,.nx-capability-grid,.nx-plan-grid{grid-template-columns:1fr!important}
+  .nx-manifesto,.nx-workspace-section,.nx-process,.nx-capabilities,.nx-activation,.nx-faq,.nx-contact{padding:60px 20px!important}
+}
