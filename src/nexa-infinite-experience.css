@@ -161,3 +161,70 @@ input,select,textarea,.text-input{border-radius:11px!important;border-color:#cbd
 .pagination-bar{border-top:1px solid #e1eaee!important;color:#66808e!important}.pagination-bar button{border:1px solid #d5e1e8!important;border-radius:9px!important;background:#fff!important;color:#426274!important}.pagination-bar button[aria-current=page]{background:#dff6f1!important;border-color:#19b9a5!important;color:#08766e!important}
 @media(max-width:950px){.pos-layout{grid-template-columns:1fr!important}.cart-panel{position:static!important}.cart-items{max-height:260px!important}}
 @media(max-width:600px){.product-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important}.product-tile{min-height:145px!important;padding:12px!important}.pos-layout{gap:14px!important}.cart-panel{border-radius:16px!important}.settings-form{padding:18px!important}.queue-feature{padding:20px!important}.stats-grid{gap:9px!important}}
+
+
+/* PUBLIC DEMO — same spatial brand, clearly marked as a read-only sandbox. */
+.nx-demo,.demo-owner-shell,.demo-workspace,.demo-layout{color:#eaf3f7}
+.demo-owner-shell,.demo-sidebar{background:linear-gradient(180deg,#071522,#0b2031)!important;color:#eaf3f7!important}
+.demo-topbar{background:#071522e8!important;border-color:#90b8c92b!important;color:#eaf3f7!important;backdrop-filter:blur(20px)}
+.demo-main,.demo-owner-main{background:linear-gradient(145deg,#0b2031,#102b42)!important}
+.demo-page-heading h1,.demo-page-heading h2{color:#f2f9fc!important}.demo-page-heading p,.demo-eyebrow,.demo-date{color:#9db5c2!important}
+.demo-preview-pill,.demo-readonly,.demo-disabled-action{background:#19b9a51c!important;border:1px solid #19b9a54a!important;color:#66daca!important;border-radius:999px!important}
+.demo-banner{background:radial-gradient(ellipse at 80% 10%,#50e0cb35,transparent 32%),linear-gradient(130deg,#143c51,#091c2c)!important;border:1px solid #50e0cb40!important;border-radius:22px!important;box-shadow:0 20px 55px #0003!important;color:#f4fbfd!important}
+.demo-banner h2,.demo-banner strong{color:#f4fbfd!important}.demo-banner p,.demo-banner small{color:#b1c8d3!important}
+.demo-stats{gap:13px!important}.demo-stats>*{background:linear-gradient(145deg,#fff,#f0f5f7)!important;border:1px solid #cbdce4!important;border-radius:16px!important;color:#17384d!important}
+.demo-panel-heading,.demo-products-panel,.demo-table-panel,.demo-cart-panel,.demo-queue-panel{background:linear-gradient(145deg,#fff,#f0f5f7)!important;border:1px solid #cbdce4!important;border-radius:18px!important;color:#17384d!important;box-shadow:0 12px 34px #0002!important}
+.demo-product-card{background:#fff!important;border:1px solid #d5e1e8!important;border-radius:15px!important;color:#17384d!important;transition:transform .22s var(--nxi-ease),box-shadow .22s,border-color .22s!important}
+.demo-product-card:hover{transform:translateY(-3px)!important;border-color:#19b9a580!important;box-shadow:0 15px 34px #09273a1c!important}
+.demo-product-info,.demo-product-info strong{color:#17384d!important}.demo-product-info small,.demo-stock-status{color:#718895!important}
+.demo-categories button,.demo-mode-switch button{border-radius:999px!important;border-color:#d5e1e8!important;background:#f7fafb!important;color:#5d7888!important}
+.demo-categories button.active,.demo-mode-switch button.active{background:#dff6f1!important;border-color:#19b9a5!important;color:#08766e!important}
+.demo-search{background:#fff!important;border:1px solid #cbdce4!important;border-radius:12px!important}
+.demo-cart-panel{position:relative}.demo-cart-total{color:#087f82!important}.demo-checkout{background:linear-gradient(135deg,#19b9a5,#087f82)!important;color:#04242b!important;border-radius:999px!important}
+.demo-qty button{border-radius:50%!important;background:#dff6f1!important;color:#087f82!important}
+.demo-queue-current{background:linear-gradient(135deg,#0b2031,#153c51)!important;border:1px solid #50e0cb3b!important;border-radius:18px!important;color:#f4fbfd!important}
+.demo-report-bars span{background:linear-gradient(180deg,#50e0cb,#087f82)!important}
+.demo-receipt-dialog{background:#fff!important;border:1px solid #cbdce4!important;border-radius:20px!important;color:#17384d!important}
+.demo-receipt-overlay{backdrop-filter:blur(8px)!important}
+.demo-toast{background:#fff!important;border:1px solid #cbdce4!important;border-radius:14px!important;box-shadow:0 18px 45px #0003!important;color:#17384d!important}
+.demo-footer-note{color:#8199a6!important}
+
+/* ORGANIZATION CONTROL, TENANT OPERATIONS AND PLATFORM ADMIN. */
+.store-control-page,.owner-operations-page,.platform-staff-page{color:#eaf3f7!important}
+.store-control-hero{background:radial-gradient(ellipse at 86% 10%,#50e0cb30,transparent 32%),linear-gradient(130deg,#143c51,#091c2c)!important;border:1px solid #50e0cb3b!important;border-radius:22px!important;box-shadow:0 22px 55px #0003!important;color:#f4fbfd!important}
+.store-control-hero h1,.store-control-hero h2,.store-control-hero strong{color:#f4fbfd!important}.store-control-hero p,.store-control-meta,.store-control-muted{color:#b1c8d3!important}
+.store-control-grid,.store-control-metrics{gap:14px!important}
+.store-control-card,.store-control-metric,.store-control-invites,.store-control-conversation-list,.store-control-timeline,.store-control-activity-tools,.store-control-details{
+ background:linear-gradient(145deg,#fff,#f0f5f7)!important;border:1px solid #cbdce4!important;border-radius:17px!important;color:#17384d!important;box-shadow:0 12px 34px #0002!important
+}
+.store-control-card h3,.store-control-card strong,.store-control-metric strong{color:#123047!important}
+.store-control-card p,.store-control-footnote,.store-control-metric-label{color:#718895!important}
+.store-control-card-icon,.store-control-metric-icon{background:#dff5f0!important;color:#087f82!important;border-radius:12px!important}
+.store-control-tabs button{border-radius:999px!important}.store-control-tabs button.active{background:#dff6f1!important;color:#08766e!important}
+.store-control-event{border-color:#dce7eb!important}.store-control-warning{background:#fff4e6!important;border-color:#f3d7ad!important;color:#865d25!important}
+.owner-operations-summary,.owner-operations-actions,.owner-tenant-toolbar,.owner-team-search{background:#ffffff0b!important;border:1px solid #90b8c929!important;border-radius:14px!important}
+.owner-activation-code{background:#e0f5f0!important;border:1px dashed #19b9a5!important;color:#08766e!important;border-radius:12px!important}
+.owner-modal-backdrop{background:#020d18b8!important;backdrop-filter:blur(8px)!important}
+.owner-modal-card{background:linear-gradient(145deg,#fff,#edf4f6)!important;border:1px solid #cbdce4!important;border-radius:22px!important;box-shadow:0 32px 90px #0005!important;color:#17384d!important}
+.owner-modal-head{border-color:#dce7eb!important}.owner-role-chip,.owner-status{border-radius:999px!important}
+.owner-settings-card,.owner-organization-settings-form,.owner-setting-row{background:linear-gradient(145deg,#fff,#f0f5f7)!important;border:1px solid #cbdce4!important;border-radius:16px!important;color:#17384d!important}
+.owner-setting-status{color:#087f82!important}.owner-data-footnote{color:#78909d!important}
+.platform-staff-page .staff-form-panel,.platform-staff-page .staff-list-panel,.platform-staff-page .staff-person,.platform-staff-page .permission-option{
+ background:linear-gradient(145deg,#fff,#f0f5f7)!important;border:1px solid #cbdce4!important;border-radius:16px!important;color:#17384d!important
+}
+.platform-staff-page .permission-heading,.platform-staff-page .staff-role-pill{color:#087f82!important}
+.platform-staff-page .staff-safety-note{background:#e7f5f2!important;border:1px solid #c8e9e2!important;color:#3d6874!important;border-radius:13px!important}
+.nx-subscription-admin-card,.nx-duration-panel,.nx-subscription-preview,.nx-plan-admin .panel{
+ background:linear-gradient(145deg,#fff,#f0f5f7)!important;border:1px solid #cbdce4!important;border-radius:18px!important;color:#17384d!important;box-shadow:0 12px 34px #0002!important
+}
+.nx-subscription-admin-card h2,.nx-subscription-admin-card h3,.nx-duration-panel h2,.nx-duration-panel h3{color:#123047!important}
+.nx-subscription-admin-footnote,.nx-admin-check{color:#718895!important}
+.nx-subscription-toggle input:checked+.switch-track{background:#19b9a5!important}
+.support-chat-view,.support-inbox-view,.support-settings-view{background:linear-gradient(145deg,#fff,#f0f5f7)!important;border:1px solid #cbdce4!important;border-radius:18px!important;color:#17384d!important}
+.support-modal-head,.support-modal-brand{color:#123047!important}.support-modal-icon,.support-chat-icon{background:#dff5f0!important;color:#087f82!important}
+.support-choice{background:#fff!important;border:1px solid #d5e1e8!important;border-radius:14px!important;color:#17384d!important}
+.support-choice:hover,.support-human-button:hover{border-color:#19b9a5!important;background:#effaf8!important}
+.support-compose{background:#fff!important;border:1px solid #cbdce4!important;border-radius:14px!important}
+.support-messages{background:#f1f6f8!important}.support-typing-indicator{color:#087f82!important}
+.support-inbox-item{border-color:#dce7eb!important}.support-inbox-item.active{background:#e5f6f2!important;border-color:#19b9a5!important}
+.support-realtime-dot{background:#19b9a5!important;box-shadow:0 0 0 4px #19b9a51c!important}
