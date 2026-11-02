@@ -62,7 +62,7 @@ export default function OrganizationOperations({ mode = 'team', tenants = [] }) 
         .order('opened_at', { ascending: false }).limit(500)
       if (loadError) {
         setShifts([])
-        setError('Data monitoring kasir lintas tenant tidak dapat dibaca. Pastikan akses Owner dan kebijakan RLS sudah aktif. Detail: ' + loadError.message)
+        setError('Data monitoring sesi Karyawan lintas tenant tidak dapat dibaca. Pastikan akses Owner dan kebijakan RLS sudah aktif. Detail: ' + loadError.message)
       } else setShifts(data || [])
     }
     setLoading(false)
@@ -184,7 +184,7 @@ export default function OrganizationOperations({ mode = 'team', tenants = [] }) 
 
   return <section className="owner-operations-page">
     <div className="owner-section-heading owner-page-heading">
-      <div><span className="owner-kicker">{mode === 'team' ? 'ORGANIZATION PEOPLE' : 'LIVE OPERATIONS'}</span><h2>{mode === 'team' ? 'Karyawan & Hak Akses' : 'Monitoring'}</h2><p>{mode === 'team' ? 'Tambahkan karyawan, atur role, dan kelola penempatan di tenant perusahaan.' : 'Pantau sesi kasir yang sedang terbuka di seluruh tenant perusahaan.'}</p></div>
+      <div><span className="owner-kicker">{mode === 'team' ? 'ORGANIZATION PEOPLE' : 'LIVE OPERATIONS'}</span><h2>{mode === 'team' ? 'Karyawan & Hak Akses' : 'Monitoring'}</h2><p>{mode === 'team' ? 'Tambahkan karyawan, atur role, dan kelola penempatan di tenant perusahaan.' : 'Pantau sesi kerja Karyawan yang sedang terbuka di seluruh tenant perusahaan.'}</p></div>
       <div className="owner-operations-actions">
         {mode === 'team' && <button className="btn btn-primary" onClick={() => { setInviteOpen(true); setActivationCode(''); setError('') }}><UserPlus size={16}/> Tambah karyawan</button>}
         <button className="owner-refresh-button" onClick={load} disabled={loading}>{loading ? <span className="owner-spin"><RefreshCw size={15}/></span> : <RefreshCw size={15}/>} Perbarui</button>
