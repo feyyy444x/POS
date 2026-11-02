@@ -21,42 +21,53 @@ float sdBox(vec3 p,vec3 b){vec3 q=abs(p)-b;return length(max(q,0.0))+min(max(q.x
 float sdTorus(vec3 p,vec2 t){vec2 q=vec2(length(p.xz)-t.x,p.y);return length(q)-t.y;}
 float sceneMap(vec3 p){
   float t=u_time*u_motion;
-  float drift=sin(t*.22)*.12;
-  p.xz*=rot(t*.10 + u_scene*.22);
-  vec3 ringP=p-vec3(.38+drift,.08,-.12);
-  float ring=sdTorus(ringP,vec2(.78,.105));
-  vec3 coreP=p-vec3(.38+drift,.08,-.12);
-  coreP.xy*=rot(.45+sin(t*.17)*.12);
-  float core=sdSphere(coreP,.22);
-  vec3 shardP=p-vec3(-.82,-.32,.05);
-  shardP.xy*=rot(-.5+t*.08);
-  float shard=sdBox(shardP,vec3(.28,.28,.28));
-  float orbit=sdTorus(p-vec3(.38+drift,.08,-.12),vec2(1.12,.012));
-  float secondRing=sdTorus(p-vec3(.38,.08,-.12),vec2(.94,.018));
-  vec3 stackA=p-vec3(.3,-.05,0.); stackA.xy*=rot(.35+t*.06);
-  vec3 stackB=p-vec3(.3,-.05,-.32); stackB.xy*=rot(-.35-t*.05);
-  float stack=min(sdBox(stackA,vec3(.42,.34,.08)),sdBox(stackB,vec3(.34,.26,.08)));
-  float analytics=sdTorus(p-vec3(.3,.02,-.08),vec2(.65,.035));
-  vec3 nodeA=p-vec3(.15,.12,0.);
-  vec3 nodeB=p-vec3(-.52,-.24,0.);
-  vec3 nodeC=p-vec3(.78,-.28,0.);
-  float network=min(sdSphere(nodeA,.17),min(sdSphere(nodeB,.13),sdSphere(nodeC,.13)));
-  float people=min(sdSphere(p-vec3(.12,.35,0.),.17),sdSphere(p-vec3(.12,-.08,0.),.25));
-  vec3 dialP=p-vec3(.35,.05,-.08); dialP.xy*=rot(t*.12);
-  float dial=sdTorus(dialP,vec2(.58,.055));
-  float queue=sdTorus(p-vec3(.32,.04,0.),vec2(.48,.075));
-  float support=sdTorus(p-vec3(.3,.08,0.),vec2(.7,.045));
-  float motif=ring;
-  if(u_scene>0.5 && u_scene<1.5) motif=min(ring,orbit);
-  else if(u_scene<2.5 && u_scene>=1.5) motif=stack;
-  else if(u_scene<3.5 && u_scene>=2.5) motif=min(analytics,secondRing);
-  else if(u_scene<4.5 && u_scene>=3.5) motif=network;
-  else if(u_scene<5.5 && u_scene>=4.5) motif=people;
-  else if(u_scene<6.5 && u_scene>=5.5) motif=dial;
-  else if(u_scene<7.5 && u_scene>=6.5) motif=queue;
-  else if(u_scene<8.5 && u_scene>=7.5) motif=support;
-  else if(u_scene<9.5 && u_scene>=8.5) motif=min(ring,secondRing);
-  return min(motif,min(core,shard));
+  float drift=sin(t*.18)*.10;
+  vec3 q=p;
+  q.xz*=rot(t*.055 + u_scene*.12);
+  q.xy*=rot(sin(t*.13)*.035);
+
+  /* Architectural portal frame: a solid rectangular frame with a recessed core. */
+  vec3 frameP=q-vec3(.34+drift,.05,-.10);
+  frameP.xy*=rot(.10+sin(t*.12)*.035);
+  float frameOuter=sdBox(frameP,vec3(.92,.98,.13));
+  float frameInner=sdBox(frameP-vec3(0.,-.015,.045),vec3(.72,.78,.20));
+  float portal=max(frameOuter,-frameInner);
+
+  /* Floating structural slabs and columns. */
+  float plinth=sdBox(q-vec3(.18,-.78,-.04),vec3(1.12,.09,.48));
+  float upperSlab=sdBox(q-vec3(.20,.76,-.12),vec3(.88,.075,.34));
+  float columnA=sdBox(q-vec3(-.43,-.02,-.02),vec3(.10,.72,.12));
+  float columnB=sdBox(q-vec3(.66,-.02,-.02),vec3(.10,.72,.12));
+  float lintel=sdBox(q-vec3(.11,.68,-.02),vec3(.70,.09,.13));
+  float crossBeam=sdBox(q-vec3(.12,.12,-.20),vec3(.76,.045,.055));
+  float architecture=min(portal,min(plinth,min(upperSlab,min(columnA,min(columnB,min(lintel,crossBeam))))));
+
+  /* A stepped volume gives the scene a constructed, not spherical, silhouette. */
+  vec3 stepA=q-vec3(-.72,-.36,.06); stepA.xy*=rot(-.18+t*.035);
+  vec3 stepB=q-vec3(-.38,-.49,.02); stepB.xy*=rot(-.18+t*.035);
+  vec3 stepC=q-vec3(-.04,-.61,-.02); stepC.xy*=rot(-.18+t*.035);
+  float steps=min(sdBox(stepA,vec3(.23,.16,.22)),min(sdBox(stepB,vec3(.23,.16,.22)),sdBox(stepC,vec3(.23,.16,.22))));
+
+  /* Page-specific structural motifs. */
+  float transaction=sdBox(q-vec3(.26,.02,.02),vec3(.58,.40,.12));
+  float inventory=min(sdBox(q-vec3(.24,.04,.02),vec3(.66,.55,.10)),sdBox(q-vec3(.24,-.52,.02),vec3(.78,.055,.14)));
+  float analytics=min(sdBox(q-vec3(.18,-.10,.02),vec3(.76,.08,.12)),min(sdBox(q-vec3(-.35,.12,.02),vec3(.10,.34,.12)),sdBox(q-vec3(.18,.35,.02),vec3(.10,.57,.12))));
+  float organization=min(sdBox(q-vec3(.28,.04,.02),vec3(.14,.14,.14)),min(sdBox(q-vec3(-.42,-.40,.02),vec3(.12,.12,.12)),sdBox(q-vec3(.88,-.40,.02),vec3(.12,.12,.12))));
+  float team=min(sdBox(q-vec3(.12,.30,.02),vec3(.18,.20,.10)),sdBox(q-vec3(.12,-.22,.02),vec3(.34,.12,.10)));
+  float settings=sdBox(q-vec3(.26,.02,.02),vec3(.54,.54,.07));
+  float queue=sdBox(q-vec3(.22,.02,.02),vec3(.72,.20,.08));
+  float support=min(sdBox(q-vec3(.20,.08,.02),vec3(.62,.12,.09)),sdBox(q-vec3(.20,-.22,.02),vec3(.12,.22,.09)));
+  float motif=architecture;
+  if(u_scene>0.5 && u_scene<1.5) motif=min(transaction,lintel);
+  else if(u_scene>=1.5 && u_scene<2.5) motif=inventory;
+  else if(u_scene>=2.5 && u_scene<3.5) motif=analytics;
+  else if(u_scene>=3.5 && u_scene<4.5) motif=organization;
+  else if(u_scene>=4.5 && u_scene<5.5) motif=team;
+  else if(u_scene>=5.5 && u_scene<6.5) motif=settings;
+  else if(u_scene>=6.5 && u_scene<7.5) motif=queue;
+  else if(u_scene>=7.5 && u_scene<8.5) motif=support;
+  else if(u_scene>=8.5 && u_scene<9.5) motif=portal;
+  return min(motif,min(steps,architecture));
 }
 vec3 normalAt(vec3 p){
   vec2 e=vec2(.001,0.);
