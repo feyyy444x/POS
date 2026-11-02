@@ -18,8 +18,9 @@ Dokumen ini menjadi sumber status pekerjaan NexaPos. Status kode, status migrasi
 - Rekonsiliasi versi: **103/103 cocok**; tidak ada file migrasi branch yang tertinggal dan tidak ada versi produksi tanpa file sumber pada branch.
 - Pemeriksaan tabel publik: seluruh tabel publik yang diperiksa memiliki RLS aktif.
 - Struktur antrean: tabel media lama tidak ada; kolom template/media lama tidak ada; bucket Storage `tv-media` masih ada tetapi kosong (0 objek).
-- Deploy Preview terakhir yang diverifikasi: commit `7181cf91c4ff9dc2f1770e6f5a7cf29b9df33566`, status Netlify `ready`. Perubahan dependency setelah commit tersebut memerlukan preview baru.
-- GitHub CI dan security smoke pada commit preview terakhir lulus: 102 tes statis, 6 preview smoke checks, production build, dan dependency audit dengan ambang high/critical. Audit tersebut masih mencatat 4 temuan moderate pada `glob`/`minimatch`; perbaikan override dan gate audit moderate sudah ditambahkan, menunggu hasil CI terbaru.
+- Deploy Preview terakhir yang diverifikasi: commit `53f7e634bd52302a1fa7fd39b8d7dfd12a5b2f53`, status Netlify `ready`.
+- GitHub CI dan security smoke pada commit tersebut lulus: build frontend, 102/102 tes statis, 6/6 preview smoke checks, dan pemeriksaan Capacitor CLI.
+- Dependency audit pada instalasi dan `npm audit --audit-level=moderate`: **0 vulnerabilities**. Resolusi dependensi terverifikasi: Capacitor CLI `7.6.10`, glob `14.0.3`, minimatch `11.0.4`.
 - Belum ada merge atau deployment produksi dari pekerjaan ini.
 
 ## 1. Identitas produk dan model workspace
