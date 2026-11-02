@@ -154,6 +154,13 @@ export default function SupportCenter({ session, onClose, isSuperAdmin = false, 
     const targetUserId = isSuperAdmin ? activeUser?.user_id : userId
     if (!targetUserId || !supabase) return
     const target = { userId: targetUserId, isAdmin: isSuperAdmin }
+    const previousTarget = typingTargetRef.current
+    if (previousTarget && (previousTarget.userId !== target.userId || previousTarget.isAdmin !== target.isAdmin)) {
+      if (typingTimeoutRef.current) window.clearTimeout(typingTimeoutRef.current)
+      typingTimeoutRef.current = null
+      if (typingActiveRef.current) publishTypingStatus(false, previousTarget)
+      typingActiveRef.current = false
+    }
     typingTargetRef.current = target
 
     if (!value.trim()) {
