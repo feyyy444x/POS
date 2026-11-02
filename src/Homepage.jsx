@@ -51,7 +51,7 @@ const promoDiscountLabel = (promo) => {
     : money(value)
 }
 function Brand({ footer = false }) {
-  return <a className={'living-brand' + (footer ? ' living-brand-footer' : '')} href="/" aria-label="NexaPos beranda">
+  return <a className={'nx-brand' + (footer ? ' nx-brand-footer' : '')} href="/" aria-label="NexaPos beranda">
     <img src="/nexapos-mark.svg" alt="" />
     <span>Nexa<span>Pos</span><small>SMART COMMERCE</small></span>
   </a>
@@ -227,11 +227,11 @@ export default function Homepage() {
     coupon.trim() ? 'Kode voucher: ' + coupon.trim().toUpperCase() : '',
     'Mohon informasi mengenai proses aktivasi dan pembayaran. Terima kasih.'
   ].filter(Boolean).join('\n'))
-  return <div className="architecture-home">
-    <header className="arch-nav">
+  return <div className="nexa-public-site">
+    <header className="nx-nav">
       <Brand />
-      <button className="arch-menu-toggle" onClick={() => setMenuOpen(!menuOpen)} aria-label={menuOpen ? 'Tutup navigasi' : 'Buka navigasi'}>{menuOpen ? <X size={20}/> : <span><i/><i/></span>}</button>
-      <nav className={menuOpen ? 'arch-nav-links is-open' : 'arch-nav-links'}>
+      <button className="nx-menu-toggle" onClick={() => setMenuOpen(!menuOpen)} aria-label={menuOpen ? 'Tutup navigasi' : 'Buka navigasi'}>{menuOpen ? <X size={20}/> : <span><i/><i/></span>}</button>
+      <nav className={menuOpen ? 'nx-nav-links is-open' : 'nx-nav-links'}>
         <a href="#sistem" onClick={() => setMenuOpen(false)}>Sistem</a>
         <a href="#ruang-kerja" onClick={() => setMenuOpen(false)}>Workspace</a>
         <a href="#kapabilitas" onClick={() => setMenuOpen(false)}>Fitur</a>
@@ -240,58 +240,57 @@ export default function Homepage() {
         <a href="#dukungan" onClick={() => setMenuOpen(false)}>Dukungan</a>
         <a href="#faq" onClick={() => setMenuOpen(false)}>FAQ</a>
       </nav>
-      <div className="arch-nav-actions"><a className="arch-login" href="/login">Masuk <ArrowUpRight size={14}/></a><a className="arch-nav-cta" href="#aktivasi">Jelajahi aktivasi <ArrowRight size={14}/></a></div>
+      <div className="nx-nav-actions"><a className="nx-login" href="/login">Masuk <ArrowUpRight size={14}/></a><a className="nx-nav-cta" href="#aktivasi">Jelajahi aktivasi <ArrowRight size={14}/></a></div>
     </header>
 
     <main>
-      <section className="arch-hero">
-        <div className="arch-hero-grid" aria-hidden="true"/>
-        <div className="arch-hero-coordinate" aria-hidden="true">07° / NEXA / 26</div>
-        <div className="arch-hero-copy">
-          <div className="arch-kicker"><span/> BUSINESS OPERATIONS / DIGITAL ARCHITECTURE</div>
-          <h1>Bangun alur.<br/><em>Kendalikan bisnis.</em></h1>
-          <p>NexaPos menghubungkan POS, checkout, katalog produk, stok per tenant, tim, sesi kasir, antrean, pemesanan mandiri, dan laporan dalam satu sistem operasional. Pilih NexaSpace untuk mengelola beberapa tenant atau Single Workspace untuk menjalankan satu workspace secara mandiri.</p>
-          <div className="arch-hero-actions"><a className="arch-primary-cta" href="#sistem">Kenali sistem <ArrowDown size={16}/></a><a className="arch-secondary-cta" href="/?screen=demo">Lihat demo interaktif <ArrowUpRight size={15}/></a></div>
-          <div className="arch-hero-foot"><span>01 — SYSTEM OVERVIEW</span><span>SCROLL TO EXPLORE</span></div>
+      <section className="nx-hero">
+        <div className="nx-hero-atmosphere" aria-hidden="true"><span className="nx-orbit nx-orbit-one"/><span className="nx-orbit nx-orbit-two"/><span className="nx-orbit nx-orbit-three"/><span className="nx-hero-cross nx-cross-a"/><span className="nx-hero-cross nx-cross-b"/></div>
+        <div className="nx-hero-copy">
+          <div className="nx-kicker"><i/> SISTEM OPERASIONAL BISNIS / NEXAPOS</div>
+          <h1>Satu sistem.<br/><em>Bisnis bergerak.</em></h1>
+          <p>Kelola transaksi, produk, stok, tim, antrean, pemesanan mandiri, dan laporan dalam alur kerja yang saling terhubung. Pilih NexaSpace untuk mengelola beberapa tenant atau Single Workspace untuk operasional mandiri.</p>
+          <div className="nx-hero-actions"><a className="nx-primary-cta" href="#sistem">Jelajahi NexaPos <ArrowRight size={16}/></a><a className="nx-secondary-cta" href="/?screen=demo">Lihat demo interaktif <ArrowUpRight size={15}/></a></div>
+          <div className="nx-hero-proof"><span><i/> MULTI-CASHIER READY</span><span>ROLE-BASED ACCESS</span><span>LIVE OPERATIONS</span></div>
         </div>
-        <div className="arch-hero-structure" aria-label="Struktur sistem NexaPos">
-          <div className="arch-structure-top"><span>OPERATIONAL FRAMEWORK</span><span>NP / 001</span></div>
-          <div className="arch-structure-mark"><img src="/nexapos-mark.svg" alt=""/><span>NEXAPOS</span><small>SMART COMMERCE</small></div>
-          <div className="arch-structure-axis axis-x"/><div className="arch-structure-axis axis-y"/>
-          <div className="arch-structure-node node-a"><small>01 / SELL</small><b>Transaksi</b><ShoppingCart size={17}/></div>
-          <div className="arch-structure-node node-b"><small>02 / MANAGE</small><b>Produk & stok</b><Package size={17}/></div>
-          <div className="arch-structure-node node-c"><small>03 / OPERATE</small><b>Tim & akses</b><Users size={17}/></div>
-          <div className="arch-structure-node node-d"><small>04 / ANALYZE</small><b>Laporan</b><BarChart3 size={17}/></div>
-          <div className="arch-structure-caption"><i/> ONE OPERATIONAL SYSTEM</div>
+        <div className="nx-product-stage" aria-label="Ilustrasi sistem operasional NexaPos">
+          <div className="nx-stage-label nx-stage-label-top"><span>OPERATIONAL SYSTEM</span><b>NP / 01</b></div>
+          <div className="nx-stage-backplate"/>
+          <div className="nx-stage-core"><img src="/nexapos-mark.svg" alt=""/><b>NEXAPOS</b><small>SMART COMMERCE</small></div>
+          <div className="nx-stage-card nx-stage-sales"><span><ShoppingCart size={15}/> CHECKOUT</span><strong>Transaksi</strong><small>Alur penjualan</small><i><b/></i></div>
+          <div className="nx-stage-card nx-stage-stock"><span><Package size={15}/> INVENTORY</span><strong>Produk & stok</strong><small>Per tenant</small><i><b/></i></div>
+          <div className="nx-stage-card nx-stage-team"><span><Users size={15}/> TEAM ACCESS</span><strong>Tim operasional</strong><small>Peran & izin</small><i><b/></i></div>
+          <div className="nx-stage-card nx-stage-insight"><span><BarChart3 size={15}/> BUSINESS DATA</span><strong>Laporan</strong><small>Aktivitas bisnis</small><i><b/></i></div>
+          <div className="nx-stage-ring"/>
+          <div className="nx-stage-label nx-stage-label-bottom"><span>CONNECTED WORKFLOWS</span><span>SCROLL TO EXPLORE ↓</span></div>
         </div>
-        <div className="arch-hero-index"><span>DESIGNED AROUND REAL BUSINESS WORKFLOWS</span><span>SCROLL ↓</span></div>
       </section>
 
-      <section className="arch-manifesto" id="sistem">
-        <div className="arch-section-index"><span>01</span><small>THE FRAMEWORK</small></div>
-        <div className="arch-manifesto-main"><span className="arch-overline">OPERASIONAL YANG TERHUBUNG</span><h2>Bukan sekadar mencatat transaksi.<br/><em>Susun cara bisnis bekerja.</em></h2></div>
-        <p className="arch-manifesto-note">Kelola pekerjaan harian dari satu sistem: layani pelanggan, atur katalog dan persediaan, berikan akses kepada tim, serta tinjau aktivitas penjualan.</p>
+      <section className="nx-manifesto" id="sistem">
+        <div className="nx-section-index"><span>01</span><small>THE FRAMEWORK</small></div>
+        <div className="nx-manifesto-main"><span className="nx-overline">OPERASIONAL YANG TERHUBUNG</span><h2>Bukan sekadar mencatat transaksi.<br/><em>Susun cara bisnis bekerja.</em></h2></div>
+        <p className="nx-manifesto-note">Kelola pekerjaan harian dari satu sistem: layani pelanggan, atur katalog dan persediaan, berikan akses kepada tim, serta tinjau aktivitas penjualan.</p>
       </section>
 
-      <section className="arch-workspace-section" id="ruang-kerja">
-        <div className="arch-section-heading"><div><span className="arch-overline">02 / WORKSPACE ARCHITECTURE</span><h2>Pilih struktur kerja<br/><em>yang sesuai dengan bisnismu.</em></h2></div><p>Setiap model workspace memiliki tujuan berbeda. Pemisahan ini menjaga pengelolaan organisasi dan kegiatan operasional tetap jelas.</p></div>
-        <div className="arch-workspace-grid">
-          <article className="arch-workspace-card arch-workspace-organization">
-            <div className="arch-workspace-card-top"><span>MODEL 01 / MULTI-TENANT</span><Building2 size={18}/></div>
-            <div className="arch-workspace-graphic arch-org-graphic"><div className="arch-org-core"><img src="/nexapos-mark.svg" alt=""/><b>NexaSpace</b><small>ORGANIZATION HUB</small></div><span className="arch-org-branch branch-one">TENANT 01</span><span className="arch-org-branch branch-two">TENANT 02</span><span className="arch-org-branch branch-three">TENANT 03</span></div>
-            <div className="arch-workspace-copy"><span className="arch-overline">UNTUK PEMILIK ORGANISASI</span><h3>NexaSpace</h3><p>Pusat kendali Owner untuk melihat organisasi, mengelola tenant sesuai kuota, mengatur anggota, memantau aktivitas, dan berpindah workspace.</p><ul><li><Check size={14}/> Direktori dan pengelolaan tenant</li><li><Check size={14}/> Kuota serta masa aktivasi</li><li><Check size={14}/> Tim dan laporan organisasi</li></ul><a href="/login">Masuk melalui akun Owner <ArrowUpRight size={15}/></a></div>
+      <section className="nx-workspace-section" id="ruang-kerja">
+        <div className="nx-section-heading"><div><span className="nx-overline">02 / WORKSPACE ARCHITECTURE</span><h2>Pilih struktur kerja<br/><em>yang sesuai dengan bisnismu.</em></h2></div><p>Setiap model workspace memiliki tujuan berbeda. Pemisahan ini menjaga pengelolaan organisasi dan kegiatan operasional tetap jelas.</p></div>
+        <div className="nx-workspace-grid">
+          <article className="nx-workspace-card nx-workspace-organization">
+            <div className="nx-workspace-card-top"><span>MODEL 01 / MULTI-TENANT</span><Building2 size={18}/></div>
+            <div className="nx-workspace-graphic nx-org-graphic"><div className="nx-org-core"><img src="/nexapos-mark.svg" alt=""/><b>NexaSpace</b><small>ORGANIZATION HUB</small></div><span className="nx-org-branch branch-one">TENANT 01</span><span className="nx-org-branch branch-two">TENANT 02</span><span className="nx-org-branch branch-three">TENANT 03</span></div>
+            <div className="nx-workspace-copy"><span className="nx-overline">UNTUK PEMILIK ORGANISASI</span><h3>NexaSpace</h3><p>Pusat kendali Owner untuk melihat organisasi, mengelola tenant sesuai kuota, mengatur anggota, memantau aktivitas, dan berpindah workspace.</p><ul><li><Check size={14}/> Direktori dan pengelolaan tenant</li><li><Check size={14}/> Kuota serta masa aktivasi</li><li><Check size={14}/> Tim dan laporan organisasi</li></ul><a href="/login">Masuk melalui akun Owner <ArrowUpRight size={15}/></a></div>
           </article>
-          <article className="arch-workspace-card arch-workspace-independent">
-            <div className="arch-workspace-card-top"><span>MODEL 02 / SINGLE WORKSPACE</span><Store size={18}/></div>
-            <div className="arch-workspace-graphic arch-single-graphic"><div className="arch-single-frame"><span>INDEPENDENT</span><strong>01</strong><small>BUSINESS WORKSPACE</small></div><div className="arch-single-axis"/></div>
-            <div className="arch-workspace-copy"><span className="arch-overline">UNTUK OWNER MANDIRI</span><h3>Single Workspace</h3><p>Model workspace mandiri untuk Owner yang mengelola satu operasional POS tanpa pusat organisasi NexaSpace atau manajemen tenant.</p><ul><li><Check size={14}/> Satu workspace POS independen</li><li><Check size={14}/> Owner mengelola fitur workspace</li><li><Check size={14}/> Tim, produk, stok, dan transaksi</li></ul><span className="arch-availability-note">Ketersediaan penawaran mengikuti status paket yang diaktifkan Admin.</span></div>
+          <article className="nx-workspace-card nx-workspace-independent">
+            <div className="nx-workspace-card-top"><span>MODEL 02 / SINGLE WORKSPACE</span><Store size={18}/></div>
+            <div className="nx-workspace-graphic nx-single-graphic"><div className="nx-single-frame"><span>INDEPENDENT</span><strong>01</strong><small>BUSINESS WORKSPACE</small></div><div className="nx-single-axis"/></div>
+            <div className="nx-workspace-copy"><span className="nx-overline">UNTUK OWNER MANDIRI</span><h3>Single Workspace</h3><p>Model workspace mandiri untuk Owner yang mengelola satu operasional POS tanpa pusat organisasi NexaSpace atau manajemen tenant.</p><ul><li><Check size={14}/> Satu workspace POS independen</li><li><Check size={14}/> Owner mengelola fitur workspace</li><li><Check size={14}/> Tim, produk, stok, dan transaksi</li></ul><span className="nx-availability-note">Ketersediaan penawaran mengikuti status paket yang diaktifkan Admin.</span></div>
           </article>
         </div>
       </section>
 
-      <section className="arch-process">
-        <div className="arch-process-head"><span className="arch-overline">03 / OPERATIONAL SEQUENCE</span><h2>Setiap aktivitas punya<br/><em>tempat dan urutannya.</em></h2></div>
-        <div className="arch-process-list">
+      <section className="nx-process">
+        <div className="nx-process-head"><span className="nx-overline">03 / OPERATIONAL SEQUENCE</span><h2>Setiap aktivitas punya<br/><em>tempat dan urutannya.</em></h2></div>
+        <div className="nx-process-list">
           <article><span>01</span><div><ShoppingCart size={20}/><h3>Layani transaksi</h3><p>Pilih produk, periksa keranjang, proses pembayaran, cetak struk, dan simpan riwayat transaksi.</p></div><small>POINT OF SALE</small></article>
           <article><span>02</span><div><Package size={20}/><h3>Kelola katalog & stok</h3><p>Atur kategori, produk, harga, dan persediaan di workspace masing-masing.</p></div><small>INVENTORY</small></article>
           <article><span>03</span><div><Users size={20}/><h3>Atur tim dan akses</h3><p>Berikan akun serta hak akses sesuai peran Owner, Manager, atau Karyawan.</p></div><small>TEAM OPERATIONS</small></article>
@@ -299,30 +298,30 @@ export default function Homepage() {
         </div>
       </section>
 
-      <section className="arch-capabilities" id="kapabilitas">
-        <div className="arch-section-heading"><div><span className="arch-overline">04 / PRODUCT CAPABILITIES</span><h2>Dirancang untuk<br/><em>pekerjaan yang nyata.</em></h2></div><p>Deskripsi berikut mengikuti kemampuan produk yang tersedia. Ketersediaan setiap tindakan tetap mengikuti peran, izin, dan konfigurasi workspace.</p></div>
-        <div className="arch-capability-grid">{features.map(({number,icon:Icon,title,text})=><article className="arch-capability" key={number}><div className="arch-capability-top"><span>{number}</span><Icon size={20}/></div><h3>{title}</h3><p>{text}</p><span className="arch-capability-rule"/></article>)}</div>
-        <div className="arch-capability-foot"><span><ShieldCheck size={16}/> AKSES BERDASARKAN PERAN</span><p>Owner, Manager, dan Karyawan melihat fungsi sesuai kewenangannya. Data dan stok setiap tenant tetap terpisah.</p></div>
+      <section className="nx-capabilities" id="kapabilitas">
+        <div className="nx-section-heading"><div><span className="nx-overline">04 / PRODUCT CAPABILITIES</span><h2>Dirancang untuk<br/><em>pekerjaan yang nyata.</em></h2></div><p>Deskripsi berikut mengikuti kemampuan produk yang tersedia. Ketersediaan setiap tindakan tetap mengikuti peran, izin, dan konfigurasi workspace.</p></div>
+        <div className="nx-capability-grid">{features.map(({number,icon:Icon,title,text})=><article className="nx-capability" key={number}><div className="nx-capability-top"><span>{number}</span><Icon size={20}/></div><h3>{title}</h3><p>{text}</p><span className="nx-capability-rule"/></article>)}</div>
+        <div className="nx-capability-foot"><span><ShieldCheck size={16}/> AKSES BERDASARKAN PERAN</span><p>Owner, Manager, dan Karyawan melihat fungsi sesuai kewenangannya. Data dan stok setiap tenant tetap terpisah.</p></div>
       </section>
 
-      <section className="arch-operating-suite" id="alur-operasional">
-        <div className="arch-operating-suite-head">
-          <div><span className="arch-overline">05 / THE COMPLETE OPERATING SUITE</span><h2>Setiap bagian bisnis<br/><em>terhubung dalam alurnya.</em></h2></div>
+      <section className="nx-operating-suite" id="alur-operasional">
+        <div className="nx-operating-suite-head">
+          <div><span className="nx-overline">05 / THE COMPLETE OPERATING SUITE</span><h2>Setiap bagian bisnis<br/><em>terhubung dalam alurnya.</em></h2></div>
           <p>NexaPos tidak berhenti di kasir. Pengelolaan persediaan, tim, pelayanan pelanggan, dan evaluasi bisnis berada dalam rangkaian operasional yang saling mendukung.</p>
         </div>
-        <div className="arch-suite-grid">
-          <article className="arch-suite-item"><span>01 / INVENTORY CONTROL</span><Package size={22}/><h3>Stok per workspace</h3><p>Kelola produk dan persediaan setiap tenant secara terpisah. Tidak ada transfer stok antar-tenant.</p></article>
-          <article className="arch-suite-item"><span>02 / CASHIER OPERATIONS</span><Activity size={22}/><h3>Kasir dan kehadiran</h3><p>Pantau sesi buka/tutup kasir, aktivitas Karyawan, serta status istirahat dalam alur tenant.</p></article>
-          <article className="arch-suite-item"><span>03 / CUSTOMER ORDERING</span><Workflow size={22}/><h3>Self Order</h3><p>Aktifkan pemesanan mandiri agar pelanggan dapat membuat pesanan dari perangkat mereka.</p></article>
-          <article className="arch-suite-item"><span>04 / SERVICE QUEUE</span><Monitor size={22}/><h3>Antrean pelayanan</h3><p>Kelola nomor, nama pesanan, dan loket atau kasir tanpa fitur media atau video antrean.</p></article>
-          <article className="arch-suite-item"><span>05 / BUSINESS REPORTS</span><BarChart3 size={22}/><h3>Analisis penjualan</h3><p>Gunakan rentang tanggal, riwayat transaksi, dan rincian modal untuk mengevaluasi hasil operasional.</p></article>
-          <article className="arch-suite-item"><span>06 / TEAM GOVERNANCE</span><ShieldCheck size={22}/><h3>Pengelolaan akses</h3><p>Atur Manager dan Karyawan, izin, status akun, serta pemulihan PIN atau kata sandi sesuai hak akses.</p></article>
-          <article className="arch-suite-item"><span>07 / TRACEABILITY</span><Activity size={22}/><h3>Audit aktivitas</h3><p>Telusuri perubahan dan aktivitas yang tercatat sesuai cakupan akses platform, organisasi, atau tenant.</p></article>
-          <article className="arch-suite-item"><span>08 / RECEIPT FLOW</span><Printer size={22}/><h3>Struk transaksi</h3><p>Berikan bukti transaksi yang dapat dicetak pada perangkat dan printer yang kompatibel.</p></article>
+        <div className="nx-suite-grid">
+          <article className="nx-suite-item"><span>01 / INVENTORY CONTROL</span><Package size={22}/><h3>Stok per workspace</h3><p>Kelola produk dan persediaan setiap tenant secara terpisah. Tidak ada transfer stok antar-tenant.</p></article>
+          <article className="nx-suite-item"><span>02 / CASHIER OPERATIONS</span><Activity size={22}/><h3>Kasir dan kehadiran</h3><p>Pantau sesi buka/tutup kasir, aktivitas Karyawan, serta status istirahat dalam alur tenant.</p></article>
+          <article className="nx-suite-item"><span>03 / CUSTOMER ORDERING</span><Workflow size={22}/><h3>Self Order</h3><p>Aktifkan pemesanan mandiri agar pelanggan dapat membuat pesanan dari perangkat mereka.</p></article>
+          <article className="nx-suite-item"><span>04 / SERVICE QUEUE</span><Monitor size={22}/><h3>Antrean pelayanan</h3><p>Kelola nomor, nama pesanan, dan loket atau kasir tanpa fitur media atau video antrean.</p></article>
+          <article className="nx-suite-item"><span>05 / BUSINESS REPORTS</span><BarChart3 size={22}/><h3>Analisis penjualan</h3><p>Gunakan rentang tanggal, riwayat transaksi, dan rincian modal untuk mengevaluasi hasil operasional.</p></article>
+          <article className="nx-suite-item"><span>06 / TEAM GOVERNANCE</span><ShieldCheck size={22}/><h3>Pengelolaan akses</h3><p>Atur Manager dan Karyawan, izin, status akun, serta pemulihan PIN atau kata sandi sesuai hak akses.</p></article>
+          <article className="nx-suite-item"><span>07 / TRACEABILITY</span><Activity size={22}/><h3>Audit aktivitas</h3><p>Telusuri perubahan dan aktivitas yang tercatat sesuai cakupan akses platform, organisasi, atau tenant.</p></article>
+          <article className="nx-suite-item"><span>08 / RECEIPT FLOW</span><Printer size={22}/><h3>Struk transaksi</h3><p>Berikan bukti transaksi yang dapat dicetak pada perangkat dan printer yang kompatibel.</p></article>
         </div>
-        <div className="arch-suite-support" id="dukungan">
-          <div><span className="arch-overline">NEXAPOS SUPPORT</span><h3>Bantuan yang mengikuti alur kerja.</h3><p>NexaBot membantu pengguna memahami penggunaan NexaPos dari dalam workspace. Jika dibutuhkan, percakapan dapat diteruskan kepada Admin NexaPos. Untuk pertanyaan sebelum aktivasi, gunakan kanal kontak publik yang tersedia.</p></div>
-          <div className="arch-suite-support-links">
+        <div className="nx-suite-support" id="dukungan">
+          <div><span className="nx-overline">NEXAPOS SUPPORT</span><h3>Bantuan yang mengikuti alur kerja.</h3><p>NexaBot membantu pengguna memahami penggunaan NexaPos dari dalam workspace. Jika dibutuhkan, percakapan dapat diteruskan kepada Admin NexaPos. Untuk pertanyaan sebelum aktivasi, gunakan kanal kontak publik yang tersedia.</p></div>
+          <div className="nx-suite-support-links">
             {supportChannels.whatsapp_enabled&&supportChannels.whatsapp_number&&<a href={'https://wa.me/'+supportChannels.whatsapp_number} target="_blank" rel="noreferrer"><Phone size={15}/> WhatsApp</a>}
             {supportChannels.telegram_enabled&&supportChannels.telegram_username&&<a href={'https://t.me/'+supportChannels.telegram_username} target="_blank" rel="noreferrer"><Send size={15}/> Telegram</a>}
             <a href="/login">Masuk ke workspace <ArrowUpRight size={15}/></a>
@@ -330,13 +329,13 @@ export default function Homepage() {
         </div>
       </section>
 
-      <section className="arch-activation" id="aktivasi">
-        <div className="arch-activation-heading"><div><span className="arch-overline">06 / ACTIVATION & RENTAL</span><h2>Pilih masa sewa.<br/><em>Sesuaikan kapasitas.</em></h2></div><p>NexaPos menggunakan model sewa dengan aktivasi yang diproses oleh Super Admin. Harga, paket, dan promo mengikuti konfigurasi aktif.</p></div>
-        {activePromo && <article className="arch-promo"><div><span className="arch-overline">PENAWARAN AKTIF</span><h3>{activePromo.title || 'Penawaran NexaPos'}</h3><p>{activePromo.description || 'Ketentuan promo mengikuti paket dan masa sewa yang memenuhi syarat.'}</p></div><strong>{promoDiscountLabel(activePromo)}<small>POTONGAN</small></strong><span className="arch-promo-note">{requiresPromoCode(activePromo) ? 'Voucher memerlukan kode' : promoStartsLater ? 'Promo segera dimulai' : 'Promo otomatis jika memenuhi syarat'}</span></article>}
-        <div className="arch-duration-row"><div><span className="arch-overline">PILIH MASA AKTIF</span><p>Harga menyesuaikan durasi yang dipilih.</p></div><div className="arch-duration-options" role="tablist" aria-label="Pilihan masa sewa">{durations.map(duration=><button type="button" role="tab" aria-selected={selectedDuration===duration.duration_key} className={selectedDuration===duration.duration_key?'is-active':''} key={duration.duration_key} onClick={()=>setSelectedDuration(duration.duration_key)}><b>{duration.name}</b><small>{Number(duration.duration_days)} hari</small></button>)}</div></div>
-        <div className="arch-voucher-row"><label htmlFor="arch-voucher"><Ticket size={15}/> Kode voucher</label><div><input id="arch-voucher" value={coupon} onChange={event=>setCoupon(event.target.value.toUpperCase())} placeholder="Masukkan kode jika memilikinya"/>{coupon&&<button type="button" onClick={()=>setCoupon('')} aria-label="Hapus kode voucher"><X size={15}/></button>}</div><small>{coupon ? quoteLoading ? 'Memeriksa voucher ke server…' : serverQuotes[selectedPlan]?.promo_id ? 'Voucher terverifikasi untuk paket dan durasi ini.' : 'Kode belum valid untuk pilihan paket dan durasi ini.' : 'Voucher hanya berlaku sesuai ketentuan promo.'}</small></div>
-        {availablePromos.some(p=>requiresPromoCode(p)) && <div className="arch-voucher-list">{availablePromos.filter(p=>requiresPromoCode(p)).map(p=><article key={p.id}><div><b>{p.title || 'Voucher NexaPos'}</b><p>{p.description || 'Masukkan kode untuk memeriksa kelayakan penawaran.'}</p><small>Potongan {promoDiscountLabel(p)}</small></div><button type="button" onClick={()=>setCoupon(p.promo_code||'')} disabled={!p.promo_code}>Gunakan kode <ArrowRight size={13}/></button></article>)}</div>}
-        <div className="arch-plan-grid">
+      <section className="nx-activation" id="aktivasi">
+        <div className="nx-activation-heading"><div><span className="nx-overline">06 / ACTIVATION & RENTAL</span><h2>Pilih masa sewa.<br/><em>Sesuaikan kapasitas.</em></h2></div><p>NexaPos menggunakan model sewa dengan aktivasi yang diproses oleh Super Admin. Harga, paket, dan promo mengikuti konfigurasi aktif.</p></div>
+        {activePromo && <article className="nx-promo"><div><span className="nx-overline">PENAWARAN AKTIF</span><h3>{activePromo.title || 'Penawaran NexaPos'}</h3><p>{activePromo.description || 'Ketentuan promo mengikuti paket dan masa sewa yang memenuhi syarat.'}</p></div><strong>{promoDiscountLabel(activePromo)}<small>POTONGAN</small></strong><span className="nx-promo-note">{requiresPromoCode(activePromo) ? 'Voucher memerlukan kode' : promoStartsLater ? 'Promo segera dimulai' : 'Promo otomatis jika memenuhi syarat'}</span></article>}
+        <div className="nx-duration-row"><div><span className="nx-overline">PILIH MASA AKTIF</span><p>Harga menyesuaikan durasi yang dipilih.</p></div><div className="nx-duration-options" role="tablist" aria-label="Pilihan masa sewa">{durations.map(duration=><button type="button" role="tab" aria-selected={selectedDuration===duration.duration_key} className={selectedDuration===duration.duration_key?'is-active':''} key={duration.duration_key} onClick={()=>setSelectedDuration(duration.duration_key)}><b>{duration.name}</b><small>{Number(duration.duration_days)} hari</small></button>)}</div></div>
+        <div className="nx-voucher-row"><label htmlFor="nx-voucher"><Ticket size={15}/> Kode voucher</label><div><input id="nx-voucher" value={coupon} onChange={event=>setCoupon(event.target.value.toUpperCase())} placeholder="Masukkan kode jika memilikinya"/>{coupon&&<button type="button" onClick={()=>setCoupon('')} aria-label="Hapus kode voucher"><X size={15}/></button>}</div><small>{coupon ? quoteLoading ? 'Memeriksa voucher ke server…' : serverQuotes[selectedPlan]?.promo_id ? 'Voucher terverifikasi untuk paket dan durasi ini.' : 'Kode belum valid untuk pilihan paket dan durasi ini.' : 'Voucher hanya berlaku sesuai ketentuan promo.'}</small></div>
+        {availablePromos.some(p=>requiresPromoCode(p)) && <div className="nx-voucher-list">{availablePromos.filter(p=>requiresPromoCode(p)).map(p=><article key={p.id}><div><b>{p.title || 'Voucher NexaPos'}</b><p>{p.description || 'Masukkan kode untuk memeriksa kelayakan penawaran.'}</p><small>Potongan {promoDiscountLabel(p)}</small></div><button type="button" onClick={()=>setCoupon(p.promo_code||'')} disabled={!p.promo_code}>Gunakan kode <ArrowRight size={13}/></button></article>)}</div>}
+        <div className="nx-plan-grid">
           {plans.length && durations.length ? plans.map((plan,index)=>{
             const duration=durations.find(d=>d.duration_key===selectedDuration) || durations[0]
             const rawPrice=Number(plan.prices?.[selectedDuration]); const hasPrice=Number.isFinite(rawPrice)&&rawPrice>0; const basePrice=hasPrice?rawPrice:0
@@ -345,27 +344,27 @@ export default function Homepage() {
             const displayPromo=serverQuote?.promo_id?{id:serverQuote.promo_id,title:serverQuote.promo_title,description:serverQuote.promo_description,discount_type:serverQuote.discount_type,discount_value:serverQuote.discount_value,eligible_periods:serverQuote.eligible_periods,promo_code:serverQuote.promo_code,requires_code:serverQuote.requires_code,starts_at:serverQuote.starts_at,ends_at:serverQuote.ends_at}:null
             const discount=displayPromo?Math.max(0,Number(serverQuote?.discount||0)):0
             const finalPrice=Math.max(0,Number(serverQuote?.final_price ?? basePrice))
-            return <article className={'arch-plan'+(plan.popular?' is-popular':'')+(selectedPlan===plan.key?' is-selected':'')} key={plan.key}>
-              <div className="arch-plan-top"><span>0{index+1} / {plan.name.toUpperCase()}</span>{plan.popular&&<b>REKOMENDASI</b>}</div>
+            return <article className={'nx-plan'+(plan.popular?' is-popular':'')+(selectedPlan===plan.key?' is-selected':'')} key={plan.key}>
+              <div className="nx-plan-top"><span>0{index+1} / {plan.name.toUpperCase()}</span>{plan.popular&&<b>REKOMENDASI</b>}</div>
               <p>{plan.note || 'Pilihan kapasitas sesuai kebutuhan operasional.'}</p>
-              {plan.key==='single_workspace' ? <div className="arch-plan-quota"><Store size={14}/> 1 workspace mandiri</div> : <div className="arch-plan-quota"><Store size={14}/> Kuota {Number(plan.location_limit||1)} tenant tambahan di luar workspace utama</div>}
-              <div className="arch-plan-price-label">{discount>0?'HARGA SETELAH PROMO':'HARGA SEWA'}</div>
-              {discount>0&&hasPrice&&<del>{money(basePrice)}</del>}<strong className="arch-plan-price">{hasPrice?money(finalPrice):'Harga belum tersedia'}</strong><small className="arch-plan-period">{hasPrice?'/ '+(duration?.name||'durasi')+' · '+Number(duration?.duration_days||0)+' hari':'Konfirmasi harga melalui Admin NexaPos'}</small>
-              {discount>0&&<span className="arch-plan-saving">Hemat {money(discount)} · {promoDiscountLabel(displayPromo)}</span>}
+              {plan.key==='single_workspace' ? <div className="nx-plan-quota"><Store size={14}/> 1 workspace mandiri</div> : <div className="nx-plan-quota"><Store size={14}/> Kuota {Number(plan.location_limit||1)} tenant tambahan di luar workspace utama</div>}
+              <div className="nx-plan-price-label">{discount>0?'HARGA SETELAH PROMO':'HARGA SEWA'}</div>
+              {discount>0&&hasPrice&&<del>{money(basePrice)}</del>}<strong className="nx-plan-price">{hasPrice?money(finalPrice):'Harga belum tersedia'}</strong><small className="nx-plan-period">{hasPrice?'/ '+(duration?.name||'durasi')+' · '+Number(duration?.duration_days||0)+' hari':'Konfirmasi harga melalui Admin NexaPos'}</small>
+              {discount>0&&<span className="nx-plan-saving">Hemat {money(discount)} · {promoDiscountLabel(displayPromo)}</span>}
               <ul>{(plan.features?.length?plan.features:defaultFeatures).map((feature,i)=><li key={i}><Check size={14}/>{feature}</li>)}</ul>
               <button type="button" disabled={!supportAvailable||!hasPrice} onClick={()=>{setSelectedPlan(plan.key);contact(pricedPlan,displayPromo,serverQuote)}}>{!hasPrice ? "Harga belum tersedia" : supportAvailable ? "Tanyakan paket ini" : "Kanal konsultasi belum tersedia"} <ArrowUpRight size={15}/></button>
-              <small className="arch-plan-foot">Kode aktivasi diterbitkan oleh Super Admin.</small>
+              <small className="nx-plan-foot">Kode aktivasi diterbitkan oleh Super Admin.</small>
             </article>
-          }) : <div className="arch-pricing-unavailable"><ShieldCheck size={20}/><div><b>Informasi paket belum tersedia.</b><p>Harga dan pilihan aktivasi akan ditampilkan setelah konfigurasi paket aktif berhasil dimuat. Silakan masuk kembali nanti atau hubungi tim NexaPos melalui kanal dukungan yang tersedia.</p></div></div>}
+          }) : <div className="nx-pricing-unavailable"><ShieldCheck size={20}/><div><b>Informasi paket belum tersedia.</b><p>Harga dan pilihan aktivasi akan ditampilkan setelah konfigurasi paket aktif berhasil dimuat. Silakan masuk kembali nanti atau hubungi tim NexaPos melalui kanal dukungan yang tersedia.</p></div></div>}
         </div>
-        <article className="living-plan living-plan-redesign living-plan-custom arch-special-plan"><div><span className="arch-overline">CUSTOM ARRANGEMENT / PAKET KHUSUS</span><h3>Operasional dengan kebutuhan khusus?</h3><p>Diskusikan masa aktif dan jumlah tenant sesuai kebutuhan. Harga dan kuota tidak ditampilkan secara publik; detail ditentukan melalui konsultasi dan proses aktivasi oleh Admin.</p><ul><li>Masa aktif dapat disesuaikan</li><li>Jumlah tenant sesuai kebutuhan</li></ul></div><button type="button" disabled={!supportAvailable} onClick={contactCustom}>{supportAvailable ? "Konsultasikan kebutuhan" : "Kanal konsultasi belum tersedia"} <ArrowUpRight size={15}/></button></article>
+        <article className="nx-plan nx-plan-redesign nx-plan-custom nx-special-plan"><div><span className="nx-overline">CUSTOM ARRANGEMENT / PAKET KHUSUS</span><h3>Operasional dengan kebutuhan khusus?</h3><p>Diskusikan masa aktif dan jumlah tenant sesuai kebutuhan. Harga dan kuota tidak ditampilkan secara publik; detail ditentukan melalui konsultasi dan proses aktivasi oleh Admin.</p><ul><li>Masa aktif dapat disesuaikan</li><li>Jumlah tenant sesuai kebutuhan</li></ul></div><button type="button" disabled={!supportAvailable} onClick={contactCustom}>{supportAvailable ? "Konsultasikan kebutuhan" : "Kanal konsultasi belum tersedia"} <ArrowUpRight size={15}/></button></article>
         {/* Pricing audit boundary: {!activePromo && <div className="living-no-promo"> */}
-        <p className="arch-activation-footnote">Informasi harga dan promo mengikuti data serta ketentuan aktif di sistem. Aktivasi bukan penagihan berulang otomatis.</p>
+        <p className="nx-activation-footnote">Informasi harga dan promo mengikuti data serta ketentuan aktif di sistem. Aktivasi bukan penagihan berulang otomatis.</p>
       </section>
 
-      <section className="arch-faq" id="faq">
-        <div className="arch-faq-heading"><span className="arch-overline">07 / FREQUENTLY ASKED QUESTIONS</span><h2>Hal penting,<br/><em>sebelum mulai.</em></h2><p>Jawaban ini menjelaskan model kerja dan batasan NexaPos berdasarkan fungsi produk saat ini.</p></div>
-        <div className="arch-faq-list">{[
+      <section className="nx-faq" id="faq">
+        <div className="nx-faq-heading"><span className="nx-overline">07 / FREQUENTLY ASKED QUESTIONS</span><h2>Hal penting,<br/><em>sebelum mulai.</em></h2><p>Jawaban ini menjelaskan model kerja dan batasan NexaPos berdasarkan fungsi produk saat ini.</p></div>
+        <div className="nx-faq-list">{[
           {q:'Apa yang dapat dikelola melalui NexaPos?',a:'NexaPos mencakup POS dan checkout, katalog serta stok per tenant, sesi kasir, kehadiran dan istirahat, tim dan hak akses, laporan penjualan dan modal, antrean, Self Order, struk, serta audit aktivitas. Fitur yang terlihat mengikuti peran, izin, dan konfigurasi workspace.'},
           {q:'Apa perbedaan NexaSpace dan Single Workspace?',a:'NexaSpace adalah pusat kendali Owner untuk organisasi dengan beberapa tenant. Single Workspace adalah model terpisah untuk Owner yang mengelola satu workspace mandiri tanpa NexaSpace. Penawaran Single Workspace hanya tersedia ketika paketnya diaktifkan Admin.'},
           {q:'Bagaimana cara mendapatkan akses?',a:'Pilih paket dan masa sewa yang tersedia, lalu hubungi kanal dukungan NexaPos. Aktivasi diproses oleh Super Admin dan kode aktivasi diberikan melalui proses yang ditetapkan.'},
@@ -383,12 +382,12 @@ export default function Homepage() {
         ].map((item,i)=><article className={faqOpen===i?'is-open':''} key={item.q}><button type="button" aria-expanded={faqOpen===i} onClick={()=>setFaqOpen(faqOpen===i?-1:i)}><span><small>0{i+1}</small>{item.q}</span><ChevronDown size={17}/></button>{faqOpen===i&&<p>{item.a}</p>}</article>)}</div>
       </section>
 
-      <section className="arch-contact">
-        <div><span className="arch-overline">08 / START WITH THE RIGHT WORKSPACE</span><h2>Siapkan sistem<br/><em>untuk langkah berikutnya.</em></h2><p>Jelajahi model workspace, periksa pilihan aktivasi yang tersedia, atau masuk jika akun NexaPos Anda sudah aktif.</p></div>
-        <div className="arch-contact-actions"><a href="#aktivasi" className="arch-primary-cta">Lihat pilihan aktivasi <ArrowRight size={15}/></a><a href="/login" className="arch-contact-login">Sudah punya akun? Masuk ke workspace <ArrowUpRight size={15}/></a></div>
+      <section className="nx-contact">
+        <div><span className="nx-overline">08 / START WITH THE RIGHT WORKSPACE</span><h2>Siapkan sistem<br/><em>untuk langkah berikutnya.</em></h2><p>Jelajahi model workspace, periksa pilihan aktivasi yang tersedia, atau masuk jika akun NexaPos Anda sudah aktif.</p></div>
+        <div className="nx-contact-actions"><a href="#aktivasi" className="nx-primary-cta">Lihat pilihan aktivasi <ArrowRight size={15}/></a><a href="/login" className="nx-contact-login">Sudah punya akun? Masuk ke workspace <ArrowUpRight size={15}/></a></div>
       </section>
     </main>
-    <footer className="arch-footer"><Brand footer/><p>NexaPos — sistem operasional untuk transaksi, produk, stok, tim, dan pengelolaan workspace bisnis.</p><div>{supportChannels.whatsapp_enabled&&supportChannels.whatsapp_number&&<a href={'https://wa.me/'+supportChannels.whatsapp_number} target="_blank" rel="noreferrer"><Phone size={14}/> WhatsApp</a>}{supportChannels.telegram_enabled&&supportChannels.telegram_username&&<a href={'https://t.me/'+supportChannels.telegram_username} target="_blank" rel="noreferrer"><Send size={14}/> Telegram</a>}<a href="/login">Login <ArrowUpRight size={14}/></a></div><small>© {new Date().getFullYear()} NexaPos. Seluruh hak dilindungi.</small></footer>
+    <footer className="nx-footer"><Brand footer/><p>NexaPos — sistem operasional untuk transaksi, produk, stok, tim, dan pengelolaan workspace bisnis.</p><div>{supportChannels.whatsapp_enabled&&supportChannels.whatsapp_number&&<a href={'https://wa.me/'+supportChannels.whatsapp_number} target="_blank" rel="noreferrer"><Phone size={14}/> WhatsApp</a>}{supportChannels.telegram_enabled&&supportChannels.telegram_username&&<a href={'https://t.me/'+supportChannels.telegram_username} target="_blank" rel="noreferrer"><Send size={14}/> Telegram</a>}<a href="/login">Login <ArrowUpRight size={14}/></a></div><small>© {new Date().getFullYear()} NexaPos. Seluruh hak dilindungi.</small></footer>
   </div>
 
 }
