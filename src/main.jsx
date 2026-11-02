@@ -2,6 +2,7 @@ import React from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App.jsx'
 import PwaInstallPrompt from './PwaInstallPrompt.jsx'
+import MotionSystem from './MotionSystem.jsx'
 import './styles.css'
 import './nexa-fresh-identity.css'
 import './owner-tenant-order.css'
@@ -63,6 +64,7 @@ createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <AppErrorBoundary>
       <>
+        <MotionSystem />
         <React.Suspense fallback={<div className="nexa-module-loading" role="status" aria-live="polite"><span className="nexa-loading-orbit"/>Memuat modul NexaPos…</div>}>
           <App />
         </React.Suspense>
