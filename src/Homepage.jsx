@@ -68,13 +68,49 @@ export default function Homepage() {
   const [scene, setScene] = useState('kasir')
 
   const loadPromos = useCallback(async () => {
-    if (!supabase) return
+    if (!supabase) { setPromos([]); return }
     const { data, error } = await supabase.from('site_promotions')
       .select('id,title,description,discount_type,discount_value,eligible_periods,promo_code,requires_code,starts_at,ends_at,is_active')
       .eq('is_active', true)
     if (error) { setPromos([]); return }
     const now = Date.now()
-    setPromos((data || []).filter(p => (!p.starts_at || new Date(p.starts_at).getTime() <= now) && (!p.ends_at || new Date(p.ends_at).getTime() >= now)))
+    setPromos((data || []).filter(p => !p.ends_at || new Date(p.ends_at).getTime() >= now))
+  }, [])
+  useEffect(() => {
+    if (!supabase) return
+    loadPromos()
+    const channel = supabase.channel('homepage-promotions-live')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'site_promotions' }, loadPromos)
+      .subscribe()
+    const refresh = () => { if (document.visibilityState === 'visible') loadPromos() }
+    window.addEventListener('focus', refresh)
+    document.addEventListener('visibilitychange', refresh)
+    return () => {
+      window.removeEventListener('focus', refresh)
+      document.removeEventListener('visibilitychange', refresh)
+      supabase.removeChannel(channel)
+    }
+  }, [loadPromos])
+  useEffect(() => {
+    if (!supabase) return
+    let mounted = true
+    const loadSupportChannels = async () => {
+      const { data, error } = await supabase.from('support_channel_settings')
+        .select('whatsapp_enabled,whatsapp_number,telegram_enabled,telegram_username')
+        .eq('id', 1).maybeSingle()
+      if (error || !data || !mounted) return
+      setSupportChannels({
+        whatsapp_enabled: Boolean(data.whatsapp_enabled),
+        whatsapp_number: String(data.whatsapp_number || '').replace(/\\D/g, ''),
+        telegram_enabled: Boolean(data.telegram_enabled),
+        telegram_username: String(data.telegram_username || '').replace(/^@/, '').trim(),
+      })
+    }
+    loadSupportChannels()
+    const channel = supabase.channel('homepage-support-channels')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'support_channel_settings' }, loadSupportChannels)
+      .subscribe()
+    return () => { mounted = false; supabase.removeChannel(channel) }
   }, [])
   useEffect(() => {
     if (!supabase) { setPlans([]); setDurations([]); return }
@@ -132,6 +168,24 @@ export default function Homepage() {
       supabase.removeChannel(durationChannel)
     }
   }, [])
+  useEffect(() => {
+    if (!supabase || !plans.length || !selectedDuration) { setServerQuotes({}); setQuoteLoading(false); return }
+    let cancelled = false
+    setServerQuotes({})
+    setQuoteLoading(true)
+    Promise.all(plans.map(async plan => {
+      const { data, error } = await supabase.rpc('get_activation_quote', {
+        p_package_key: plan.key,
+        p_duration_key: selectedDuration,
+        p_promo_code: coupon.trim() || null,
+      })
+      return [plan.key, !error && data?.ok ? data : null]
+    })).then(entries => { if (!cancelled) setServerQuotes(Object.fromEntries(entries)) })
+      .catch(() => { if (!cancelled) setServerQuotes({}) })
+      .finally(() => { if (!cancelled) setQuoteLoading(false) })
+    return () => { cancelled = true }
+  }, [plans, selectedDuration, coupon])
+
   const availablePromos = promos
   const automaticPromo = availablePromos.find(p => !requiresPromoCode(p) && (!p.starts_at || new Date(p.starts_at).getTime() <= Date.now()))
   const couponPromo = useMemo(() => {
@@ -141,34 +195,7 @@ export default function Homepage() {
   }, [coupon, availablePromos])
   const activePromo = coupon.trim() ? couponPromo : automaticPromo
   const promoStartsLater = Boolean(activePromo?.starts_at && new Date(activePromo.starts_at).getTime() > Date.now())
-  const selected = plans.find(p => p.key === selectedPlan) || plans[1]
-  const currentScene = storyScenes[scene] || storyScenes.kasir
-  const SceneIcon = currentScene.icon
-  const contactCustom = () => {
-    const details = [
-      'Halo Tim NexaPos, saya ingin konsultasi Paket Khusus.',
-      'Saya membutuhkan masa aktif dan jumlah tenant yang disesuaikan dengan kebutuhan bisnis.',
-      'Mohon bantu informasikan pilihan durasi, kuota tenant, harga, dan proses aktivasi yang sesuai.',
-      'Nama usaha/organisasi: ',
-      'Kebutuhan jumlah tenant: ',
-      'Kebutuhan masa aktif: ',
-      'Terima kasih.'
-    ].join('\\n')
-    window.open('https://t.me/becaaapos?text=' + encodeURIComponent(details), '_blank', 'noopener,noreferrer')
-  }
-  const contact = (plan, promo, quote) => {
-    const details = [
-      'Halo Tim NexaPos, saya ingin menanyakan penyewaan layanan.',
-      'Paket: ' + plan.name + (plan.key === 'single_workspace' ? ' (1 workspace mandiri, tanpa NexaSpace atau tenant tambahan)' : ' (' + Number(plan.location_limit || 1) + ' tenant tambahan)'),
-      'Masa sewa: ' + (plan.duration || selectedDuration),
-      'Harga normal: ' + money(plan.price),
-      promo ? 'Promo: ' + (promo.title || promo.promo_code || 'Promo NexaPos') : '',
-      promo ? 'Perkiraan harga setelah diskon: ' + money(Number(quote?.final_price ?? plan.price)) : '',
-      coupon.trim() ? 'Kode kupon: ' + coupon.trim().toUpperCase() : '',
-      'Mohon informasi mengenai proses aktivasi dan pembayaran. Terima kasih.'
-    ].filter(Boolean).join('\n')
-    window.open('https://t.me/becaaapos?text=' + encodeURIComponent(details), '_blank', 'noopener,noreferrer')
-  }
+  const supportAvailable = Boolean((supportChannels.telegram_enabled && supportChannels.telegram_username) || (supportChannels.whatsapp_enabled && supportChannels.whatsapp_number))
   const openSupport = (details) => {
     const message = encodeURIComponent(details)
     if (supportChannels.telegram_enabled && supportChannels.telegram_username) {
@@ -177,9 +204,7 @@ export default function Homepage() {
     }
     if (supportChannels.whatsapp_enabled && supportChannels.whatsapp_number) {
       window.open('https://wa.me/' + supportChannels.whatsapp_number + '?text=' + message, '_blank', 'noopener,noreferrer')
-      return
     }
-    window.location.href = '/login'
   }
   const contactCustom = () => openSupport([
     'Halo Tim NexaPos, saya ingin konsultasi Paket Khusus.',
@@ -199,7 +224,6 @@ export default function Homepage() {
     coupon.trim() ? 'Kode voucher: ' + coupon.trim().toUpperCase() : '',
     'Mohon informasi mengenai proses aktivasi dan pembayaran. Terima kasih.'
   ].filter(Boolean).join('\\n'))
-
   return <div className="architecture-home">
     <header className="arch-nav">
       <Brand />
