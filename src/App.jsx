@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Activity, ArrowDownRight, ArrowRight, ArrowLeft, KeyRound, Copy, Building2, Power, Eye, BarChart3, Bell, Boxes, Check, CheckCircle2,
   ChevronDown, CircleDollarSign, Clock3, CreditCard, FileText, Headphones, LayoutDashboard,
@@ -8,19 +8,23 @@ import {
 } from 'lucide-react'
 import { isSupabaseConfigured, supabase } from './lib/supabase'
 import { userFacingError } from './lib/userFacingError'
-import SupportCenter from './SupportCenter.jsx'
-import Homepage from './Homepage.jsx'
-import Demo from './Demo.jsx'
-import PromotionManager from './PromotionManager.jsx'
-import SubscriptionPlanManager from './SubscriptionPlanManager.jsx'
-import TvDisplaySettings from './TvDisplaySettings.jsx'
-import PlatformStaffManager from './PlatformStaffManager.jsx'
-import StoreControlCenter from './StoreControlCenter.jsx'
-import AuditLogPanel from './AuditLogPanel.jsx'
-import OrganizationReports from './OrganizationReports.jsx'
-import OrganizationOperations from './OrganizationOperations.jsx'
-import OrganizationSettings from './OrganizationSettings.jsx'
-import SelfOrderManager, { SelfOrderPublic, SelfOrderSettings } from './SelfOrder.jsx'
+// Heavy route modules are split into separate chunks so public visitors and
+// everyday cashiers do not download Admin, reporting, support and self-order code up front.
+const SupportCenter = lazy(() => import('./SupportCenter.jsx'))
+const Homepage = lazy(() => import('./Homepage.jsx'))
+const Demo = lazy(() => import('./Demo.jsx'))
+const PromotionManager = lazy(() => import('./PromotionManager.jsx'))
+const SubscriptionPlanManager = lazy(() => import('./SubscriptionPlanManager.jsx'))
+const TvDisplaySettings = lazy(() => import('./TvDisplaySettings.jsx'))
+const PlatformStaffManager = lazy(() => import('./PlatformStaffManager.jsx'))
+const StoreControlCenter = lazy(() => import('./StoreControlCenter.jsx'))
+const AuditLogPanel = lazy(() => import('./AuditLogPanel.jsx'))
+const OrganizationReports = lazy(() => import('./OrganizationReports.jsx'))
+const OrganizationOperations = lazy(() => import('./OrganizationOperations.jsx'))
+const OrganizationSettings = lazy(() => import('./OrganizationSettings.jsx'))
+const SelfOrderManager = lazy(() => import('./SelfOrder.jsx').then(module => ({ default: module.default })))
+const SelfOrderPublic = lazy(() => import('./SelfOrder.jsx').then(module => ({ default: module.SelfOrderPublic })))
+const SelfOrderSettings = lazy(() => import('./SelfOrder.jsx').then(module => ({ default: module.SelfOrderSettings })))
 
 const money = (value) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value || 0))
 const today = () => new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' })
