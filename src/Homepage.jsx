@@ -6,6 +6,7 @@ import {
 } from 'lucide-react'
 import { supabase } from './lib/supabase'
 import './homepage.css'
+import './nexa-design-system.css'
 
 const money = (value) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value || 0))
 const fallbackDurations = [
