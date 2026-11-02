@@ -23,7 +23,7 @@ const fallbackPlans = [
 ]
 const features = [
   { number: '01', icon: ShoppingCart, title: 'Transaksi lebih praktis', text: 'Layani pelanggan dari satu layar: pilih produk, hitung total otomatis, proses pembayaran, dan simpan riwayat transaksi dengan lebih rapi.' },
-  { number: '02', icon: Users, title: 'Banyak Karyawan, tetap terpantau', text: 'Berikan akun masing-masing kepada karyawan. Beberapa Karyawan dapat melayani pelanggan secara bersamaan, sementara setiap transaksi tetap memiliki identitas kasir yang mengerjakannya.' },
+  { number: '02', icon: Users, title: 'Banyak Karyawan, tetap terpantau', text: 'Berikan akun masing-masing kepada karyawan. Beberapa Karyawan dapat melayani pelanggan secara bersamaan, sementara setiap transaksi tetap memiliki identitas Karyawan yang mengerjakannya.' },
   { number: '03', icon: Monitor, title: 'Antrean sesuai alur pelayanan', text: 'Catat nama pelanggan, nomor antrean, dan loket atau petugas yang melayani. Aktifkan atau nonaktifkan fitur antrean sesuai kebutuhan toko.' },
   { number: '04', icon: Package, title: 'Produk dan stok lebih tertata', text: 'Susun katalog, kategori, harga, dan informasi persediaan dalam satu tempat agar tim lebih mudah menemukan produk dan memantau kebutuhan stok.' },
   { number: '05', icon: BarChart3, title: 'Laporan untuk memahami usaha', text: 'Lihat riwayat transaksi dan ringkasan penjualan untuk membantu memantau aktivitas toko serta menjadi bahan evaluasi operasional.' },
@@ -296,7 +296,7 @@ export default function Homepage() {
           <div className="living-story-tabs" role="tablist" aria-label="Pilih alur bisnis">
             {Object.entries(storyScenes).map(([key,item]) => {
               const Icon = item.icon
-              return <button type="button" role="tab" aria-selected={scene===key} className={scene===key?'is-active':''} key={key} onClick={() => setScene(key)}><span>{item.index}</span><Icon size={18}/><b>{key==='kasir'?'Transaksi kasir':key==='tim'?'Aktivitas tim':'Sistem antrean'}</b><ArrowUpRight size={15}/></button>
+              return <button type="button" role="tab" aria-selected={scene===key} className={scene===key?'is-active':''} key={key} onClick={() => setScene(key)}><span>{item.index}</span><Icon size={18}/><b>{key==='kasir'?'Transaksi POS':key==='tim'?'Aktivitas tim':'Sistem antrean'}</b><ArrowUpRight size={15}/></button>
             })}
             <div className="living-story-aside"><Workflow size={18}/><p>Satu alur operasional.<br/>Satu workspace.</p></div>
           </div>
