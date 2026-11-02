@@ -1,5 +1,7 @@
 # NEXAPOS — NEXA / ARCHITECTURE DESIGN BLUEPRINT
 
+> **Catatan status:** Dokumen ini merupakan arsip arah desain sebelumnya. Acuan desain final yang berlaku adalah [`NEXAPOS-DIGITAL-UNIVERSE-DESIGN-BLUEPRINT.md`](./NEXAPOS-DIGITAL-UNIVERSE-DESIGN-BLUEPRINT.md) — ARCHITECTURAL FUTURE. Jika ada perbedaan, spesifikasi final tersebut yang berlaku.
+
 Status: approved direction; implementation in progress  
 Workstream: existing PR #22, branch `nexapos/consolidated-pr-22`  
 Design DNA: Digital Architecture × Nexa Control × Kinetic Dimension
