@@ -32,7 +32,31 @@ float sceneMap(vec3 p){
   shardP.xy*=rot(-.5+t*.08);
   float shard=sdBox(shardP,vec3(.28,.28,.28));
   float orbit=sdTorus(p-vec3(.38+drift,.08,-.12),vec2(1.12,.012));
-  return min(min(ring,core),min(shard,orbit));
+  float secondRing=sdTorus(p-vec3(.38,.08,-.12),vec2(.94,.018));
+  vec3 stackA=p-vec3(.3,-.05,0.); stackA.xy*=rot(.35+t*.06);
+  vec3 stackB=p-vec3(.3,-.05,-.32); stackB.xy*=rot(-.35-t*.05);
+  float stack=min(sdBox(stackA,vec3(.42,.34,.08)),sdBox(stackB,vec3(.34,.26,.08)));
+  float analytics=sdTorus(p-vec3(.3,.02,-.08),vec2(.65,.035));
+  vec3 nodeA=p-vec3(.15,.12,0.);
+  vec3 nodeB=p-vec3(-.52,-.24,0.);
+  vec3 nodeC=p-vec3(.78,-.28,0.);
+  float network=min(sdSphere(nodeA,.17),min(sdSphere(nodeB,.13),sdSphere(nodeC,.13)));
+  float people=min(sdSphere(p-vec3(.12,.35,0.),.17),sdSphere(p-vec3(.12,-.08,0.),.25));
+  vec3 dialP=p-vec3(.35,.05,-.08); dialP.xy*=rot(t*.12);
+  float dial=sdTorus(dialP,vec2(.58,.055));
+  float queue=sdTorus(p-vec3(.32,.04,0.),vec2(.48,.075));
+  float support=sdTorus(p-vec3(.3,.08,0.),vec2(.7,.045));
+  float motif=ring;
+  if(u_scene>0.5 && u_scene<1.5) motif=min(ring,orbit);
+  else if(u_scene<2.5 && u_scene>=1.5) motif=stack;
+  else if(u_scene<3.5 && u_scene>=2.5) motif=min(analytics,secondRing);
+  else if(u_scene<4.5 && u_scene>=3.5) motif=network;
+  else if(u_scene<5.5 && u_scene>=4.5) motif=people;
+  else if(u_scene<6.5 && u_scene>=5.5) motif=dial;
+  else if(u_scene<7.5 && u_scene>=6.5) motif=queue;
+  else if(u_scene<8.5 && u_scene>=7.5) motif=support;
+  else if(u_scene<9.5 && u_scene>=8.5) motif=min(ring,secondRing);
+  return min(motif,min(core,shard));
 }
 vec3 normalAt(vec3 p){
   vec2 e=vec2(.001,0.);
