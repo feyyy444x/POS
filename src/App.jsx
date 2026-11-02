@@ -309,7 +309,7 @@ function App() {
   const [queueCounterLabel, setQueueCounterLabel] = useState(() => { try { return localStorage.getItem('nexapos-counter-label') || '' } catch { return '' } })
   const [openCashierShifts, setOpenCashierShifts] = useState([])
   const [monitoringSearch, setMonitoringSearch] = useState('')
-  const [breakSettings, setBreakSettings] = useState({max_break_minutes:15,repeat_reminder_minutes:5,sound_enabled:true,escalation_enabled:true,manual_alert_title:'Peringatan dari Manager',manual_alert_message:'⚠️ Waktu istirahat Anda telah melewati batas. Silakan kembali bekerja.'})
+  const [breakSettings, setBreakSettings] = useState({max_break_minutes:15,repeat_reminder_minutes:5,sound_enabled:true,escalation_enabled:true,manual_alert_title:'Peringatan dari Manager',manual_alert_message:'Waktu istirahat Anda telah melewati batas. Silakan kembali bekerja.'})
   const [shiftBreak, setShiftBreak] = useState(null)
   const [monitoringBreaks, setMonitoringBreaks] = useState([])
   const [cashierAlerts, setCashierAlerts] = useState([])
@@ -900,7 +900,7 @@ function App() {
       ])
       if(cancelled)return
       if(config)setBreakSettings(config)
-      else if(!configError)setBreakSettings({store_id:store.id,max_break_minutes:15,repeat_reminder_minutes:5,sound_enabled:true,escalation_enabled:true,manual_alert_title:'Peringatan dari Manager',manual_alert_message:'⚠️ Waktu istirahat Anda telah melewati batas. Silakan kembali bekerja.'})
+      else if(!configError)setBreakSettings({store_id:store.id,max_break_minutes:15,repeat_reminder_minutes:5,sound_enabled:true,escalation_enabled:true,manual_alert_title:'Peringatan dari Manager',manual_alert_message:'Waktu istirahat Anda telah melewati batas. Silakan kembali bekerja.'})
       if(rowsError){setMonitoringBreaks([]);setBreakHistory([]);if(!rowsError.message?.includes('cashier_shift_breaks'))setNotice(userFacingError(rowsError))}
       else {setMonitoringBreaks((rows||[]).filter(row=>!row.ended_at));setBreakHistory((rows||[]).filter(row=>row.ended_at));setShiftBreak((rows||[]).find(row=>row.cashier_id===session.user.id&&!row.ended_at)||null)}
     }
@@ -934,7 +934,7 @@ function App() {
     if(!isManager||!store?.id||!session?.user?.id||!row?.cashier_id||sendingBreakAlert)return
     setSendingBreakAlert(row.cashier_id)
     const title=String(breakSettings.manual_alert_title||'Peringatan dari Manager').trim().slice(0,120)||'Peringatan dari Manager'
-    const message=String(breakSettings.manual_alert_message||'⚠️ Waktu istirahat Anda telah melewati batas. Silakan kembali bekerja.').trim().slice(0,2000)
+    const message=String(breakSettings.manual_alert_message||'Waktu istirahat Anda telah melewati batas. Silakan kembali bekerja.').trim().slice(0,2000)
     if(!message){setSendingBreakAlert('');setNotice('Isi pesan peringatan tidak boleh kosong.');return}
     const {error}=await supabase.from('cashier_manual_alerts').insert({store_id:store.id,cashier_id:row.cashier_id,sent_by:session.user.id,title,message})
     setSendingBreakAlert('')
@@ -1238,7 +1238,7 @@ function App() {
   const saveBreakSettings=async(event)=>{
     event.preventDefault()
     if(!isManager||!store?.id)return
-    const next={store_id:store.id,max_break_minutes:Math.min(240,Math.max(1,Number(breakSettings.max_break_minutes)||15)),repeat_reminder_minutes:5,sound_enabled:true,escalation_enabled:true,manual_alert_title:String(breakSettings.manual_alert_title||'Peringatan dari Manager').trim().slice(0,120)||'Peringatan dari Manager',manual_alert_message:String(breakSettings.manual_alert_message||'⚠️ Waktu istirahat Anda telah melewati batas. Silakan kembali bekerja.').trim().slice(0,2000),updated_at:new Date().toISOString()}
+    const next={store_id:store.id,max_break_minutes:Math.min(240,Math.max(1,Number(breakSettings.max_break_minutes)||15)),repeat_reminder_minutes:5,sound_enabled:true,escalation_enabled:true,manual_alert_title:String(breakSettings.manual_alert_title||'Peringatan dari Manager').trim().slice(0,120)||'Peringatan dari Manager',manual_alert_message:String(breakSettings.manual_alert_message||'Waktu istirahat Anda telah melewati batas. Silakan kembali bekerja.').trim().slice(0,2000),updated_at:new Date().toISOString()}
     const {error}=await supabase.from('cashier_break_settings').upsert(next,{onConflict:'store_id'})
     if(error){setNotice(userFacingError(error));return}
     setBreakSettings(next);setNotice('Pengaturan peringatan istirahat tersimpan untuk toko ini.')
@@ -1660,7 +1660,7 @@ function App() {
       </div>}
       <div className="page-content">
         {page==='dashboard'&&<section className="page-section">
-          <div className="page-heading"><div><span className="eyebrow muted">OVERVIEW / TODAY</span><h1>Selamat datang kembali <span className="wave">✦</span></h1><p>Berikut gambaran aktivitas toko Anda hari ini.</p></div><button className="btn btn-primary" onClick={()=>setPage('pos')}><Plus size={17}/> Transaksi baru</button></div>
+          <div className="page-heading"><div><span className="eyebrow muted">OVERVIEW / TODAY</span><h1>Selamat datang kembali </h1><p>Berikut gambaran aktivitas toko Anda hari ini.</p></div><button className="btn btn-primary" onClick={()=>setPage('pos')}><Plus size={17}/> Transaksi baru</button></div>
           <div className="welcome-banner"><div className="banner-copy"><span className="banner-label"><Activity size={14}/> NEXAPOS INSIGHTS</span><h2>Semua berjalan dalam<br/><span>satu kendali.</span></h2><p>Pantau penjualan, kelola produk, dan panggil antrean tanpa berpindah sistem.</p><button className="banner-button" onClick={()=>setPage('reports')}>Lihat laporan <ArrowRight size={15}/></button></div><div className="banner-art"><div className="art-ring ring-a"/><div className="art-ring ring-b"/><div className="art-card"><div className="art-card-head"><span/><span/><span/></div><div className="art-chart"><i/><i/><i/><i/><i/><i/><i/></div><div className="art-card-foot"><b/><b/><b/></div></div><div className="floating-chip chip-sales"><TrendingUp size={15}/><span><small>Penjualan hari ini</small><b>{money(todaysSales)}</b></span></div><div className="floating-chip chip-queue"><Ticket size={16}/><span><small>Antrean menunggu</small><b>{waitingQueue.length} pelanggan</b></span></div></div></div>
           <div className="section-title-row"><div><h2>Performa hari ini</h2><p>Ringkasan operasional toko</p></div><span className="date-pill"><Clock3 size={14}/> {today()}</span></div>
           <div className="stats-grid"><StatCard icon={CircleDollarSign} label="Total penjualan" value={money(todaysSales)} meta={todaysOrders.length+' transaksi hari ini'} tone="violet"/><StatCard icon={ShoppingBag} label="Transaksi" value={todaysOrders.length} meta="Transaksi tercatat hari ini" tone="blue"/><StatCard icon={Boxes} label="Produk aktif" value={products.filter(p=>p.is_active).length} meta={products.filter(p=>p.stock<=5).length+' stok menipis'} tone="orange"/><StatCard icon={Ticket} label="Antrean menunggu" value={waitingQueue.length} meta={activeQueue.length+' sedang dilayani'} tone="green"/></div>
