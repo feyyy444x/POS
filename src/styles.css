@@ -1911,3 +1911,10 @@ tbody tr:hover{background:#f2faf7}
   .nexa-page-enter,.living-hero h1 span{animation:none}
   .nexa-magnetic,.living-stage{transform:none;transition:none}
 }
+
+
+/* Calm loading state for lazy-loaded route modules. */
+.nexa-module-loading{min-height:42vh;display:flex;align-items:center;justify-content:center;gap:12px;padding:24px;color:var(--navy-700,#163456);font-size:13px;font-weight:650;letter-spacing:.02em}
+.nexa-loading-orbit{width:18px;height:18px;border:2px solid rgba(8,185,150,.2);border-top-color:var(--teal-500,#08b996);border-radius:50%;animation:nexa-orbit-spin .72s linear infinite}
+@keyframes nexa-orbit-spin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.nexa-loading-orbit{animation:none;border-top-color:var(--teal-500,#08b996)}}
