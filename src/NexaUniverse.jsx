@@ -145,6 +145,7 @@ export default function NexaUniverse() {
     let lost = false
     let pointer = [0, 0]
     let scene = sceneFor(document.querySelector('main h1')?.textContent || '', location.pathname)
+    document.documentElement.dataset.nexaScene = String(scene)
     let resizeObserver
 
     const onPointer = (event) => {
@@ -156,6 +157,7 @@ export default function NexaUniverse() {
     const updateScene = () => {
       const heading = document.querySelector('.page-heading h1, .access-content h1, main h1')?.textContent || ''
       scene = sceneFor(heading, location.pathname)
+      document.documentElement.dataset.nexaScene = String(scene)
     }
     const observer = new MutationObserver(updateScene)
     observer.observe(document.getElementById('root') || document.body, { subtree: true, childList: true, characterData: true })
