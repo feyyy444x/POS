@@ -816,7 +816,7 @@ test('tenant-facing role labels use Manager and Karyawan while preserving POS fe
   assert.ok(app.includes('Pilih peran di '+"'+target.name+'"+': Manager atau Karyawan.'))
   assert.ok(organizationOperationsUi.includes("member.role === 'admin' || member.role === 'manager' ? 'Manager' : member.role === 'cashier' ? 'Karyawan'"))
   assert.ok(storeControlUi.includes("roleLabel.trim().toLowerCase() === 'manager' ? 'admin' : roleLabel.trim().toLowerCase() === 'karyawan' ? 'cashier'"))
-  assert.ok(homepageUi.includes('Banyak Karyawan, tetap terpantau'))
+  assert.ok(homepageUi.includes('Beberapa kasir bekerja bersamaan'))
   assert.ok(demoUi.includes('Layar antrean'))
   assert.ok(app.includes("['pos','Kasir / POS',ShoppingCart]"))
   assert.ok(!app.includes("i.role==='owner'?'Owner':i.role==='admin'?'Admin':'Kasir'"))
