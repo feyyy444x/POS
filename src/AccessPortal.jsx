@@ -12,7 +12,7 @@ function AccessBrand() {
 }
 
 function AccessFrame({ children, eyebrow = 'SECURE WORKSPACE ACCESS' }) {
-  return <main className="access-portal">
+  return <main className="access-portal nx-access-portal">
     <div className="access-geometry access-geometry-a" aria-hidden="true" />
     <div className="access-geometry access-geometry-b" aria-hidden="true" />
     <div className="access-grid" aria-hidden="true" />
