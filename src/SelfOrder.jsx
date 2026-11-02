@@ -46,9 +46,9 @@ export function SelfOrderPublic(){
     const ext=(proof.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'').slice(0,8)||'jpg'
     const path=storeId+'/'+data.id+'/proof.'+ext
     const {error:uploadError}=await supabase.storage.from('self-order-proofs').upload(path,proof,{contentType:proof.type||'image/jpeg',upsert:false})
-    if(uploadError){setOrder({...data,uploadFailed:true});setError('Pesanan berhasil dibuat, tetapi bukti pembayaran belum terunggah. Hubungi kasir dan sebutkan nomor pesanan.');setBusy(false);return}
+    if(uploadError){setOrder({...data,uploadFailed:true});setError('Pesanan berhasil dibuat, tetapi bukti pembayaran belum terunggah. Hubungi Karyawan toko dan sebutkan nomor pesanan.');setBusy(false);return}
     const {data:attached,error:attachError}=await supabase.rpc('attach_self_service_payment_proof',{p_store_id:storeId,p_order_id:data.id,p_path:path})
-    if(attachError){setOrder({...data,uploadFailed:true});setError('Bukti terunggah tetapi belum terhubung ke pesanan. Hubungi kasir dengan nomor pesanan.');setBusy(false);return}
+    if(attachError){setOrder({...data,uploadFailed:true});setError('Bukti terunggah tetapi belum terhubung ke pesanan. Hubungi Karyawan toko dengan nomor pesanan.');setBusy(false);return}
     setOrder({...data,...attached});setCart({});setProof(null);setBusy(false)
   }
   if(loading)return <main className="so-public"><div className="so-loading">Memuat menu toko…</div></main>
