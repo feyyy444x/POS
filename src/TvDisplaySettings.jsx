@@ -68,7 +68,7 @@ export default function TvDisplaySettings({ store, settings, membership, onNotic
   return <section className="page-section">
     <div className="page-heading">
       <div><span className="eyebrow muted">QUEUE / STORE SETTINGS</span><h1>Sistem <span className="heading-accent">antrean.</span></h1><p>Pengaturan sederhana untuk nomor, nama pelanggan, dan konter/kasir/loket.</p></div>
-      <span className="role-chip"><ShieldCheck size={14}/>{canManage ? 'Owner / Admin' : 'Hanya lihat'}</span>
+      <span className="role-chip"><ShieldCheck size={14}/>{canManage ? 'Owner / Manager' : 'Hanya lihat'}</span>
     </div>
     <div className="panel tv-settings-panel" style={{maxWidth:760}}>
       <div className="panel-head"><div><h3><Monitor size={17}/> Status sistem antrean</h3><p>Jika dinonaktifkan, kasir tidak membuat nomor antrean dan struk tidak menampilkan nomor antrean.</p></div></div>
@@ -82,7 +82,7 @@ export default function TvDisplaySettings({ store, settings, membership, onNotic
         <p className="tv-settings-muted">Layar hanya menampilkan nomor antrean, nama, dan konter/kasir/loket. Tidak ada media, video, playlist, atau template layar.</p>
         {tvUrl ? <><label className="field-label" htmlFor="queue-tv-url">URL layar antrean</label><div className="tv-url-row"><input id="queue-tv-url" className="text-input" readOnly value={tvUrl}/><button className="btn btn-outline" onClick={copyUrl}><Copy size={15}/> Salin</button></div><div className="tv-url-actions"><button className="btn btn-outline" onClick={()=>window.open(tvUrl,'_blank','noopener,noreferrer')}><ExternalLink size={15}/> Buka layar</button><button className="btn btn-outline" disabled={!canManage||saving} onClick={createUrl}>Buat URL baru</button></div></> : <><p className="tv-settings-muted">Belum ada URL publik. Buat URL untuk menampilkan antrean pada layar TV.</p><button className="btn btn-primary" disabled={!canManage||saving} onClick={createUrl}>{saving?<span className="spinner"/>:<><Monitor size={15}/> Buat URL layar antrean</>}</button></>}
       </div>
-      {!canManage&&<p className="tv-settings-muted">Hanya Owner atau Admin yang dapat mengubah pengaturan ini.</p>}
+      {!canManage&&<p className="tv-settings-muted">Hanya Owner atau Manager yang dapat mengubah pengaturan ini.</p>}
     </div>
   </section>
 }
