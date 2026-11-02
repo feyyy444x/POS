@@ -112,7 +112,7 @@ function AuthScreen() {
       <Brand/>
       <div className="auth-hero"><span className="eyebrow"><span className="pulse-dot"/> POINT OF SALE, REIMAGINED</span>
         <h1>Operasional bisnis,<br/><span>naik level.</span></h1>
-        <p>Kasir, stok, dan antrian dalam satu ruang kerja yang terasa cepat, rapi, dan selalu tersinkron.</p>
+        <p>Transaksi, stok, dan antrean dalam satu ruang kerja yang terasa cepat, rapi, dan selalu tersinkron.</p>
         <div className="hero-stats"><div><strong>Realtime</strong><span>Queue sync</span></div><div><strong>80mm</strong><span>Thermal ready</span></div><div><strong>Cloud</strong><span>Data tersimpan</span></div></div>
       </div>
       <div className="auth-footer">© {new Date().getFullYear()} NexaPos <span>•</span> Built for better business.</div>
