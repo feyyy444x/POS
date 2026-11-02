@@ -71,7 +71,7 @@ export default function MotionSystem() {
     const enhance = (scope) => {
       if (!scope?.querySelectorAll && !scope?.matches) return
 
-      matching(scope, '.living-home section, .living-reveal, .stat-card, .owner-stat-card, .owner-tenant-card, .report-card, .dashboard-card')
+      matching(scope, '.living-home section, .living-reveal, .stat-card, .owner-stat-card, .owner-tenant-card, .report-card, .dashboard-card, .page-section .panel, .page-section .queue-stat-card, .page-section .queue-feature, .owner-page .owner-section, .owner-page .owner-setting-card, .demo-table-panel, .demo-cart-panel')
         .forEach((element) => {
           if (element.dataset.nexaMotionReveal) return
           element.dataset.nexaMotionReveal = 'true'
