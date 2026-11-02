@@ -57,7 +57,7 @@ table tbody tr:hover{box-shadow:inset 3px 0 var(--nexa-teal)}
   .panel:hover,.auth-card:hover,.settings-info:hover,.account-info:hover,.dash-card:hover,.metric-card:hover,.stat-card:hover{transform:none}
 }
 @media (max-width:600px){
-  .nexa-universe-canvas{opacity:.18}
+  .nexa-universe-canvas{opacity:.14}
   .product-tile:hover:not(:disabled){transform:none}
 }
 @media (prefers-reduced-motion:reduce){
