@@ -72,3 +72,15 @@ table tbody tr:hover{box-shadow:inset 3px 0 var(--nexa-teal)}
   *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
   .panel:hover,.auth-card:hover,.settings-info:hover,.account-info:hover,.dash-card:hover,.metric-card:hover,.stat-card:hover,.product-tile:hover:not(:disabled){transform:none!important}
 }
+
+/* Page-family atmospheres are distinct while preserving the existing information architecture. */
+html[data-nexa-scene="0"] .arch-hero{isolation:isolate}
+html[data-nexa-scene="1"] .page-section{background-image:radial-gradient(ellipse at 96% 4%,rgba(8,185,150,.10),transparent 30%)}
+html[data-nexa-scene="2"] .page-section{background-image:linear-gradient(rgba(16,45,80,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(16,45,80,.025) 1px,transparent 1px);background-size:34px 34px}
+html[data-nexa-scene="3"] .page-section{background-image:linear-gradient(115deg,transparent 0 68%,rgba(8,185,150,.055) 68.2%,transparent 68.5%),radial-gradient(ellipse at 95% 0%,rgba(8,185,150,.08),transparent 34%)}
+html[data-nexa-scene="4"] .page-section{background-image:radial-gradient(circle at 92% 8%,rgba(8,185,150,.10),transparent 26%),radial-gradient(circle at 7% 94%,rgba(16,45,80,.055),transparent 30%)}
+html[data-nexa-scene="5"] .page-section{background-image:linear-gradient(90deg,rgba(16,45,80,.035) 1px,transparent 1px);background-size:72px 100%}
+html[data-nexa-scene="6"] .page-section{background-image:linear-gradient(180deg,rgba(16,45,80,.035) 1px,transparent 1px);background-size:100% 48px}
+html[data-nexa-scene="7"] .page-section{background-image:radial-gradient(ellipse at 50% 0%,rgba(8,185,150,.12),transparent 38%)}
+html[data-nexa-scene="8"] .page-section{background-image:radial-gradient(ellipse at 100% 100%,rgba(8,185,150,.09),transparent 34%)}
+html[data-nexa-scene="9"] .access-portal{background-image:radial-gradient(ellipse at 80% 30%,rgba(8,185,150,.15),transparent 42%),linear-gradient(135deg,rgba(7,24,44,.88),rgba(16,45,80,.82) 58%,rgba(11,38,62,.9))!important}
