@@ -98,3 +98,226 @@
 .owner-console.owner-section-reports .owner-stat-card{border-bottom:2px solid var(--nexa-arch-teal)!important}
 @media(max-width:760px){.tenant-operations-shell .page-content,.super-admin-shell .page-content{padding:17px 13px 28px!important}.tenant-operations-shell .page-heading,.super-admin-shell .page-heading{align-items:flex-start!important;flex-direction:column!important}.owner-console .owner-page{padding:17px 13px!important}.arch-nav-links{max-width:100%}}
 @media(prefers-reduced-motion:reduce){.tenant-operations-shell *, .super-admin-shell *, .owner-console *{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important}}
+
+
+/* ================================================================
+   NEXAPOS / THE LIVING SYSTEM — PAGE COMPOSITION LAYER
+   Page-specific composition; intentionally not a shared dashboard template.
+   Brand tokens only: Navy / Teal / white / neutral grey.
+   ================================================================ */
+:root{
+  --nexa-arch-navy:#102d50;
+  --nexa-arch-deep:#07182c;
+  --nexa-arch-teal:#08b996;
+  --nexa-arch-teal-dark:#087e69;
+  --nexa-arch-paper:#f4f7fa;
+  --nexa-arch-line:#dfe8ef;
+  --nexa-arch-muted:#718397;
+}
+.app-shell.tenant-operations-shell,
+.app-shell.super-admin-shell{background:#f4f7fa!important}
+.tenant-operations-shell .page-content,
+.super-admin-shell .page-content{isolation:isolate}
+.tenant-operations-shell .page-section,
+.super-admin-shell .page-section{position:relative;isolation:isolate;min-width:0}
+.tenant-operations-shell .page-heading,
+.super-admin-shell .page-heading{
+  position:relative;isolation:isolate;overflow:hidden;
+  min-height:142px;padding:22px 26px 24px!important;margin:0 0 25px!important;
+  display:flex;align-items:flex-end;justify-content:space-between;gap:24px;
+  background:#fff;border:1px solid #dfe8ef;border-radius:5px;
+  box-shadow:0 12px 34px rgba(7,24,44,.035)
+}
+.tenant-operations-shell .page-heading:after,
+.super-admin-shell .page-heading:after{
+  content:"";position:absolute;z-index:-1;right:-35px;top:-105px;width:260px;height:260px;
+  border:1px solid rgba(8,185,150,.24);transform:rotate(38deg);
+  box-shadow:0 0 0 28px rgba(8,185,150,.035),0 0 0 58px rgba(16,45,80,.025)
+}
+.tenant-operations-shell .page-heading .eyebrow,
+.super-admin-shell .page-heading .eyebrow{font-size:9px!important;font-weight:800;letter-spacing:.2em!important;color:#087e69!important}
+.tenant-operations-shell .page-heading h1,
+.super-admin-shell .page-heading h1{font-size:clamp(30px,3.4vw,48px)!important;line-height:1.02!important;max-width:780px}
+.tenant-operations-shell .page-heading p,
+.super-admin-shell .page-heading p{font-size:12px!important;max-width:590px!important}
+.tenant-operations-shell .heading-accent,
+.super-admin-shell .heading-accent{color:#08a987!important}
+.tenant-operations-shell .page-section>.page-heading~*,
+.super-admin-shell .page-section>.page-heading~*{min-width:0}
+.tenant-operations-shell .panel,
+.tenant-operations-shell .dashboard-card,
+.tenant-operations-shell .stat-card,
+.tenant-operations-shell .table-card,
+.tenant-operations-shell .settings-card,
+.super-admin-shell .panel,
+.super-admin-shell .dashboard-card,
+.super-admin-shell .stat-card,
+.super-admin-shell .table-card,
+.super-admin-shell .settings-card{
+  border-radius:5px!important;border-color:#dfe8ef!important;
+  box-shadow:0 5px 18px rgba(7,24,44,.035)!important
+}
+.tenant-operations-shell .panel:hover,
+.tenant-operations-shell .dashboard-card:hover,
+.super-admin-shell .panel:hover,
+.super-admin-shell .dashboard-card:hover{box-shadow:0 15px 34px rgba(7,24,44,.075)!important}
+.tenant-operations-shell .stat-card,
+.super-admin-shell .stat-card{border-top:2px solid #08b996!important}
+.tenant-operations-shell .stat-icon,
+.super-admin-shell .stat-icon{background:#e3f8f1!important;color:#087e69!important}
+.tenant-operations-shell .btn-primary,
+.super-admin-shell .btn-primary{background:#102d50!important;border-color:#102d50!important;color:#fff!important}
+.tenant-operations-shell .btn-primary:hover:not(:disabled),
+.super-admin-shell .btn-primary:hover:not(:disabled){background:#17436b!important;border-color:#17436b!important}
+.tenant-operations-shell .btn-ghost,
+.super-admin-shell .btn-ghost{background:#e8f8f2!important;color:#087e69!important;border-color:#cdeee2!important}
+.tenant-operations-shell .field:focus-within,
+.tenant-operations-shell .text-input:focus,
+.tenant-operations-shell select:focus,
+.super-admin-shell .field:focus-within,
+.super-admin-shell .text-input:focus,
+.super-admin-shell select:focus{border-color:#08b996!important;box-shadow:0 0 0 4px rgba(8,185,150,.12)!important}
+
+/* Tenant POS: an operational workbench, not a reporting dashboard. */
+.tenant-operations-shell.workspace-page-pos .page-heading{
+  min-height:100px;background:#102d50;color:#fff;border-color:#102d50;
+  padding:18px 23px!important;border-radius:5px
+}
+.tenant-operations-shell.workspace-page-pos .page-heading h1,
+.tenant-operations-shell.workspace-page-pos .page-heading p{color:#f5f9fb!important}
+.tenant-operations-shell.workspace-page-pos .page-heading .eyebrow{color:#75dfc7!important}
+.tenant-operations-shell.workspace-page-pos .page-heading:after{border-color:#08b99655;box-shadow:0 0 0 30px #08b9960d,0 0 0 65px #ffffff08}
+.tenant-operations-shell.workspace-page-pos .page-section>.page-heading~div{align-items:start}
+.tenant-operations-shell.workspace-page-pos .product-grid,
+.tenant-operations-shell.workspace-page-pos .pos-product-grid{gap:13px!important}
+.tenant-operations-shell.workspace-page-pos .cart-panel{
+  border-top:3px solid #08b996!important;box-shadow:0 18px 42px rgba(7,24,44,.08)!important
+}
+.tenant-operations-shell.workspace-page-pos .product-tile{border-radius:5px!important}
+.tenant-operations-shell.workspace-page-pos .product-tile:hover{transform:translateY(-3px);border-color:#8adbc3!important}
+
+/* Inventory: catalog and stock control get a precise, table-led treatment. */
+.tenant-operations-shell.workspace-page-products .page-heading{background:#e8f1f4;border-left:5px solid #102d50}
+.tenant-operations-shell.workspace-page-products .page-heading:after{right:3%;top:-145px;border-color:#102d5022}
+.tenant-operations-shell.workspace-page-products .table-wrap{border-top:3px solid #08b996!important}
+.tenant-operations-shell.workspace-page-products .panel{padding:clamp(18px,2.4vw,30px)!important}
+
+/* Queue: high-contrast service operations with clear state separation. */
+.tenant-operations-shell.workspace-page-queue .page-heading{background:#07182c;color:#fff;border-color:#07182c}
+.tenant-operations-shell.workspace-page-queue .page-heading h1,
+.tenant-operations-shell.workspace-page-queue .page-heading p{color:#f4f8fa!important}
+.tenant-operations-shell.workspace-page-queue .page-heading .eyebrow{color:#70dfc8!important}
+.tenant-operations-shell.workspace-page-queue .page-heading:after{border-color:#08b99666}
+.tenant-operations-shell.workspace-page-queue .queue-stat-card,
+.tenant-operations-shell.workspace-page-queue .queue-feature{border-radius:5px!important;border-top:3px solid #08b996!important}
+.tenant-operations-shell.workspace-page-queue .table-wrap{border-radius:5px!important}
+
+/* Reports: quiet analytical canvas with teal data anchors. */
+.tenant-operations-shell.workspace-page-reports .page-heading,
+.tenant-operations-shell.workspace-page-reports-org .page-heading{background:#eaf0f3;border-bottom:3px solid #102d50}
+.tenant-operations-shell.workspace-page-reports .stat-card,
+.tenant-operations-shell.workspace-page-reports-org .stat-card{border-top:3px solid #08b996!important}
+.tenant-operations-shell.workspace-page-reports .panel,
+.tenant-operations-shell.workspace-page-reports-org .panel{box-shadow:none!important}
+.tenant-operations-shell.workspace-page-reports .table-wrap,
+.tenant-operations-shell.workspace-page-reports-org .table-wrap{border-top:3px solid #102d50!important}
+
+/* Live monitoring: status-first, dark control-room header. */
+.tenant-operations-shell.workspace-page-monitoring .page-heading{background:#102d50;border-color:#102d50}
+.tenant-operations-shell.workspace-page-monitoring .page-heading h1,
+.tenant-operations-shell.workspace-page-monitoring .page-heading p{color:#fff!important}
+.tenant-operations-shell.workspace-page-monitoring .page-heading .eyebrow{color:#78dfca!important}
+.tenant-operations-shell.workspace-page-monitoring .panel{border-left:4px solid #08b996!important}
+
+/* Cashier and attendance: people/time operations use restrained editorial headers. */
+.tenant-operations-shell.workspace-page-cashier .page-heading{background:#e5f4ef;border-left:5px solid #08b996}
+.tenant-operations-shell.workspace-page-attendance .page-heading{background:#fff;border-left:5px solid #102d50}
+.tenant-operations-shell.workspace-page-cashier .table-wrap,
+.tenant-operations-shell.workspace-page-attendance .table-wrap{border-radius:5px!important}
+
+/* Team and tenant management: organizational surfaces use a structured grid. */
+.tenant-operations-shell.workspace-page-team .page-heading,
+.tenant-operations-shell.workspace-page-tenants .page-heading{background:#102d50;border-color:#102d50}
+.tenant-operations-shell.workspace-page-team .page-heading h1,
+.tenant-operations-shell.workspace-page-team .page-heading p,
+.tenant-operations-shell.workspace-page-tenants .page-heading h1,
+.tenant-operations-shell.workspace-page-tenants .page-heading p{color:#fff!important}
+.tenant-operations-shell.workspace-page-team .page-heading .eyebrow,
+.tenant-operations-shell.workspace-page-tenants .page-heading .eyebrow{color:#78dfca!important}
+.tenant-operations-shell.workspace-page-team .table-wrap,
+.tenant-operations-shell.workspace-page-tenants .table-wrap{border-top:3px solid #08b996!important}
+
+/* Settings and profile: configuration pages are calm, form-first environments. */
+.tenant-operations-shell.workspace-page-settings .page-heading,
+.tenant-operations-shell.workspace-page-profile .page-heading{background:#e9f1f4;border-left:5px solid #08b996}
+.tenant-operations-shell.workspace-page-settings .settings-card,
+.tenant-operations-shell.workspace-page-profile .settings-card{border-left:3px solid #08b996!important}
+
+/* NexaSpace Owner: a distinct organization command environment. */
+.owner-console{background:#edf2f4!important}
+.owner-console .owner-sidebar{background:#07182c!important}
+.owner-console .owner-main{background:#edf2f4!important}
+.owner-console .owner-topbar{background:#f8fafb!important}
+.owner-console .owner-page{max-width:1720px;margin-inline:auto}
+.owner-console .owner-section-heading,
+.owner-console .owner-page-heading{
+  position:relative;overflow:hidden;padding:22px 25px!important;
+  background:#102d50;border:1px solid #102d50;border-radius:5px;
+  margin-bottom:23px!important
+}
+.owner-console .owner-section-heading h2,
+.owner-console .owner-page-heading h2,
+.owner-console .owner-section-heading p,
+.owner-console .owner-page-heading p{color:#f5f8fa!important}
+.owner-console .owner-kicker{color:#78dfca!important;letter-spacing:.18em!important}
+.owner-console .owner-section-heading:after,
+.owner-console .owner-page-heading:after{content:"";position:absolute;right:-35px;top:-110px;width:230px;height:230px;border:1px solid #08b99666;transform:rotate(38deg);pointer-events:none}
+.owner-console .owner-section,
+.owner-console .owner-setting-card,
+.owner-console .owner-tenant-card,
+.owner-console .owner-stat-card{border-radius:5px!important;border-color:#dce6eb!important;box-shadow:0 7px 22px rgba(7,24,44,.045)!important}
+.owner-console .owner-stat-card{border-top:3px solid #08b996!important}
+.owner-console .owner-tenant-card{border-left:3px solid #08b996!important}
+.owner-console .owner-enter-button{background:#102d50!important;color:#fff!important}
+.owner-console .owner-enter-button:hover{background:#087e69!important}
+
+/* Platform administration: distinct command-console navigation and module surfaces. */
+.super-admin-shell .sidebar{background:#07182c!important}
+.super-admin-shell .sidebar .nav-link.nav-active{background:#08b9961c!important;color:#83e5d1!important;border-left:3px solid #08b996!important}
+.super-admin-shell .store-switch{border-radius:5px!important}
+.super-admin-shell .page-heading{background:#fff;border-top:3px solid #08b996}
+.super-admin-shell .platform-section-promotions .page-heading,
+.super-admin-shell .platform-section-subscription-plans .page-heading{background:#102d50;color:#fff}
+.super-admin-shell .platform-section-promotions .page-heading h1,
+.super-admin-shell .platform-section-subscription-plans .page-heading h1{color:#fff!important}
+
+/* Standalone modules loaded outside the primary app shell. */
+.store-control-metric-icon.tone-violet,
+.store-control-metric-icon.tone-indigo,
+.store-control-metric-icon.tone-blue{background:#e3f8f1!important;color:#087e69!important}
+.store-control-card{border-radius:5px!important;border:1px solid #dfe8ef!important;box-shadow:0 8px 24px rgba(7,24,44,.045)!important}
+.store-control-metric{border-radius:5px!important;border-top:2px solid #08b996!important}
+.architecture-home{--an:#102d50!important;--and:#07182c!important;--at:#08b996!important;--ap:#f4f7fa!important;--ai:#102d50!important;--am:#718397!important;--al:#dfe8ef!important}
+.access-portal{--access-navy:#102d50!important;--access-deep:#07182c!important;--access-teal:#08b996!important}
+
+/* Responsive composition: preserve hierarchy instead of shrinking desktop. */
+@media(max-width:900px){
+ .tenant-operations-shell .page-heading,.super-admin-shell .page-heading{min-height:125px;padding:19px!important}
+ .tenant-operations-shell.workspace-page-pos .page-content{padding:12px!important}
+ .owner-console .owner-section-heading,.owner-console .owner-page-heading{padding:19px!important}
+}
+@media(max-width:640px){
+ .tenant-operations-shell .page-heading,.super-admin-shell .page-heading{
+   min-height:0;align-items:flex-start!important;flex-direction:column!important;
+   padding:18px 16px!important;margin-bottom:17px!important
+ }
+ .tenant-operations-shell .page-heading h1,.super-admin-shell .page-heading h1{font-size:30px!important}
+ .tenant-operations-shell .page-heading p,.super-admin-shell .page-heading p{font-size:11px!important}
+ .tenant-operations-shell .panel,.super-admin-shell .panel{padding:15px!important}
+ .owner-console .owner-section-heading,.owner-console .owner-page-heading{padding:17px!important}
+ .owner-console .owner-section-heading h2,.owner-console .owner-page-heading h2{font-size:25px!important}
+ .tenant-operations-shell .table-wrap,.super-admin-shell .table-wrap{max-width:100%;overflow-x:auto}
+}
+@media(prefers-reduced-motion:reduce){
+ .tenant-operations-shell *, .super-admin-shell *, .owner-console *{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important}
+}
