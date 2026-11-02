@@ -817,3 +817,10 @@ test('tenant-facing role labels use Manager and Karyawan while preserving POS fe
   assert.ok(app.includes("['pos','Kasir / POS',ShoppingCart]"))
   assert.ok(!app.includes("i.role==='owner'?'Owner':i.role==='admin'?'Admin':'Kasir'"))
 })
+
+
+test('queue demo no longer exposes TV templates or media controls', () => {
+  assert.ok(demoUi.includes('Layar antrean'))
+  assert.doesNotMatch(demoUi, /Tampilan TV|Ganti template TV|Pengaturan media TV|playlist|video/i)
+  assert.ok(demoUi.includes('Loket 1'))
+})
