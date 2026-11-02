@@ -352,3 +352,115 @@
 .support-settings-view .support-settings-intro{border-left:3px solid #08b996!important;background:#f0fbf7!important;border-radius:4px!important}
 .support-modal-head,.support-modal-brand{color:#102d50}
 .support-settings-view .support-channel-setting{border-radius:5px!important;border-color:#dfe8ef!important}
+
+
+/* Distinct information architecture inside the workspace pages. */
+.tenant-operations-shell.workspace-page-dashboard .welcome-banner{
+  min-height:300px!important;border-radius:5px!important;background:#07182c!important;
+  box-shadow:none!important;position:relative;overflow:hidden
+}
+.tenant-operations-shell.workspace-page-dashboard .banner-copy{max-width:590px}
+.tenant-operations-shell.workspace-page-dashboard .banner-label{color:#78dfca!important}
+.tenant-operations-shell.workspace-page-dashboard .banner-copy h2{font-size:clamp(30px,4vw,52px)!important;letter-spacing:-.07em!important}
+.tenant-operations-shell.workspace-page-dashboard .banner-art{opacity:.9}
+.tenant-operations-shell.workspace-page-dashboard .stats-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:13px!important}
+.tenant-operations-shell.workspace-page-dashboard .dashboard-grid{display:grid!important;grid-template-columns:minmax(0,1.35fr) minmax(290px,.65fr)!important;gap:16px!important}
+.tenant-operations-shell.workspace-page-dashboard .sales-panel{border-top:3px solid #08b996!important}
+.tenant-operations-shell.workspace-page-dashboard .queue-panel{background:#102d50!important;color:#fff!important}
+.tenant-operations-shell.workspace-page-dashboard .queue-panel h2,
+.tenant-operations-shell.workspace-page-dashboard .queue-panel p{color:#fff!important}
+
+/* POS is deliberately a two-zone checkout station. */
+.tenant-operations-shell.workspace-page-pos .pos-layout{
+  display:grid!important;grid-template-columns:minmax(0,1fr) minmax(330px,390px)!important;
+  align-items:start;gap:18px!important
+}
+.tenant-operations-shell.workspace-page-pos .pos-catalog{min-width:0}
+.tenant-operations-shell.workspace-page-pos .product-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))!important;gap:11px!important}
+.tenant-operations-shell.workspace-page-pos .product-tile{min-height:158px!important;padding:14px!important}
+.tenant-operations-shell.workspace-page-pos .cart-panel{position:sticky;top:84px;max-height:calc(100svh - 105px);overflow:auto}
+.tenant-operations-shell.workspace-page-pos .cart-head{background:#f0fbf7;padding:15px!important;border-bottom:1px solid #dcefe8}
+.tenant-operations-shell.workspace-page-pos .grand-total{background:#102d50!important;color:#fff!important;border-radius:4px!important;padding:15px!important}
+.tenant-operations-shell.workspace-page-pos .grand-total *{color:#fff!important}
+
+/* Product management is a searchable catalogue with a separate data surface. */
+.tenant-operations-shell.workspace-page-products .product-toolbar{
+  display:grid!important;grid-template-columns:minmax(240px,1.3fr) minmax(170px,.6fr) auto;
+  align-items:center;gap:14px!important;margin-bottom:17px!important
+}
+.tenant-operations-shell.workspace-page-products .inventory-panel{padding:0!important;overflow:hidden}
+.tenant-operations-shell.workspace-page-products .inventory-panel>.panel-head{padding:20px 22px 0}
+.tenant-operations-shell.workspace-page-products .inventory-panel .table-wrap{border:0!important;border-radius:0!important}
+.tenant-operations-shell.workspace-page-products .product-cell-icon{border-radius:4px!important}
+
+/* Queue management is split between live state, controls and the ticket register. */
+.tenant-operations-shell.workspace-page-queue .queue-overview{
+  display:grid!important;grid-template-columns:minmax(0,1.45fr) minmax(230px,.55fr);gap:15px!important
+}
+.tenant-operations-shell.workspace-page-queue .queue-feature{
+  min-height:220px!important;background:#102d50!important;color:#fff!important;
+  border:1px solid #102d50!important;padding:23px!important
+}
+.tenant-operations-shell.workspace-page-queue .queue-feature *{color:inherit}
+.tenant-operations-shell.workspace-page-queue .queue-feature-number{font-size:clamp(48px,6vw,76px)!important;color:#78dfca!important}
+.tenant-operations-shell.workspace-page-queue .queue-stat-card{min-height:100px}
+.tenant-operations-shell.workspace-page-queue .queue-tools{display:grid!important;grid-template-columns:minmax(250px,.8fr) minmax(0,1.2fr);gap:16px!important}
+.tenant-operations-shell.workspace-page-queue .queue-list-panel{min-width:0}
+
+/* Reporting pages prioritize filters, key metrics, then the transaction ledger. */
+.tenant-operations-shell.workspace-page-reports .report-filter-panel,
+.tenant-operations-shell.workspace-page-attendance .report-filter-panel{margin-bottom:17px!important}
+.tenant-operations-shell.workspace-page-reports .report-filter-grid,
+.tenant-operations-shell.workspace-page-attendance .report-filter-grid{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px!important}
+.tenant-operations-shell.workspace-page-reports .report-finance-stats{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+.tenant-operations-shell.workspace-page-reports .report-panel{padding:0!important;overflow:hidden}
+.tenant-operations-shell.workspace-page-reports .report-panel>.panel-head{padding:20px 22px 0}
+.tenant-operations-shell.workspace-page-reports .report-panel .table-wrap{border:0!important;border-radius:0!important}
+
+/* Monitoring is a live operations board; team and attendance remain people-first. */
+.tenant-operations-shell.workspace-page-monitoring .stats-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+.tenant-operations-shell.workspace-page-monitoring .page-section>.panel{border-left:4px solid #08b996!important}
+.tenant-operations-shell.workspace-page-attendance .report-panel,
+.tenant-operations-shell.workspace-page-team .report-panel{padding:0!important;overflow:hidden}
+.tenant-operations-shell.workspace-page-attendance .report-panel .table-wrap,
+.tenant-operations-shell.workspace-page-team .report-panel .table-wrap{border:0!important}
+.tenant-operations-shell.workspace-page-team .panel{margin-bottom:16px!important}
+
+/* Cash management uses a ledger + reconciliation form composition. */
+.tenant-operations-shell.workspace-page-cashier .shift-open-grid,
+.tenant-operations-shell.workspace-page-cashier .shift-difference-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px!important}
+.tenant-operations-shell.workspace-page-cashier .shift-form{max-width:980px;border-top:3px solid #08b996!important}
+.tenant-operations-shell.workspace-page-cashier .shift-form-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px!important}
+
+/* Owner tenant registry and platform records remain dense but readable. */
+.tenant-operations-shell.workspace-page-tenants .table-wrap,
+.tenant-operations-shell.workspace-page-audit .table-wrap{border-top:3px solid #08b996!important}
+.tenant-operations-shell.workspace-page-settings .page-section>.panel{max-width:1120px}
+.tenant-operations-shell.workspace-page-profile .page-section>.panel{max-width:760px}
+.tenant-operations-shell.workspace-page-settings .panel,
+.tenant-operations-shell.workspace-page-profile .panel{margin-bottom:16px!important}
+
+/* Tablet and mobile reflow for the actual operational compositions. */
+@media(max-width:1100px){
+ .tenant-operations-shell.workspace-page-pos .pos-layout{grid-template-columns:minmax(0,1fr) 330px!important}
+ .tenant-operations-shell.workspace-page-dashboard .dashboard-grid{grid-template-columns:minmax(0,1fr) minmax(250px,.7fr)!important}
+}
+@media(max-width:820px){
+ .tenant-operations-shell.workspace-page-pos .pos-layout{grid-template-columns:minmax(0,1fr)!important}
+ .tenant-operations-shell.workspace-page-pos .cart-panel{position:relative;top:auto;max-height:none}
+ .tenant-operations-shell.workspace-page-dashboard .stats-grid,
+ .tenant-operations-shell.workspace-page-reports .report-finance-stats{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ .tenant-operations-shell.workspace-page-dashboard .dashboard-grid,
+ .tenant-operations-shell.workspace-page-queue .queue-overview,
+ .tenant-operations-shell.workspace-page-queue .queue-tools{grid-template-columns:minmax(0,1fr)!important}
+}
+@media(max-width:560px){
+ .tenant-operations-shell.workspace-page-dashboard .welcome-banner{min-height:250px!important}
+ .tenant-operations-shell.workspace-page-dashboard .stats-grid,
+ .tenant-operations-shell.workspace-page-monitoring .stats-grid,
+ .tenant-operations-shell.workspace-page-reports .report-finance-stats{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ .tenant-operations-shell.workspace-page-products .product-toolbar{grid-template-columns:minmax(0,1fr)!important}
+ .tenant-operations-shell.workspace-page-cashier .shift-open-grid,
+ .tenant-operations-shell.workspace-page-cashier .shift-difference-grid,
+ .tenant-operations-shell.workspace-page-cashier .shift-form-grid{grid-template-columns:minmax(0,1fr)!important}
+}
