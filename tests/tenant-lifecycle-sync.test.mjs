@@ -54,7 +54,7 @@ test('Admin, Owner, and tenant workspace subscribe to shared lifecycle changes',
 })
 
 
-const reactivation = await readFile(new URL('../supabase/migrations/20261030490000_reactivate_suspended_tenant_independently.sql', import.meta.url), 'utf8')
+const reactivation = await readFile(new URL('../supabase/migrations/20261030172454_reactivate_suspended_tenant_independently.sql', import.meta.url), 'utf8')
 
 test('tenant reactivation RPC accepts active status while preserving organization, expiry, and package quota guards', () => {
   assert.ok(reactivation.includes("p_status not in ('active', 'pending', 'suspended')"))
