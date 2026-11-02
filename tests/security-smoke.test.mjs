@@ -9,6 +9,8 @@ const createPlatformStaff = await readFile(new URL('netlify/functions/create-pla
 const app = await readFile(new URL('src/App.jsx', root), 'utf8')
 const appEntry = await readFile(new URL('src/main.jsx', root), 'utf8')
 const homepageUi = await readFile(new URL('src/Homepage.jsx', root), 'utf8')
+const demoUi = await readFile(new URL('src/Demo.jsx', root), 'utf8')
+const storeControlUi = await readFile(new URL('src/StoreControlCenter.jsx', root), 'utf8')
 const appStyles = await readFile(new URL('src/styles.css', root), 'utf8')
 const queueMigration = await readFile(new URL('supabase/migrations/20261028200518_enforce_store_queue_enabled.sql', root), 'utf8')
 const writeHardeningMigration = await readFile(new URL('supabase/migrations/20261029025138_tighten_mutable_column_grants_and_queue_policy.sql', root), 'utf8')
@@ -803,4 +805,15 @@ test('secondary route modules are code-split behind an accessible loading bounda
   assert.match(app, /const SelfOrderSettings = lazy/)
   assert.match(appEntry, /React\.Suspense/)
   assert.match(appEntry, /nexa-module-loading/)
+})
+
+
+test('tenant-facing role labels use Manager and Karyawan while preserving POS feature naming', () => {
+  assert.ok(app.includes("i.role==='owner'?'Owner':i.role==='admin'?'Manager':'Karyawan'"))
+  assert.ok(app.includes('Pilih peran di '+"'+target.name+'"+': Manager atau Karyawan.'))
+  assert.ok(storeControlUi.includes("member.role === 'admin' || member.role === 'manager' ? 'Manager' : member.role === 'cashier' ? 'Karyawan'"))
+  assert.ok(homepageUi.includes('Banyak Karyawan, tetap terpantau'))
+  assert.ok(demoUi.includes('Layar antrean'))
+  assert.ok(app.includes("['pos','Kasir / POS',ShoppingCart]"))
+  assert.ok(!app.includes("i.role==='owner'?'Owner':i.role==='admin'?'Admin':'Kasir'"))
 })
