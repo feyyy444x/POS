@@ -467,3 +467,29 @@
  .living-plan-custom ul{grid-template-columns:1fr;gap:7px}
  .living-plan-custom .living-plan-cta{max-width:none;margin:0}
 }
+
+
+/* THE LIVING SYSTEM — homepage depth, liquid and kinetic refinement */
+.living-home{--living-depth:1;isolation:isolate}
+.living-hero{background-attachment:scroll}
+.living-hero-copy,.living-stage{transform-style:preserve-3d}
+.living-stage{transition:transform .45s var(--nexa-motion-ease)}
+.living-stage-ring{filter:drop-shadow(0 0 14px #55e5bd18)}
+.living-stage-core{box-shadow:0 22px 70px #08b99620,inset 0 1px 0 #ffffff35}
+.living-hero h1,.living-section-head h2,.living-final h2{text-wrap:balance}
+.living-home .living-cta,.living-home .living-duration-picker button,.living-home .living-plan-cta{
+  transition:transform .32s var(--nexa-motion-ease),box-shadow .32s var(--nexa-motion-ease),background .32s,border-color .32s;
+}
+.living-home .living-plan{transition:transform .45s var(--nexa-motion-ease),box-shadow .45s var(--nexa-motion-ease),border-color .35s}
+.living-home .living-plan:hover{transform:translate3d(0,-7px,0);box-shadow:0 24px 64px #102d5017}
+.living-home .living-faq-item button svg{transition:transform .38s var(--nexa-motion-ease)}
+.living-home .living-faq-item.is-open button svg{transform:rotate(180deg)}
+.living-home .living-hero-grid{will-change:transform}
+@media(max-width:760px){
+  .living-home .living-plan:hover{transform:none;box-shadow:inherit}
+  .living-stage{transform:none!important}
+}
+@media(prefers-reduced-motion:reduce){
+  .living-home .living-plan:hover{transform:none}
+  .living-stage-ring,.living-stage-core:after{animation:none!important}
+}
