@@ -130,7 +130,7 @@ export function PinGate({ status, onReady, onSignOut }) {
   const submit = async (event) => {
     event.preventDefault()
     setError('')
-    if (!/^\\d{4}$/.test(pin)) { setError('PIN harus tepat 4 angka.'); return }
+    if (!/^\d{4}$/.test(pin)) { setError('PIN harus tepat 4 angka.'); return }
     setBusy(true)
     const { data, error: rpcError } = await supabase.rpc(setup ? 'set_my_pin' : 'verify_my_pin', { p_pin: pin })
     setBusy(false)
@@ -150,7 +150,7 @@ export function PinGate({ status, onReady, onSignOut }) {
       <label htmlFor="access-pin">PIN pribadi</label>
       <div className="access-field access-pin-field">
         <LockKeyhole size={17} aria-hidden="true" />
-        <input id="access-pin" type="password" inputMode="numeric" pattern="[0-9]{4}" maxLength={4} autoComplete="off" value={pin} onChange={event => setPin(event.target.value.replace(/\\D/g, '').slice(0, 4))} placeholder="••••" required />
+        <input id="access-pin" type="password" inputMode="numeric" pattern="[0-9]{4}" maxLength={4} autoComplete="off" value={pin} onChange={event => setPin(event.target.value.replace(/\D/g, '').slice(0, 4))} placeholder="••••" required />
       </div>
       {error && <div className="access-message is-error" role="alert">{error}</div>}
       <button className="access-submit" type="submit" disabled={busy || pin.length !== 4}>
