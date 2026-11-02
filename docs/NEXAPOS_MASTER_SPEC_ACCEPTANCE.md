@@ -1,77 +1,196 @@
-# NexaPos — Master Specification Acceptance Matrix
+# NexaPos — Master Specification & Release Acceptance
 
-This matrix is the release checklist for the 16-point NexaPos master specification. A code change or passing static test is not the same as passing authenticated end-to-end verification.
+Dokumen ini menjadi sumber status pekerjaan NexaPos. Status kode, status migrasi produksi, preview, dan uji operasional dicatat terpisah agar fitur yang baru ada di kode tidak keliru disebut sudah aktif untuk pelanggan.
 
-## Status key
-- **Implemented in branch** — code/migration/UI exists in PR #20; still subject to database migration and integration verification.
-- **Existing / verify** — functionality exists in the repository but requires regression and authenticated end-to-end testing.
-- **Blocked for release** — requires a safe database migration run, authorized test tenant/account, or direct production-safe verification.
+## Lingkungan yang digunakan
 
-## 1. Existing repository, no regressions, honest status
-**Status: Existing / verify.** Continue in the existing repository and PR #20. Keep changes scoped, retain working flows, and do not claim a feature is live solely because code exists. Production has not been merged or deployed from this PR.
+- Repository: `feyyy444x/POS`
+- Jalur pekerjaan: PR #22 — `nexapos/consolidated-pr-22`
+- Netlify site: `posfeyyy`
+- Domain publik: https://nexaposdigital.my.id
+- Supabase produksi: `zoplanjzcizvjhorsldm`
+- Aturan: tidak membuat PR baru, tidak merge ke `main`, tidak deploy ke produksi, dan tidak menjalankan migrasi destruktif ke produksi tanpa review serta persetujuan yang sesuai.
 
-## 2. Public site, Super Admin, Owner organization, tenant POS
-**Status: Implemented in branch; integration pending.** Added an Owner organization model and organization_id linkage for stores. Owner organization entitlements now define package, quota, and expiry. No branch-management feature is introduced. Existing Super Admin registration and invitation flows still require migration and E2E validation against existing records.
+## Status verifikasi terkini — 2 November 2026
 
-## 3. Homepage visual preservation
-**Status: Implemented in branch.** The homepage visual composition is retained. Changes are limited to pricing/features/promotion data behavior and the undefined upcomingPromo render crash. Confirm desktop/mobile visual regression in the current preview.
+- Riwayat migrasi Supabase produksi: **103 versi**.
+- File migrasi pada branch PR #22: **103 versi**.
+- Rekonsiliasi versi: **103/103 cocok**; tidak ada file migrasi branch yang tertinggal dan tidak ada versi produksi tanpa file sumber pada branch.
+- Pemeriksaan tabel publik: seluruh tabel publik yang diperiksa memiliki RLS aktif.
+- Struktur antrean: tabel media lama tidak ada; kolom template/media lama tidak ada; bucket Storage `tv-media` masih ada tetapi kosong (0 objek).
+- Deploy Preview terakhir yang diverifikasi: commit `7181cf91c4ff9dc2f1770e6f5a7cf29b9df33566`, status Netlify `ready`. Perubahan dependency setelah commit tersebut memerlukan preview baru.
+- GitHub CI dan security smoke pada commit preview terakhir lulus: 102 tes statis, 6 preview smoke checks, production build, dan dependency audit dengan ambang high/critical. Audit tersebut masih mencatat 4 temuan moderate pada `glob`/`minimatch`; perbaikan override dan gate audit moderate sudah ditambahkan, menunggu hasil CI terbaru.
+- Belum ada merge atau deployment produksi dari pekerjaan ini.
 
-## 4. Super Admin CRUD and audit trail
-**Status: Partial / verify.** Existing package, duration, promotion, tenant, user, and platform-staff managers remain. Package features are persisted per package. Added scoped platform/Owner audit log schema, redaction, RLS, realtime publication, and viewer UI. Verify every CRUD action persists and audit records are correctly scoped after migrations.
+## 1. Identitas produk dan model workspace
 
-## 5. Package tenant quotas
-**Status: Implemented in branch; migration pending.** Defaults are Starter 3, Growth 5, Business 10, Enterprise 15. The new owner_create_store_tenant RPC checks quota server-side while locking the organization row. Verify concurrent create requests cannot exceed the quota and that Super Admin package changes are applied correctly.
+**Status: Implemented in branch; authenticated E2E pending.**
 
-## 6. Activation duration, custom days, expiry
-**Status: Existing / verify.** Defaults are daily 3 days, weekly 7, monthly 30, yearly 365; custom days remain admin-configurable. Activation is validated server-side and organization activation synchronizes package/quota/expiry across its tenants. Verify exact expiry boundaries and that expired access never deletes operational data.
+- NexaSpace adalah pusat kendali Owner untuk model multi-tenant.
+- Owner NexaSpace mengelola perusahaan dan tenant; data serta stok antar-tenant tetap terisolasi.
+- Single Workspace adalah model terpisah: satu Owner langsung masuk ke satu workspace POS, tanpa NexaSpace dan tanpa organisasi induk.
+- Single Workspace sudah memiliki alur registrasi, aktivasi, perpanjangan, dan routing tersendiri.
+- Konfigurasi produksi saat pemeriksaan: paket `single_workspace` masih nonaktif di `site_activation_packages`. Harga seed tersedia, tetapi paket tidak ditampilkan di homepage sebelum Admin mengaktifkannya. Jangan mengaktifkan penawaran publik sebelum harga dan teks penawarannya disetujui.
+- Paket Khusus ditampilkan sebagai penawaran konsultasi tanpa harga/kuota publik. Aktivasi internal memakai key `special` dan kuota ditentukan Super Admin.
 
-## 7. Promotions and vouchers
-**Status: Implemented in branch; migration pending.** Added get_activation_quote, a read-only SECURITY INVOKER RPC that validates active package/duration, promotion schedule, voucher code, eligible period, and discount calculation. Homepage pricing discounts use server quotes. There is no online payment checkout in this flow; activation remains a Super Admin process and the public CTA requests information through Telegram. Verify voucher behavior and displayed quotes after migration.
+## 2. Homepage dan identitas visual
 
-## 8. Owner workspace
-**Status: Partial / verify.** Added tenant listing/switching, server-enforced tenant creation, organization package/quota/expiry summary, consolidated organization reports, and organization audit view. Existing employee, monitoring, and settings pages remain. Verify Owner access is restricted to its organization and reports aggregate only its tenants.
+**Status: Implemented in branch; visual regression desktop/tablet/mobile pending.**
 
-## 9. Employees, permissions, multi-tenant assignment, password/PIN, and safe account deletion
-**Status: Existing / verify; deletion fix added to branch.** Existing invitation flow attaches the same authenticated account to each valid tenant invitation; reset flows remain. Admin password reset minimum is aligned to six characters. Permanent account deletion in both Super Admin and Owner employee management now uses a confirmation card with copyable `HAPUS` and typed confirmation. The deletion failure was traced to historical cashier foreign keys that used RESTRICT/CASCADE; a new migration snapshots cashier identity in shifts, break history, and manual alerts, then changes the auth references to nullable `ON DELETE SET NULL` so historical attribution is retained. Verify all roles, cross-tenant employee assignment, PIN/password reset, and account deletion using an authorized test user after the migration is tested/applied.
+- Arah visual: The Living System, hybrid motion, identitas Navy–Teal, komposisi orisinal dan bukan template AI.
+- Sistem gerak mencakup scroll reveal, parallax, cursor aura, magnetic controls, transition, kinetic typography, liquid motion, dan tilt 3D ringan.
+- Login, homepage, NexaSpace, Admin, dan workspace memakai fondasi visual yang konsisten tanpa menyamakan semua layout.
+- Homepage memuat penjelasan fitur, model NexaSpace dan Single Workspace, paket reguler, Paket Khusus, promo, FAQ, serta kanal WhatsApp/Telegram sesuai konfigurasi.
+- Homepage hanya menampilkan durasi standar 3/7/30/365 hari; durasi Custom tetap untuk pengaturan Admin dan tidak menjadi opsi publik.
+- Seluruh animasi wajib menghormati `prefers-reduced-motion`, perangkat sentuh, dan ukuran layar kecil.
 
-## 10. Tenant data isolation
-**Status: Existing + new RLS; direct API tests pending.** Existing tenant-scoped policies remain; the new organization/audit tables have explicit RLS. Run direct API/RLS tests for products, prices, stock, orders, payments, cashier attribution, queue, reports, audit, search/export, and realtime across two unrelated organizations.
+## 3. Paket, harga, durasi, promosi, dan aktivasi
 
-## 11. Concurrent cashiers, transactions, stock, receipts
-**Status: Existing / verify.** Multi-cashier operation and cashier attribution remain in the existing implementation. Account deletion migrations retain shift, break, and manual-alert actor labels after login removal; open sessions prevent account deletion. Run two or more authenticated cashiers concurrently and verify stock consistency, transaction identity, receipt correctness, and report attribution.
+**Status: Implemented in branch and production schema; business configuration review pending.**
 
-## 12. Operational-only queue
-**Status: Implemented in branch; integration pending.** Queue enable/disable is retained; checkout passes the queue-enabled state to the backend and receipts only render a queue number when a ticket exists. Public queue RPC no longer exposes media/template/player data. Media tables are intentionally not dropped until their dependencies/data impact are reviewed.
+- Paket reguler: Starter, Growth, Business, Enterprise.
+- Paket Khusus: konsultasi; tidak menampilkan harga atau kuota tenant di homepage.
+- Durasi produksi: Harian 3 hari, Mingguan 7 hari, Bulanan 30 hari, Tahunan 365 hari, serta Custom yang diisi Admin.
+- Harga per durasi disimpan di database dan dipakai homepage; jangan mengandalkan nilai fallback saat tabel belum tersedia.
+- Form aktivasi perusahaan mendukung pemilihan paket atau kuota Custom, termasuk Paket Khusus.
+- Validasi aktivasi, kuota, masa berlaku, promo, dan voucher dilakukan di backend.
+- Single Workspace mempunyai pengaturan harga dan status aktif terpisah dari paket NexaSpace.
 
-## 13. Back navigation
-**Status: Implemented in branch; mobile verification pending.** Browser Back/Forward follows Owner workspace pages and Super Admin sections, including the selected tenant control center. Unsaved forms warn before selected navigation actions; non-sensitive form drafts are stored locally. Verify direct URLs, browser Back, mobile navigation, and completed transaction safety.
+## 4. Super Admin dan Admin NexaPos
 
-## 14. Realtime and app-switch state
-**Status: Partial / verify.** Existing realtime subscriptions remain. Selected tenant, active page, scroll position, and non-sensitive form drafts are persisted locally; realtime audit log updates are enabled. Verify reconnect/reload behavior, stale update protection, duplicate-submit/idempotency, cart isolation across tenant switches, and search/filter/pagination state.
+**Status: Implemented in branch; authenticated E2E pending.**
 
-## 15. Required tests and release gates
-**Status: Blocked for release.** GitHub CI and static security smoke checks must pass on the latest PR head. Authenticated E2E remains required for login/roles, direct API/RLS, tenant quota, activation/expiry, vouchers, password/PIN, multi-cashier, stock/receipt, queue on/off, back navigation, realtime/reconnect/idempotency, and public/mobile regression. Do not merge or deploy until these tests pass.
+- Super Admin dan Admin NexaPos memiliki panel dan kewenangan platform sesuai spesifikasi.
+- Tidak ada role Customer Service platform.
+- Admin mengelola paket, durasi, promo, tenant, aktivasi, pengguna, dan dukungan.
+- Aksi sensitif harus memeriksa hak akses di backend; UI yang menyembunyikan tombol bukan pengganti RLS/RPC authorization.
+- Setiap tombol aksi harus memiliki tujuan dan konfirmasi yang jelas.
 
-## 16. Current repository and deployment state
-**Status: Recorded; re-verify before release.**
-- Repository: feyyy444x/POS
-- Active PR: #20, branch feature/queue-simplification-final
-- Superseded PR: #19 (closed)
-- Netlify site: posfeyyy
-- Public domain: https://nexaposdigital.my.id
-- Supabase project: zoplanjzcizvjhorsldm
-- New migrations in this PR are not applied to production.
-- Production deployment has not been performed by this work.
-- The current Deploy Preview must be confirmed to match the latest PR head before testing.
+## 5. Owner dan NexaSpace
 
-## Release decision
-**Not release-ready yet.** The implementation work in PR #20 is ongoing; migration compatibility, latest-preview verification, and authenticated E2E gates remain. Do not infer completion from this matrix alone.
+**Status: Implemented in branch; authenticated E2E pending.**
 
+- Owner NexaSpace dapat melihat organisasi, kuota, masa sewa, tenant, laporan gabungan, audit, serta pengaturan organisasi.
+- Owner dapat membuat tenant sesuai kuota dan berpindah ke tenant yang dimiliki.
+- Tenant yang nonaktif/kedaluwarsa tidak boleh menjalankan operasi POS, tetapi Owner tetap dapat membuka NexaSpace untuk melihat status dan mengelola tenant sesuai izin.
+- Penghapusan tenant dan organisasi memiliki cakupan data yang berbeda dan harus selalu memakai konfirmasi permanen.
+- Single Workspace tidak boleh otomatis terhubung ke `owner_organizations`.
 
-## Admin panel follow-up fixes (2026-10-30)
-- Account deletion: production FK inspection confirmed the blocker constraints are on cashier shifts, cashier break history, and cashier manual-alert actor references. The account-deletion migration changes these optional historical links to nullable references and preserves display-name snapshots; the migration is still pending production application.
-- Owner registration: form submission now retains the form element safely across the async RPC, validates required values, catches failures, and always clears the loading state. The Owner organization trigger from the organization migration is required to connect newly registered Owner workspaces to the organization model.
-- Audit log: the panel now distinguishes a missing audit table/migration from an RLS/permission error. The audit table and triggers remain pending until the audit migration is applied after the Owner organization migration.
-- Platform staff navigation: added a visible Back button to the Team & Access screen.
-- Owner package quota: introduced `is_primary_workspace` so the Super Admin-provisioned home workspace does not consume the Owner's additional-tenant allowance. Starter/Growth/Business/Enterprise limits count additional tenants only. Existing organizations are backfilled with one primary workspace; Owner creation and listing RPCs are updated accordingly.
-- None of these database migrations has been applied to production; verify them in a safe Supabase branch before production rollout.
+## 6. Tim, peran, dan akun
+
+**Status: Implemented in branch; authenticated E2E pending.**
+
+- Label peran tenant yang terlihat: Owner, Manager, Karyawan.
+- Key kompatibilitas database lama dapat tetap memakai `admin` untuk Manager dan `cashier` untuk Karyawan; jangan mengganti key tanpa migrasi dan audit seluruh RPC/policy.
+- Manajemen anggota mencakup undangan, edit, aktif/nonaktif, reset PIN/password, dan penghapusan.
+- Password minimum 6 karakter.
+- Histori kasir harus tetap mempertahankan identitas pelaku setelah akun dihapus.
+- Owner Single Workspace tidak memerlukan keanggotaan tenant tambahan.
+
+## 7. POS, multi-kasir, stok, transaksi, dan struk
+
+**Status: Implemented in branch; authenticated concurrency E2E pending.**
+
+- Beberapa kasir dapat bekerja bersamaan dengan identitas transaksi masing-masing.
+- Checkout backend mengagregasi item berulang, mengunci stok tenant, dan memakai idempotency key.
+- Stok tenant tidak dapat dipindahkan antar-tenant.
+- Struk menampilkan informasi transaksi dan hanya menampilkan nomor antrean jika tiket benar-benar dibuat.
+- Wajib diuji dengan dua atau lebih akun kasir pada tenant yang sama, termasuk transaksi bersamaan dan kegagalan jaringan.
+
+## 8. Antrean operasional
+
+**Status: Implemented in branch and production schema.**
+
+- Antrean dapat diaktifkan/nonaktifkan.
+- Layar antrean hanya menampilkan nomor antrean, nama pelanggan, dan konter/kasir/loket.
+- Media, video, playlist, dan template layar sudah dikeluarkan dari UI dan skema media lama.
+- Tabel `store_tv_media` sudah tidak ada; kolom template/media lama pada `store_tv_settings` sudah tidak ada.
+- Bucket Storage `tv-media` kosong dan masih tersisa; penghapusan bucket harus melalui Storage API. Tidak ada objek media yang ditemukan saat pemeriksaan.
+
+## 9. Self-Service Ordering
+
+**Status: Implemented in branch and production migrations; authenticated E2E pending.**
+
+- Katalog publik hanya menampilkan produk aktif yang tersedia.
+- Pesanan mandiri memvalidasi toko, ketersediaan, stok, dan batas input di backend.
+- Bukti pembayaran memakai bucket privat, batas ukuran dan MIME, serta policy upload berbasis order yang masih menunggu pembayaran.
+- Verifikasi pembayaran dan perubahan status pesanan hanya boleh dilakukan oleh anggota tenant yang berwenang dan memenuhi syarat operasional/shift.
+
+## 10. NexaBot dan dukungan
+
+**Status: Implemented in branch and production migrations; authenticated E2E pending.**
+
+- Nama bot yang terlihat adalah NexaBot, bukan label generik AI.
+- Basis pengetahuan berfokus pada penggunaan NexaPos.
+- Handoff diarahkan ke Admin NexaPos.
+- Indikator mengetik tersedia untuk NexaBot dan Admin.
+- Homepage tidak menampilkan live chat guest; kanal publik adalah WhatsApp dan Telegram sesuai konfigurasi.
+
+## 11. Audit log
+
+**Status: Implemented in branch and production migrations; scope verification pending.**
+
+- Audit platform dan organisasi memiliki pembatasan scope.
+- Owner hanya boleh melihat audit organisasi/tenant miliknya.
+- Super Admin dapat melihat audit platform.
+- Uji direct API diperlukan untuk memastikan tidak ada akses silang organisasi.
+
+## 12. Realtime dan navigasi
+
+**Status: Implemented in branch; authenticated E2E pending.**
+
+- Realtime digunakan untuk pembaruan data yang relevan.
+- Pergantian aplikasi/tab tidak boleh memaksa reload seluruh workspace.
+- Navigasi browser Back/Forward dan tombol kembali harus mempertahankan konteks yang aman.
+- Refresh manual tetap tersedia; status koneksi harus memberi informasi yang jelas.
+- Draft lokal tidak boleh menyimpan rahasia, token, PIN, atau data sensitif.
+
+## 13. Database, migrasi, dan RLS
+
+**Status: Production migration history reconciled; policy behavior review ongoing.**
+
+- Pada pemeriksaan 2 November 2026, 103/103 versi migrasi produksi cocok dengan file di branch PR #22.
+- Jangan mengulang migrasi yang sudah tercatat.
+- Semua tabel publik yang diperiksa memiliki RLS aktif.
+- Peringatan beberapa policy SELECT yang permissive perlu dibaca berdasarkan ekspresi scope-nya: beberapa policy memang menggabungkan akses anggota tenant, Owner organisasi, dan Super Admin. Jangan menghapus policy secara massal karena dapat memutus akses Owner atau laporan.
+- 18 indeks ditandai belum terpakai; jangan menghapus sebelum memeriksa query workload dan kebutuhan operasional.
+- Setiap perubahan DDL baru harus menjadi file migrasi baru di PR #22 dan melewati review sebelum diterapkan ke produksi.
+
+## 14. Keamanan fungsi database dan autentikasi
+
+**Status: Review ongoing; no blanket privilege revocation.**
+
+- Fungsi `SECURITY DEFINER` yang terekspos menggunakan `search_path` kosong pada pemeriksaan saat ini.
+- 54 fungsi yang dapat dipanggil oleh role authenticated mencakup RPC operasional yang memang digunakan aplikasi; masing-masing tetap perlu diuji guard autentikasi, PIN, role, tenant, dan status operasionalnya.
+- Empat fungsi anon yang terdeteksi adalah endpoint publik untuk Self Order, unggah bukti pembayaran, katalog, dan layar antrean. Akses publik tersebut harus tetap dibatasi pada data/aksi yang memang dibutuhkan pengunjung.
+- Supabase Auth masih melaporkan Leaked Password Protection belum aktif. Pengaturan ini berada di konfigurasi Auth Dashboard dan belum dapat diubah melalui konektor yang tersedia.
+- Dependency audit terakhir menemukan empat temuan moderate pada rantai `glob`/`minimatch`. Override ke versi patched dan CI gate `npm audit --audit-level=moderate` telah ditambahkan; hasil CI terbaru wajib lulus sebelum release.
+
+## 15. Performa, responsivitas, dan aksesibilitas
+
+**Status: Implemented in branch; device QA pending.**
+
+- Halaman sekunder dan modul berat memakai lazy loading/code splitting.
+- Build terakhir sebelum dependency hardening menghasilkan main chunk sekitar 250 KB (gzip sekitar 62 KB), React vendor sekitar 186 KB (gzip sekitar 59 KB), dan Supabase vendor sekitar 139 KB (gzip sekitar 38 KB).
+- Tabel, modal, kartu, form, dan navigasi harus diuji pada desktop, tablet, dan HP.
+- Semua animasi harus tetap ringan, tidak menghalangi input/tombol, dan menghormati reduced motion.
+- Uji perangkat nyata tetap diperlukan untuk Safari iOS, Chrome Android, dan browser desktop.
+
+## 16. Release gates dan keputusan rilis
+
+**Status: NOT READY FOR PRODUCTION RELEASE.**
+
+Sebelum merge/deploy produksi, seluruh hal berikut wajib selesai:
+
+1. CI terbaru setelah dependency overrides lulus, termasuk audit moderate, Capacitor CLI smoke, build, tes statis, dan preview smoke.
+2. Deploy Preview harus cocok dengan head PR #22 terbaru.
+3. Login dan routing Super Admin, Admin, Owner NexaSpace, Single Workspace, Manager, dan Karyawan diuji dengan akun yang sah.
+4. Uji RLS langsung lintas dua organisasi/tenant untuk produk, stok, transaksi, anggota, laporan, audit, antrean, dan realtime.
+5. Uji dua atau lebih kasir bersamaan, stok, idempotency, struk, shift, dan antrean on/off.
+6. Uji aktivasi, perpanjangan, masa kedaluwarsa, kuota, Paket Khusus, Single Workspace, promo, dan voucher.
+7. Uji penghapusan akun/tenant/organisasi dengan data historis dan konfirmasi.
+8. Uji tampilan serta interaksi di desktop, tablet, dan HP.
+9. Aktifkan Leaked Password Protection pada Supabase Auth.
+10. Review akhir security advisor dan dependency audit.
+
+**Tidak ada merge ke `main`, migrasi produksi tambahan, atau deployment domain publik dari pekerjaan ini sampai release gates terpenuhi dan pengguna memberi persetujuan.**
