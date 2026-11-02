@@ -26,6 +26,8 @@ const subscriptionPlanManagerUi = await readFile(new URL('src/SubscriptionPlanMa
 const storeControlCenterUi = await readFile(new URL('src/StoreControlCenter.jsx', root), 'utf8')
 const queueSettingsUi = await readFile(new URL('src/TvDisplaySettings.jsx', root), 'utf8')
 const queueRetirementMigration = await readFile(new URL('supabase/migrations/20261102115018_remove_queue_media_and_tv_templates.sql', root), 'utf8')
+const supportConversationRealtimeMigration = await readFile(new URL('supabase/migrations/20261102130341_nexapos_realtime_support_conversations.sql', root), 'utf8')
+const supportCenterUi = await readFile(new URL('src/SupportCenter.jsx', root), 'utf8')
 const publicQueueMigration = await readFile(new URL('supabase/migrations/20261030032823_simplify_public_queue_rpc.sql', root), 'utf8')
 const activationPackagesMigration = await readFile(new URL('supabase/migrations/20261030032820_activation_packages_pricing.sql', root), 'utf8')
 const customActivationMigration = await readFile(new URL('supabase/migrations/20261031072110_custom_activation_duration_and_quota.sql', root), 'utf8')
@@ -780,4 +782,12 @@ test('queue display is limited to customer name, queue number and counter; media
   assert.match(app, /queue_number/)
   assert.match(app, /counter_label/)
   assert.doesNotMatch(queueSettingsUi, /store_tv_media/)
+})
+
+
+test('Support Center conversations stream through scoped Realtime', () => {
+  assert.match(supportCenterUi, /table:\s*'support_conversations'/)
+  assert.match(supportConversationRealtimeMigration, /ALTER PUBLICATION supabase_realtime ADD TABLE public\\.support_conversations/)
+  assert.match(supportConversationRealtimeMigration, /pg_publication_tables/)
+  assert.match(supportConversationRealtimeMigration, /to_regclass\\('public\\.support_conversations'\\)/)
 })
