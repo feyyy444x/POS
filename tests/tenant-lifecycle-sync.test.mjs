@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises'
 
 const app = await readFile(new URL('../src/App.jsx', import.meta.url), 'utf8')
 const errorMap = await readFile(new URL('../src/lib/userFacingError.js', import.meta.url), 'utf8')
-const lifecycle = await readFile(new URL('../supabase/migrations/20261030460000_tenant_lifecycle_quota_and_owner_delete.sql', import.meta.url), 'utf8')
+const lifecycle = await readFile(new URL('../supabase/migrations/20261030172447_tenant_lifecycle_quota_and_owner_delete.sql', import.meta.url), 'utf8')
 
 test('package activation is blocked until active tenant count fits the new package quota', () => {
   assert.match(lifecycle, /v_active_tenants > v_package\.location_limit/)
