@@ -1,0 +1,260 @@
+/* NEXAPOS — ADAPTIVE ARCHITECTURAL EXPERIENCE
+   Global visual layer for public, auth, platform admin, NexaSpace and workspaces.
+   Matte materials only: no neon, RGB, cyberpunk or emissive glow.
+   Progressive enhancement; business logic and data flow remain untouched. */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
+
+:root{
+  color-scheme:light;
+  --nx-ink:#17232c;
+  --nx-ink-strong:#10191f;
+  --nx-muted:#68757b;
+  --nx-paper:#f1f0eb;
+  --nx-surface:#fbfaf7;
+  --nx-surface-2:#e9e8e1;
+  --nx-line:#d9d9d1;
+  --nx-line-strong:#c5c7be;
+  --nx-navy:#102d50;
+  --nx-deep:#11191e;
+  --nx-deep-2:#1c272d;
+  --nx-teal:#174f50;
+  --nx-teal-soft:#e1e9e5;
+  --nx-danger:#a64b43;
+  --nx-success:#426b56;
+  --nx-shadow-xs:0 2px 8px rgba(16,25,31,.035);
+  --nx-shadow-sm:0 8px 22px rgba(16,25,31,.055);
+  --nx-shadow-md:0 18px 48px rgba(16,25,31,.085);
+  --nx-shadow-lg:0 30px 80px rgba(10,17,22,.16);
+  --nx-radius-sm:9px;
+  --nx-radius:15px;
+  --nx-radius-lg:22px;
+  --nx-ease:cubic-bezier(.2,.72,.22,1);
+  font-family:'DM Sans',system-ui,sans-serif;
+  color:var(--nx-ink);
+  background:var(--nx-paper);
+  font-synthesis:none;
+  text-rendering:optimizeLegibility;
+  -webkit-font-smoothing:antialiased;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:88px}
+body{margin:0;min-width:320px;background:var(--nx-paper);color:var(--nx-ink);font-family:'DM Sans',system-ui,sans-serif}
+button,input,select,textarea{font:inherit}
+button,a{-webkit-tap-highlight-color:transparent}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid #527d77!important;outline-offset:3px!important}
+::selection{background:#174f5030;color:#10191f}
+h1,h2,h3,h4{font-family:Manrope,'DM Sans',sans-serif;letter-spacing:-.045em}
+img,svg{max-width:100%}
+#root{min-height:100vh}
+a{transition:color .22s ease}
+button{transition:transform .24s var(--nx-ease),background-color .24s,border-color .24s,box-shadow .24s}
+button:active:not(:disabled){transform:translateY(1px)}
+:where(.panel,.dashboard-card,.stat-card,.owner-stat-card,.report-card,.settings-card,.table-card,.queue-feature,.queue-stat-card,.owner-section,.owner-setting-card,.workspace-card,.modal-card,.auth-card){
+  border-color:var(--nx-line)!important;
+  box-shadow:var(--nx-shadow-xs);
+}
+:where(.panel,.dashboard-card,.stat-card,.owner-stat-card,.report-card,.settings-card,.table-card,.queue-feature,.queue-stat-card,.owner-section,.owner-setting-card,.workspace-card){
+  border-radius:var(--nx-radius)!important;
+  transition:transform .28s var(--nx-ease),box-shadow .28s var(--nx-ease),border-color .28s ease;
+}
+:where(.panel,.dashboard-card,.report-card,.workspace-card):hover{box-shadow:var(--nx-shadow-sm)}
+:where(input,select,textarea,.field,.text-input){border-radius:10px}
+:where(table){border-collapse:separate;border-spacing:0;width:100%}
+:where(th){font-size:10px;letter-spacing:.075em;text-transform:uppercase}
+:where(th,td){line-height:1.55;vertical-align:middle}
+:where(td){overflow-wrap:anywhere}
+:where(.table-wrap,.table-card,.table-responsive){max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+:where(.btn,.access-submit,.arch-primary-cta){min-height:42px}
+:where(.btn-primary){background:var(--nx-deep)!important;color:#fff!important;box-shadow:0 7px 18px rgba(16,25,31,.12)!important}
+:where(.btn-primary:hover:not(:disabled)){background:var(--nx-teal)!important;box-shadow:var(--nx-shadow-sm)!important}
+:where(.btn-outline){border-color:var(--nx-line-strong)!important}
+:where(.btn-ghost){background:var(--nx-teal-soft)!important;color:var(--nx-teal)!important}
+:where(.muted,.subtle){color:var(--nx-muted)}
+:where(.status-pill,.live-status){box-shadow:none!important}
+
+/* Shared operational shell — adaptive light surfaces with dark architectural navigation. */
+.app-shell{background:var(--nx-paper)!important;color:var(--nx-ink)}
+.sidebar{
+  background:linear-gradient(180deg,#17232a 0%,#111a20 100%)!important;
+  border-right:1px solid rgba(255,255,255,.07)!important;
+  box-shadow:8px 0 32px rgba(13,21,26,.07)!important;
+  backdrop-filter:none!important;
+}
+.sidebar .brand{color:#f5f4ef!important}
+.sidebar .brand small{color:#9da7a5!important}
+.sidebar .brand-mark{background:transparent!important;box-shadow:none!important}
+.sidebar .brand-accent{color:#9bb8ac!important}
+.store-switch{background:rgba(255,255,255,.045)!important;border-color:rgba(255,255,255,.13)!important}
+.store-copy strong,.store-select{color:#f3f2ec!important}
+.store-copy small{color:#a2aca8!important}
+.store-avatar{background:#2b3b3c!important;color:#d5e0d8!important}
+.nav-section{color:#87938f!important;letter-spacing:.16em!important}
+.nav-link{color:#b7c0bb!important;border-radius:9px!important;min-height:43px;transition:background .22s,color .22s,transform .22s!important}
+.nav-link svg{color:#a1ada7!important}
+.nav-link:hover{background:rgba(255,255,255,.075)!important;color:#fff!important;transform:translateX(2px)}
+.nav-link.nav-active,.nav-link.active{background:#2c3d3b!important;color:#f2f1e9!important;box-shadow:inset 3px 0 #9bb8ac!important}
+.nav-link.nav-active svg,.nav-link.active svg{color:#c6d8cf!important}
+.sidebar-bottom{border-color:rgba(255,255,255,.13)!important}
+.user-card,.support-card{background:rgba(255,255,255,.055)!important;border-color:rgba(255,255,255,.1)!important}
+.user-copy strong{color:#f3f2ec!important}
+.user-copy small{color:#a2aca8!important}
+.main-area{background:var(--nx-paper)!important}
+.topbar{background:rgba(251,250,247,.94)!important;border-bottom:1px solid var(--nx-line)!important;box-shadow:none!important;backdrop-filter:blur(14px)}
+.topbar-title-group h1,.topbar h1{color:var(--nx-ink-strong)!important;letter-spacing:-.055em!important}
+.breadcrumb,.topbar-date,.desktop-date{color:#7b8582!important}
+.page-content{max-width:1800px;margin-inline:auto;padding:clamp(20px,3vw,44px)!important}
+.page-heading h1,.page-heading h2{letter-spacing:-.055em!important}
+.page-section{animation:nxPageEnter .52s var(--nx-ease) both}
+.stat-card,.owner-stat-card{background:var(--nx-surface)!important}
+.stat-card strong,.stat-value,.owner-stat-card strong{color:var(--nx-ink-strong)!important}
+.stat-icon{background:var(--nx-teal-soft)!important;color:var(--nx-teal)!important}
+.panel,.dashboard-card,.report-card,.settings-card,.table-card,.queue-feature,.queue-stat-card,.owner-section,.owner-setting-card,.workspace-card{
+  background:var(--nx-surface)!important;border:1px solid var(--nx-line)!important;box-shadow:var(--nx-shadow-xs)!important;
+}
+.panel:hover,.dashboard-card:hover,.report-card:hover,.workspace-card:hover{border-color:var(--nx-line-strong)!important;box-shadow:var(--nx-shadow-sm)!important}
+.panel-head{border-color:var(--nx-line)!important}
+.panel-head h2,.panel-head h3,.page-section h2,.page-section h3{color:var(--nx-ink-strong)!important}
+.table-wrap{border:1px solid var(--nx-line)!important;border-radius:12px!important;background:var(--nx-surface)!important}
+table th{background:#eeeee8!important;color:#65716d!important}
+table td{border-bottom:1px solid #e9e8e1!important}
+table tbody tr:hover{background:#f3f3ed!important}
+.live-status{background:#e8eee9!important;color:#456b58!important;border:1px solid #d3ded5!important}
+.pagination-bar{border-color:var(--nx-line)!important}
+
+/* Owner / NexaSpace surfaces. */
+.owner-page{background:var(--nx-paper)!important;color:var(--nx-ink)!important}
+.owner-sidebar,.owner-navigation{background:linear-gradient(180deg,#17232a,#111a20)!important}
+.owner-main,.owner-content{background:var(--nx-paper)!important}
+.owner-stat-card,.owner-tenant-card,.owner-setting-card,.owner-section{background:var(--nx-surface)!important;border-color:var(--nx-line)!important;box-shadow:var(--nx-shadow-xs)!important}
+.owner-stat-card strong,.owner-section h2,.owner-section h3{color:var(--nx-ink-strong)!important}
+.owner-nav-link{color:#b7c0bb!important}
+.owner-nav-link:hover,.owner-nav-link.active{background:#2c3d3b!important;color:#f2f1e9!important}
+.owner-tenant-card:hover{transform:translateY(-3px);box-shadow:var(--nx-shadow-sm)!important}
+
+/* Login / access portal — one calm architectural canvas, no split neon panels. */
+.access-portal{
+  --access-teal:#9bb8ac!important;
+  min-height:100svh;
+  background:radial-gradient(ellipse at 78% 16%,rgba(139,157,148,.10),transparent 36%),linear-gradient(135deg,#111a20 0%,#1c292e 58%,#182329 100%)!important;
+  color:#f4f3ed!important;
+}
+.access-portal:before{opacity:.14!important}
+.access-geometry{border-color:rgba(210,220,211,.14)!important;box-shadow:none!important}
+.access-grid{opacity:.12!important}
+.access-background-word{color:rgba(236,239,230,.035)!important}
+.access-brand{color:#f4f3ed!important}
+.access-brand img{filter:none!important}
+.access-brand span>span{color:#a9c0b5!important}
+.access-system-label,.access-index,.access-footer{color:#a0aaa5!important}
+.access-system-label i,.access-security-note i{background:#9bb8ac!important;box-shadow:none!important}
+.access-kicker,.access-index span:first-child{color:#b2c5ba!important}
+.access-heading h1{color:#f5f4ef!important}
+.access-heading h1 em{color:#b2c5ba!important}
+.access-heading p{color:#c0c8c1!important}
+.access-form-meta{border-color:rgba(230,234,225,.17)!important;color:#aab4ad!important}
+.access-form-meta span:first-child{color:#d4d9d1!important}
+.access-form-meta svg{color:#b2c5ba!important}
+.access-form label{color:#d7dbd3!important}
+.access-field{border-color:rgba(230,234,225,.22)!important;background:rgba(255,255,255,.045)!important;border-radius:9px!important}
+.access-field:focus-within{border-color:#a9c0b5!important;box-shadow:0 0 0 3px rgba(169,192,181,.12)!important}
+.access-submit{background:#d5ddd5!important;border-color:#d5ddd5!important;color:#17232a!important;border-radius:9px!important}
+.access-submit:hover:not(:disabled){background:#e4e8df!important;border-color:#e4e8df!important}
+.access-submit-icon{background:rgba(23,35,42,.08)!important}
+.access-mode-switch{color:#b4bdb6!important}
+.access-mode-switch button,.access-signout{color:#d5ddd5!important}
+.access-message.is-error{background:rgba(166,75,67,.18)!important;color:#f2c8c2!important}
+.access-message.is-success{background:rgba(66,107,86,.2)!important;color:#c8dfcf!important}
+.access-security-note{border-color:rgba(230,234,225,.15)!important}
+.access-security-note p{color:#aeb9b2!important}
+
+/* Public homepage — editorial architecture, material depth and restrained motion. */
+.architecture-home,.arch-home{
+  --an:#17232c;--and:#111a20;--at:#8fae9f;--ap:#f1f0eb;--ai:#17232c;--am:#75807b;--al:#d9d9d1;
+  background:var(--ap)!important;color:var(--ai)!important;
+}
+.arch-nav{background:rgba(241,240,235,.92)!important;border-bottom:1px solid var(--al)!important;backdrop-filter:blur(14px)}
+.arch-nav .living-brand,.arch-nav .living-brand>span{color:var(--an)!important}
+.arch-nav-links a,.arch-login{color:#65716d!important}
+.arch-nav-links a:hover,.arch-login:hover{color:var(--nx-teal)!important}
+.arch-nav-cta{background:var(--and)!important;color:#f7f6f0!important;border-radius:5px!important}
+.arch-hero{background:#141f25!important;color:#f2f1eb!important;isolation:isolate}
+.arch-hero:before{background:linear-gradient(125deg,#111a20,#263238 58%,#182329)!important}
+.arch-hero-grid{opacity:.10!important;background-size:72px 72px!important}
+.arch-kicker,.arch-overline{color:#b0c3b7!important}
+.arch-kicker span{background:#a8bdb1!important;box-shadow:none!important}
+.arch-hero h1,.arch-hero h2{color:#f3f1ea!important}
+.arch-hero h1 em,.arch-section-heading h2 em,.arch-manifesto h2 em,.arch-process h2 em,.arch-activation h2 em,.arch-faq-heading h2 em,.arch-contact h2 em{color:#b0c3b7!important}
+.arch-hero-copy>p{color:#c1c8c1!important}
+.arch-primary-cta{background:#d5ddd5!important;color:#17232a!important;border-radius:5px!important;box-shadow:none!important}
+.arch-primary-cta:hover{background:#e4e8df!important;box-shadow:none!important}
+.arch-section,.arch-activation,.arch-faq,.arch-contact{background:var(--ap)!important}
+.arch-section-heading h2,.arch-activation h2,.arch-contact h2,.arch-faq-heading h2{color:var(--an)!important}
+.arch-operating-suite,.arch-home .arch-operating-suite{background:#1b282d!important}
+.arch-operating-suite:before{border-color:rgba(203,216,207,.12)!important;box-shadow:0 0 0 7vw rgba(203,216,207,.012),0 0 0 14vw rgba(203,216,207,.009)!important}
+.arch-operating-suite h2,.arch-operating-suite h3{color:#f2f1eb!important}
+.arch-operating-suite-head>p,.arch-suite-item p{color:#c1c9c2!important}
+.arch-suite-grid{border-color:rgba(229,232,221,.18)!important}
+.arch-suite-item{border-color:rgba(229,232,221,.18)!important}
+.arch-suite-item>span{color:#b0c3b7!important}
+.arch-suite-item:hover{background:rgba(215,221,213,.055)!important;transform:translateY(-3px)}
+.arch-suite-item h3{color:#f2f1eb!important}
+.arch-plan,.arch-faq-item,.arch-contact-card{background:#faf9f5!important;border-color:var(--al)!important;box-shadow:var(--nx-shadow-xs)!important}
+.arch-plan:hover{transform:translateY(-4px);box-shadow:var(--nx-shadow-sm)!important}
+.arch-plan-featured{border-color:#879b90!important;box-shadow:0 16px 38px rgba(23,35,44,.09)!important}
+.arch-plan-price,.arch-plan h3{color:var(--an)!important}
+.arch-footer{background:#111a20!important;color:#d8ddd5!important}
+.arch-footer a{color:#c2cbc3!important}
+
+/* Shared reveal and page motion. No luminous cursor, no glow and no motion on critical checkout actions. */
+@keyframes nxPageEnter{from{opacity:0;transform:translate3d(0,10px,0)}to{opacity:1;transform:translate3d(0,0,0)}}
+@keyframes nxReveal{from{opacity:0;transform:translate3d(0,22px,0)}to{opacity:1;transform:translate3d(0,0,0)}}
+.nexa-motion-reveal{animation:nxReveal .72s var(--nx-ease) both}
+.nexa-motion-reveal.nexa-is-visible{animation:nxReveal .72s var(--nx-ease) both}
+.nexa-page-enter{animation:nxPageEnter .42s var(--nx-ease) both}
+.nexa-motion-surface{transform:translateZ(0);transition:transform .28s var(--nx-ease),box-shadow .28s var(--nx-ease),border-color .28s ease}
+.nexa-motion-surface:hover{transform:translateY(-2px)}
+.nexa-cursor-aura{display:none!important}
+.nexa-magnetic{transform:translate3d(0,0,0)!important}
+.nexa-pointer-pressed .nexa-magnetic{transform:translate3d(0,0,0)!important}
+.nexa-motion-reduced *,body.nexa-motion-reduced *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+  .nexa-motion-reveal,.nexa-page-enter{opacity:1!important;transform:none!important}
+}
+@media(max-width:1100px){
+  .arch-hero{grid-template-columns:1fr!important;min-height:auto!important;gap:36px!important}
+  .arch-hero-visual{min-height:340px}
+  .arch-suite-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+@media(max-width:760px){
+  html{scroll-padding-top:68px}
+  .sidebar{box-shadow:12px 0 36px rgba(13,21,26,.15)!important}
+  .topbar{min-height:64px!important;padding-inline:16px!important}
+  .page-content{padding:18px 14px 36px!important}
+  .page-heading{margin-bottom:18px}
+  .arch-nav{height:66px!important;padding-inline:16px!important}
+  .arch-nav-links{gap:12px}
+  .arch-nav-actions{gap:10px}
+  .arch-nav-cta{min-height:40px;padding:0 12px}
+  .arch-hero{padding:76px 20px 62px!important}
+  .arch-hero h1{font-size:clamp(44px,13vw,68px)!important}
+  .arch-section,.arch-operating-suite,.arch-activation,.arch-faq,.arch-contact{padding:64px 20px!important}
+  .arch-operating-suite-head,.arch-activation-heading{grid-template-columns:1fr!important;gap:16px!important;margin-bottom:30px!important}
+  .arch-suite-grid{grid-template-columns:1fr!important}
+  .arch-suite-item{min-height:0!important;padding:22px!important}
+  .arch-plan-grid{grid-template-columns:1fr!important}
+  .access-content{padding:44px 22px 58px!important}
+  .access-topline{padding:20px 22px!important}
+  .access-footer{padding:18px 22px!important;gap:10px!important;flex-wrap:wrap}
+  .access-heading h1{font-size:clamp(44px,12vw,66px)!important}
+  .table-wrap{overflow-x:auto!important}
+}
+@media(max-width:420px){
+  .arch-nav-links{display:none!important}
+  .arch-nav-cta{font-size:10px!important}
+  .topbar-actions{gap:6px!important}
+  .access-index{gap:12px!important;flex-wrap:wrap}
+}
+@media(hover:none),(pointer:coarse){
+  .nexa-motion-surface:hover,.arch-plan:hover,.arch-suite-item:hover,.owner-tenant-card:hover{transform:none!important}
+}
