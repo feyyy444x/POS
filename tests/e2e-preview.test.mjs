@@ -18,7 +18,7 @@ async function fetchApplicationBundleGraph(entryPath) {
     const source = await response.text()
     bundles.push(source)
 
-    const imports = [...source.matchAll(/(?:import\\(\\s*|from\\s*|import\\s*)["']([^"']+\\.js(?:\\?[^"']*)?)["']/g)]
+    const imports = [...source.matchAll(/(?:import\(\s*|from\s*|import\s*)["']([^"']+\.js(?:\?[^"']*)?)["']/g)]
     for (const match of imports) {
       try {
         const asset = new URL(match[1], url)
@@ -27,7 +27,7 @@ async function fetchApplicationBundleGraph(entryPath) {
     }
   }
 
-  return bundles.join('\\n')
+  return bundles.join('\n')
 }
 
 async function getReachableApp() {
