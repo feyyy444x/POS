@@ -38,7 +38,8 @@ Dokumen ini menjadi sumber status pekerjaan NexaPos. Status kode, status migrasi
 
 **Status: Implemented in branch; visual regression desktop/tablet/mobile pending.**
 
-- Arah visual: The Living System, hybrid motion, identitas Navy–Teal, komposisi orisinal dan bukan template AI.
+- Arah visual terbaru: NEXA / ARCHITECTURE (Digital Architecture × Nexa Control × Kinetic Dimension), identitas Navy–Teal, halaman dengan komposisi dan karakter berbeda; redesign struktural, bukan CSS facelift atau template AI. Login wajib satu kanvas non-split dan dimulai dari nol.
+- Blueprint: `docs/NEXA_ARCHITECTURE_DESIGN_BLUEPRINT.md`.
 - Sistem gerak mencakup scroll reveal, parallax, cursor aura, magnetic controls, transition, kinetic typography, liquid motion, dan tilt 3D ringan.
 - Login, homepage, NexaSpace, Admin, dan workspace memakai fondasi visual yang konsisten tanpa menyamakan semua layout.
 - Homepage memuat penjelasan fitur, model NexaSpace dan Single Workspace, paket reguler, Paket Khusus, promo, FAQ, serta kanal WhatsApp/Telegram sesuai konfigurasi.
