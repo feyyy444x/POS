@@ -7,6 +7,7 @@ const headers = await readFile(new URL('public/_headers', root), 'utf8')
 const activation = await readFile(new URL('netlify/functions/activate-invitation.mjs', root), 'utf8')
 const createPlatformStaff = await readFile(new URL('netlify/functions/create-platform-staff.mjs', root), 'utf8')
 const app = await readFile(new URL('src/App.jsx', root), 'utf8')
+const appEntry = await readFile(new URL('src/main.jsx', root), 'utf8')
 const homepageUi = await readFile(new URL('src/Homepage.jsx', root), 'utf8')
 const appStyles = await readFile(new URL('src/styles.css', root), 'utf8')
 const queueMigration = await readFile(new URL('supabase/migrations/20261028200518_enforce_store_queue_enabled.sql', root), 'utf8')
@@ -790,4 +791,16 @@ test('Support Center conversations stream through scoped Realtime', () => {
   assert.match(supportConversationRealtimeMigration, /ALTER PUBLICATION supabase_realtime ADD TABLE public\\.support_conversations/)
   assert.match(supportConversationRealtimeMigration, /pg_publication_tables/)
   assert.match(supportConversationRealtimeMigration, /to_regclass\\('public\\.support_conversations'\\)/)
+})
+
+
+test('secondary route modules are code-split behind an accessible loading boundary', () => {
+  for (const component of ['Homepage','SupportCenter','Demo','PromotionManager','SubscriptionPlanManager','TvDisplaySettings','PlatformStaffManager','StoreControlCenter','AuditLogPanel','OrganizationReports','OrganizationOperations','OrganizationSettings']) {
+    assert.match(app, new RegExp('const '+component+' = lazy\\(\\(\\) => import\\('))
+    assert.doesNotMatch(app, new RegExp('^import '+component+' from', 'm'))
+  }
+  assert.match(app, /const SelfOrderPublic = lazy/)
+  assert.match(app, /const SelfOrderSettings = lazy/)
+  assert.match(appEntry, /React\\.Suspense/)
+  assert.match(appEntry, /nexa-module-loading/)
 })
