@@ -321,3 +321,34 @@
 @media(prefers-reduced-motion:reduce){
  .tenant-operations-shell *, .super-admin-shell *, .owner-console *{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important}
 }
+
+
+/* Module-specific visual systems outside the primary tenant route. */
+.nx-plan-admin .page-content,
+.platform-staff-page{max-width:1580px;margin-inline:auto}
+.nx-plan-admin .page-heading{background:#102d50!important;border-color:#102d50!important}
+.nx-plan-admin .page-heading h1,.nx-plan-admin .page-heading p{color:#f7fafb!important}
+.nx-plan-admin .page-heading .eyebrow{color:#78dfca!important}
+.nx-plan-admin .page-heading:after{border-color:#08b99666!important}
+.nx-plan-admin .panel{border-radius:5px!important;border-top:2px solid #08b996!important}
+.platform-staff-page .page-heading{padding:22px 25px!important;background:#102d50!important;border:1px solid #102d50!important;border-radius:5px}
+.platform-staff-page .page-heading h1,.platform-staff-page .page-heading p{color:#f7fafb!important}
+.platform-staff-page .page-heading .eyebrow{color:#78dfca!important}
+.platform-staff-page .staff-layout>.panel{border-radius:5px!important;border-color:#dfe8ef!important;box-shadow:0 8px 26px rgba(7,24,44,.045)!important}
+.platform-staff-page .panel-icon{background:#e3f8f1!important;color:#087e69!important}
+.tv-settings-panel{border-radius:5px!important;border-top:3px solid #08b996!important}
+.report-filter-panel{border-radius:5px!important;background:#fff!important;border:1px solid #dfe8ef!important}
+.report-filter-grid{gap:14px!important}
+.owner-operations-page .owner-section-heading{background:#102d50!important;border:1px solid #102d50!important;border-radius:5px!important}
+.owner-operations-page .owner-section-heading h2,.owner-operations-page .owner-section-heading p{color:#fff!important}
+.owner-operations-page .owner-kicker{color:#78dfca!important}
+.owner-operations-page .owner-activation-code{border-radius:5px!important;border-left:3px solid #08b996!important}
+.owner-settings-card{border-radius:5px!important;border-top:3px solid #08b996!important}
+.owner-organization-settings-form .text-input{border-radius:5px!important}
+.so-public{--so-navy:#102d50;--so-deep:#07182c;--so-teal:#08b996;--so-paper:#f4f7fa}
+.so-public .so-primary{background:#102d50!important;border-color:#102d50!important;color:#fff!important}
+.so-public .so-primary:hover{background:#087e69!important}
+.so-success-icon{background:#e3f8f1!important;color:#087e69!important}
+.support-settings-view .support-settings-intro{border-left:3px solid #08b996!important;background:#f0fbf7!important;border-radius:4px!important}
+.support-modal-head,.support-modal-brand{color:#102d50}
+.support-settings-view .support-channel-setting{border-radius:5px!important;border-color:#dfe8ef!important}
