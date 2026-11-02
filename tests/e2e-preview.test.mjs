@@ -90,7 +90,7 @@ test('activation endpoint denies a nonexistent invitation without creating an ac
 
 test('deployed preview bundle includes the NexaPos FAQ bot and human handoff UI', async () => {
   const expectedStrings = [
-    'Joeclyn',
+    'NexaBot',
     'Hubungi Admin NexaPos',
     'submit_support_message',
     'request_support_handoff',
