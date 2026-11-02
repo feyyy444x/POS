@@ -311,3 +311,77 @@ tbody tr:hover{background:#f7fbf9}
 @media(max-width:1050px){.nexa-public-site .nx-hero{grid-template-columns:1fr;gap:28px;padding-top:70px}.nexa-public-site .nx-product-stage{width:min(100%,520px)}}
 @media(max-width:680px){.nexa-public-site .nx-hero{padding:62px 20px 55px}.nexa-public-site .nx-hero h1{font-size:clamp(44px,12vw,66px)}.nexa-public-site .nx-product-stage{width:100%;max-width:390px}.nexa-public-site .nx-stage-card{width:125px;min-height:94px;padding:10px}.nexa-public-site .nx-stage-card strong{font-size:10px}.nexa-public-site .nx-stage-card small{font-size:7px}.nexa-public-site .nx-stage-core{width:120px;height:120px;border-radius:22px}.nexa-public-site .nx-stage-core img{width:42px;height:42px}.nexa-public-site .nx-stage-core b{font-size:10px}.nexa-public-site .nx-hero-proof{gap:11px;font-size:6px;margin-top:38px}.nexa-public-site .nx-stage-label{font-size:6px}}
 @media(prefers-reduced-motion:reduce){.nexa-public-site .nx-stage-core,.nexa-public-site .nx-stage-card{animation:none}}
+
+
+/* Operational interfaces: legibility and task hierarchy */
+.app-shell .page-section{display:flex;flex-direction:column;gap:22px}
+.app-shell .page-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin:0 0 22px}
+.app-shell .page-heading h1,.app-shell .page-heading h2{font-size:clamp(24px,2.2vw,32px);line-height:1.12;margin:7px 0 0}
+.app-shell .heading-accent{color:var(--nx-teal-dark)}
+.app-shell .panel{padding:20px;min-width:0}
+.app-shell .panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.app-shell .stats-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px}
+.app-shell .stats-grid>*{min-width:0}
+.app-shell .stat-card{padding:18px;border:1px solid var(--nx-line);border-radius:15px;background:#fff}
+.app-shell .stat-card strong{font:800 24px 'Plus Jakarta Sans',sans-serif;letter-spacing:-.06em}
+.app-shell .stat-card small{color:var(--nx-muted)}
+.app-shell .pos-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(330px,390px);gap:18px;align-items:start}
+.app-shell .pos-catalog,.app-shell .cart-panel{border:1px solid var(--nx-line);border-radius:16px;background:#fff;box-shadow:0 6px 20px #13243a08;min-width:0}
+.app-shell .pos-catalog{padding:20px}
+.app-shell .cart-panel{padding:18px;position:sticky;top:96px}
+.app-shell .catalog-toolbar{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:17px}
+.app-shell .category-pills{display:flex;gap:7px;overflow:auto;padding:2px 0 10px}
+.app-shell .category-pills button{border:1px solid var(--nx-line);border-radius:999px;padding:8px 12px;background:#fff;color:#63736f;font-size:11px;white-space:nowrap}
+.app-shell .category-pills button.active,.app-shell .category-pills button[aria-pressed="true"]{background:var(--nx-ink);border-color:var(--nx-ink);color:#fff}
+.app-shell .product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:11px}
+.app-shell .product-tile{min-width:0;border:1px solid var(--nx-line);border-radius:13px;background:#fff;padding:12px;text-align:left;transition:transform .18s,border-color .18s,box-shadow .18s}
+.app-shell .product-tile:hover{transform:translateY(-3px);border-color:#9bd9ce;box-shadow:0 12px 25px #13243a0d}
+.app-shell .product-tile-icon{background:#e7f5f1;color:var(--nx-teal-dark);border-radius:10px}
+.app-shell .product-tile-name{font-weight:700;color:var(--nx-ink);line-height:1.35}
+.app-shell .product-tile-bottom{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:12px}
+.app-shell .product-add{border:0;border-radius:8px;background:var(--nx-ink);color:#fff;width:29px;height:29px}
+.app-shell .cart-head{padding-bottom:14px;border-bottom:1px solid var(--nx-line)}
+.app-shell .cart-items{display:flex;flex-direction:column;gap:10px;max-height:40vh;overflow:auto;padding:13px 0}
+.app-shell .cart-item{padding:11px;border:1px solid #e9efed;border-radius:11px;background:#fbfdfc}
+.app-shell .receipt-total{border-top:1px solid var(--nx-line);padding-top:15px}
+.app-shell .welcome-banner{border-radius:17px;background:var(--nx-deep);color:#fff;overflow:hidden}
+.app-shell .welcome-banner h2,.app-shell .welcome-banner h1{color:#fff}
+.app-shell .welcome-banner p{color:#b8c7d0}
+.app-shell .banner-button{background:var(--nx-teal);color:#082a30;border-radius:9px}
+.app-shell .dashboard-grid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(280px,.8fr);gap:15px}
+.app-shell .sales-panel,.app-shell .queue-panel{border:1px solid var(--nx-line);border-radius:15px;background:#fff;padding:18px;min-width:0}
+.app-shell .queue-mini-row{border-bottom:1px solid #edf1ef;padding:11px 0}
+.app-shell .queue-number{background:var(--nx-soft);color:var(--nx-teal-dark);border-radius:9px}
+.app-shell .text-input{min-width:0;padding:10px 12px}
+.app-shell select.text-input{background-color:#fff}
+.app-shell .settings-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
+.app-shell .settings-form{padding:19px}
+.app-shell .form-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.app-shell .icon-button{border:1px solid var(--nx-line);background:#fff;color:#52656b;border-radius:9px;transition:background .18s,color .18s}
+.app-shell .icon-button:hover{background:var(--nx-soft);color:var(--nx-teal-dark)}
+.app-shell .modal-card{max-width:min(94vw,720px);max-height:88vh;overflow:auto}
+.app-shell .empty-state{padding:35px 20px;text-align:center}
+.app-shell .status-pill{padding:5px 9px;font-size:10px;font-weight:800}
+.app-shell .role-chip{background:#edf3f1;color:#536862;border-radius:7px;padding:5px 8px}
+.app-shell .pagination-bar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding-top:15px}
+.app-shell .pagination-actions{display:flex;align-items:center;gap:9px}
+.owner-console .owner-profile-grid,.owner-console .owner-plan-layout{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.owner-console .owner-plan-card{border:1px solid var(--nx-line);border-radius:15px;background:#fff;padding:20px}
+.owner-console .owner-profile-page .panel{background:#fff}
+@media(max-width:1050px){
+ .app-shell .stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .app-shell .pos-layout{grid-template-columns:minmax(0,1fr) 330px}
+ .app-shell .dashboard-grid{grid-template-columns:1fr}
+}
+@media(max-width:760px){
+ .app-shell .pos-layout{grid-template-columns:1fr}
+ .app-shell .cart-panel{position:static}
+ .app-shell .product-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .app-shell .page-heading{align-items:flex-start;flex-direction:column}
+ .app-shell .panel{padding:15px}
+ .app-shell .stats-grid{gap:9px}
+ .app-shell .stat-card{padding:13px}
+ .app-shell .settings-grid,.app-shell .form-row,.owner-console .owner-profile-grid,.owner-console .owner-plan-layout{grid-template-columns:1fr}
+ .app-shell .pagination-bar{align-items:flex-start}
+}
+@media(max-width:390px){.app-shell .stats-grid{grid-template-columns:1fr}.app-shell .product-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.app-shell .product-tile{padding:9px}}
