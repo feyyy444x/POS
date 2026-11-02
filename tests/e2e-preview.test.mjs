@@ -4,6 +4,32 @@ import assert from 'node:assert/strict'
 const baseUrl = (process.env.NEXAPOS_E2E_BASE_URL || 'https://deploy-preview-22--posfeyyy.netlify.app').replace(/\/$/, '')
 const activationUrl = new URL('/.netlify/functions/activate-invitation', baseUrl)
 
+async function fetchApplicationBundleGraph(entryPath) {
+  const queue = [new URL(entryPath, baseUrl)]
+  const visited = new Set()
+  const bundles = []
+
+  while (queue.length && visited.size < 80) {
+    const url = queue.shift()
+    if (visited.has(url.href) || url.origin !== new URL(baseUrl).origin) continue
+    visited.add(url.href)
+    const response = await fetch(url, { signal: AbortSignal.timeout(15000) })
+    if (!response.ok) continue
+    const source = await response.text()
+    bundles.push(source)
+
+    const imports = [...source.matchAll(/(?:import\\(\\s*|from\\s*|import\\s*)["']([^"']+\\.js(?:\\?[^"']*)?)["']/g)]
+    for (const match of imports) {
+      try {
+        const asset = new URL(match[1], url)
+        if (asset.origin === new URL(baseUrl).origin && !visited.has(asset.href)) queue.push(asset)
+      } catch {}
+    }
+  }
+
+  return bundles.join('\\n')
+}
+
 async function getReachableApp() {
   let lastError
   for (let attempt = 0; attempt < 8; attempt += 1) {
@@ -106,9 +132,8 @@ test('deployed preview bundle includes the NexaPos FAQ bot and human handoff UI'
       const html = await response.text()
       const scriptPath = html.match(/<script[^>]+type="module"[^>]+src="([^"]+)"/i)?.[1]
       assert.ok(scriptPath, 'Expected a Vite module entry script')
-      const scriptResponse = await fetch(new URL(scriptPath, baseUrl), { signal: AbortSignal.timeout(15000) })
-      assert.equal(scriptResponse.status, 200, 'Application bundle should be served')
-      lastBundle = await scriptResponse.text()
+      lastBundle = await fetchApplicationBundleGraph(scriptPath)
+      assert.ok(lastBundle.length > 0, 'Application entry and lazy-loaded JavaScript chunks should be served')
       if (expectedStrings.every(value => lastBundle.includes(value))) return
       lastError = new Error('Latest preview bundle does not include all support UI/RPC labels yet')
     } catch (error) {
