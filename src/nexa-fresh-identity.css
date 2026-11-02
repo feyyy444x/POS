@@ -385,3 +385,25 @@ tbody tr:hover{background:#f7fbf9}
  .app-shell .pagination-bar{align-items:flex-start}
 }
 @media(max-width:390px){.app-shell .stats-grid{grid-template-columns:1fr}.app-shell .product-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.app-shell .product-tile{padding:9px}}
+
+
+/* Three distinct workspace shells, one coherent visual system */
+.nx-platform-shell,.nx-workspace-shell{--nx-shell-accent:#12a99b}
+.nx-platform-shell .sidebar,.nx-workspace-shell .sidebar{background:#0b1929}
+.nx-platform-shell .main-area,.nx-workspace-shell .main-area{background:#f3f6f5}
+.nx-platform-shell .topbar,.nx-workspace-shell .topbar{box-shadow:0 4px 18px #13243a06}
+.nx-platform-shell .page-content,.nx-workspace-shell .page-content{animation:nx-page-enter .42s cubic-bezier(.2,.7,.2,1) both}
+.nx-platform-shell .nav-link,.nx-workspace-shell .nav-link{position:relative;overflow:hidden}
+.nx-platform-shell .nav-active:after,.nx-workspace-shell .nav-active:after{content:"";position:absolute;inset:8px 8px 8px auto;width:3px;border-radius:4px;background:#56d7c7}
+.nx-owner-shell{--nx-shell-accent:#12a99b}
+.nx-owner-shell .owner-main{min-width:0}
+.nx-owner-shell .owner-content{animation:nx-page-enter .42s cubic-bezier(.2,.7,.2,1) both}
+.nx-owner-shell .owner-welcome{background:radial-gradient(ellipse at 90% 15%,#16515a 0,transparent 34%),linear-gradient(115deg,#0b1929,#112a3d 68%,#0b1929)}
+.nx-owner-shell .owner-tenant-card{position:relative;overflow:hidden}
+.nx-owner-shell .owner-tenant-card:before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:#12a99b;transform:scaleY(0);transform-origin:bottom;transition:transform .25s}
+.nx-owner-shell .owner-tenant-card:hover:before{transform:scaleY(1)}
+.nx-owner-shell .owner-nav-active{position:relative}
+.nx-owner-shell .owner-nav-active:after{content:"";position:absolute;right:12px;width:5px;height:5px;border-radius:50%;background:#6ce0d1}
+.nx-access-portal{isolation:isolate}
+@keyframes nx-page-enter{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@media(prefers-reduced-motion:reduce){.nx-platform-shell .page-content,.nx-workspace-shell .page-content,.nx-owner-shell .owner-content{animation:none}}
