@@ -314,3 +314,41 @@ tbody tr:hover{background:#f1faf7!important}
   .workspace-page-pos .page-content{padding:12px!important}
   .workspace-page-pos .cart-panel{position:relative!important}
 }
+
+/* Access portal is its own architectural room, not a split login template. */
+.access-portal{--access-navy:#102d50;--access-deep:#071827;--access-teal:#08b996;position:relative;z-index:1;background:#071827!important;color:#f4f8f7!important}
+.access-portal:before{background:radial-gradient(ellipse at 78% 48%,#16485b 0%,#0b263d 42%,#071827 82%)!important}
+.access-grid{opacity:.25!important;background-size:54px 54px!important}
+.access-geometry{border-radius:0!important;transform:rotate(45deg) skew(-5deg)!important;border-color:#55e5c22c!important;box-shadow:0 0 0 22px #08b99608,0 0 0 44px #08b99605}
+.access-geometry-a{width:min(70vw,820px)!important;right:-26%!important;top:-38%!important}
+.access-geometry-b{width:min(48vw,560px)!important;right:-8%!important;top:-18%!important;border-color:#ffffff20!important;transform:rotate(45deg)!important}
+.access-brand>span>span{color:#55e5c2!important}
+.access-system-label i,.access-security-note i{background:#55e5c2!important;box-shadow:0 0 0 5px #55e5c21c!important}
+.access-kicker,.access-index span:first-child,.access-form-meta svg{color:#55e5c2!important}
+.access-heading h1 em{color:#55e5c2!important}
+.access-field{border-radius:4px!important;background:#ffffff08!important}
+.access-field:focus-within{border-color:#55e5c2!important;box-shadow:0 0 0 3px #08b99624!important}
+.access-submit{border-radius:3px!important;background:#08b996!important;border-color:#08b996!important}
+.access-submit:hover:not(:disabled){background:#55e5c2!important;border-color:#55e5c2!important}
+.access-mode-switch button,.access-signout{color:#55e5c2!important}
+.access-security-note{border-color:#ffffff1e!important}
+.arch-hero-structure{animation:af-structure-drift 12s ease-in-out infinite}
+.arch-structure-mark{animation:af-mark-hover 8s ease-in-out infinite}
+.arch-structure-node.node-a{animation:af-node-a 8s ease-in-out infinite}
+.arch-structure-node.node-b{animation:af-node-b 9s ease-in-out infinite}
+.arch-structure-node.node-c{animation:af-node-c 10s ease-in-out infinite}
+.arch-structure-node.node-d{animation:af-node-d 8.5s ease-in-out infinite}
+@keyframes af-structure-drift{0%,100%{transform:translate3d(0,0,0) rotateX(0deg)}50%{transform:translate3d(0,-8px,0) rotateX(2deg)}}
+@keyframes af-mark-hover{0%,100%{transform:translateZ(40px) rotateY(-2deg)}50%{transform:translateZ(54px) rotateY(2deg)}}
+@keyframes af-node-a{0%,100%{transform:translate3d(0,0,0)}50%{transform:translate3d(-3px,-7px,10px)}}
+@keyframes af-node-b{0%,100%{transform:translate3d(0,0,0)}50%{transform:translate3d(3px,-8px,12px)}}
+@keyframes af-node-c{0%,100%{transform:translate3d(0,0,0)}50%{transform:translate3d(-4px,6px,8px)}}
+@keyframes af-node-d{0%,100%{transform:translate3d(0,0,0)}50%{transform:translate3d(4px,7px,10px)}}
+@media(max-width:760px){
+  .arch-hero-structure{animation:none!important}
+  .arch-structure-node{animation:none!important}
+  .arch-structure-mark{animation:none!important}
+}
+@media(prefers-reduced-motion:reduce){
+  .arch-hero-structure,.arch-structure-mark,.arch-structure-node{animation:none!important}
+}
