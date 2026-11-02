@@ -10,6 +10,7 @@ import './nexa-design-system.css'
 import './nexa-architecture-workspaces.css'
 import './nexa-digital-universe.css'
 import './nexa-architectural-future.css'
+import './nexa-total-redesign.css'
 
 class AppErrorBoundary extends React.Component {
   constructor(props) {
