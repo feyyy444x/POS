@@ -111,7 +111,7 @@ export default function OrganizationReports({ organization, tenants = [] }) {
 
   const downloadCsv = () => {
     const rows = [
-      ['Tenant', 'No Struk', 'Tanggal', 'Pembayaran', 'Kasir ID', 'Subtotal', 'Diskon', 'Total', 'Status'],
+      ['Tenant', 'No Struk', 'Tanggal', 'Pembayaran', 'Karyawan ID', 'Subtotal', 'Diskon', 'Total', 'Status'],
       ...filtered.map(order => [tenants.find(tenant => tenant.id === order.store_id)?.name || order.store_id, order.receipt_number, order.created_at, order.payment_method, order.cashier_id, order.subtotal, order.discount, order.total, order.status])
     ]
     const csv = rows.map(row => row.map(value => '"' + String(value ?? '').replaceAll('"', '""') + '"').join(',')).join('\n')
