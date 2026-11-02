@@ -1896,3 +1896,18 @@ tbody tr:hover{background:#f2faf7}
   .auth-orb{animation:none}
   .nav-link,.sidebar-link{transition:none}
 }
+
+
+/* Advanced motion: page transitions, magnetic controls and 3D pointer tilt */
+.nexa-page-enter{animation:nexa-page-enter .62s var(--nexa-motion-ease) both}
+.nexa-magnetic{transform:translate3d(var(--nexa-magnet-x,0px),var(--nexa-magnet-y,0px),0);transition:transform .32s var(--nexa-motion-ease),filter .32s}
+.living-stage{transform:rotateX(var(--nexa-tilt-x,0deg)) rotateY(var(--nexa-tilt-y,0deg));transition:transform .45s var(--nexa-motion-ease)}
+.living-hero h1 span{animation:nexa-kinetic-in .95s var(--nexa-motion-ease) .1s both}
+.living-stage-core:after{animation:nexa-liquid-breathe 7s ease-in-out infinite}
+@keyframes nexa-page-enter{from{opacity:0;transform:translate3d(0,14px,0);filter:blur(3px)}to{opacity:1;transform:translate3d(0,0,0);filter:blur(0)}}
+@keyframes nexa-kinetic-in{from{opacity:0;transform:translate3d(0,24px,0) skewY(2deg);filter:blur(7px)}to{opacity:1;transform:translate3d(0,0,0) skewY(0);filter:blur(0)}}
+@media(max-width:768px),(pointer:coarse){.nexa-magnetic{transform:none!important}.living-stage{transform:none!important}}
+@media(prefers-reduced-motion:reduce){
+  .nexa-page-enter,.living-hero h1 span{animation:none}
+  .nexa-magnetic,.living-stage{transform:none;transition:none}
+}
