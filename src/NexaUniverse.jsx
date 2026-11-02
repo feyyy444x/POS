@@ -159,6 +159,9 @@ export default function NexaUniverse() {
     let scene = sceneFor(document.querySelector('main h1')?.textContent || '', location.pathname)
     document.documentElement.dataset.nexaScene = String(scene)
     let resizeObserver
+    let drawFrame = null
+    let lastFrame = 0
+    const frameInterval = 1000 / 30
 
     const onPointer = (event) => {
       pointer = [
@@ -168,7 +171,9 @@ export default function NexaUniverse() {
     }
     const updateScene = () => {
       const heading = document.querySelector('.page-heading h1, .access-content h1, main h1')?.textContent || ''
-      scene = sceneFor(heading, location.pathname)
+      const nextScene = sceneFor(heading, location.pathname)
+      if (nextScene === scene) return
+      scene = nextScene
       document.documentElement.dataset.nexaScene = String(scene)
     }
     const observer = new MutationObserver(updateScene)
@@ -207,6 +212,8 @@ export default function NexaUniverse() {
         }
         const draw = (now) => {
           if (lost || !gl) return
+          if (!reduced && now - lastFrame < frameInterval) { raf = requestAnimationFrame(draw); return }
+          lastFrame = now
           const dpr = Math.min(window.devicePixelRatio || 1, innerWidth < 700 ? 0.78 : 1.05)
           const width = Math.max(1, Math.floor(innerWidth * dpr))
           const height = Math.max(1, Math.floor(innerHeight * dpr))
@@ -226,6 +233,7 @@ export default function NexaUniverse() {
           gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
           if (!reduced && !document.hidden) raf = requestAnimationFrame(draw)
         }
+        drawFrame = draw
         draw(performance.now())
       } catch (error) {
         console.warn('NexaPos 3D layer unavailable; using accessible DOM fallback.', error)
@@ -233,14 +241,24 @@ export default function NexaUniverse() {
     }
 
     resizeObserver = new ResizeObserver(() => {
-      if (!lost && !reduced) { cancelAnimationFrame(raf); raf = requestAnimationFrame((now) => { if (gl) { gl.viewport(0,0,canvas.width,canvas.height); } }) }
+      if (!lost && !reduced) {
+        cancelAnimationFrame(raf)
+        lastFrame = 0
+        if (drawFrame) raf = requestAnimationFrame(drawFrame)
+        else initialize()
+      }
     })
     resizeObserver.observe(document.documentElement)
     initialize()
 
     const onVisibility = () => {
       if (document.hidden) cancelAnimationFrame(raf)
-      else if (!reduced && !lost) { start = performance.now(); initialize() }
+      else if (!reduced && !lost) {
+        start = performance.now()
+        lastFrame = 0
+        if (drawFrame && gl) raf = requestAnimationFrame(drawFrame)
+        else initialize()
+      }
     }
     document.addEventListener('visibilitychange', onVisibility)
 
