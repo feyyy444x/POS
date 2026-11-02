@@ -235,8 +235,10 @@ export default function Homepage() {
       <nav className={menuOpen ? 'arch-nav-links is-open' : 'arch-nav-links'}>
         <a href="#sistem" onClick={() => setMenuOpen(false)}>Sistem</a>
         <a href="#ruang-kerja" onClick={() => setMenuOpen(false)}>Workspace</a>
-        <a href="#kapabilitas" onClick={() => setMenuOpen(false)}>Kapabilitas</a>
+        <a href="#kapabilitas" onClick={() => setMenuOpen(false)}>Fitur</a>
+        <a href="#alur-operasional" onClick={() => setMenuOpen(false)}>Operasional</a>
         <a href="#aktivasi" onClick={() => setMenuOpen(false)}>Aktivasi</a>
+        <a href="#dukungan" onClick={() => setMenuOpen(false)}>Dukungan</a>
         <a href="#faq" onClick={() => setMenuOpen(false)}>FAQ</a>
       </nav>
       <div className="arch-nav-actions"><a className="arch-login" href="/login">Masuk <ArrowUpRight size={14}/></a><a className="arch-nav-cta" href="#aktivasi">Jelajahi aktivasi <ArrowRight size={14}/></a></div>
@@ -330,7 +332,7 @@ export default function Homepage() {
       </section>
 
       <section className="arch-activation" id="aktivasi">
-        <div className="arch-activation-heading"><div><span className="arch-overline">05 / ACTIVATION & RENTAL</span><h2>Pilih masa sewa.<br/><em>Sesuaikan kapasitas.</em></h2></div><p>NexaPos menggunakan model sewa dengan aktivasi yang diproses oleh Super Admin. Harga, paket, dan promo mengikuti konfigurasi aktif.</p></div>
+        <div className="arch-activation-heading"><div><span className="arch-overline">06 / ACTIVATION & RENTAL</span><h2>Pilih masa sewa.<br/><em>Sesuaikan kapasitas.</em></h2></div><p>NexaPos menggunakan model sewa dengan aktivasi yang diproses oleh Super Admin. Harga, paket, dan promo mengikuti konfigurasi aktif.</p></div>
         {activePromo && <article className="arch-promo"><div><span className="arch-overline">PENAWARAN AKTIF</span><h3>{activePromo.title || 'Penawaran NexaPos'}</h3><p>{activePromo.description || 'Ketentuan promo mengikuti paket dan masa sewa yang memenuhi syarat.'}</p></div><strong>{promoDiscountLabel(activePromo)}<small>POTONGAN</small></strong><span className="arch-promo-note">{requiresPromoCode(activePromo) ? 'Voucher memerlukan kode' : promoStartsLater ? 'Promo segera dimulai' : 'Promo otomatis jika memenuhi syarat'}</span></article>}
         <div className="arch-duration-row"><div><span className="arch-overline">PILIH MASA AKTIF</span><p>Harga menyesuaikan durasi yang dipilih.</p></div><div className="arch-duration-options" role="tablist" aria-label="Pilihan masa sewa">{durations.map(duration=><button type="button" role="tab" aria-selected={selectedDuration===duration.duration_key} className={selectedDuration===duration.duration_key?'is-active':''} key={duration.duration_key} onClick={()=>setSelectedDuration(duration.duration_key)}><b>{duration.name}</b><small>{Number(duration.duration_days)} hari</small></button>)}</div></div>
         <div className="arch-voucher-row"><label htmlFor="arch-voucher"><Ticket size={15}/> Kode voucher</label><div><input id="arch-voucher" value={coupon} onChange={event=>setCoupon(event.target.value.toUpperCase())} placeholder="Masukkan kode jika memilikinya"/>{coupon&&<button type="button" onClick={()=>setCoupon('')} aria-label="Hapus kode voucher"><X size={15}/></button>}</div><small>{coupon ? quoteLoading ? 'Memeriksa voucher ke server…' : serverQuotes[selectedPlan]?.promo_id ? 'Voucher terverifikasi untuk paket dan durasi ini.' : 'Kode belum valid untuk pilihan paket dan durasi ini.' : 'Voucher hanya berlaku sesuai ketentuan promo.'}</small></div>
@@ -363,7 +365,7 @@ export default function Homepage() {
       </section>
 
       <section className="arch-faq" id="faq">
-        <div className="arch-faq-heading"><span className="arch-overline">06 / FREQUENTLY ASKED QUESTIONS</span><h2>Hal penting,<br/><em>sebelum mulai.</em></h2><p>Jawaban ini menjelaskan model kerja dan batasan NexaPos berdasarkan fungsi produk saat ini.</p></div>
+        <div className="arch-faq-heading"><span className="arch-overline">07 / FREQUENTLY ASKED QUESTIONS</span><h2>Hal penting,<br/><em>sebelum mulai.</em></h2><p>Jawaban ini menjelaskan model kerja dan batasan NexaPos berdasarkan fungsi produk saat ini.</p></div>
         <div className="arch-faq-list">{[
           {q:'Apa yang dapat dikelola melalui NexaPos?',a:'NexaPos mencakup POS dan checkout, katalog serta stok per tenant, sesi kasir, kehadiran dan istirahat, tim dan hak akses, laporan penjualan dan modal, antrean, Self Order, struk, serta audit aktivitas. Fitur yang terlihat mengikuti peran, izin, dan konfigurasi workspace.'},
           {q:'Apa perbedaan NexaSpace dan Single Workspace?',a:'NexaSpace adalah pusat kendali Owner untuk organisasi dengan beberapa tenant. Single Workspace adalah model terpisah untuk Owner yang mengelola satu workspace mandiri tanpa NexaSpace. Penawaran Single Workspace hanya tersedia ketika paketnya diaktifkan Admin.'},
@@ -383,7 +385,7 @@ export default function Homepage() {
       </section>
 
       <section className="arch-contact">
-        <div><span className="arch-overline">07 / START WITH THE RIGHT WORKSPACE</span><h2>Siapkan sistem<br/><em>untuk langkah berikutnya.</em></h2><p>Jelajahi model workspace, periksa pilihan aktivasi yang tersedia, atau masuk jika akun NexaPos Anda sudah aktif.</p></div>
+        <div><span className="arch-overline">08 / START WITH THE RIGHT WORKSPACE</span><h2>Siapkan sistem<br/><em>untuk langkah berikutnya.</em></h2><p>Jelajahi model workspace, periksa pilihan aktivasi yang tersedia, atau masuk jika akun NexaPos Anda sudah aktif.</p></div>
         <div className="arch-contact-actions"><a href="#aktivasi" className="arch-primary-cta">Lihat pilihan aktivasi <ArrowRight size={15}/></a><a href="/login" className="arch-contact-login">Sudah punya akun? Masuk ke workspace <ArrowUpRight size={15}/></a></div>
       </section>
     </main>
