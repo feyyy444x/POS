@@ -228,3 +228,15 @@ input,select,textarea,.text-input{border-radius:11px!important;border-color:#cbd
 .support-messages{background:#f1f6f8!important}.support-typing-indicator{color:#087f82!important}
 .support-inbox-item{border-color:#dce7eb!important}.support-inbox-item.active{background:#e5f6f2!important;border-color:#19b9a5!important}
 .support-realtime-dot{background:#19b9a5!important;box-shadow:0 0 0 4px #19b9a51c!important}
+
+
+/* VISUAL CLARITY HOTFIX — keep spatial artwork out of operational screens. */
+html:not([data-nexa-scene="0"]) .nexa-universe-canvas{display:none!important}
+html[data-nexa-scene="0"] .nexa-universe-canvas{
+  opacity:.10!important;
+  mix-blend-mode:screen!important;
+  mask-image:radial-gradient(ellipse 62% 72% at 70% 48%,#000 0%,#000 42%,transparent 100%);
+}
+@media(max-width:760px){
+  .nexa-universe-canvas{display:none!important}
+}
