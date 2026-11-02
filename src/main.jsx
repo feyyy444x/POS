@@ -3,10 +3,12 @@ import { createRoot } from 'react-dom/client'
 import App from './App.jsx'
 import PwaInstallPrompt from './PwaInstallPrompt.jsx'
 import MotionSystem from './MotionSystem.jsx'
+import NexaUniverse from './NexaUniverse.jsx'
 import './styles.css'
 import './owner-tenant-order.css'
 import './nexa-design-system.css'
 import './nexa-architecture-workspaces.css'
+import './nexa-digital-universe.css'
 
 class AppErrorBoundary extends React.Component {
   constructor(props) {
@@ -64,6 +66,7 @@ createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <AppErrorBoundary>
       <>
+        <NexaUniverse />
         <MotionSystem />
         <React.Suspense fallback={<div className="nexa-module-loading" role="status" aria-live="polite"><span className="nexa-loading-orbit"/>Memuat modul NexaPos…</div>}>
           <App />
