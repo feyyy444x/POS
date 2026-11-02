@@ -77,7 +77,7 @@ test('Self Order staff status RPC is not executable by anonymous customers and f
 })
 
 test('Public Self Order catalog and checkout validate activation without requiring tenant membership', async () => {
-  const fix = await read('../supabase/migrations/20261101100000_self_order_public_store_access_fix.sql')
+  const fix = await read('../supabase/migrations/20261101084506_self_order_public_store_access_fix.sql')
   assert.ok(fix.includes('create or replace function private.is_store_publicly_available(target_store uuid)'))
   assert.ok(fix.includes("o.status = 'active'"))
   assert.ok(fix.includes('o.expires_at is null or o.expires_at > now()'))
@@ -116,7 +116,7 @@ test('Customer Self Order product catalog is paginated to avoid a long stacked m
 
 
 test('Self Order staff actions require the authenticated employee own open shift in the same tenant', async () => {
-  const sql = await read('../supabase/migrations/20261101110000_require_open_shift_for_self_order_actions.sql')
+  const sql = await read('../supabase/migrations/20261101105710_require_open_shift_for_self_order_actions.sql')
   assert.ok(sql.includes('from public.cashier_shifts s'))
   assert.ok(sql.includes('s.store_id = v_order.store_id'))
   assert.ok(sql.includes('s.cashier_id = (select auth.uid())'))
