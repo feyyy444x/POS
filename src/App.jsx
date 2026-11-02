@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import { isSupabaseConfigured, supabase } from './lib/supabase'
 import { userFacingError } from './lib/userFacingError'
+import { AuthScreen, PinGate } from './AccessPortal.jsx'
 // Heavy route modules are split into separate chunks so public visitors and
 // everyday cashiers do not download Admin, reporting, support and self-order code up front.
 const SupportCenter = lazy(() => import('./SupportCenter.jsx'))
@@ -63,93 +64,6 @@ function WibClock({ className = '', showDate = false }) {
   const time = new Intl.DateTimeFormat('id-ID', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).format(now)
   const date = new Intl.DateTimeFormat('id-ID', { timeZone: 'Asia/Jakarta', weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }).format(now)
   return <span className={`wib-digital-clock ${className}`} title="Waktu Indonesia Barat"><Clock3 size={14}/><strong>{time}</strong><small>WIB</small>{showDate && <em>{date}</em>}</span>
-}
-
-function AuthScreen() {
-  const [mode, setMode] = useState('login')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [activationCode, setActivationCode] = useState('')
-  const [busy, setBusy] = useState(false)
-  const [message, setMessage] = useState('')
-  const [success, setSuccess] = useState(false)
-
-  const submit = async (event) => {
-    event.preventDefault()
-    setMessage('')
-    setSuccess(false)
-    if (!isSupabaseConfigured) {
-      setMessage('Konfigurasi Supabase belum tersedia. Tambahkan VITE_SUPABASE_URL dan VITE_SUPABASE_PUBLISHABLE_KEY di environment Netlify.')
-      return
-    }
-    setBusy(true)
-    try {
-      if (mode === 'login') {
-        const result = await supabase.auth.signInWithPassword({ email: email.trim(), password })
-        if (result.error) setMessage(userFacingError(result.error))
-      } else {
-        const response = await fetch('/.netlify/functions/activate-invitation', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: email.trim(), password, activationCode: activationCode.trim() }),
-        })
-        const result = await response.json().catch(() => ({}))
-        if (!response.ok) throw new Error(result.error || 'Aktivasi undangan gagal. Periksa kembali email dan status undangan.')
-        setSuccess(true)
-        setMessage('Undangan berhasil diverifikasi dan password berhasil dibuat. Silakan masuk menggunakan email dan password tersebut.')
-        setMode('login')
-      }
-    } catch (error) {
-      setMessage(userFacingError(error, 'Terjadi kesalahan. Silakan coba lagi.'))
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  return <main className="auth-shell">
-    <div className="auth-orb orb-one"/><div className="auth-orb orb-two"/>
-    <div className="auth-left">
-      <Brand/>
-      <div className="auth-hero"><span className="eyebrow"><span className="pulse-dot"/> POINT OF SALE, REIMAGINED</span>
-        <h1>Operasional bisnis,<br/><span>naik level.</span></h1>
-        <p>Transaksi, stok, dan antrean dalam satu ruang kerja yang terasa cepat, rapi, dan selalu tersinkron.</p>
-        <div className="hero-stats"><div><strong>Realtime</strong><span>Queue sync</span></div><div><strong>80mm</strong><span>Thermal ready</span></div><div><strong>Cloud</strong><span>Data tersimpan</span></div></div>
-      </div>
-      <div className="auth-footer">© {new Date().getFullYear()} NexaPos <span>•</span> Built for better business.</div>
-    </div>
-    <div className="auth-right"><form className="auth-card" onSubmit={submit}><div className="auth-card-brand"><Brand/></div>
-      <div className="auth-card-icon"><ShieldCheck size={23}/></div>
-      <span className="eyebrow muted">WORKSPACE ACCESS</span>
-      <h2>{mode === 'login' ? 'Selamat datang' : 'Aktivasi Undangan'}</h2>
-      <p className="subtle">{mode === 'login' ? 'Masuk menggunakan akun NexaPos yang sudah aktif.' : 'Aktivasi hanya tersedia untuk email yang telah didaftarkan Owner atau Super Admin.'}</p>
-      <label>Email terdaftar pada undangan</label><div className="field"><UserRound size={17}/><input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="nama@bisnis.com" required autoComplete="email"/></div>
-      {mode === 'activate' && <><label>Kode aktivasi dari Owner</label><div className="field"><KeyRound size={17}/><input value={activationCode} onChange={e=>setActivationCode(e.target.value.replace(/[^a-f0-9]/gi,'').slice(0,32))} placeholder="Tempel kode aktivasi" autoComplete="off" required minLength={32} maxLength={32}/></div></>}
-      <label>Password {mode === 'login' ? '' : 'baru'}</label><div className="field"><ShieldCheck size={17}/><input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder={mode==='login'?'Masukkan password':'Minimal 6 karakter'} required minLength={mode==='login'?1:6} autoComplete={mode==='login'?'current-password':'new-password'}/></div>
-      {message && <div className={`notice ${success ? 'notice-success' : ''}`}>{message}</div>}
-      <button className="btn btn-primary btn-wide" disabled={busy}>{busy ? <span className="spinner"/> : mode==='login' ? 'Masuk ke workspace' : 'Verifikasi & aktifkan akun'} <ArrowRight size={17}/></button>
-      <div className="auth-switch">{mode==='login'?'Sudah menerima undangan?':'Sudah mengaktifkan akun?'} <button type="button" onClick={()=>{setMode(mode==='login'?'activate':'login');setMessage('');setSuccess(false)}}>{mode==='login'?'Aktivasi Undangan':'Kembali ke login'}</button></div>
-      <div className="secure-note"><ShieldCheck size={14}/> Aktivasi diperiksa langsung terhadap undangan tenant</div>
-    </form></div>
-  </main>
-}
-
-
-function PinGate({session,status,onReady,onSignOut}) {
-  const [pin,setPin]=useState('')
-  const [busy,setBusy]=useState(false)
-  const [error,setError]=useState('')
-  const setup=!status?.has_pin
-  const submit=async(event)=>{
-    event.preventDefault();setError('')
-    if(!/^\d{4}$/.test(pin)){setError('PIN harus tepat 4 angka.');return}
-    setBusy(true)
-    const {data,error:rpcError}=await supabase.rpc(setup?'set_my_pin':'verify_my_pin',setup?{p_pin:pin}:{p_pin:pin})
-    setBusy(false)
-    if(rpcError){setError(userFacingError(rpcError));return}
-    if(!setup&&data!==true){setPin('');setError('PIN salah. Silakan coba kembali.');return}
-    onReady({has_pin:true,is_verified:true})
-  }
-  return <main className="auth-shell"><div className="auth-orb orb-one"/><div className="auth-orb orb-two"/><div className="auth-left"><Brand/><div className="auth-hero"><span className="eyebrow"><span className="pulse-dot"/> ACCOUNT SECURITY</span><h1>Satu langkah<br/><span>lebih aman.</span></h1><p>PIN pribadi melindungi akses ke workspace NexaPos.</p></div><div className="auth-footer">© {new Date().getFullYear()} NexaPos</div></div><div className="auth-right"><form className="auth-card" onSubmit={submit}><div className="auth-card-brand"><Brand/></div><div className="auth-card-icon"><ShieldCheck size={23}/></div><span className="eyebrow muted">PIN VERIFICATION</span><h2>{setup?'Buat PIN 4 angka':'Masukkan PIN'}</h2><p className="subtle">{setup?'Buat PIN pribadi sebelum menggunakan workspace. Jangan gunakan PIN yang mudah ditebak.':'Password benar. Verifikasi PIN untuk membuka workspace.'}</p><label>PIN 4 angka</label><div className="field"><ShieldCheck size={17}/><input type="password" inputMode="numeric" pattern="[0-9]{4}" maxLength={4} autoComplete="off" value={pin} onChange={e=>setPin(e.target.value.replace(/\D/g,'').slice(0,4))} placeholder="••••" required/></div>{error&&<div className="notice">{error}</div>}<button className="btn btn-primary btn-wide" disabled={busy||pin.length!==4}>{busy?<span className="spinner"/>:setup?'Simpan PIN & lanjut':'Verifikasi PIN'} <ArrowRight size={17}/></button><div className="secure-note"><ShieldCheck size={14}/> PIN diverifikasi server dan sesi dibatasi 12 jam</div><button type="button" className="text-button" onClick={onSignOut}>Keluar dari akun</button></form></div></main>
 }
 
 function Pagination({page,total,pageSize=10,onChange}) {
