@@ -207,7 +207,7 @@ export default function NexaUniverse() {
         }
         const draw = (now) => {
           if (lost || !gl) return
-          const dpr = Math.min(window.devicePixelRatio || 1, innerWidth < 700 ? 1 : 1.35)
+          const dpr = Math.min(window.devicePixelRatio || 1, innerWidth < 700 ? 0.78 : 1.05)
           const width = Math.max(1, Math.floor(innerWidth * dpr))
           const height = Math.max(1, Math.floor(innerHeight * dpr))
           if (canvas.width !== width || canvas.height !== height) {
