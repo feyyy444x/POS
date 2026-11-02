@@ -122,6 +122,9 @@ test('deployed preview bundle includes the NexaPos FAQ bot and human handoff UI'
     'request_support_handoff',
     'admin_reply_support_message',
     'set_support_conversation_status',
+    'set_support_typing_status',
+    'Admin NexaPos sedang mengetik...',
+    'NexaBot sedang mengetik...',
   ]
   let lastBundle = ''
   let lastError
