@@ -58,7 +58,7 @@ export default function Homepage() {
   const [durations, setDurations] = useState([])
   const [selectedDuration, setSelectedDuration] = useState('monthly')
   const [promos, setPromos] = useState([])
-  const [supportChannels, setSupportChannels] = useState({ whatsapp_enabled: false, whatsapp_number: '', telegram_enabled: true, telegram_username: 'becaaapos' })
+  const [supportChannels, setSupportChannels] = useState({ whatsapp_enabled: false, whatsapp_number: '', telegram_enabled: false, telegram_username: '' })
   const [serverQuotes, setServerQuotes] = useState({})
   const [quoteLoading, setQuoteLoading] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
