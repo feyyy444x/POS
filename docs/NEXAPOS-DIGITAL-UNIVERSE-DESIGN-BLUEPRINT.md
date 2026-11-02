@@ -269,3 +269,40 @@ Homepage harus menjelaskan produk yang benar-benar tersedia dan mengikuti spesif
 8. Tidak ada regresi pada auth, role, RLS, tenant isolation, checkout, stock, report, receipt, queue, Self Order, atau support.
 9. Build dan tes pada commit terbaru lulus.
 10. PR tetap belum merge dan production tidak berubah sampai persetujuan rilis.
+
+
+---
+
+## 14. Final approved visual direction — Adaptive Architectural Experience
+
+This section supersedes any earlier color or lighting guidance in this document where they conflict.
+
+**Approved combination:** Hybrid Architecture + Immersive Motion + Adaptive Visual.  
+**Visual intensity:** Immersive on brand/storytelling surfaces; restrained on operational surfaces.  
+**Theme behavior:** Adaptive by product context, not a forced site-wide dark or light theme.
+
+### Non-negotiable visual exclusions
+- No light neon, neon glow, RGB, cyberpunk, fluorescent accents, glowing cursor, emissive outlines, or excessive bloom.
+- No purple, pink, violet, rainbow gradients, or decorative color outside the NexaPos identity.
+- No glow/shadow treatment that reduces contrast or makes controls look illuminated.
+- No high-motion effects that interfere with checkout, barcode/search input, payment, receipt printing, or touch interaction.
+
+### Material and palette direction
+- Matte charcoal, graphite, warm ivory, limestone, concrete, muted steel, and restrained deep teal.
+- Existing NexaPos logo and tenant logos remain unchanged.
+- Teal is a controlled accent, not a luminous highlight.
+- Dark architectural surfaces are appropriate for navigation, login, immersive storytelling and selected command-center regions.
+- Light warm surfaces are appropriate for dense operational data, forms, catalogues, tables, and analytics where sustained readability matters.
+
+### Motion behavior
+- Homepage may use cinematic scroll choreography, spatial composition, and progressive 3D enhancement.
+- Authentication uses calm entrance transitions and clear form feedback.
+- Admin and NexaSpace use navigation transitions, restrained reveal, state feedback, and data visualization.
+- POS checkout and other time-critical workflows prioritize immediate response; decorative motion is minimized or disabled.
+- Respect `prefers-reduced-motion`, touch devices, hidden tabs, low-power devices, and WebGL failure. All business controls remain usable without WebGL.
+
+### Implementation status
+- Added `src/nexa-immersive-adaptive.css` as the global adaptive visual layer.
+- Activated it from `src/main.jsx` after the existing global visual imports so the new tokens and component treatments take precedence.
+- No business logic, Supabase schema, RLS policy, environment variable, or production data was changed by this visual-layer commit.
+- Build and visual regression checks remain required before this design is considered release-ready.
