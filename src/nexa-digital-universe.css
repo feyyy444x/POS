@@ -14,8 +14,15 @@
 }
 .nexa-universe-canvas{
   position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;
-  opacity:.46;mix-blend-mode:multiply;contain:strict;
+  opacity:.34;mix-blend-mode:normal;contain:strict;
 }
+body{background:#f3f6f7}
+.app-shell,.tenant-operations-shell,.super-admin-shell{background:transparent!important}
+.app-shell .main-area,.tenant-operations-shell .main-area,.super-admin-shell .main-area{background:transparent!important}
+.app-shell .page-content,.app-shell .page-section,.tenant-operations-shell .page-content,.super-admin-shell .page-content{background:transparent}
+.app-shell .topbar,.tenant-operations-shell .topbar,.super-admin-shell .topbar{backdrop-filter:blur(14px)}
+.page-section{animation:nexa-page-arrive 520ms var(--nexa-ease-spatial) both}
+@keyframes nexa-page-arrive{from{opacity:0;transform:translate3d(0,10px,0)}to{opacity:1;transform:translate3d(0,0,0)}}
 #root{isolation:isolate;min-height:100vh}
 #root>*:not(.nexa-universe-canvas){position:relative;z-index:1}
 .app-shell,.access-portal{isolation:isolate}
@@ -53,7 +60,7 @@ table tbody tr:hover{box-shadow:inset 3px 0 var(--nexa-teal)}
 .modal-card,.auth-card{backface-visibility:hidden}
 .nexa-module-loading{background:linear-gradient(135deg,#07182c,#102d50)!important;color:#fff!important}
 @media (max-width:900px){
-  .nexa-universe-canvas{opacity:.27}
+  .nexa-universe-canvas{opacity:.22}
   .panel:hover,.auth-card:hover,.settings-info:hover,.account-info:hover,.dash-card:hover,.metric-card:hover,.stat-card:hover{transform:none}
 }
 @media (max-width:600px){
