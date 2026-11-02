@@ -307,9 +307,9 @@ export default function Homepage() {
         <div className="arch-voucher-row"><label htmlFor="arch-voucher"><Ticket size={15}/> Kode voucher</label><div><input id="arch-voucher" value={coupon} onChange={event=>setCoupon(event.target.value.toUpperCase())} placeholder="Masukkan kode jika memilikinya"/>{coupon&&<button type="button" onClick={()=>setCoupon('')} aria-label="Hapus kode voucher"><X size={15}/></button>}</div><small>{coupon ? quoteLoading ? 'Memeriksa voucher ke server…' : serverQuotes[selectedPlan]?.promo_id ? 'Voucher terverifikasi untuk paket dan durasi ini.' : 'Kode belum valid untuk pilihan paket dan durasi ini.' : 'Voucher hanya berlaku sesuai ketentuan promo.'}</small></div>
         {availablePromos.some(p=>requiresPromoCode(p)) && <div className="arch-voucher-list">{availablePromos.filter(p=>requiresPromoCode(p)).map(p=><article key={p.id}><div><b>{p.title || 'Voucher NexaPos'}</b><p>{p.description || 'Masukkan kode untuk memeriksa kelayakan penawaran.'}</p><small>Potongan {promoDiscountLabel(p)}</small></div><button type="button" onClick={()=>setCoupon(p.promo_code||'')} disabled={!p.promo_code}>Gunakan kode <ArrowRight size={13}/></button></article>)}</div>}
         <div className="arch-plan-grid">
-          {plans.length ? plans.map((plan,index)=>{
+          {plans.length && durations.length ? plans.map((plan,index)=>{
             const duration=durations.find(d=>d.duration_key===selectedDuration) || durations[0]
-            const basePrice=Math.max(0,Number(plan.prices?.[selectedDuration] ?? 0))
+            const rawPrice=Number(plan.prices?.[selectedDuration]); const hasPrice=Number.isFinite(rawPrice)&&rawPrice>0; const basePrice=hasPrice?rawPrice:0
             const pricedPlan={...plan,price:basePrice,duration:duration?.name||selectedDuration,duration_days:Number(duration?.duration_days||0)}
             const serverQuote=serverQuotes[plan.key]
             const displayPromo=serverQuote?.promo_id?{id:serverQuote.promo_id,title:serverQuote.promo_title,description:serverQuote.promo_description,discount_type:serverQuote.discount_type,discount_value:serverQuote.discount_value,eligible_periods:serverQuote.eligible_periods,promo_code:serverQuote.promo_code,requires_code:serverQuote.requires_code,starts_at:serverQuote.starts_at,ends_at:serverQuote.ends_at}:null
@@ -320,10 +320,10 @@ export default function Homepage() {
               <p>{plan.note || 'Pilihan kapasitas sesuai kebutuhan operasional.'}</p>
               {plan.key==='single_workspace' ? <div className="arch-plan-quota"><Store size={14}/> 1 workspace mandiri</div> : <div className="arch-plan-quota"><Store size={14}/> Kuota {Number(plan.location_limit||1)} tenant tambahan di luar workspace utama</div>}
               <div className="arch-plan-price-label">{discount>0?'HARGA SETELAH PROMO':'HARGA SEWA'}</div>
-              {discount>0&&<del>{money(basePrice)}</del>}<strong className="arch-plan-price">{money(finalPrice)}</strong><small className="arch-plan-period">/ {duration?.name||'durasi'} · {Number(duration?.duration_days||0)} hari</small>
+              {discount>0&&hasPrice&&<del>{money(basePrice)}</del>}<strong className="arch-plan-price">{hasPrice?money(finalPrice):'Harga belum tersedia'}</strong><small className="arch-plan-period">{hasPrice?'/ '+(duration?.name||'durasi')+' · '+Number(duration?.duration_days||0)+' hari':'Konfirmasi harga melalui Admin NexaPos'}</small>
               {discount>0&&<span className="arch-plan-saving">Hemat {money(discount)} · {promoDiscountLabel(displayPromo)}</span>}
               <ul>{(plan.features?.length?plan.features:defaultFeatures).map((feature,i)=><li key={i}><Check size={14}/>{feature}</li>)}</ul>
-              <button type="button" disabled={!supportAvailable} onClick={()=>{setSelectedPlan(plan.key);contact(pricedPlan,displayPromo,serverQuote)}}>{supportAvailable ? "Tanyakan paket ini" : "Kanal konsultasi belum tersedia"} <ArrowUpRight size={15}/></button>
+              <button type="button" disabled={!supportAvailable||!hasPrice} onClick={()=>{setSelectedPlan(plan.key);contact(pricedPlan,displayPromo,serverQuote)}}>{!hasPrice ? "Harga belum tersedia" : supportAvailable ? "Tanyakan paket ini" : "Kanal konsultasi belum tersedia"} <ArrowUpRight size={15}/></button>
               <small className="arch-plan-foot">Kode aktivasi diterbitkan oleh Super Admin.</small>
             </article>
           }) : <div className="arch-pricing-unavailable"><ShieldCheck size={20}/><div><b>Informasi paket belum tersedia.</b><p>Harga dan pilihan aktivasi akan ditampilkan setelah konfigurasi paket aktif berhasil dimuat. Silakan masuk kembali nanti atau hubungi tim NexaPos melalui kanal dukungan yang tersedia.</p></div></div>}
