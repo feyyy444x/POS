@@ -253,20 +253,20 @@ export default function SupportCenter({ session, onClose, isSuperAdmin = false, 
       .on('postgres_changes', { event: '*', schema: 'public', table: 'support_conversations' }, payload => {
         const row = payload.new || payload.old || {}
         const changedUserId = row.user_id
-        const messageStateChanged = payload.eventType === 'INSERT'
-          || payload.new?.status !== payload.old?.status
-          || payload.new?.last_message_at !== payload.old?.last_message_at
         if (isSuperAdmin) {
-          if (mode === 'inbox') loadInbox()
-          else if (mode === 'chat' && activeUser?.user_id === changedUserId) {
+          if (mode === 'inbox') {
+            setInbox(current => current.map(item => item.user_id === changedUserId
+              ? { ...item, status: row.status || item.status, updated_at: row.updated_at || item.updated_at }
+              : item))
+          } else if (mode === 'chat' && activeUser?.user_id === changedUserId) {
             updateRemoteTyping('user', row.user_typing_at)
-            if (messageStateChanged) loadMessages(activeUser.user_id)
+            setConversationStatus(row.status || 'ai_active')
           }
           return
         }
         if (changedUserId === userId && mode === 'chat') {
           updateRemoteTyping('admin', row.admin_typing_at)
-          if (messageStateChanged) loadMessages(userId)
+          setConversationStatus(row.status || 'ai_active')
         }
       })
       .subscribe(status => {
