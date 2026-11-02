@@ -5,7 +5,7 @@ import { readFile } from 'node:fs/promises'
 const read = path => readFile(new URL(path, import.meta.url), 'utf8')
 
 test('Single Workspace is a distinct store mode and bypasses Owner organization creation', async () => {
-  const sql = await read('../supabase/migrations/20261101140000_single_workspace_subscription.sql')
+  const sql = await read('../supabase/migrations/20261102051423_single_workspace_subscription.sql')
   assert.match(sql, /workspace_mode in \('nexaspace', 'single_workspace'\)/)
   assert.match(sql, /if new\.workspace_mode = 'single_workspace' then[\s\S]*?new\.organization_id := null[\s\S]*?return new/i)
   assert.match(sql, /v_has_primary/)
@@ -17,7 +17,7 @@ test('Single Workspace is a distinct store mode and bypasses Owner organization 
 })
 
 test('Adding Single Workspace preserves the existing Khusus custom-tenant quota activation path', async () => {
-  const sql = await read('../supabase/migrations/20261101140000_single_workspace_subscription.sql')
+  const sql = await read('../supabase/migrations/20261102051423_single_workspace_subscription.sql')
   const activation = sql.slice(sql.indexOf('create or replace function public.activate_store_tenant('), sql.indexOf('revoke all on function public.activate_store_tenant(uuid, integer, text, integer)'))
   assert.match(activation, /p_package_key in \('custom', 'special'\)/)
   assert.match(activation, /where package_key = p_package_key/)
@@ -27,7 +27,7 @@ test('Adding Single Workspace preserves the existing Khusus custom-tenant quota 
 })
 
 test('Single Workspace activation is independent of organization package quota and expiry', async () => {
-  const sql = await read('../supabase/migrations/20261101140000_single_workspace_subscription.sql')
+  const sql = await read('../supabase/migrations/20261102051423_single_workspace_subscription.sql')
   const activation = sql.slice(sql.indexOf('create or replace function public.activate_single_workspace'), sql.indexOf('revoke all on function public.activate_single_workspace'))
   assert.match(activation, /private\.is_super_admin\(\)/)
   assert.match(activation, /private\.is_pin_verified\(\)/)
@@ -54,7 +54,7 @@ test('Single Workspace Owner is registered through the normal owner membership a
 test('Single Workspace subscription is configurable in Admin and only public when activated there', async () => {
   const manager = await read('../src/SubscriptionPlanManager.jsx')
   const homepage = await read('../src/Homepage.jsx')
-  const migration = await read('../supabase/migrations/20261101140000_single_workspace_subscription.sql')
+  const migration = await read('../supabase/migrations/20261102051423_single_workspace_subscription.sql')
   assert.match(manager, /package_key: 'single_workspace'/)
   assert.match(manager, /plan\.package_key==='single_workspace'\?1/)
   assert.match(manager, /Require Single Workspace prices before publishing the package|Isi harga harian, mingguan, bulanan, dan tahunan Single Workspace/)
