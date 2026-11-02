@@ -5,6 +5,7 @@ import PwaInstallPrompt from './PwaInstallPrompt.jsx'
 import './styles.css'
 import './nexa-fresh-identity.css'
 import './owner-tenant-order.css'
+import './nexa-immersive-adaptive.css'
 
 class AppErrorBoundary extends React.Component {
   constructor(props) {
