@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
-  ArrowDown, ArrowRight, ArrowUpRight, BarChart3, Check, CheckCircle2, ChevronDown,
+  ArrowDown, ArrowRight, ArrowUpRight, BarChart3, Building2, Check, CheckCircle2, ChevronDown,
   CircleDollarSign, Monitor, Package, Phone, Printer, Send, ShieldCheck, ShoppingCart,
   Sparkles, Ticket, Users, X, Zap, Activity, Store, Workflow
 } from 'lucide-react'
@@ -101,7 +101,7 @@ export default function Homepage() {
       if (error || !data || !mounted) return
       setSupportChannels({
         whatsapp_enabled: Boolean(data.whatsapp_enabled),
-        whatsapp_number: String(data.whatsapp_number || '').replace(/\\D/g, ''),
+        whatsapp_number: String(data.whatsapp_number || '').replace(/\D/g, ''),
         telegram_enabled: Boolean(data.telegram_enabled),
         telegram_username: String(data.telegram_username || '').replace(/^@/, '').trim(),
       })
@@ -213,7 +213,7 @@ export default function Homepage() {
     'Kebutuhan jumlah tenant: ',
     'Kebutuhan masa aktif: ',
     'Mohon informasi pilihan dan proses aktivasinya. Terima kasih.'
-  ].join('\\n'))
+  ].join('\n'))
   const contact = (plan, promo, quote) => openSupport([
     'Halo Tim NexaPos, saya ingin menanyakan aktivasi layanan.',
     'Paket: ' + plan.name + (plan.key === 'single_workspace' ? ' (satu workspace mandiri)' : ' (' + Number(plan.location_limit || 1) + ' tenant tambahan)'),
@@ -223,7 +223,7 @@ export default function Homepage() {
     promo ? 'Perkiraan harga setelah diskon: ' + money(Number(quote?.final_price ?? plan.price)) : '',
     coupon.trim() ? 'Kode voucher: ' + coupon.trim().toUpperCase() : '',
     'Mohon informasi mengenai proses aktivasi dan pembayaran. Terima kasih.'
-  ].filter(Boolean).join('\\n'))
+  ].filter(Boolean).join('\n'))
   return <div className="architecture-home">
     <header className="arch-nav">
       <Brand />
@@ -323,12 +323,12 @@ export default function Homepage() {
               {discount>0&&<del>{money(basePrice)}</del>}<strong className="arch-plan-price">{money(finalPrice)}</strong><small className="arch-plan-period">/ {duration?.name||'durasi'} · {Number(duration?.duration_days||0)} hari</small>
               {discount>0&&<span className="arch-plan-saving">Hemat {money(discount)} · {promoDiscountLabel(displayPromo)}</span>}
               <ul>{(plan.features?.length?plan.features:defaultFeatures).map((feature,i)=><li key={i}><Check size={14}/>{feature}</li>)}</ul>
-              <button type="button" onClick={()=>{setSelectedPlan(plan.key);contact(pricedPlan,displayPromo,serverQuote)}}>Tanyakan paket ini <ArrowUpRight size={15}/></button>
+              <button type="button" disabled={!supportAvailable} onClick={()=>{setSelectedPlan(plan.key);contact(pricedPlan,displayPromo,serverQuote)}}>{supportAvailable ? "Tanyakan paket ini" : "Kanal konsultasi belum tersedia"} <ArrowUpRight size={15}/></button>
               <small className="arch-plan-foot">Kode aktivasi diterbitkan oleh Super Admin.</small>
             </article>
           }) : <div className="arch-pricing-unavailable"><ShieldCheck size={20}/><div><b>Informasi paket belum tersedia.</b><p>Harga dan pilihan aktivasi akan ditampilkan setelah konfigurasi paket aktif berhasil dimuat. Silakan masuk kembali nanti atau hubungi tim NexaPos melalui kanal dukungan yang tersedia.</p></div></div>}
         </div>
-        <article className="arch-special-plan"><div><span className="arch-overline">CUSTOM ARRANGEMENT / PAKET KHUSUS</span><h3>Operasional dengan kebutuhan khusus?</h3><p>Diskusikan masa aktif dan jumlah tenant sesuai kebutuhan. Harga dan kuota tidak ditampilkan secara publik; detail ditentukan melalui konsultasi dan proses aktivasi oleh Admin.</p></div><button type="button" onClick={contactCustom}>Konsultasikan kebutuhan <ArrowUpRight size={15}/></button></article>
+        <article className="arch-special-plan"><div><span className="arch-overline">CUSTOM ARRANGEMENT / PAKET KHUSUS</span><h3>Operasional dengan kebutuhan khusus?</h3><p>Diskusikan masa aktif dan jumlah tenant sesuai kebutuhan. Harga dan kuota tidak ditampilkan secara publik; detail ditentukan melalui konsultasi dan proses aktivasi oleh Admin.</p></div><button type="button" disabled={!supportAvailable} onClick={contactCustom}>{supportAvailable ? "Konsultasikan kebutuhan" : "Kanal konsultasi belum tersedia"} <ArrowUpRight size={15}/></button></article>
         <p className="arch-activation-footnote">Informasi harga dan promo mengikuti data serta ketentuan aktif di sistem. Aktivasi bukan penagihan berulang otomatis.</p>
       </section>
 
