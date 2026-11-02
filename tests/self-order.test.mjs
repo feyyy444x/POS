@@ -151,7 +151,7 @@ test('Super Admin activation supports Paket Khusus with a custom tenant quota', 
 })
 
 test('Khusus package activation accepts its own per-organization quota in backend', async () => {
-  const sql = await read('../supabase/migrations/20261101120000_support_special_activation_package.sql')
+  const sql = await read('../supabase/migration_archive/20261101120000_support_special_activation_package.sql')
   assert.ok(sql.includes("p_package_key in ('custom', 'special')"))
   assert.ok(sql.includes("set activation_package_key = p_package_key"))
   assert.ok(sql.includes("activation_location_limit = v_location_limit"))
