@@ -683,7 +683,7 @@ test('Owner tenant creation, entry, organization identity and Admin tenant class
   assert.match(displayNameMigration, /o2\.owner_name/i)
   assert.match(ownerRegistrationMigration, /create trigger store_members_attach_owner_organization/i)
   assert.match(ownerRegistrationMigration, /organization_name = coalesce/i)
-  const organizationWorkspaceMigration = await readFile(new URL('../supabase/migrations/20261030420000_separate_owner_organization_and_workspace_names.sql', import.meta.url), 'utf8')
+  const organizationWorkspaceMigration = await readFile(new URL('../supabase/migration_archive/20261030420000_separate_owner_organization_and_workspace_names.sql', import.meta.url), 'utf8')
   assert.match(app, /name="organization_name"/)
   assert.match(app, /p_organization_name:organizationName/)
   assert.match(app, /Manajemen NexaSpace/)
@@ -718,7 +718,7 @@ test('Owner tenant switching never silently falls back to a different workspace'
 
 test('Owner and Manager can securely manage employees, while cashiers can only insert products', async () => {
   const managerMigration = await readFile(new URL('../supabase/migration_archive/20261030430000_manager_team_controls_and_cashier_product_insert.sql', import.meta.url), 'utf8')
-  const superAdminMigration = await readFile(new URL('../supabase/migrations/20261030440000_super_admin_store_member_controls.sql', import.meta.url), 'utf8')
+  const superAdminMigration = await readFile(new URL('../supabase/migration_archive/20261030440000_super_admin_store_member_controls.sql', import.meta.url), 'utf8')
   const organization = await readFile(new URL('../src/OrganizationOperations.jsx', import.meta.url), 'utf8')
   const tenantCenter = await readFile(new URL('../src/StoreControlCenter.jsx', import.meta.url), 'utf8')
   assert.match(managerMigration, /private\.is_store_manager\(p_store_id\)/)
@@ -801,6 +801,6 @@ test('secondary route modules are code-split behind an accessible loading bounda
   }
   assert.match(app, /const SelfOrderPublic = lazy/)
   assert.match(app, /const SelfOrderSettings = lazy/)
-  assert.match(appEntry, /React\\.Suspense/)
+  assert.match(appEntry, /React\.Suspense/)
   assert.match(appEntry, /nexa-module-loading/)
 })
