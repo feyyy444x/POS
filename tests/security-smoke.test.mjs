@@ -772,12 +772,12 @@ test('Platform actions stay scoped to the selected company or tenant, and regist
 })
 
 test('queue display is limited to customer name, queue number and counter; media/template schema is retired', () => {
-  assert.match(queueRetirementMigration, /DROP TABLE IF EXISTS public\\.store_tv_media/)
+  assert.ok(queueRetirementMigration.includes('DROP TABLE IF EXISTS public.store_tv_media'))
   for (const column of ['template','layout_mode','theme_mode','media_volume','announcement_volume','voice_gender','media_fit','portrait_background','rotation_seconds']) {
     assert.match(queueRetirementMigration, new RegExp('DROP COLUMN IF EXISTS '+column))
   }
   assert.match(app, /customer_name/)
   assert.match(app, /queue_number/)
   assert.match(app, /counter_label/)
-  assert.doesNotMatch(queueSettingsUi, /from\\(['"]store_tv_media['"]\\)/)
+  assert.doesNotMatch(queueSettingsUi, /store_tv_media/)
 })
