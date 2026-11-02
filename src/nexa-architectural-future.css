@@ -261,3 +261,56 @@ tbody tr:hover{background:#f1faf7!important}
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
   .arch-workspace-card:hover,.arch-plan:hover,.arch-suite-item:hover,.arch-capability:hover{transform:none!important}
 }
+
+/* Distinct page-family compositions: the shared language stays consistent, each work area gets its own spatial grammar. */
+.owner-console{position:relative;isolation:isolate;background:var(--af-paper)!important;color:var(--af-ink)!important}
+.owner-console:before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background-image:linear-gradient(#102d5007 1px,transparent 1px),linear-gradient(90deg,#102d5007 1px,transparent 1px);background-size:52px 52px;mask-image:linear-gradient(120deg,#000,transparent 82%)}
+.owner-sidebar{background:linear-gradient(165deg,#0b2239,#071827 75%,#0c3039)!important;color:#eef6f7!important;border-right:1px solid #ffffff19!important;box-shadow:14px 0 42px #0718271a!important}
+.owner-brand-row{border-bottom:1px solid #ffffff19!important}
+.owner-brand-row .living-brand,.owner-brand-row .brand{color:#f4f8f8!important}
+.owner-brand-row .living-brand small,.owner-brand-row .brand small{color:#9bb0ba!important}
+.owner-org-switch,.owner-sidebar-plan,.owner-user-row{background:#ffffff09!important;border:1px solid #ffffff1a!important;border-radius:5px!important;color:#f3f8f7!important}
+.owner-org-switch strong,.owner-user-row strong,.owner-sidebar-plan strong{color:#f3f8f7!important}
+.owner-org-switch small,.owner-user-row small,.owner-sidebar-plan small{color:#9db3bd!important}
+.owner-org-avatar,.owner-user-avatar{background:#08b99624!important;color:#75e6c9!important;border-radius:4px!important}
+.owner-nav-group>small{color:#7892a0!important;letter-spacing:.18em!important}
+.owner-nav-link{border-radius:4px!important;color:#a9bdc5!important;border:1px solid transparent!important;transition:all 260ms var(--af-ease)!important}
+.owner-nav-link:hover{background:#ffffff0c!important;color:#fff!important;transform:translateX(3px)}
+.owner-nav-active{background:#08b99620!important;color:#8bf0d3!important;border-color:#08b99635!important;box-shadow:inset 3px 0 #08b996!important}
+.owner-nav-active svg{color:#55e5c2!important}
+.owner-main{background:transparent!important}
+.owner-topbar{min-height:74px!important}
+.owner-live-indicator{border-radius:4px!important}
+.owner-refresh-button{border-radius:4px!important}
+.owner-content{padding:clamp(20px,3vw,42px)!important}
+.owner-section-overview .owner-welcome{min-height:210px}
+.owner-section-tenants .owner-tenant-grid{background-image:linear-gradient(90deg,#102d5008 1px,transparent 1px);background-size:40px 100%}
+.owner-section-team .owner-content,.owner-section-members .owner-content{background:radial-gradient(ellipse at 100% 0%,#08b9960d,transparent 38%)}
+.owner-section-reports .owner-content{background:linear-gradient(135deg,#102d5007,transparent 45%),radial-gradient(ellipse at 100% 100%,#08b9960c,transparent 36%)}
+.owner-section-audit .owner-content{background-image:linear-gradient(180deg,#102d5008 1px,transparent 1px);background-size:100% 42px}
+.owner-section-settings .owner-content,.owner-section-profile .owner-content{background:linear-gradient(120deg,#102d5006,transparent 55%)}
+.platform-section-dashboard .page-content{background:radial-gradient(ellipse at 100% 0%,#08b9960d,transparent 32%)}
+.platform-section-stores .page-content,.platform-section-nexaspace .page-content{background-image:linear-gradient(90deg,#102d5007 1px,transparent 1px);background-size:56px 100%}
+.platform-section-audit .page-content{background-image:linear-gradient(180deg,#102d5008 1px,transparent 1px);background-size:100% 42px}
+.platform-section-support .page-content{background:radial-gradient(ellipse at 100% 100%,#08b9960d,transparent 38%)}
+.platform-section-subscription-plans .page-content,.platform-section-promotions .page-content{background:linear-gradient(135deg,#102d5007,transparent 55%)}
+.workspace-page-dashboard .page-section:first-child{background:radial-gradient(ellipse at 100% 0%,#08b99612,transparent 40%)}
+.workspace-page-pos .page-content{max-width:1920px!important;background:radial-gradient(ellipse at 50% 0%,#08b9960c,transparent 44%)}
+.workspace-page-pos .cart-panel{border-color:#9bcfc2!important;box-shadow:0 18px 42px #07182716!important}
+.workspace-page-pos .product-tile{background:linear-gradient(145deg,#fff,#f3f8f8)!important}
+.workspace-page-pos .product-tile:hover{transform:translateY(-3px)!important;box-shadow:0 16px 34px #07182719!important}
+.workspace-page-reports .page-content{background:linear-gradient(115deg,#102d5007,transparent 55%),radial-gradient(ellipse at 100% 0%,#08b9960d,transparent 36%)}
+.workspace-page-queue .page-content{background:radial-gradient(ellipse at 50% 0%,#08b99614,transparent 48%)}
+.workspace-page-queue .queue-feature{background:linear-gradient(135deg,#0b2239,#124355)!important;color:#fff!important;border-color:#1b5360!important}
+.workspace-page-queue .queue-feature h2,.workspace-page-queue .queue-feature h3{color:#fff!important}
+.workspace-page-queue .queue-feature strong{color:#55e5c2!important}
+.workspace-page-cashier .page-content{background-image:linear-gradient(90deg,#102d5007 1px,transparent 1px);background-size:60px 100%}
+.workspace-page-settings .page-content,.workspace-page-tv-settings .page-content{background:linear-gradient(135deg,#102d5007,transparent 55%)}
+.workspace-page-pos .page-heading,.workspace-page-queue .page-heading{border-bottom-color:#b8d2d5!important}
+@media(max-width:760px){
+  .owner-content{padding:18px!important}
+  .owner-topbar{padding-inline:16px!important}
+  .owner-welcome:after{right:-28%;opacity:.65}
+  .workspace-page-pos .page-content{padding:12px!important}
+  .workspace-page-pos .cart-panel{position:relative!important}
+}
