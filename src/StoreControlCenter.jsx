@@ -130,9 +130,9 @@ export default function StoreControlCenter({ tenant, onBack, onStatusChange, onO
 
   const resetMemberPassword = async member => {
     if (member.role === 'owner' || !member.user_id) return
-    const password = window.prompt('Password sementara baru (minimal 6 karakter).')
+    const password = window.prompt('Password sementara baru (minimal 8 karakter).')
     if (password === null) return
-    if (password.length < 6 || password.length > 128) { window.alert('Password harus 6–128 karakter.'); return }
+    if (password.length < 8 || password.length > 128) { window.alert('Password harus 8–128 karakter.'); return }
     const { data: sessionData } = await supabase.auth.getSession()
     const token = sessionData?.session?.access_token
     if (!token) { window.alert('Sesi login tidak tersedia.'); return }
