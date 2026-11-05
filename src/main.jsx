@@ -4,6 +4,7 @@ import App from './App.jsx'
 import PwaInstallPrompt from './PwaInstallPrompt.jsx'
 import './styles.css'
 import './chillpos-design-system.css'
+import './chillpos-layout-safety.css'
 
 class AppErrorBoundary extends React.Component {
   constructor(props) {
