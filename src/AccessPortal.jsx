@@ -22,12 +22,12 @@ function AccessFrame({ children, eyebrow = 'SECURE WORKSPACE ACCESS' }) {
       <span className="access-system-label"><i /> CHILLPOS / ACCESS SYSTEM</span>
     </header>
     <section className="access-content">
-      <div className="access-index"><span>NP—01</span><span>{eyebrow}</span></div>
+      <div className="access-index"><span>CP—01</span><span>{eyebrow}</span></div>
       {children}
     </section>
     <footer className="access-footer">
       <span>© {new Date().getFullYear()} ChillPos</span>
-      <span>SMART COMMERCE PLATFORM</span>
+      <span>CHILLPOS PLATFORM</span>
       <span>SECURE SESSION</span>
     </footer>
     <span className="access-background-word" aria-hidden="true">CHILL</span>
