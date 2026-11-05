@@ -3,6 +3,7 @@ import { Check, Clock3, Copy, ExternalLink, Image, Package, RefreshCw, ShieldChe
 import QRCode from 'qrcode'
 import { supabase } from './lib/supabase'
 import './SelfOrder.css'
+import './chillpos-design-system.css'
 
 const idr = value => new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(Number(value||0))
 const publicUrl = storeId => window.location.origin + '/?screen=self-order&store=' + encodeURIComponent(storeId)
