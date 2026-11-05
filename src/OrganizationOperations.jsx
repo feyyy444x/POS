@@ -150,9 +150,9 @@ export default function OrganizationOperations({ mode = 'team', tenants = [] }) 
   }
 
   const resetMemberPassword = async member => {
-    const password = window.prompt('Masukkan password sementara baru (minimal 6 karakter) untuk ' + (member.full_name || member.email || 'karyawan') + '.')
+    const password = window.prompt('Masukkan password sementara baru (minimal 8 karakter) untuk ' + (member.full_name || member.email || 'karyawan') + '.')
     if (password === null) return
-    if (password.length < 6 || password.length > 128) { setError('Password harus 6–128 karakter.'); return }
+    if (password.length < 8 || password.length > 128) { setError('Password harus 8–128 karakter.'); return }
     const { data: sessionData } = await supabase.auth.getSession()
     const token = sessionData?.session?.access_token
     if (!token) { setError('Sesi login tidak tersedia. Silakan masuk kembali.'); return }
