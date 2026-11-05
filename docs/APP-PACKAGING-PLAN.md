@@ -1,4 +1,4 @@
-# NexaPos app packaging roadmap
+# ChillPos app packaging roadmap
 
 ## Target
 - Android: installable PWA first; native APK/AAB is a separate follow-up build.
@@ -6,7 +6,7 @@
 - Preserve the existing hosted Supabase backend and multi-tenant login.
 
 ## Implemented in this branch
-- Web app manifest with NexaPos branding and standalone display mode.
+- Web app manifest with ChillPos branding and standalone display mode.
 - Service worker caches only the app shell/static assets. It deliberately does not cache authentication, Supabase REST, Netlify Functions, or POS transaction data.
 - Service worker registration is best-effort; the normal website remains usable if registration fails.
 
