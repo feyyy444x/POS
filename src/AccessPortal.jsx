@@ -71,6 +71,7 @@ export function AuthScreen() {
       if (mode === 'login') {
         const result = await supabase.auth.signInWithPassword({ email: email.trim(), password })
         if (result.error) setMessage(userFacingError(result.error))
+        else if (new URLSearchParams(window.location.search).get('screen') === 'register') window.location.assign('/login')
       } else if (mode === 'register') {
         const response = await fetch('/.netlify/functions/register-free', {
           method: 'POST',
