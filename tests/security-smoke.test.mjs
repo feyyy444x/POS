@@ -300,7 +300,7 @@ test('customer RLS isolates support messages and conversations while Admin Chill
   assert.match(supportMigration, /USING \(private\.is_super_admin\(\)\)/)
   assert.match(supportMigration, /WITH CHECK \(private\.is_super_admin\(\)\)/)
   assert.match(supportMigration, /CREATE OR REPLACE FUNCTION public\.admin_reply_support_message/)
-  assert.match(supportMigration, /IF NOT private\.is_super_admin\(\) THEN RAISE EXCEPTION 'Admin ChillPos access required'/)
+  assert.match(supportMigration, /IF NOT private\.is_super_admin\(\) THEN RAISE EXCEPTION 'Admin NexaPos access required'/)
 })
 
 test('human handoff stops bot replies until Admin takes over or reactivates bot', () => {
@@ -322,7 +322,7 @@ test('human handoff stops bot replies until Admin takes over or reactivates bot'
 test('handoff recognizes natural requests to speak with a human and validates admin targets', () => {
   assert.match(supportHardenMigration, /bicara \(dengan\|sama\) \(admin\|manusia\|petugas\)/)
   assert.match(supportHardenMigration, /IF NOT FOUND THEN RAISE EXCEPTION 'Percakapan tidak ditemukan'/)
-  assert.match(supportHardenMigration, /IF NOT private\.is_super_admin\(\) THEN RAISE EXCEPTION 'Admin ChillPos access required'/)
+  assert.match(supportHardenMigration, /IF NOT private\.is_super_admin\(\) THEN RAISE EXCEPTION 'Admin NexaPos access required'/)
 })
 
 
