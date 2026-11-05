@@ -114,17 +114,17 @@ test('activation endpoint denies a nonexistent invitation without creating an ac
 })
 
 
-test('deployed preview bundle includes the NexaPos FAQ bot and human handoff UI', async () => {
+test('deployed preview bundle includes the ChillPos Joeclyn assistant and human handoff UI', async () => {
   const expectedStrings = [
-    'NexaBot',
-    'Hubungi Admin NexaPos',
+    'Joeclyn',
+    'Hubungi Admin ChillPos',
     'submit_support_message',
     'request_support_handoff',
     'admin_reply_support_message',
     'set_support_conversation_status',
     'set_support_typing_status',
-    'Admin NexaPos sedang mengetik...',
-    'NexaBot sedang mengetik...',
+    'Admin ChillPos sedang mengetik...',
+    'Joeclyn sedang mengetik...',
   ]
   let lastBundle = ''
   let lastError
