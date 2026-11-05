@@ -397,14 +397,13 @@ test('queue settings contain no media upload or template controls and require ow
   assert.doesNotMatch(queueSettingsUi, /store_tv_media|type=[\"']file[\"']|media_volume|selectedTemplate|uploadMedia|playlistItems/i)
 })
 
-test('password minimum is six characters in profile forms and admin reset endpoint', async () => {
-  assert.match(app, /Masukkan password sementara baru \(minimal 6 karakter\)/)
-  assert.match(app, /if\(nextPassword\.length<6\)\{setNotice\('Password minimal 6 karakter\.'\);return\}/)
+test('password minimum is eight characters in profile forms and admin reset endpoint', async () => {
+  assert.match(app, /if\(nextPassword\.length<8\)\{setNotice\('Password minimal 8 karakter\.'\);return\}/)
   const profileAndAuthForms = app
   const passwordReset = await readFile(new URL('../netlify/functions/manage-user-password.mjs', import.meta.url), 'utf8')
-  assert.doesNotMatch(profileAndAuthForms, /minLength=\{8\}/)
-  assert.match(profileAndAuthForms, /minLength=\{6\}/)
-  assert.match(passwordReset, /password\.length < 6/)
+  assert.match(profileAndAuthForms, /minLength=\{8\}/)
+  assert.doesNotMatch(profileAndAuthForms, /minLength=\{6\}/)
+  assert.match(passwordReset, /password\.length < 8/)
 })
 
 
