@@ -54,6 +54,7 @@ declare
   v_company_name text := btrim(coalesce(p_company_name, ''));
   v_workspace_name text := btrim(coalesce(p_workspace_name, ''));
   v_auth_email text;
+  v_pending_flag text;
 begin
   if coalesce(auth.jwt() ->> 'role', '') <> 'service_role' then
     raise exception 'Registration service access required';
@@ -61,11 +62,15 @@ begin
   if p_user_id is null then
     raise exception 'Akun autentikasi tidak valid';
   end if;
-  select lower(u.email) into v_auth_email
+  select lower(u.email), u.raw_user_meta_data ->> 'free_workspace_pending'
+    into v_auth_email, v_pending_flag
   from auth.users u
   where u.id = p_user_id;
   if not found or v_auth_email is distinct from v_email then
     raise exception 'Email akun autentikasi tidak cocok';
+  end if;
+  if v_pending_flag is distinct from 'true' then
+    raise exception 'Akun ini tidak memiliki sesi pendaftaran gratis yang valid';
   end if;
   if v_email !~ '^[^[:space:]@]+@[^[:space:]@]+[.][^[:space:]@]+$' then
     raise exception 'Format email tidak valid';
