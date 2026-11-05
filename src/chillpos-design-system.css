@@ -1,0 +1,92 @@
+/* CHILLPOS — SOFT MOTION PREMIUM
+   Shared visual foundation for every route and role. Business behavior stays in React/Supabase. */
+:root{
+  color-scheme:light;
+  --cp-ivory:#f2f0e9;
+  --cp-paper:#fafaf7;
+  --cp-stone:#e4e1d8;
+  --cp-stone-2:#d8d5ca;
+  --cp-sage:#aab5a7;
+  --cp-olive:#858f7d;
+  --cp-olive-deep:#687361;
+  --cp-ink:#424943;
+  --cp-muted:#7b8178;
+  --cp-line:#e3e1d9;
+  --cp-white:#fff;
+  --cp-shadow-sm:0 3px 12px rgba(66,73,67,.045);
+  --cp-shadow:0 12px 34px rgba(66,73,67,.075);
+  --cp-shadow-lg:0 24px 70px rgba(66,73,67,.11);
+  --cp-radius-sm:10px;
+  --cp-radius:16px;
+  --cp-radius-lg:24px;
+  --cp-ease:cubic-bezier(.2,.75,.25,1);
+  --cp-fast:160ms;
+  --cp-base:260ms;
+  font-family:"Plus Jakarta Sans","Inter","DM Sans",system-ui,sans-serif;
+}
+html{scroll-behavior:smooth;scroll-padding-top:88px;background:var(--cp-ivory)}
+body{background:var(--cp-ivory);color:var(--cp-ink);font-feature-settings:"ss01" on}
+::selection{background:#aab5a766;color:#303831}
+button,input,select,textarea{accent-color:var(--cp-olive)}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid #858f7d!important;outline-offset:3px!important}
+button{transition:background var(--cp-base) var(--cp-ease),border-color var(--cp-base) var(--cp-ease),color var(--cp-base) var(--cp-ease),box-shadow var(--cp-base) var(--cp-ease),transform var(--cp-base) var(--cp-ease)}
+button:active:not(:disabled){transform:translateY(1px) scale(.99)}
+a{transition:color var(--cp-base) var(--cp-ease)}
+.app-shell,.tenant-operations-shell,.super-admin-shell{background:var(--cp-ivory)!important;color:var(--cp-ink)!important}
+.app-shell .main-area,.tenant-operations-shell .main-area,.super-admin-shell .main-area{background:transparent!important}
+.app-shell .page-content,.tenant-operations-shell .page-content,.super-admin-shell .page-content{color:var(--cp-ink)}
+.sidebar,.tenant-operations-shell .sidebar,.super-admin-shell .sidebar{
+  background:rgba(250,250,247,.94)!important;color:var(--cp-ink)!important;
+  border-right:1px solid var(--cp-line)!important;box-shadow:8px 0 30px rgba(66,73,67,.035)!important;
+  backdrop-filter:blur(18px);padding:22px 14px 18px!important
+}
+.sidebar-brand{padding-bottom:22px!important;border-bottom:1px solid var(--cp-line)!important}
+.sidebar .brand{color:var(--cp-ink)!important}
+.sidebar .brand small{color:var(--cp-muted)!important}
+.sidebar .brand-mark{background:var(--cp-stone)!important;box-shadow:none!important}
+.sidebar .brand-accent{color:var(--cp-olive-deep)!important}
+.nav-link{min-height:44px!important;margin:3px 0!important;padding:0 12px!important;border-radius:12px!important;color:#72796f!important;font-size:12px!important;font-weight:650!important;transition:background var(--cp-base),color var(--cp-base),transform var(--cp-base)!important}
+.nav-link:hover{background:#eeeee7!important;color:var(--cp-ink)!important;transform:translateX(2px)}
+.nav-link.active,.nav-link[aria-current="page"]{background:#e6e9df!important;color:#4e5b4d!important;box-shadow:inset 3px 0 0 var(--cp-olive)!important}
+.nav-link svg{opacity:.8}
+.topbar,.owner-topbar{background:rgba(250,250,247,.88)!important;border-bottom:1px solid var(--cp-line)!important;backdrop-filter:blur(16px)}
+.card,.panel,.content-card,.dashboard-card,.stat-card,.table-card,.settings-card,.modal-card,.admin-card,.owner-card,.store-control-card{
+  background:var(--cp-paper)!important;border:1px solid var(--cp-line)!important;border-radius:var(--cp-radius)!important;
+  box-shadow:var(--cp-shadow-sm)!important
+}
+h1,h2,h3,h4,.page-title,.section-title{color:var(--cp-ink)}
+p,.muted,.text-muted,small{color:var(--cp-muted)}
+input,select,textarea,.text-input,.search-box input{
+  background:#fff!important;color:var(--cp-ink)!important;border:1px solid var(--cp-stone-2)!important;border-radius:11px!important;
+  box-shadow:none!important
+}
+input:hover,select:hover,textarea:hover,.text-input:hover{border-color:#b8c0b2!important}
+input:focus,select:focus,textarea:focus,.text-input:focus{border-color:var(--cp-olive)!important;box-shadow:0 0 0 3px #aab5a729!important}
+.btn-primary,.primary-button,.living-cta,.action-primary{
+  background:#858f7d!important;border-color:#858f7d!important;color:#fff!important;box-shadow:0 7px 18px #858f7d24!important;border-radius:12px!important
+}
+.btn-primary:hover,.primary-button:hover,.living-cta:hover,.action-primary:hover{background:#737e6b!important;border-color:#737e6b!important;box-shadow:0 10px 24px #858f7d30!important;transform:translateY(-2px)}
+.btn-secondary,.secondary-button,.btn,.button-secondary{border-radius:11px!important}
+.status-pill,.badge,.chip{border-radius:999px!important}
+table{border-collapse:separate!important;border-spacing:0!important}
+th{background:#f0efe9!important;color:#646c62!important;font-weight:700!important}
+td,th{overflow-wrap:anywhere;word-break:normal}
+tr:last-child td{border-bottom:0}
+.loading-screen{background:var(--cp-ivory)!important;color:var(--cp-ink)!important}
+.spinner{border-color:#d7d9cf!important;border-top-color:var(--cp-olive)!important}
+.modal-backdrop,.dialog-backdrop{background:rgba(47,53,47,.38)!important;backdrop-filter:blur(5px)}
+.modal,.dialog,.popover-panel,.dropdown-menu{background:var(--cp-paper)!important;border:1px solid var(--cp-line)!important;border-radius:18px!important;box-shadow:var(--cp-shadow-lg)!important}
+.owner-breadcrumb,.page-eyebrow,.section-eyebrow{color:var(--cp-olive-deep)!important;letter-spacing:.12em}
+.owner-live-indicator i,.live-dot{background:#8b9a7e!important;box-shadow:0 0 0 4px #aab5a72a!important}
+@media(max-width:900px){
+  .sidebar{box-shadow:var(--cp-shadow)!important}
+  .app-shell .page-content,.tenant-operations-shell .page-content,.super-admin-shell .page-content{padding-left:clamp(12px,3vw,22px)!important;padding-right:clamp(12px,3vw,22px)!important}
+}
+@media(max-width:600px){
+  .card,.panel,.content-card,.dashboard-card,.stat-card,.table-card,.settings-card,.modal-card,.admin-card,.owner-card,.store-control-card{border-radius:14px!important}
+  .btn,.btn-primary,.btn-secondary,button{touch-action:manipulation}
+  table{font-size:12px}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
