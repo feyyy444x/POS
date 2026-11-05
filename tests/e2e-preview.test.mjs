@@ -3,6 +3,19 @@ import assert from 'node:assert/strict'
 
 const baseUrl = (process.env.NEXAPOS_E2E_BASE_URL || 'https://deploy-preview-22--posfeyyy.netlify.app').replace(/\/$/, '')
 const activationUrl = new URL('/.netlify/functions/activate-invitation', baseUrl)
+const freeRegistrationUrl = new URL('/.netlify/functions/register-free', baseUrl)
+const completeRegistrationUrl = new URL('/.netlify/functions/complete-free-registration', baseUrl)
+
+async function fetchWithRetry(url, options, attempts = 4) {
+  let lastError
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    try { return await fetch(url, options) } catch (error) {
+      lastError = error
+      if (attempt < attempts - 1) await new Promise(resolve => setTimeout(resolve, 1200))
+    }
+  }
+  throw lastError || new Error('Preview endpoint did not respond')
+}
 
 async function fetchApplicationBundleGraph(entryPath) {
   const queue = [new URL(entryPath, baseUrl)]
@@ -81,7 +94,7 @@ test('deployed preview sends baseline browser security headers', async () => {
 })
 
 test('activation endpoint rejects GET without touching invitation data', async () => {
-  const response = await fetch(activationUrl, { method: 'GET', signal: AbortSignal.timeout(15000) })
+  const response = await fetchWithRetry(activationUrl, { method: 'GET', signal: AbortSignal.timeout(15000) })
   assert.equal(response.status, 405)
   assert.match(response.headers.get('content-type') || '', /application\/json/i)
   assert.match(await response.text(), /Metode tidak didukung/i)
@@ -113,6 +126,27 @@ test('activation endpoint denies a nonexistent invitation without creating an ac
   assert.match(await response.text(), /undangan|kode aktivasi/i)
 })
 
+
+
+test('free registration preparation endpoint rejects unsupported methods and malformed payloads', async () => {
+  const getResponse = await fetchWithRetry(freeRegistrationUrl, { method: 'GET', signal: AbortSignal.timeout(15000) })
+  assert.equal(getResponse.status, 405)
+  const postResponse = await fetchWithRetry(freeRegistrationUrl, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: '{invalid-json',
+    signal: AbortSignal.timeout(15000),
+  })
+  assert.equal(postResponse.status, 400)
+})
+
+test('free registration completion requires an authenticated session', async () => {
+  const response = await fetchWithRetry(completeRegistrationUrl, {
+    method: 'POST',
+    signal: AbortSignal.timeout(15000),
+  })
+  assert.equal(response.status, 401)
+})
 
 test('deployed preview bundle includes the ChillPos Joeclyn assistant and human handoff UI', async () => {
   const expectedStrings = [
