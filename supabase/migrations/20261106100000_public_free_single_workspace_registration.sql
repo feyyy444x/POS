@@ -1,4 +1,24 @@
 -- Public free registration: one real Owner and one standalone single-workspace tenant.
+-- The zero-price package is internal to signup and is not published in the paid plan catalog.
+alter table public.site_activation_packages
+  drop constraint if exists site_activation_packages_package_key_check;
+alter table public.site_activation_packages
+  add constraint site_activation_packages_package_key_check
+  check (package_key in ('starter','growth','business','enterprise','custom','special','single_workspace','free_workspace'));
+
+insert into public.site_activation_packages
+  (package_key, name, location_limit, note, prices, features, is_popular, is_active, sort_order)
+values
+  ('free_workspace', 'Workspace Gratis', 1,
+   'Satu workspace mandiri untuk pendaftaran gratis melalui homepage.',
+   '{"daily":0,"weekly":0,"monthly":0,"yearly":0}'::jsonb,
+   array['Satu workspace POS mandiri','Akun Owner dengan password dan PIN pribadi','Produk, stok, transaksi, dan laporan']::text[],
+   false, false, 999)
+on conflict (package_key) do update
+set name = excluded.name, location_limit = 1, note = excluded.note,
+    prices = excluded.prices, features = excluded.features, is_active = false,
+    updated_at = now();
+
 -- This migration is prepared for PR #22; it is not applied to production by this change.
 
 create or replace function public.create_free_single_workspace_registration(
@@ -42,7 +62,7 @@ begin
     workspace_mode
   ) values (
     v_workspace_name, v_owner_name, v_email, 'active', now(), null,
-    null, 'single_workspace', 1, 'single_workspace'
+    null, 'free_workspace', 1, 'single_workspace'
   ) returning id into v_store_id;
 
   insert into public.store_members(store_id, user_id, role, email, full_name, is_active)
