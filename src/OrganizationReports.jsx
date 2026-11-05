@@ -79,7 +79,7 @@ export default function OrganizationReports({ organization, tenants = [] }) {
   useEffect(() => {
     load()
     if (!supabase || !organization?.id) return
-    const channel = supabase.channel('nexapos-organization-reports-' + organization.id)
+    const channel = supabase.channel('chillpos-organization-reports-' + organization.id)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, load)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'order_items' }, load)
       .subscribe()
