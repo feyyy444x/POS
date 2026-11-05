@@ -21,10 +21,13 @@ set name = excluded.name, location_limit = 1, note = excluded.note,
     prices = excluded.prices, features = excluded.features, is_active = false,
     updated_at = now();
 
+alter table public.stores add column if not exists company_name text not null default '';
+
 create table if not exists private.free_workspace_registration_intents (
   user_id uuid primary key references auth.users(id) on delete cascade,
   email text not null,
   owner_name text not null,
+  company_name text not null,
   workspace_name text not null,
   pin_hash text not null,
   created_at timestamptz not null default now(),
@@ -37,6 +40,7 @@ create or replace function public.prepare_free_single_workspace_registration(
   p_user_id uuid,
   p_email text,
   p_owner_name text,
+  p_company_name text,
   p_workspace_name text,
   p_pin text
 ) returns boolean
@@ -47,6 +51,7 @@ as $function$
 declare
   v_email text := lower(btrim(coalesce(p_email, '')));
   v_owner_name text := btrim(coalesce(p_owner_name, ''));
+  v_company_name text := btrim(coalesce(p_company_name, ''));
   v_workspace_name text := btrim(coalesce(p_workspace_name, ''));
   v_auth_email text;
 begin
@@ -68,6 +73,9 @@ begin
   if length(v_owner_name) < 2 or length(v_owner_name) > 120 then
     raise exception 'Nama Owner harus 2 sampai 120 karakter';
   end if;
+  if length(v_company_name) < 2 or length(v_company_name) > 120 then
+    raise exception 'Nama Perusahaan harus 2 sampai 120 karakter';
+  end if;
   if length(v_workspace_name) < 2 or length(v_workspace_name) > 120 then
     raise exception 'Nama workspace harus 2 sampai 120 karakter';
   end if;
@@ -85,9 +93,9 @@ begin
   where expires_at <= now();
 
   insert into private.free_workspace_registration_intents(
-    user_id, email, owner_name, workspace_name, pin_hash, expires_at
+    user_id, email, owner_name, company_name, workspace_name, pin_hash, expires_at
   ) values (
-    p_user_id, v_email, v_owner_name, v_workspace_name,
+    p_user_id, v_email, v_owner_name, v_company_name, v_workspace_name,
     extensions.crypt(p_pin, extensions.gen_salt('bf')),
     now() + interval '30 days'
   )
@@ -146,11 +154,11 @@ begin
   end if;
 
   insert into public.stores(
-    name, owner_name, owner_email, status, activated_at, expires_at,
+    name, company_name, owner_name, owner_email, status, activated_at, expires_at,
     activation_days, activation_package_key, activation_location_limit,
     workspace_mode
   ) values (
-    v_intent.workspace_name, v_intent.owner_name, v_intent.email, 'active', now(), null,
+    v_intent.workspace_name, v_intent.company_name, v_intent.owner_name, v_intent.email, 'active', now(), null,
     null, 'free_workspace', 1, 'single_workspace'
   ) returning id into v_store_id;
 
@@ -168,7 +176,7 @@ begin
 end;
 $function$;
 
-revoke all on function public.prepare_free_single_workspace_registration(uuid,text,text,text,text) from public, anon, authenticated;
+revoke all on function public.prepare_free_single_workspace_registration(uuid,text,text,text,text,text) from public, anon, authenticated;
 revoke all on function public.complete_free_single_workspace_registration(uuid) from public, anon, authenticated;
 grant execute on function public.prepare_free_single_workspace_registration(uuid,text,text,text,text) to service_role;
 grant execute on function public.complete_free_single_workspace_registration(uuid) to service_role;
