@@ -219,3 +219,23 @@ button,a,[role="button"]{-webkit-tap-highlight-color:transparent}
     font-size:8px!important;
   }
 }
+
+
+/* Apply the same no-clipping text behavior to standalone Owner, public and modal surfaces. */
+:where(h1,h2,h3,h4,h5,h6,p,small,label,legend,dt,dd,th,td){
+  max-width:100%;
+  white-space:normal;
+  text-overflow:clip;
+  overflow-wrap:anywhere;
+  word-break:normal;
+}
+:where(p,li,label,small,dd,dt){line-height:1.6}
+:where(.app-shell,.tenant-operations-shell,.super-admin-shell,.owner-shell,.owner-center-shell,.owner-workspace)
+small{font-size:max(10px,.8em)}
+:where(.owner-shell,.owner-center-shell,.owner-workspace) .topbar{
+  height:auto;
+  min-height:56px;
+  max-height:none;
+  overflow:visible;
+  flex-wrap:wrap;
+}
