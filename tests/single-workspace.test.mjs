@@ -59,6 +59,6 @@ test('Single Workspace subscription is configurable in Admin and only public whe
   assert.match(manager, /plan\.package_key==='single_workspace'\?1/)
   assert.match(manager, /Require Single Workspace prices before publishing the package|Isi harga harian, mingguan, bulanan, dan tahunan Single Workspace/)
   assert.match(homepage, /'single_workspace'\]\.includes/)
-  assert.match(homepage, /plan\.key==='single_workspace'/)
+  assert.match(homepage, /key:\s*plan\.package_key/)
   assert.match(migration, /'single_workspace'[\s\S]*?false, false, 0\)/)
 })
