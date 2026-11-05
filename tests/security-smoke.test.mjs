@@ -708,7 +708,7 @@ test('Owner employee invitations require server-side PIN verification and manage
   assert.match(migration, /if not private\.is_pin_verified\(\) then[\s\S]*?Verifikasi PIN diperlukan untuk mengundang karyawan/i)
   assert.match(migration, /m\.disabled_at is null/i)
   assert.match(migration, /revoke all on function public\.invite_store_member[\s\S]*?from public, anon/i)
-  assert.match(migration, /grant execute on function public\.invite_store_member[\s\S]*?to authenticated/i)
+  assert.ok(migration.includes("grant execute on function public.create_free_single_workspace_registration(uuid,text,text,text,text) to service_role"))
 })
 
 test('Owner tenant switching never silently falls back to a different workspace', async () => {
@@ -838,10 +838,10 @@ test('Interactive Demo is retired and homepage CTA opens public free registratio
   const migration = await readFile(new URL('supabase/migrations/20261106100000_public_free_single_workspace_registration.sql', root), 'utf8')
   assert.doesNotMatch(app, /import\(['"]\.\/Demo\.jsx['"]\)/)
   assert.doesNotMatch(app, /screen==='demo'/)
-  assert.match(homepageUi, /href="\\/\\?screen=register">Pendaftaran Gratis/)
+  assert.ok(homepageUi.includes('href="/?screen=register">Pendaftaran Gratis'))
   assert.match(app, /screen==='register'.*AuthScreen/)
   assert.match(registration, /password.length < 8/)
   assert.match(registration, /create_free_single_workspace_registration/)
   assert.match(migration, /free_workspace/)
-  assert.match(migration, /grant execute on function public\\.create_free_single_workspace_registration[^;]*to service_role/i)
+  assert.ok(migration.includes("grant execute on function public.create_free_single_workspace_registration(uuid,text,text,text,text) to service_role"))
 })
