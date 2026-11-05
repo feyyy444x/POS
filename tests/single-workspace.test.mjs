@@ -114,3 +114,23 @@ test('Owner credentials can only be changed by the Owner through their own profi
   assert.match(passwordHandler, /store_members/)
   assert.match(app, /Owner mengelola password & PIN sendiri melalui Profil & Keamanan/)
 })
+
+
+test('every account creation and password-reset interface enforces eight characters', async () => {
+  const portal = await read('../src/AccessPortal.jsx')
+  const platformStaffUi = await read('../src/PlatformStaffManager.jsx')
+  const platformStaffHandler = await read('../netlify/functions/create-platform-staff.mjs')
+  const organizationOperations = await read('../src/OrganizationOperations.jsx')
+  const storeControl = await read('../src/StoreControlCenter.jsx')
+  const invitationHandler = await read('../netlify/functions/activate-invitation.mjs')
+  const memberPasswordHandler = await read('../netlify/functions/manage-store-member-password.mjs')
+  const adminPasswordHandler = await read('../netlify/functions/manage-user-password.mjs')
+  assert.match(portal, /password.length < 8/)
+  assert.match(platformStaffUi, /password.length < 8/)
+  assert.match(platformStaffHandler, /password.length < 8/)
+  assert.match(organizationOperations, /password.length < 8/)
+  assert.match(storeControl, /password.length < 8/)
+  assert.match(invitationHandler, /password.length < 8/)
+  assert.match(memberPasswordHandler, /password.length < 8/)
+  assert.match(adminPasswordHandler, /password.length < 8/)
+})
