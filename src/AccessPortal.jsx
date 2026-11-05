@@ -5,8 +5,8 @@ import { userFacingError } from './lib/userFacingError'
 import './access-portal.css'
 
 function AccessBrand() {
-  return <a className="access-brand" href="/" aria-label="NexaPos beranda">
-    <img src="/nexapos-mark.svg" alt="" />
+  return <a className="access-brand" href="/" aria-label="ChillPos beranda">
+    <img src="/chillpos-mark.svg" alt="" />
     <span>Nexa<span>Pos</span><small>SMART COMMERCE</small></span>
   </a>
 }
@@ -18,14 +18,14 @@ function AccessFrame({ children, eyebrow = 'SECURE WORKSPACE ACCESS' }) {
     <div className="access-grid" aria-hidden="true" />
     <header className="access-topline">
       <AccessBrand />
-      <span className="access-system-label"><i /> NEXAPOS / ACCESS SYSTEM</span>
+      <span className="access-system-label"><i /> CHILLPOS / ACCESS SYSTEM</span>
     </header>
     <section className="access-content">
       <div className="access-index"><span>NP—01</span><span>{eyebrow}</span></div>
       {children}
     </section>
     <footer className="access-footer">
-      <span>© {new Date().getFullYear()} NexaPos</span>
+      <span>© {new Date().getFullYear()} ChillPos</span>
       <span>SMART COMMERCE PLATFORM</span>
       <span>SECURE SESSION</span>
     </footer>
@@ -79,8 +79,8 @@ export function AuthScreen() {
       <span className="access-kicker">{mode === 'login' ? 'YOUR BUSINESS. YOUR WORKSPACE.' : 'COMPLETE YOUR ACCESS.'}</span>
       <h1>{mode === 'login' ? <>Masuk ke<br /><em>ruang kerja.</em></> : <>Aktifkan<br /><em>akses Anda.</em></>}</h1>
       <p>{mode === 'login'
-        ? 'Gunakan akun NexaPos yang telah terdaftar untuk melanjutkan aktivitas operasional.'
-        : 'Aktivasi hanya tersedia untuk email yang telah menerima undangan dari Owner atau Admin NexaPos.'}</p>
+        ? 'Gunakan akun ChillPos yang telah terdaftar untuk melanjutkan aktivitas operasional.'
+        : 'Aktivasi hanya tersedia untuk email yang telah menerima undangan dari Owner atau Admin ChillPos.'}</p>
     </div>
 
     <form className="access-form" onSubmit={submit}>
@@ -107,7 +107,7 @@ export function AuthScreen() {
       </div>
       {message && <div className={'access-message ' + (success ? 'is-success' : 'is-error')} role="status" aria-live="polite">{message}</div>}
       <button className="access-submit" type="submit" disabled={busy}>
-        <span>{busy ? 'Memproses akses…' : mode === 'login' ? 'Masuk ke NexaPos' : 'Verifikasi undangan'}</span>
+        <span>{busy ? 'Memproses akses…' : mode === 'login' ? 'Masuk ke ChillPos' : 'Verifikasi undangan'}</span>
         <span className="access-submit-icon"><ArrowRight size={18} /></span>
       </button>
       <div className="access-mode-switch">
@@ -117,7 +117,7 @@ export function AuthScreen() {
         </button>
       </div>
     </form>
-    <div className="access-security-note"><span><i /></span><p>Akses diverifikasi melalui sistem autentikasi NexaPos. Jangan bagikan password atau kode aktivasi kepada orang lain.</p></div>
+    <div className="access-security-note"><span><i /></span><p>Akses diverifikasi melalui sistem autentikasi ChillPos. Jangan bagikan password atau kode aktivasi kepada orang lain.</p></div>
   </AccessFrame>
 }
 
@@ -143,7 +143,7 @@ export function PinGate({ status, onReady, onSignOut }) {
     <div className="access-heading">
       <span className="access-kicker">A SECOND LAYER OF PROTECTION</span>
       <h1>{setup ? <>Buat PIN<br /><em>keamanan.</em></> : <>Verifikasi<br /><em>identitas.</em></>}</h1>
-      <p>{setup ? 'Buat PIN pribadi sebelum menggunakan workspace NexaPos.' : 'Password telah diterima. Masukkan PIN pribadi untuk membuka workspace.'}</p>
+      <p>{setup ? 'Buat PIN pribadi sebelum menggunakan workspace ChillPos.' : 'Password telah diterima. Masukkan PIN pribadi untuk membuka workspace.'}</p>
     </div>
     <form className="access-form" onSubmit={submit}>
       <div className="access-form-meta"><span><ShieldCheck size={15} /> PIN SECURITY</span><span>04 DIGITS</span></div>
@@ -159,6 +159,6 @@ export function PinGate({ status, onReady, onSignOut }) {
       </button>
       <button type="button" className="access-signout" onClick={onSignOut}>Keluar dari akun</button>
     </form>
-    <div className="access-security-note"><span><i /></span><p>PIN diverifikasi oleh server dan sesi workspace dibatasi sesuai kebijakan keamanan NexaPos.</p></div>
+    <div className="access-security-note"><span><i /></span><p>PIN diverifikasi oleh server dan sesi workspace dibatasi sesuai kebijakan keamanan ChillPos.</p></div>
   </AccessFrame>
 }
