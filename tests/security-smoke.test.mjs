@@ -9,7 +9,6 @@ const createPlatformStaff = await readFile(new URL('netlify/functions/create-pla
 const app = await readFile(new URL('src/App.jsx', root), 'utf8')
 const appEntry = await readFile(new URL('src/main.jsx', root), 'utf8')
 const homepageUi = await readFile(new URL('src/Homepage.jsx', root), 'utf8')
-const demoUi = await readFile(new URL('src/Demo.jsx', root), 'utf8')
 const storeControlUi = await readFile(new URL('src/StoreControlCenter.jsx', root), 'utf8')
 const organizationOperationsUi = await readFile(new URL('src/OrganizationOperations.jsx', root), 'utf8')
 const appStyles = await readFile(new URL('src/styles.css', root), 'utf8')
@@ -67,7 +66,7 @@ test('tenant member list and invitation history render email addresses', () => {
 
 test('invitation activation rejects unsupported methods and malformed credentials', () => {
   assert.match(activation, /request\.method !== 'POST'/)
-  assert.match(activation, /password\.length < 6/)
+  assert.match(activation, /password\.length < 8/)
   assert.match(activation, /password\.length > 128/)
   assert.match(activation, /\[a-f0-9\]\{32\}/)
 })
@@ -800,7 +799,7 @@ test('Support Center conversations stream through scoped Realtime', () => {
 
 
 test('secondary route modules are code-split behind an accessible loading boundary', () => {
-  for (const component of ['Homepage','SupportCenter','Demo','PromotionManager','SubscriptionPlanManager','TvDisplaySettings','PlatformStaffManager','StoreControlCenter','AuditLogPanel','OrganizationReports','OrganizationOperations','OrganizationSettings']) {
+  for (const component of ['Homepage','SupportCenter','PromotionManager','SubscriptionPlanManager','TvDisplaySettings','PlatformStaffManager','StoreControlCenter','AuditLogPanel','OrganizationReports','OrganizationOperations','OrganizationSettings']) {
     assert.match(app, new RegExp('const '+component+' = lazy\\(\\(\\) => import\\('))
     assert.doesNotMatch(app, new RegExp('^import '+component+' from', 'm'))
   }
@@ -817,16 +816,8 @@ test('tenant-facing role labels use Manager and Karyawan while preserving POS fe
   assert.ok(organizationOperationsUi.includes("member.role === 'admin' || member.role === 'manager' ? 'Manager' : member.role === 'cashier' ? 'Karyawan'"))
   assert.ok(storeControlUi.includes("roleLabel.trim().toLowerCase() === 'manager' ? 'admin' : roleLabel.trim().toLowerCase() === 'karyawan' ? 'cashier'"))
   assert.ok(homepageUi.includes('Beberapa kasir bekerja bersamaan'))
-  assert.ok(demoUi.includes('Layar antrean'))
   assert.ok(app.includes("['pos','Kasir / POS',ShoppingCart]"))
   assert.ok(!app.includes("i.role==='owner'?'Owner':i.role==='admin'?'Admin':'Kasir'"))
-})
-
-
-test('queue demo no longer exposes TV templates or media controls', () => {
-  assert.ok(demoUi.includes('Layar antrean'))
-  assert.doesNotMatch(demoUi, /Tampilan TV|Ganti template TV|Pengaturan media TV|playlist|video/i)
-  assert.ok(demoUi.includes('Loket 1'))
 })
 
 
@@ -840,4 +831,17 @@ test('Admin ChillPos and customer typing indicators are private and realtime', (
   assert.ok(supportCenterTypingUi.includes('Joeclyn sedang mengetik...'))
   assert.ok(supportCenterTypingUi.includes('Admin ChillPos sedang mengetik...'))
   assert.ok(supportCenterTypingUi.includes('sedang mengetik...'))
+})
+
+test('Interactive Demo is retired and homepage CTA opens public free registration', async () => {
+  const registration = await readFile(new URL('netlify/functions/register-free.mjs', root), 'utf8')
+  const migration = await readFile(new URL('supabase/migrations/20261106100000_public_free_single_workspace_registration.sql', root), 'utf8')
+  assert.doesNotMatch(app, /import\(['"]\.\/Demo\.jsx['"]\)/)
+  assert.doesNotMatch(app, /screen==='demo'/)
+  assert.match(homepageUi, /href="\\/\\?screen=register">Pendaftaran Gratis/)
+  assert.match(app, /screen==='register'.*AuthScreen/)
+  assert.match(registration, /password.length < 8/)
+  assert.match(registration, /create_free_single_workspace_registration/)
+  assert.match(migration, /free_workspace/)
+  assert.match(migration, /grant execute on function public\\.create_free_single_workspace_registration[^;]*to service_role/i)
 })
