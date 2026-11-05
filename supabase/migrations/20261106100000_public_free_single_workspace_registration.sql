@@ -59,4 +59,4 @@ end;
 $function$;
 
 revoke all on function public.create_free_single_workspace_registration(uuid,text,text,text,text) from public, anon, authenticated;
-grant execute on function public.create_free_single_workspace_registration(uuid,text,text,text,text,text) to service_role;
+grant execute on function public.create_free_single_workspace_registration(uuid,text,text,text,text) to service_role;
