@@ -104,7 +104,7 @@ export function AuthScreen() {
       <label htmlFor="access-password">{mode === 'login' ? 'Password' : 'Buat password'}</label>
       <div className="access-field">
         <LockKeyhole size={17} aria-hidden="true" />
-        <input id="access-password" type="password" value={password} onChange={event => setPassword(event.target.value)} placeholder={mode === 'login' ? 'Masukkan password' : 'Minimal 6 karakter'} required minLength={mode === 'login' ? 1 : 6} autoComplete={mode === 'login' ? 'current-password' : 'new-password'} />
+        <input id="access-password" type="password" value={password} onChange={event => setPassword(event.target.value)} placeholder={mode === 'login' ? 'Masukkan password' : 'Minimal 8 karakter'} required minLength={mode === 'login' ? 1 : 8} autoComplete={mode === 'login' ? 'current-password' : 'new-password'} />
       </div>
       {message && <div className={'access-message ' + (success ? 'is-success' : 'is-error')} role="status" aria-live="polite">{message}</div>}
       <button className="access-submit" type="submit" disabled={busy}>
