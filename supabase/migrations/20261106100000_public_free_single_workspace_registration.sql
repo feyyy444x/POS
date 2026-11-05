@@ -2,6 +2,25 @@
 -- The auth account is created through Supabase signUp and must verify its email.
 -- A short-lived server-only intent stores a bcrypt PIN hash until first verified login.
 
+alter table public.site_activation_packages
+  drop constraint if exists site_activation_packages_package_key_check;
+alter table public.site_activation_packages
+  add constraint site_activation_packages_package_key_check
+  check (package_key in ('starter','growth','business','enterprise','custom','special','single_workspace','free_workspace'));
+
+insert into public.site_activation_packages
+  (package_key, name, location_limit, note, prices, features, is_popular, is_active, sort_order)
+values
+  ('free_workspace', 'Workspace Gratis', 1,
+   'Paket internal untuk pendaftaran gratis dari homepage; tidak ditampilkan di katalog paket berbayar.',
+   '{"daily":0,"weekly":0,"monthly":0,"yearly":0}'::jsonb,
+   array['Satu workspace POS mandiri','Akun Owner dengan password dan PIN pribadi','Produk, stok, transaksi, dan laporan']::text[],
+   false, false, 999)
+on conflict (package_key) do update
+set name = excluded.name, location_limit = 1, note = excluded.note,
+    prices = excluded.prices, features = excluded.features, is_active = false,
+    updated_at = now();
+
 create table if not exists private.free_workspace_registration_intents (
   user_id uuid primary key references auth.users(id) on delete cascade,
   email text not null,
@@ -13,7 +32,6 @@ create table if not exists private.free_workspace_registration_intents (
 );
 
 revoke all on table private.free_workspace_registration_intents from public, anon, authenticated;
-grant select, insert, delete on table private.free_workspace_registration_intents to service_role;
 
 create or replace function public.prepare_free_single_workspace_registration(
   p_user_id uuid,
