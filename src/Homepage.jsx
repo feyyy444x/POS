@@ -24,7 +24,7 @@ const fallbackPlans = [
 ]
 const features = [
   { number: '01', icon: ShoppingCart, title: 'Transaksi kasir lebih praktis', text: 'Layani pelanggan dari satu layar: pilih produk, hitung total otomatis, proses pembayaran, dan simpan riwayat transaksi dengan lebih rapi.' },
-  { number: '02', icon: Users, title: 'Banyak kasir, tetap terpantau', text: 'Berikan akun masing-masing kepada karyawan. Beberapa kasir dapat melayani pelanggan secara bersamaan, sementara setiap transaksi tetap memiliki identitas kasir yang mengerjakannya.' },
+  { number: '02', icon: Users, title: 'Banyak kasir, tetap terpantau', text: 'Berikan akun masing-masing kepada karyawan. Beberapa kasir bekerja bersamaan untuk melayani pelanggan, sementara setiap transaksi tetap memiliki identitas kasir yang mengerjakannya.' },
   { number: '03', icon: Monitor, title: 'Antrean sesuai alur pelayanan', text: 'Catat nama pelanggan, nomor antrean, dan loket atau kasir yang melayani. Aktifkan atau nonaktifkan fitur antrean sesuai kebutuhan toko.' },
   { number: '04', icon: Package, title: 'Produk dan stok lebih tertata', text: 'Susun katalog, kategori, harga, dan informasi persediaan dalam satu tempat agar tim lebih mudah menemukan produk dan memantau kebutuhan stok.' },
   { number: '05', icon: BarChart3, title: 'Laporan untuk memahami usaha', text: 'Lihat riwayat transaksi dan ringkasan penjualan untuk membantu memantau aktivitas toko serta menjadi bahan evaluasi operasional.' },
@@ -138,7 +138,7 @@ export default function Homepage() {
         setSelectedDuration(current => nextDurations.some(d => d.duration_key === current) ? current : (nextDurations.find(d => d.duration_key === 'yearly')?.duration_key || nextDurations[0]?.duration_key || 'yearly'))
       }
       if (mounted && !packageResult.error && Array.isArray(packageResult.data) && packageResult.data.length) {
-        setPlans(packageResult.data.filter(plan => ['starter', 'growth', 'business', 'enterprise'].includes(String(plan.package_key || '').trim().toLowerCase()) && !/custom/i.test(String(plan.name || ''))).map(plan => ({
+        setPlans(packageResult.data.filter(plan => ['starter', 'growth', 'business', 'enterprise', 'single_workspace'].includes(String(plan.package_key || '').trim().toLowerCase()) && !/custom/i.test(String(plan.name || ''))).map(plan => ({
           ...plan,
           prices: { ...(fallbackPlans.find(fallback => fallback.key === plan.package_key)?.prices || {}), ...(plan.prices && typeof plan.prices === 'object' ? plan.prices : {}) },
           key: plan.package_key,
