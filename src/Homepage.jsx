@@ -50,7 +50,7 @@ const promoDiscountLabel = (promo) => {
 function Brand({ footer = false }) {
   return <a className={'living-brand' + (footer ? ' living-brand-footer' : '')} href="/" aria-label="ChillPos beranda">
     <img src="/chillpos-mark.svg" alt="" />
-    <span>Nexa<span>Pos</span><small>SMART COMMERCE</small></span>
+    <span>ChillPos<small>BUSINESS OPERATIONS</small></span>
   </a>
 }
 export default function Homepage() {
