@@ -73,23 +73,47 @@ export function AuthScreen() {
         if (result.error) setMessage(userFacingError(result.error))
         else if (new URLSearchParams(window.location.search).get('screen') === 'register') window.location.assign('/login')
       } else if (mode === 'register') {
-        const response = await fetch('/.netlify/functions/register-free', {
+        const { data, error: signUpError } = await supabase.auth.signUp({
+          email: email.trim(),
+          password,
+          options: {
+            emailRedirectTo: window.location.origin,
+            data: { full_name: ownerName.trim(), free_workspace_pending: true },
+          },
+        })
+        if (signUpError) throw signUpError
+        if (!data?.user?.id || data.user.identities?.length === 0) {
+          throw new Error('Email ini sudah terdaftar. Silakan masuk atau gunakan email lain.')
+        }
+
+        const prepareResponse = await fetch('/.netlify/functions/register-free', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            email: email.trim(), password, ownerName: ownerName.trim(),
+            userId: data.user.id, email: email.trim(), ownerName: ownerName.trim(),
             workspaceName: workspaceName.trim(), pin,
           }),
         })
-        const result = await response.json().catch(() => ({}))
-        if (!response.ok) throw new Error(result.error || 'Pendaftaran gratis gagal. Silakan coba kembali.')
-        setMode('login')
+        const prepared = await prepareResponse.json().catch(() => ({}))
+        if (!prepareResponse.ok) throw new Error(prepared.error || 'Persiapan workspace gagal. Silakan coba kembali.')
+
         setPassword('')
         setPasswordConfirm('')
         setPin('')
         setPinConfirm('')
         setSuccess(true)
-        setMessage('Pendaftaran berhasil. Silakan masuk menggunakan email dan password yang baru dibuat.')
+        if (data.session?.access_token) {
+          const completion = await fetch('/.netlify/functions/complete-free-registration', {
+            method: 'POST',
+            headers: { Authorization: 'Bearer ' + data.session.access_token },
+          })
+          const completed = await completion.json().catch(() => ({}))
+          if (!completion.ok) throw new Error(completed.error || 'Workspace belum berhasil disiapkan.')
+          window.location.assign('/login')
+          return
+        }
+        setMode('login')
+        setMessage('Akun berhasil dibuat. Periksa email Anda dan klik tautan verifikasi. Setelah email terverifikasi, workspace gratis akan disiapkan otomatis saat Anda masuk.')
       } else {
         const response = await fetch('/.netlify/functions/activate-invitation', {
           method: 'POST',
