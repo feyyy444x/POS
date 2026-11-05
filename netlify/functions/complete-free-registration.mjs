@@ -28,7 +28,18 @@ export default async (request) => {
       console.error('Free registration completion failed:', error.message)
       return json({ error: 'Workspace belum berhasil disiapkan. Hubungi dukungan.' }, 409)
     }
-    if (!storeId) return json({ pending: false })
+    if (!storeId) {
+      const { data: existingOwnerMembership, error: membershipError } = await admin
+        .from('store_members').select('id').eq('user_id', user.id).eq('role', 'owner').limit(1)
+      if (membershipError) {
+        console.error('Could not confirm existing Owner workspace after registration retry:', membershipError.message)
+        return json({ error: 'Status workspace belum dapat diverifikasi.' }, 503)
+      }
+      if (!existingOwnerMembership?.length && user.user_metadata?.free_workspace_pending === true) {
+        return json({ error: 'Data pendaftaran belum ditemukan. Hubungi dukungan agar akun tidak tertinggal tanpa workspace.' }, 409)
+      }
+      return json({ pending: false })
+    }
 
     const { error: metadataError } = await admin.auth.admin.updateUserById(user.id, {
       user_metadata: { ...(user.user_metadata || {}), free_workspace_pending: false },
