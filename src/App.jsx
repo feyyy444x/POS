@@ -2126,7 +2126,7 @@ function SuperAdminScreen({session,syncStatus,setSyncStatus,onSignOut,platformAd
   <div className="panel super-register-panel"><div className="panel-head"><div><h3><UserPlus size={17}/> Pendaftaran Owner ChillPos</h3><p>Pilih model langganan. Single Workspace langsung menjadi workspace milik Owner tanpa membuat Pusat Kendali.</p></div></div>
   <form className="tenant-register-form" onSubmit={submitTenant}>
     <div><label>Model langganan</label><select className="text-input" value={registrationModel} onChange={e=>setRegistrationModel(e.target.value)}><option value="nexaspace">Pusat Kendali — multi-tenant</option><option value="single_workspace">Single Workspace — mandiri</option></select></div>
-    {registrationModel==='nexaspace'&&<div><label>Nama perusahaan</label><input className="text-input" name="organization_name" placeholder="Contoh: PT Nexa Niaga Nusantara" maxLength={120} required/></div>}
+    {registrationModel==='nexaspace'&&<div><label>Nama perusahaan</label><input className="text-input" name="organization_name" placeholder="Contoh: PT Sumber Niaga Nusantara" maxLength={120} required/></div>}
     <div><label>Nama workspace</label><input className="text-input" name="store_name" placeholder="Contoh: Nexa Niaga Pusat" maxLength={120} required/></div>
     <div><label>Nama Owner</label><input className="text-input" name="owner_name" placeholder="Nama lengkap Owner" maxLength={120} required/></div>
     <div><label>Email Owner</label><input className="text-input" type="email" name="owner_email" placeholder="owner@perusahaan.com" required/></div>
