@@ -17,7 +17,7 @@ begin
     raise exception 'Akun Super Admin lain dilindungi dari reset lewat menu ini';
   end if;
   if exists (select 1 from public.owner_organizations where owner_user_id = p_user_id)
-     or exists (select 1 from public.store_members where user_id = p_user_id and role = 'owner' and is_active) then
+     or exists (select 1 from public.store_members where user_id = p_user_id and role = 'owner') then
     raise exception 'Owner harus mengelola PIN sendiri melalui Profil & Keamanan';
   end if;
   if not exists (select 1 from auth.users where id = p_user_id) then
