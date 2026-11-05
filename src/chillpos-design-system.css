@@ -322,3 +322,5 @@ td,th{line-height:1.55}
 .support-status-resolved{background:#efeee9!important;color:#737a70!important}
 .support-human-button{background:#eef0e8!important;border-color:#dce2d6!important;color:var(--cp-olive-deep)!important}
 .support-human-button:hover:not(:disabled){background:#e5e9df!important;border-color:#cbd3c5!important}
+
+.access-field input{background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;color:var(--cp-ink)!important}
