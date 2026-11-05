@@ -262,7 +262,7 @@ export default function Homepage() {
           <div className="living-kicker"><span className="living-live-dot" /> ONE CONNECTED BUSINESS SYSTEM <span className="living-kicker-line" /></div>
           <h1>Satu sistem.<br/><span>Kendali banyak operasional.</span></h1>
           <p>Kelola transaksi, produk dan stok, tim, serta laporan toko melalui ChillPos. Untuk pemilik beberapa tenant, Pusat Kendali menjadi pusat kendali Perusahaan agar setiap workspace tetap terkelola dalam satu tempat.</p>
-          <div className="living-hero-actions"><a className="living-cta" href="#cerita">Jelajahi cara kerja <ArrowDown size={16}/></a><a className="living-cta living-demo-cta" href="/?screen=demo">Coba Demo Interaktif <ArrowUpRight size={14}/></a><a className="living-text-link" href="/login">Sudah punya akun? <span>Masuk workspace <ArrowUpRight size={14}/></span></a></div>
+          <div className="living-hero-actions"><a className="living-cta" href="#cerita">Jelajahi cara kerja <ArrowDown size={16}/></a><a className="living-cta living-demo-cta" href="/?screen=register">Pendaftaran Gratis <ArrowUpRight size={14}/></a><a className="living-text-link" href="/login">Sudah punya akun? <span>Masuk workspace <ArrowUpRight size={14}/></span></a></div>
           <div className="living-hero-index"><span>01 — THE LIVING SYSTEM</span><span>SCROLL TO EXPLORE ↓</span></div>
         </div>
         <div className="living-stage" aria-label="Ilustrasi alur ChillPos">
