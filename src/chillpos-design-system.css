@@ -243,3 +243,82 @@ td,th{line-height:1.55}
 
 .chillpos-module-loading{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:var(--cp-ivory);color:var(--cp-muted);font-size:12px}
 .chillpos-module-loading .spinner{border-color:#d8ddd2!important;border-top-color:var(--cp-olive)!important}
+
+
+/* ChillPos final page-level polish: access, self-order, admin pricing/promos and support. */
+/* Authentication / activation portal */
+.access-portal{
+  --access-navy:var(--cp-ink);--access-deep:var(--cp-ivory);--access-teal:var(--cp-olive);
+  background:var(--cp-ivory)!important;color:var(--cp-ink)!important;
+  font-family:"Plus Jakarta Sans","Inter",system-ui,sans-serif!important
+}
+.access-portal:before{background:radial-gradient(ellipse at 82% 16%,#aab5a72b,transparent 38%),linear-gradient(135deg,#f2f0e9,#fafaf7 62%,#e9ece4)!important}
+.access-grid{opacity:.18!important;background-image:linear-gradient(#858f7d12 1px,transparent 1px),linear-gradient(90deg,#858f7d12 1px,transparent 1px)!important}
+.access-geometry{border-color:#858f7d25!important}
+.access-brand,.access-heading h1{color:var(--cp-ink)!important}
+.access-brand small,.access-system-label,.access-index,.access-footer,.access-form-meta,.access-heading p,.access-security-note p{color:var(--cp-muted)!important}
+.access-system-label i,.access-security-note i,.access-index span:first-child,.access-kicker,.access-heading h1 em,.access-form-meta svg{color:var(--cp-olive-deep)!important;background-color:var(--cp-olive)!important}
+.access-form-meta,.access-footer,.access-security-note{border-color:var(--cp-line)!important}
+.access-form label{color:#60695f!important}
+.access-field{background:#fffefa!important;border:1px solid var(--cp-stone-2)!important;border-radius:12px!important;color:var(--cp-muted)!important}
+.access-field input{color:var(--cp-ink)!important}
+.access-field input::placeholder{color:#a1a79d!important}
+.access-field:focus-within{border-color:var(--cp-olive)!important;background:#fffefa!important;box-shadow:0 0 0 3px #aab5a729!important}
+.access-submit{background:var(--cp-olive)!important;border-color:var(--cp-olive)!important;color:#fffefa!important;border-radius:12px!important}
+.access-submit:hover:not(:disabled){background:var(--cp-olive-deep)!important;border-color:var(--cp-olive-deep)!important}
+.access-submit-icon{background:#ffffff20!important}
+.access-mode-switch,.access-signout,.access-mode-switch button{color:var(--cp-olive-deep)!important}
+.access-message.is-error{background:#f7eae6!important;color:#945e55!important;border-color:#c58d83!important}
+.access-message.is-success{background:#edf2e9!important;color:#5d7559!important;border-color:#9eae96!important}
+.access-background-word{color:#6873610a!important}
+
+/* Public Self Order and its workspace management views */
+.so-public{background:var(--cp-ivory)!important;color:var(--cp-ink)!important;font-family:"Plus Jakarta Sans","Inter",system-ui,sans-serif!important}
+.so-public-header{border-color:var(--cp-line)!important}
+.so-brand-mark{background:#e7ebe2!important;color:var(--cp-olive-deep)!important}
+.so-live,.so-eyebrow,.so-hero h1 em,.so-product-info b,.so-total strong,.so-proof-link{color:var(--cp-olive-deep)!important}
+.so-hero h1,.so-empty h1,.so-success h1,.so-order-reference strong{color:var(--cp-ink)!important}
+.so-hero p,.so-muted,.so-product-info small,.so-checkout-heading>span,.so-disclaimer,.so-footer{color:var(--cp-muted)!important}
+.so-categories button{background:#fffefa!important;border-color:var(--cp-line)!important;color:#697367!important}
+.so-categories button.active{background:#e8ece3!important;color:var(--cp-olive-deep)!important;border-color:#cfd7c8!important}
+.so-product,.so-checkout,.so-loading,.so-empty,.so-success,.so-manager-settings,.so-manager-link,.so-order-list,.so-order-card{background:#fffefa!important;border-color:var(--cp-line)!important;color:var(--cp-ink)!important;box-shadow:var(--cp-shadow-sm)!important}
+.so-product-image,.so-success-icon{background:#eef0e8!important;color:var(--cp-olive-deep)!important}
+.so-checkout-heading h2,.so-order-card-head strong,.so-order-customer strong{color:var(--cp-ink)!important}
+.so-line,.so-order-items{border-color:var(--cp-line)!important}
+.so-payment,.so-toggle,.so-manager-link code,.so-qris-preview,.so-qr-download,.so-settings-qr{background:#f5f4ee!important;border-color:var(--cp-line)!important;color:var(--cp-ink)!important}
+.so-payment p,.so-settings-qr small,.so-manager-link small,.so-order-card-head small,.so-order-customer small{color:var(--cp-muted)!important}
+.so-primary{background:var(--cp-olive-deep)!important;color:#fffefa!important;border-radius:12px!important}
+.so-primary:hover:not(:disabled){background:#596653!important}
+.so-status.pending_verification{background:#f4efe3!important;color:#92754a!important}
+.so-status.paid{background:#edf3eb!important;color:#58765c!important}
+.so-status.rejected{background:#f7eae6!important;color:#9c625c!important}
+.so-settings-state.is-enabled{background:#edf3eb!important;color:#58765c!important}
+
+/* Admin pricing and promotions */
+.nx-admin-periods label,.nx-admin-check{background:#f4f3ed!important;border-color:var(--cp-line)!important;color:var(--cp-ink)!important}
+.nx-admin-periods input,.nx-admin-check input,.nx-subscription-toggle input{accent-color:var(--cp-olive)!important}
+.nx-admin-check{background:#edf0e8!important;border-color:#dce2d6!important}
+.super-admin-shell .notice{background:#f7eae6!important;color:#945e55!important}
+.nx-subscription-admin-card,.nx-duration-panel,.nx-duration-price-grid{background:#fffefa!important;border-color:var(--cp-line)!important;color:var(--cp-ink)!important}
+.nx-subscription-preview{background:#f4f3ed!important;border-color:var(--cp-line)!important}
+.nx-subscription-preview>div>b{color:var(--cp-ink)!important}
+.nx-subscription-preview>div>small,.nx-subscription-preview li,.nx-subscription-toggle,.nx-subscription-admin-footnote{color:var(--cp-muted)!important}
+.nx-subscription-preview li svg{color:var(--cp-olive-deep)!important}
+
+/* Joeclyn support surfaces */
+.support-modal{background:#fffefa!important;border-color:var(--cp-line)!important;color:var(--cp-ink)!important;box-shadow:var(--cp-shadow-lg)!important}
+.support-modal-head{border-color:var(--cp-line)!important}
+.support-modal-icon,.support-chat-icon,.support-inbox-avatar{background:#eef0e8!important;color:var(--cp-olive-deep)!important}
+.support-choices h2,.support-choice,.support-chat-intro strong,.support-message p,.support-inbox-item strong{color:var(--cp-ink)!important}
+.support-choices>p,.support-choice small,.support-chat-intro small,.support-message>small,.support-inbox-item small,.support-inbox-item time{color:var(--cp-muted)!important}
+.support-choice,.support-inbox-item,.support-message-theirs{background:#fffefa!important;border-color:var(--cp-line)!important}
+.support-choice:hover:not(:disabled),.support-inbox-item:hover{background:#f4f3ed!important;border-color:#cbd3c5!important}
+.support-message-mine{background:#edf0e8!important}
+.support-message>span,.support-inbox-link,.support-config-note code{color:var(--cp-olive-deep)!important}
+.support-messages,.support-config-note{background:#f5f4ee!important}
+.support-telegram-icon{background:#edf0e8!important;color:var(--cp-olive-deep)!important}
+.support-status-ai_active,.support-status-admin_active{background:#edf3eb!important;color:#58765c!important}
+.support-status-waiting_admin{background:#f4efe3!important;color:#92754a!important}
+.support-status-resolved{background:#efeee9!important;color:#737a70!important}
+.support-human-button{background:#eef0e8!important;border-color:#dce2d6!important;color:var(--cp-olive-deep)!important}
+.support-human-button:hover:not(:disabled){background:#e5e9df!important;border-color:#cbd3c5!important}
