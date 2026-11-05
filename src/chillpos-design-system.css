@@ -504,3 +504,18 @@ td,th{line-height:1.55}
 .report-filter-grid{gap:12px}
 .report-finance-stats .stat-card{background:#fffefa!important}
 @media(max-width:760px){.owner-profile-grid{grid-template-columns:1fr}.owner-table-wrap{margin-right:-2px}}
+
+/* Final cross-page typography and utility surfaces */
+body,
+button,
+input,
+select,
+textarea {
+  font-family: "Inter", "DM Sans", system-ui, sans-serif !important;
+}
+h1,h2,h3,h4,h5,h6,
+.page-title,.section-title,
+.living-home h1,.living-home h2,.living-home h3,
+.brand,.demo-brand {
+  font-family: "Plus Jakarta Sans", "Inter", system-ui, sans-serif !important;
+}
