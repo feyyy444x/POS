@@ -3,6 +3,7 @@ import { ArrowRight, KeyRound, ShieldCheck, UserRound, LockKeyhole } from 'lucid
 import { isSupabaseConfigured, supabase } from './lib/supabase'
 import { userFacingError } from './lib/userFacingError'
 import './access-portal.css'
+import './chillpos-design-system.css'
 
 function AccessBrand() {
   return <a className="access-brand" href="/" aria-label="ChillPos beranda">
