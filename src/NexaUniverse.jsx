@@ -130,11 +130,11 @@ const sceneFor = (heading, path) => {
   if (value.includes('pos') || value.includes('checkout') || value.includes('kasir')) return 1
   if (value.includes('produk') || value.includes('stok') || value.includes('inventory')) return 2
   if (value.includes('laporan') || value.includes('report')) return 3
-  if (value.includes('organisasi') || value.includes('nexaspace') || value.includes('tenant')) return 4
+  if (value.includes('organisasi') || value.includes('pusat kendali') || value.includes('tenant')) return 4
   if (value.includes('tim') || value.includes('karyawan') || value.includes('akses')) return 5
   if (value.includes('pengaturan') || value.includes('setting')) return 6
   if (value.includes('antrean') || value.includes('queue')) return 7
-  if (value.includes('support') || value.includes('nexabot')) return 8
+  if (value.includes('support') || value.includes('joeclyn')) return 8
   if (path === '/' || path.endsWith('/index.html')) return 0
   if (path.includes('login') || path.includes('auth')) return 9
   return 10
@@ -237,7 +237,7 @@ export default function NexaUniverse() {
         drawFrame = draw
         draw(performance.now())
       } catch (error) {
-        console.warn('NexaPos 3D layer unavailable; using accessible DOM fallback.', error)
+        console.warn('ChillPos 3D layer unavailable; using accessible DOM fallback.', error)
       }
     }
 
