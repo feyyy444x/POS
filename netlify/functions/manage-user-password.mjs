@@ -44,7 +44,7 @@ export default async (request) => {
   const admin = createClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } })
   const [{ data: ownerOrganizations, error: ownerOrganizationError }, { data: ownerMemberships, error: ownerMembershipError }] = await Promise.all([
     admin.from('owner_organizations').select('id').eq('owner_user_id', userId).limit(1),
-    admin.from('store_members').select('id').eq('user_id', userId).eq('role', 'owner').eq('is_active', true).limit(1),
+    admin.from('store_members').select('id').eq('user_id', userId).eq('role', 'owner').limit(1),
   ])
   if (ownerOrganizationError || ownerMembershipError) {
     console.error('Could not verify whether password-reset target is an Owner.')
