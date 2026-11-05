@@ -708,7 +708,7 @@ test('Owner employee invitations require server-side PIN verification and manage
   assert.match(migration, /if not private\.is_pin_verified\(\) then[\s\S]*?Verifikasi PIN diperlukan untuk mengundang karyawan/i)
   assert.match(migration, /m\.disabled_at is null/i)
   assert.match(migration, /revoke all on function public\.invite_store_member[\s\S]*?from public, anon/i)
-  assert.match(migration, /grant execute on function public\\.invite_store_member[\\s\\S]*?to authenticated/i)
+  assert.match(migration, /grant execute on function public\.invite_store_member[\s\S]*?to authenticated/i)
 })
 
 test('Owner tenant switching never silently falls back to a different workspace', async () => {
@@ -843,5 +843,5 @@ test('Interactive Demo is retired and homepage CTA opens public free registratio
   assert.match(registration, /password.length < 8/)
   assert.match(registration, /create_free_single_workspace_registration/)
   assert.match(migration, /free_workspace/)
-  assert.match(migration, /grant execute on function public\\.invite_store_member[\\s\\S]*?to authenticated/i)
+  assert.match(migration, /grant execute on function public\.invite_store_member[\s\S]*?to authenticated/i)
 })
