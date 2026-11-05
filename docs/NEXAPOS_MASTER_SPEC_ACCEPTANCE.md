@@ -7,7 +7,7 @@ Dokumen ini menjadi sumber status pekerjaan ChillPos. Status kode, status migras
 - Repository: `feyyy444x/POS`
 - Jalur pekerjaan: PR #22 — `nexapos/consolidated-pr-22`
 - Netlify site: `posfeyyy`
-- Domain publik: https://nexaposdigital.my.id
+- Domain publik saat ini: domain lama dipertahankan sementara; penggantian memerlukan domain baru dan perubahan DNS yang disetujui.
 - Supabase produksi: `zoplanjzcizvjhorsldm`
 - Aturan: tidak membuat PR baru, tidak merge ke `main`, tidak deploy ke produksi, dan tidak menjalankan migrasi destruktif ke produksi tanpa review serta persetujuan yang sesuai.
 
@@ -36,15 +36,17 @@ Dokumen ini menjadi sumber status pekerjaan ChillPos. Status kode, status migras
 
 ## 2. Homepage dan identitas visual
 
-**Status: Implemented in branch; visual regression desktop/tablet/mobile pending.**
+**Status: Redesain ChillPos disetujui sebagai arah baru; implementasi dan QA visual menyeluruh masih berlangsung.**
 
-- Arah visual terbaru: NEXA / ARCHITECTURE (Digital Architecture × Nexa Control × Kinetic Dimension), identitas Navy–Teal, halaman dengan komposisi dan karakter berbeda; redesign struktural, bukan CSS facelift atau template AI. Login wajib satu kanvas non-split dan dimulai dari nol.
-- Blueprint: `docs/NEXA_ARCHITECTURE_DESIGN_BLUEPRINT.md`.
-- Sistem gerak mencakup scroll reveal, parallax, cursor aura, magnetic controls, transition, kinetic typography, liquid motion, dan tilt 3D ringan.
-- Login, homepage, Pusat Kendali, Admin, dan workspace memakai fondasi visual yang konsisten tanpa menyamakan semua layout.
-- Homepage memuat penjelasan fitur, model Pusat Kendali dan Single Workspace, paket reguler, Paket Khusus, promo, FAQ, serta kanal WhatsApp/Telegram sesuai konfigurasi.
-- Homepage hanya menampilkan durasi standar 3/7/30/365 hari; durasi Custom tetap untuk pengaturan Admin dan tidak menjadi opsi publik.
-- Seluruh animasi wajib menghormati `prefers-reduced-motion`, perangkat sentuh, dan ukuran layar kecil.
+- Arah visual yang berlaku: **Soft Motion Premium** — hangat, tenang, modern, rapi, dengan gerak yang halus dan penuh tujuan.
+- Palet: Warm Ivory `#F2F0E9`, Soft Stone `#E4E1D8`, Muted Sage `#AAB5A7`, Dusty Olive `#858F7D`, Soft Charcoal `#424943`, dan Cloud White `#FAFAF7`.
+- Dilarang memakai light neon, cyberpunk, glow agresif, kontras menyilaukan, atau dekorasi yang mengganggu pekerjaan kasir.
+- Seluruh halaman memiliki komposisi sesuai tugasnya; design system bersama menjaga konsistensi warna, tipografi, jarak, radius, status, feedback, dan motion.
+- Homepage menggunakan komposisi visual yang kaya, showcase fitur/modul yang bergerak halus, dan interaksi yang tidak menghambat navigasi.
+- Login memakai satu kanvas, bukan split-screen.
+- Animasi menghormati `prefers-reduced-motion`, perangkat sentuh, GPU terbatas, dan ukuran layar kecil.
+- Blueprint lama bertema Architectural Future, Digital Universe, dan Infinite Experience dinyatakan **digantikan** oleh arah Soft Motion Premium.
+- Acuan utama: `docs/CHILLPOS_SOFT_MOTION_PREMIUM_BLUEPRINT.md`.
 
 ## 3. Paket, harga, durasi, promosi, dan aktivasi
 
