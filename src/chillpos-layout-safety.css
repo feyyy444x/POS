@@ -1,0 +1,84 @@
+/* ChillPos — global layout safety layer
+   Additive presentation-only safeguards. No business logic or data behavior is changed. */
+*,*::before,*::after{box-sizing:border-box}
+html{max-width:100%;overflow-x:clip}
+body,#root{min-width:320px;max-width:100%;margin:0;overflow-x:clip}
+img,svg,video,canvas,iframe{max-width:100%}
+img,video{height:auto}
+button,input,select,textarea{max-width:100%;font:inherit}
+button,a,[role="button"]{-webkit-tap-highlight-color:transparent}
+:where(h1,h2,h3,h4,h5,h6,p,small,label,legend,dt,dd,th,td,button,a,strong,span){
+  overflow-wrap:anywhere;
+  word-break:normal;
+}
+:where(h1,h2,h3,h4,h5,h6){line-height:1.25;text-wrap:pretty}
+:where(p,li,label,small,dd,dt){line-height:1.55}
+:where(.app-shell,.tenant-operations-shell,.super-admin-shell,.main-area,.page-content,.page,.page-container,.content,.content-area){
+  min-width:0;max-width:100%;
+}
+:where(.page-content,.page-container,.content-area){overflow-wrap:anywhere}
+:where(.page-heading,.panel-head,.panel-heading,.section-heading,.owner-section-heading,.card-header,.modal-header,.toolbar,.page-actions,.form-actions,.table-toolbar){
+  min-width:0;flex-wrap:wrap;row-gap:10px;column-gap:12px;
+}
+:where(.page-heading,.panel-heading,.section-heading,.owner-section-heading) > :first-child{min-width:0;flex:1 1 220px}
+:where(.page-heading h1,.page-heading h2,.panel-heading h2,.section-heading h2,.owner-section-heading h2){
+  max-width:100%;font-size:clamp(18px,2vw,26px);line-height:1.25;letter-spacing:-.025em;
+}
+:where(.card,.panel,.content-card,.dashboard-card,.stat-card,.table-card,.settings-card,.modal-card,.admin-card,.owner-card,.store-control-card,.form-card,.section-card){
+  min-width:0;max-width:100%;
+}
+:where(.card,.panel,.content-card,.dashboard-card,.table-card,.settings-card,.admin-card,.owner-card,.store-control-card) :where(.card-body,.panel-body,.card-content,.panel-content){
+  min-width:0;max-width:100%;
+}
+:where(.grid,.stats-grid,.metrics-grid,.dashboard-grid,.form-grid,.settings-grid,.store-control-grid){
+  min-width:0;
+}
+:where(.grid,.stats-grid,.metrics-grid,.dashboard-grid,.form-grid,.settings-grid,.store-control-grid) > *{min-width:0}
+:where(input,select,textarea,.text-input,.search-box){min-width:0}
+:where(input:not([type="checkbox"]):not([type="radio"]),select,textarea,.text-input){width:100%}
+:where(textarea){min-height:96px;resize:vertical}
+:where(button,.btn,.btn-primary,.btn-secondary,.primary-button,.secondary-button){
+  min-height:38px;line-height:1.35;white-space:normal;overflow-wrap:anywhere;
+}
+:where(.btn,.btn-primary,.btn-secondary,.primary-button,.secondary-button){max-width:100%;padding-block:9px}
+:where(.btn-group,.button-group,.actions,.action-buttons,.toolbar-actions,.page-actions,.form-actions){
+  display:flex;flex-wrap:wrap;align-items:center;gap:8px;min-width:0;
+}
+:where(.table-wrap,.table-scroll,.table-container,.table-responsive,.demo-table-scroll){
+  width:100%;max-width:100%;min-width:0;overflow-x:auto;overscroll-behavior-x:contain;
+  -webkit-overflow-scrolling:touch;
+}
+:where(table){max-width:100%;border-collapse:separate}
+:where(th,td){vertical-align:middle;line-height:1.5;padding-block:10px}
+:where(.modal,.dialog,.modal-card,.dialog-card,.popover-panel,.dropdown-menu,.drawer-panel){
+  box-sizing:border-box;max-width:min( calc(100vw - 24px), 760px);
+  max-height:calc(100dvh - 24px);overflow:auto;overscroll-behavior:contain;
+}
+:where(.modal-backdrop,.dialog-backdrop){padding:12px;overflow:auto}
+:where(.badge,.status-pill,.chip,.tag){max-width:100%;white-space:normal;line-height:1.35}
+:where(.empty-state,.notice,.alert,.banner,.helper-text,.form-error,.error-message){
+  min-width:0;max-width:100%;overflow-wrap:anywhere;line-height:1.55;
+}
+:where(.sidebar,.nav-link,.topbar,.owner-topbar){min-width:0}
+:where(.nav-link){white-space:normal;line-height:1.4}
+:where(.page-content,.main-area){scroll-margin-top:80px}
+@media(max-width:900px){
+  :where(.page-heading,.panel-head,.panel-heading,.section-heading,.owner-section-heading){align-items:flex-start}
+  :where(.page-heading,.page-actions,.toolbar,.table-toolbar){gap:10px}
+  :where(.page-content){padding-top:18px}
+}
+@media(max-width:640px){
+  :where(.page-content,.page-container,.content-area){padding-left:12px!important;padding-right:12px!important}
+  :where(.page-heading h1,.page-heading h2,.panel-heading h2,.section-heading h2,.owner-section-heading h2){font-size:clamp(18px,5vw,22px)}
+  :where(.card,.panel,.content-card,.dashboard-card,.table-card,.settings-card,.admin-card,.owner-card,.store-control-card){min-width:0}
+  :where(.btn,.btn-primary,.btn-secondary,.primary-button,.secondary-button){min-height:40px}
+  :where(.modal,.dialog,.modal-card,.dialog-card,.popover-panel,.dropdown-menu,.drawer-panel){
+    width:min(100%,calc(100vw - 20px));max-width:calc(100vw - 20px);max-height:calc(100dvh - 20px);
+  }
+  :where(.table-wrap,.table-scroll,.table-container,.table-responsive,.demo-table-scroll){margin-inline:0}
+  :where(th,td){padding:9px 10px}
+}
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
