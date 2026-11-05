@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Activity, ArrowLeft, ArrowUpRight, Bell, CalendarDays, Check, CheckCircle2, CircleDollarSign, Clock3, LockKeyhole, Minus, Monitor, Plus, Search, ShieldCheck, ShoppingBag, ShoppingCart, Store, Ticket, UserPlus, Users, Wallet, X } from 'lucide-react'
 import './demo.css'
+import './chillpos-design-system.css'
 
 const products = [
   { id: 1, name: 'Kopi Susu Aren', category: 'Minuman', price: 18000, stock: 24, icon: 'KS', color: 'coffee' },
