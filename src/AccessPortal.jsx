@@ -40,7 +40,6 @@ export function AuthScreen() {
   const [password, setPassword] = useState('')
   const [activationCode, setActivationCode] = useState('')
   const [ownerName, setOwnerName] = useState('')
-  const [companyName, setCompanyName] = useState('')
   const [workspaceName, setWorkspaceName] = useState('')
   const [pin, setPin] = useState('')
   const [pinConfirm, setPinConfirm] = useState('')
@@ -62,8 +61,8 @@ export function AuthScreen() {
       if (password !== passwordConfirm) { setMessage('Konfirmasi password tidak sama.'); return }
       if (!/^\\d{4}$/.test(pin)) { setMessage('PIN harus tepat 4 angka.'); return }
       if (pin !== pinConfirm) { setMessage('Konfirmasi PIN tidak sama.'); return }
-      if ([ownerName, companyName, workspaceName].some(value => value.trim().length < 2 || value.trim().length > 120)) {
-        setMessage('Nama Owner, Perusahaan, dan workspace wajib 2–120 karakter.')
+      if ([ownerName, workspaceName].some(value => value.trim().length < 2 || value.trim().length > 120)) {
+        setMessage('Nama Owner dan workspace wajib 2–120 karakter.')
         return
       }
     }
@@ -78,7 +77,7 @@ export function AuthScreen() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             email: email.trim(), password, ownerName: ownerName.trim(),
-            companyName: companyName.trim(), workspaceName: workspaceName.trim(), pin,
+            workspaceName: workspaceName.trim(), pin,
           }),
         })
         const result = await response.json().catch(() => ({}))
@@ -135,9 +134,7 @@ export function AuthScreen() {
       {mode === 'register' && <>
         <label htmlFor="register-owner-name">Nama lengkap Owner</label>
         <div className="access-field"><UserRound size={17} aria-hidden="true" /><input id="register-owner-name" value={ownerName} onChange={event => setOwnerName(event.target.value)} placeholder="Nama pemilik akun" required minLength={2} maxLength={120} autoComplete="name" /></div>
-        <label htmlFor="register-company-name">Nama Perusahaan</label>
-        <div className="access-field"><UserRound size={17} aria-hidden="true" /><input id="register-company-name" value={companyName} onChange={event => setCompanyName(event.target.value)} placeholder="Nama Perusahaan" required minLength={2} maxLength={120} /></div>
-        <label htmlFor="register-workspace-name">Nama workspace utama</label>
+        <label htmlFor="register-workspace-name">Nama usaha / workspace utama</label>
         <div className="access-field"><UserRound size={17} aria-hidden="true" /><input id="register-workspace-name" value={workspaceName} onChange={event => setWorkspaceName(event.target.value)} placeholder="Nama toko atau workspace" required minLength={2} maxLength={120} /></div>
       </>}
       <label htmlFor="access-email">Email {mode === 'login' ? 'terdaftar' : 'akun'}</label>
