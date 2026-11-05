@@ -94,3 +94,17 @@ test('Public free registration provisions a standalone workspace with mandatory 
   assert.ok(!app.includes("screen==='demo'"))
   assert.ok(homepage.includes('href="/?screen=register">Pendaftaran Gratis'))
 })
+
+
+test('Owner credentials can only be changed by the Owner through their own profile', async () => {
+  const migration = await read('../supabase/migrations/20261106110000_protect_owner_credentials_from_admin_reset.sql')
+  const passwordHandler = await read('../netlify/functions/manage-user-password.mjs')
+  const app = await read('../src/App.jsx')
+  assert.match(migration, /owner_organizations where owner_user_id = p_user_id/)
+  assert.match(migration, /store_members where user_id = p_user_id and role = 'owner'/)
+  assert.match(migration, /Owner harus mengelola PIN sendiri/)
+  assert.match(passwordHandler, /Owner harus mengganti password sendiri/)
+  assert.match(passwordHandler, /owner_organizations/)
+  assert.match(passwordHandler, /store_members/)
+  assert.match(app, /Owner mengelola password & PIN sendiri melalui Profil & Keamanan/)
+})
