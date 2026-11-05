@@ -17,7 +17,7 @@ test('Outdated production activation RPC errors explain the missing migration', 
   assert.match(errorMap, /Migrasi aktivasi tenant perlu diterapkan terlebih dahulu/)
 })
 
-test('Admin NexaPos and Super Admin can reactivate one tenant only within organization quota', () => {
+test('Admin ChillPos and Super Admin can reactivate one tenant only within organization quota', () => {
   assert.match(lifecycle, /if not private\.is_super_admin\(\) then/)
   assert.match(lifecycle, /if not private\.is_pin_verified\(\) then/)
   assert.match(lifecycle, /p_status not in \('active','pending','suspended'\)/)
@@ -38,7 +38,7 @@ test('Owner can delete only an inactive tenant and cannot delete the Owner organ
   assert.match(app, /owner-delete-tenant-button/)
 })
 
-test('NexaSpace lists active tenants first and inactive tenants last', () => {
+test('Pusat Kendali lists active tenants first and inactive tenants last', () => {
   assert.match(app, /const isTenantOperational=item=>organization\.status==='active'.*item\.status==='active'/)
   assert.match(app, /sort\(\(a,b\)=>Number\(isTenantOperational\(b\)\)-Number\(isTenantOperational\(a\)\)/)
 })
