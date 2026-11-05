@@ -7,7 +7,7 @@ import './access-portal.css'
 function AccessBrand() {
   return <a className="access-brand" href="/" aria-label="ChillPos beranda">
     <img src="/chillpos-mark.svg" alt="" />
-    <span>Nexa<span>Pos</span><small>SMART COMMERCE</small></span>
+    <span>ChillPos<small>BUSINESS OPERATIONS</small></span>
   </a>
 }
 
@@ -29,7 +29,7 @@ function AccessFrame({ children, eyebrow = 'SECURE WORKSPACE ACCESS' }) {
       <span>SMART COMMERCE PLATFORM</span>
       <span>SECURE SESSION</span>
     </footer>
-    <span className="access-background-word" aria-hidden="true">NEXA</span>
+    <span className="access-background-word" aria-hidden="true">CHILL</span>
   </main>
 }
 
