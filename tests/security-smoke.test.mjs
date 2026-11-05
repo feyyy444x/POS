@@ -707,7 +707,7 @@ test('Owner employee invitations require server-side PIN verification and manage
   const migration = await readFile(new URL('../supabase/migrations/20261030044627_harden_owner_invites_and_manager_auth.sql', import.meta.url), 'utf8')
   assert.match(migration, /if not private\.is_pin_verified\(\) then[\s\S]*?Verifikasi PIN diperlukan untuk mengundang karyawan/i)
   assert.match(migration, /m\.disabled_at is null/i)
-  assert.match(migration, /grant execute on function public\.invite_store_member[\s\S]*?to authenticated/i)
+  assert.match(migration, /revoke all on function public\.invite_store_member[\s\S]*?from public, anon/i)
   assert.match(migration, /grant execute on function public\.invite_store_member[\s\S]*?to authenticated/i)
 })
 
