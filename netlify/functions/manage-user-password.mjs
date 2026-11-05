@@ -42,6 +42,17 @@ export default async (request) => {
   if (target.is_super_admin) return json({ error: 'Akun Super Admin dilindungi.' }, 403)
 
   const admin = createClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } })
+  const [{ data: ownerOrganizations, error: ownerOrganizationError }, { data: ownerMemberships, error: ownerMembershipError }] = await Promise.all([
+    admin.from('owner_organizations').select('id').eq('owner_user_id', userId).limit(1),
+    admin.from('store_members').select('id').eq('user_id', userId).eq('role', 'owner').eq('is_active', true).limit(1),
+  ])
+  if (ownerOrganizationError || ownerMembershipError) {
+    console.error('Could not verify whether password-reset target is an Owner.')
+    return json({ error: 'Status akun target belum dapat diverifikasi. Password tidak diubah.' }, 503)
+  }
+  if ((ownerOrganizations || []).length || (ownerMemberships || []).length) {
+    return json({ error: 'Owner harus mengganti password sendiri melalui Profil & Keamanan.' }, 403)
+  }
   const { error } = await admin.auth.admin.updateUserById(userId, { password, email_confirm: true })
   if (error) {
     console.error('Super Admin password reset failed:', error.message)
