@@ -494,3 +494,13 @@ td,th{line-height:1.55}
   .owner-sidebar{transition:none!important}
   .owner-stat-card,.owner-tenant-card{animation:none!important}
 }
+
+.owner-profile-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.owner-table-wrap{width:100%;max-width:100%;overflow:auto;overscroll-behavior-x:contain}
+.owner-operations-actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.owner-operations-summary>*{min-width:0;padding:14px;border:1px solid var(--cp-line);border-radius:13px;background:#fffefa;box-shadow:var(--cp-shadow-sm)}
+.owner-settings-card{padding:20px}
+.report-filter-panel,.report-panel{border:1px solid var(--cp-line)!important;border-radius:16px!important;background:#fffefa!important;box-shadow:var(--cp-shadow-sm)!important}
+.report-filter-grid{gap:12px}
+.report-finance-stats .stat-card{background:#fffefa!important}
+@media(max-width:760px){.owner-profile-grid{grid-template-columns:1fr}.owner-table-wrap{margin-right:-2px}}
