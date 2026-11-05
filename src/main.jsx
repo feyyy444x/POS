@@ -56,7 +56,9 @@ createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <AppErrorBoundary>
       <>
-        <App />
+        <React.Suspense fallback={<div className="chillpos-module-loading" role="status"><span className="spinner spinner-large"/><span>Memuat ChillPos…</span></div>}>
+          <App />
+        </React.Suspense>
         <PwaInstallPrompt />
       </>
     </AppErrorBoundary>
