@@ -39,7 +39,7 @@ export default function OrganizationSettings({ organization, session, onSaved })
     <p>Kelola identitas digital perusahaan. Nama yang disimpan akan menjadi sumber identitas perusahaan di seluruh panel ChillPos.</p>
     <form onSubmit={save} className="owner-organization-settings-form">
       <label>Nama perusahaan
-        <input className="text-input" value={name} onChange={event => setName(event.target.value)} maxLength={120} minLength={2} required placeholder="Contoh: PT. Nexa Niaga"/>
+        <input className="text-input" value={name} onChange={event => setName(event.target.value)} maxLength={120} minLength={2} required placeholder="Contoh: PT. Nama Perusahaan"/>
       </label>
       <div className="owner-setting-row"><span>Email pemilik</span><strong>{organization?.owner_email || session?.user?.email || '—'}</strong></div>
       <div className="owner-setting-row"><span>Nama akun Owner</span><strong>{organization?.owner_name || 'Belum diatur'}</strong></div>
