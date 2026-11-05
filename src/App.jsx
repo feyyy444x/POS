@@ -13,7 +13,6 @@ import { AuthScreen, PinGate } from './AccessPortal.jsx'
 // everyday cashiers do not download Admin, reporting, support and self-order code up front.
 const SupportCenter = lazy(() => import('./SupportCenter.jsx'))
 const Homepage = lazy(() => import('./Homepage.jsx'))
-const Demo = lazy(() => import('./Demo.jsx'))
 const PromotionManager = lazy(() => import('./PromotionManager.jsx'))
 const SubscriptionPlanManager = lazy(() => import('./SubscriptionPlanManager.jsx'))
 const TvDisplaySettings = lazy(() => import('./TvDisplaySettings.jsx'))
@@ -2239,6 +2238,6 @@ export default function Root(){
   const screen=new URLSearchParams(window.location.search).get('screen')
   if(screen==='queue')return <QueueScreen/>
   if(screen==='self-order')return <SelfOrderPublic/>
-  if(screen==='demo')return <Demo/>
+  if(screen==='register')return <AuthScreen/>
   return <><App/><SupportPortal/></>
 }
