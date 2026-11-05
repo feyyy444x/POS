@@ -841,6 +841,8 @@ test('Interactive Demo is retired and homepage CTA opens public free registratio
   assert.ok(homepageUi.includes('href="/?screen=register">Pendaftaran Gratis'))
   assert.match(app, /screen==='register'.*AuthScreen/)
   assert.match(registration, /password.length < 8/)
+  assert.ok(registration.includes("aggregateBy: 'ip'"))
+  assert.ok(registration.includes('windowLimit: 5'))
   assert.match(registration, /create_free_single_workspace_registration/)
   assert.match(migration, /free_workspace/)
   assert.match(migration, /grant execute on function public\.invite_store_member[\s\S]*?to authenticated/i)
