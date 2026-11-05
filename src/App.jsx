@@ -650,7 +650,27 @@ function App() {
     return()=>{window.removeEventListener('online',handleOnline);window.removeEventListener('offline',handleOffline)}
   },[])
 
-  useEffect(()=>{if(!session){setPinStatus(null);return}let cancelled=false;setPinStatus(null);supabase.rpc('get_my_pin_status').then(({data,error})=>{if(cancelled)return;if(error)setPinStatus({error:userFacingError(error, 'Status PIN belum dapat dimuat. Coba lagi.')} );else setPinStatus(data?.[0]||{has_pin:false,is_verified:false})});return()=>{cancelled=true}},[session?.user?.id,session?.access_token])
+  useEffect(()=>{
+    if(!session){setPinStatus(null);return}
+    let cancelled=false
+    setPinStatus(null)
+    const loadPinStatus=async()=>{
+      if(session.user.user_metadata?.free_workspace_pending===true){
+        const response=await fetch('/.netlify/functions/complete-free-registration',{
+          method:'POST',
+          headers:{Authorization:'Bearer '+session.access_token},
+        })
+        const result=await response.json().catch(()=>({}))
+        if(!response.ok)throw new Error(result.error||'Workspace hasil pendaftaran belum berhasil disiapkan.')
+      }
+      const {data,error}=await supabase.rpc('get_my_pin_status')
+      if(cancelled)return
+      if(error)setPinStatus({error:userFacingError(error,'Status PIN belum dapat dimuat. Coba lagi.')})
+      else setPinStatus(data?.[0]||{has_pin:false,is_verified:false})
+    }
+    loadPinStatus().catch(error=>{if(!cancelled)setPinStatus({error:userFacingError(error,'Penyelesaian pendaftaran atau pemeriksaan PIN gagal.')})})
+    return()=>{cancelled=true}
+  },[session?.user?.id,session?.access_token,session?.user?.user_metadata?.free_workspace_pending])
 
   useEffect(() => {
     if (!session?.user?.id) {
