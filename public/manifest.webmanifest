@@ -1,27 +1,17 @@
 {
   "id": "/",
-  "name": "NexaPos — Smart Commerce",
-  "short_name": "NexaPos",
-  "description": "Kasir, produk, laporan, dan antrian NexaPos.",
+  "name": "ChillPos — Smart Business",
+  "short_name": "ChillPos",
+  "description": "Kasir, produk, laporan, dan operasional bisnis ChillPos.",
   "lang": "id-ID",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#f4f7fb",
-  "theme_color": "#102d50",
+  "background_color": "#f2f0e9",
+  "theme_color": "#f2f0e9",
   "icons": [
-    {
-      "src": "/nexapos-mark.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any"
-    },
-    {
-      "src": "/nexapos-mark.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "maskable"
-    }
+    { "src": "/chillpos-mark.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/chillpos-mark.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
   ]
 }
