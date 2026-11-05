@@ -240,3 +240,6 @@ td,th{line-height:1.55}
   .living-node{width:112px!important;min-height:92px!important;padding:9px!important}
   .access-card,.access-form{padding:22px!important}
 }
+
+.chillpos-module-loading{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:var(--cp-ivory);color:var(--cp-muted);font-size:12px}
+.chillpos-module-loading .spinner{border-color:#d8ddd2!important;border-top-color:var(--cp-olive)!important}
