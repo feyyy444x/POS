@@ -64,14 +64,14 @@
 - Monitoring aktivitas.
 - Laporan gabungan.
 - Paket dan aktivasi.
-- Audit organisasi.
+- Audit Perusahaan.
 - Profil dan keamanan akun.
 - Status kedaluwarsa/suspend tetap mengizinkan pembacaan sesuai aturan, tetapi semua mutasi harus diblokir di backend.
 
 ## 6. Single Workspace
 
 - Owner masuk langsung ke satu workspace POS mandiri.
-- Tidak menampilkan direktori organisasi atau manajemen multi-tenant yang tidak relevan.
+- Tidak menampilkan direktori Perusahaan atau manajemen multi-tenant yang tidak relevan.
 - Tetap memiliki seluruh fitur operasional sesuai izin.
 - Jalur aktivasi dan masa aktif tersendiri dipertahankan.
 
