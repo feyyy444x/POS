@@ -29,7 +29,7 @@ Dokumen ini menjadi sumber status pekerjaan ChillPos. Status kode, status migras
 
 - Pusat Kendali adalah pusat kendali Owner untuk model multi-tenant.
 - Owner Pusat Kendali mengelola perusahaan dan tenant; data serta stok antar-tenant tetap terisolasi.
-- Single Workspace adalah model terpisah: satu Owner langsung masuk ke satu workspace POS, tanpa Pusat Kendali dan tanpa organisasi induk.
+- Single Workspace adalah model terpisah: satu Owner langsung masuk ke satu workspace POS, tanpa Pusat Kendali dan tanpa Perusahaan induk.
 - Single Workspace sudah memiliki alur registrasi, aktivasi, perpanjangan, dan routing tersendiri.
 - Konfigurasi produksi saat pemeriksaan: paket `single_workspace` masih nonaktif di `site_activation_packages`. Harga seed tersedia, tetapi paket tidak ditampilkan di homepage sebelum Admin mengaktifkannya. Jangan mengaktifkan penawaran publik sebelum harga dan teks penawarannya disetujui.
 - Paket Khusus ditampilkan sebagai penawaran konsultasi tanpa harga/kuota publik. Aktivasi internal memakai key `special` dan kuota ditentukan Super Admin.
@@ -74,10 +74,10 @@ Dokumen ini menjadi sumber status pekerjaan ChillPos. Status kode, status migras
 
 **Status: Implemented in branch; authenticated E2E pending.**
 
-- Owner Pusat Kendali dapat melihat organisasi, kuota, masa sewa, tenant, laporan gabungan, audit, serta pengaturan organisasi.
+- Owner Pusat Kendali dapat melihat Perusahaan, kuota, masa sewa, tenant, laporan gabungan, audit, serta pengaturan Perusahaan.
 - Owner dapat membuat tenant sesuai kuota dan berpindah ke tenant yang dimiliki.
 - Tenant yang nonaktif/kedaluwarsa tidak boleh menjalankan operasi POS, tetapi Owner tetap dapat membuka Pusat Kendali untuk melihat status dan mengelola tenant sesuai izin.
-- Penghapusan tenant dan organisasi memiliki cakupan data yang berbeda dan harus selalu memakai konfirmasi permanen.
+- Penghapusan tenant dan Perusahaan memiliki cakupan data yang berbeda dan harus selalu memakai konfirmasi permanen.
 - Single Workspace tidak boleh otomatis terhubung ke `owner_organizations`.
 
 ## 6. Tim, peran, dan akun
@@ -134,10 +134,10 @@ Dokumen ini menjadi sumber status pekerjaan ChillPos. Status kode, status migras
 
 **Status: Implemented in branch and production migrations; scope verification pending.**
 
-- Audit platform dan organisasi memiliki pembatasan scope.
-- Owner hanya boleh melihat audit organisasi/tenant miliknya.
+- Audit platform dan Perusahaan memiliki pembatasan scope.
+- Owner hanya boleh melihat audit Perusahaan/tenant miliknya.
 - Super Admin dapat melihat audit platform.
-- Uji direct API diperlukan untuk memastikan tidak ada akses silang organisasi.
+- Uji direct API diperlukan untuk memastikan tidak ada akses silang Perusahaan.
 
 ## 12. Realtime dan navigasi
 
@@ -156,7 +156,7 @@ Dokumen ini menjadi sumber status pekerjaan ChillPos. Status kode, status migras
 - Pada pemeriksaan 2 November 2026, 103/103 versi migrasi produksi cocok dengan file di branch PR #22.
 - Jangan mengulang migrasi yang sudah tercatat.
 - Semua tabel publik yang diperiksa memiliki RLS aktif.
-- Peringatan beberapa policy SELECT yang permissive perlu dibaca berdasarkan ekspresi scope-nya: beberapa policy memang menggabungkan akses anggota tenant, Owner organisasi, dan Super Admin. Jangan menghapus policy secara massal karena dapat memutus akses Owner atau laporan.
+- Peringatan beberapa policy SELECT yang permissive perlu dibaca berdasarkan ekspresi scope-nya: beberapa policy memang menggabungkan akses anggota tenant, Owner Perusahaan, dan Super Admin. Jangan menghapus policy secara massal karena dapat memutus akses Owner atau laporan.
 - 18 indeks ditandai belum terpakai; jangan menghapus sebelum memeriksa query workload dan kebutuhan operasional.
 - Setiap perubahan DDL baru harus menjadi file migrasi baru di PR #22 dan melewati review sebelum diterapkan ke produksi.
 
@@ -189,10 +189,10 @@ Sebelum merge/deploy produksi, seluruh hal berikut wajib selesai:
 1. CI terbaru setelah dependency overrides lulus, termasuk audit moderate, Capacitor CLI smoke, build, tes statis, dan preview smoke.
 2. Deploy Preview harus cocok dengan head PR #22 terbaru.
 3. Login dan routing Super Admin, Admin, Owner Pusat Kendali, Single Workspace, Manager, dan Karyawan diuji dengan akun yang sah.
-4. Uji RLS langsung lintas dua organisasi/tenant untuk produk, stok, transaksi, anggota, laporan, audit, antrean, dan realtime.
+4. Uji RLS langsung lintas dua Perusahaan/tenant untuk produk, stok, transaksi, anggota, laporan, audit, antrean, dan realtime.
 5. Uji dua atau lebih kasir bersamaan, stok, idempotency, struk, shift, dan antrean on/off.
 6. Uji aktivasi, perpanjangan, masa kedaluwarsa, kuota, Paket Khusus, Single Workspace, promo, dan voucher.
-7. Uji penghapusan akun/tenant/organisasi dengan data historis dan konfirmasi.
+7. Uji penghapusan akun/tenant/Perusahaan dengan data historis dan konfirmasi.
 8. Uji tampilan serta interaksi di desktop, tablet, dan HP.
 9. Aktifkan Leaked Password Protection pada Supabase Auth.
 10. Review akhir security advisor dan dependency audit.
