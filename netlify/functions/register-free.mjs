@@ -75,3 +75,12 @@ export default async (request) => {
     return json({ error: 'Pendaftaran gagal karena kesalahan sistem. Silakan coba kembali.' }, 500)
   }
 }
+
+export const config = {
+  rateLimit: {
+    action: 'rate_limit',
+    aggregateBy: 'ip',
+    windowSize: 60,
+    windowLimit: 5,
+  },
+}
