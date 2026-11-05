@@ -82,3 +82,140 @@ button,a,[role="button"]{-webkit-tap-highlight-color:transparent}
   html{scroll-behavior:auto}
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
+
+
+/* Final typography and overflow correction — meaningful content must remain readable. */
+:where(.app-shell,.tenant-operations-shell,.super-admin-shell,.owner-shell,.living-home){
+  -webkit-text-size-adjust:100%;
+  text-size-adjust:100%;
+}
+:where(.app-shell,.tenant-operations-shell,.super-admin-shell,.owner-shell){
+  color:var(--cp-ink,#424943);
+}
+:where(.app-shell,.tenant-operations-shell,.super-admin-shell,.owner-shell)
+:where(h1,h2,h3,h4,p,small,label,legend,dt,dd,th,td,a,button,strong,span){
+  max-width:100%;
+  text-overflow:clip;
+}
+:where(.app-shell,.tenant-operations-shell,.super-admin-shell,.owner-shell)
+:where(h1,h2,h3,h4,p,small,label,legend,dt,dd,th,td){
+  white-space:normal;
+}
+:where(.app-shell,.tenant-operations-shell,.super-admin-shell,.owner-shell)
+:where(.page-heading h1,.page-heading h2,.panel-head h2,.panel-head h3,.section-title-row h2,.card h2,.card h3){
+  line-height:1.35;
+  overflow:visible;
+}
+:where(.app-shell,.tenant-operations-shell,.super-admin-shell,.owner-shell)
+:where(p,li,label,small,.helper-text,.field-help,.muted,.subtle,.notice,.alert){
+  line-height:1.6;
+}
+:where(.app-shell,.tenant-operations-shell,.super-admin-shell,.owner-shell)
+:where(.table-wrap,.table-scroll,.table-container,.table-responsive){
+  overflow-x:auto;
+}
+:where(.app-shell,.tenant-operations-shell,.super-admin-shell,.owner-shell) table{
+  white-space:normal;
+  table-layout:auto;
+}
+:where(.app-shell,.tenant-operations-shell,.super-admin-shell,.owner-shell) th,
+:where(.app-shell,.tenant-operations-shell,.super-admin-shell,.owner-shell) td{
+  white-space:normal;
+  overflow-wrap:anywhere;
+  word-break:normal;
+  vertical-align:top;
+  line-height:1.55;
+}
+:where(.app-shell,.tenant-operations-shell,.super-admin-shell,.owner-shell)
+:where(.store-copy strong,.user-copy strong,.breadcrumb,.breadcrumb strong,.topbar-date,.owner-tenant-card h3,.owner-tenant-card p,.owner-org-switch strong,.owner-user-row strong,.tenant-list-panel td,.member-email-visible){
+  white-space:normal!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+  overflow-wrap:anywhere;
+}
+@media(max-width:760px){
+  :where(.app-shell,.tenant-operations-shell,.super-admin-shell,.owner-shell) .topbar{
+    height:auto!important;
+    min-height:56px!important;
+    max-height:none!important;
+    overflow:visible!important;
+    flex-wrap:wrap!important;
+    align-items:center!important;
+    row-gap:8px!important;
+  }
+  :where(.app-shell,.tenant-operations-shell,.super-admin-shell,.owner-shell) .topbar-left{
+    flex:1 1 180px!important;
+    min-width:0!important;
+    max-width:100%!important;
+    overflow:visible!important;
+  }
+  :where(.app-shell,.tenant-operations-shell,.super-admin-shell,.owner-shell) .topbar-title-group{
+    min-width:0!important;
+    max-width:none!important;
+    flex:1 1 90px!important;
+  }
+  :where(.app-shell,.tenant-operations-shell,.super-admin-shell,.owner-shell) .topbar-date{
+    display:block!important;
+    max-width:100%!important;
+    white-space:normal!important;
+    overflow:visible!important;
+    text-overflow:clip!important;
+    line-height:1.35!important;
+  }
+  :where(.app-shell,.tenant-operations-shell,.super-admin-shell,.owner-shell) .topbar-actions{
+    flex:1 1 100%!important;
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+    flex-wrap:wrap!important;
+    overflow:visible!important;
+    justify-content:flex-start!important;
+  }
+  :where(.app-shell,.tenant-operations-shell,.super-admin-shell,.owner-shell) .topbar-actions .live-status{
+    white-space:normal!important;
+    max-width:100%!important;
+    line-height:1.35!important;
+  }
+  :where(.app-shell,.tenant-operations-shell,.super-admin-shell,.owner-shell) .topbar-actions .refresh-btn{
+    display:inline-grid!important;
+  }
+}
+@media(max-width:390px){
+  :where(.app-shell,.tenant-operations-shell,.super-admin-shell,.owner-shell) .topbar{
+    padding-inline:10px!important;
+  }
+  :where(.app-shell,.tenant-operations-shell,.super-admin-shell,.owner-shell) .topbar-left{
+    flex-basis:100%!important;
+  }
+  :where(.app-shell,.tenant-operations-shell,.super-admin-shell,.owner-shell) .topbar-actions{
+    gap:6px!important;
+  }
+}
+
+/* Homepage: increase small copy and labels; preserve intentionally decorative micro-details. */
+.living-home :where(.living-hero-copy>p,.living-story-intro>p,.living-demo-copy>p,.living-bridge-copy>p,.living-section-head>p,.living-feature-copy p,.living-plan>p,.living-plan li,.living-faq-item>button>span,.living-faq-item>p,.living-pricing-note,.living-final-copy>p,.living-final-login,.living-footer>p,.living-footer-links a,.living-text-link,.living-nav-links a){
+  font-size:clamp(11px, .9vw, 14px)!important;
+  line-height:1.65!important;
+}
+.living-home :where(.living-story-tabs>button>b,.living-story-tabs>button>span,.living-demo-status,.living-plan-footnote,.living-price small,.living-promo p,.living-coupon>small){
+  font-size:11px!important;
+  line-height:1.5!important;
+}
+.living-home :where(.living-eyebrow,.living-kicker,.living-feature-meta,.living-plan-top>b,.living-promo-badge){
+  font-size:9px!important;
+  line-height:1.4!important;
+  letter-spacing:.08em;
+}
+.living-home :where(.living-hero-index,.living-hero-bottom,.living-stage-label,.living-stage-caption,.living-node small,.living-node>i,.living-demo-top,.living-demo-foot,.living-receipt-head,.living-receipt-item,.living-receipt-total,.living-receipt-paid,.living-demo-orb span,.living-footer>small){
+  font-size:8px!important;
+  line-height:1.4!important;
+}
+@media(max-width:560px){
+  .living-home :where(.living-story-tabs>button>b,.living-story-tabs>button>span,.living-feature-copy p,.living-faq-item>button>span,.living-faq-item>p,.living-plan li,.living-plan-footnote,.living-price small,.living-pricing-note,.living-footer-links a){
+    font-size:11px!important;
+    line-height:1.55!important;
+  }
+  .living-home :where(.living-hero-index,.living-hero-bottom,.living-stage-label,.living-stage-caption,.living-node small,.living-node>i,.living-demo-top,.living-demo-foot,.living-receipt-head,.living-receipt-item,.living-receipt-total,.living-receipt-paid,.living-demo-orb span,.living-footer>small){
+    font-size:8px!important;
+  }
+}
