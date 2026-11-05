@@ -34,9 +34,9 @@ export default function OrganizationSettings({ organization, session, onSaved })
   }
 
   return <section className="owner-settings-card">
-    <span className="owner-kicker">NEXASPACE · ORGANIZATION PRESENCE</span>
-    <h2>NexaSpace</h2>
-    <p>Kelola identitas digital perusahaan. Nama yang disimpan akan menjadi sumber identitas perusahaan di seluruh panel NexaPos.</p>
+    <span className="owner-kicker">PUSAT KENDALI · ORGANIZATION PRESENCE</span>
+    <h2>Pusat Kendali</h2>
+    <p>Kelola identitas digital perusahaan. Nama yang disimpan akan menjadi sumber identitas perusahaan di seluruh panel ChillPos.</p>
     <form onSubmit={save} className="owner-organization-settings-form">
       <label>Nama perusahaan
         <input className="text-input" value={name} onChange={event => setName(event.target.value)} maxLength={120} minLength={2} required placeholder="Contoh: PT. Nexa Niaga"/>
@@ -49,7 +49,7 @@ export default function OrganizationSettings({ organization, session, onSaved })
         {saving ? <RefreshCw size={15} className="owner-spin"/> : <Save size={15}/>} Simpan nama perusahaan
       </button>
     </form>
-    <small className="owner-data-footnote"><Building2 size={14}/> NexaSpace adalah ruang identitas perusahaan Owner, terpisah dari workspace operasional tenant.</small>
+    <small className="owner-data-footnote"><Building2 size={14}/> Pusat Kendali adalah ruang identitas perusahaan Owner, terpisah dari workspace operasional tenant.</small>
     <small className="owner-data-footnote"><ShieldCheck size={14}/> Perubahan memerlukan sesi Owner terverifikasi PIN.</small>
   </section>
 }
