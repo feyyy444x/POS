@@ -154,11 +154,11 @@ function OwnerOrganizationCenter({session,organization,tenants,busy,notice,onRef
               <label>Ulangi PIN baru</label><input className="text-input" name="confirm_pin" type="password" inputMode="numeric" pattern="[0-9]{4}" maxLength={4} autoComplete="new-password" required/>
               <button className="btn btn-primary" type="submit"><ShieldCheck size={16}/> Ganti PIN</button>
             </form>
-            <form className="panel settings-form" onSubmit={async event=>{event.preventDefault();const form=event.currentTarget;const values=new FormData(form);const current=String(values.get('current_password')||'');const next=String(values.get('new_password')||'');const confirmPassword=String(values.get('confirm_password')||'');if(next.length<6||next!==confirmPassword){setProfileNotice('Password baru minimal 6 karakter dan konfirmasinya harus sama.');return}const reauth=await supabase.auth.signInWithPassword({email:session.user.email,password:current});if(reauth.error){setProfileNotice('Password saat ini salah.');return}const changed=await supabase.auth.updateUser({password:next});if(changed.error){setProfileNotice(userFacingError(changed.error,'Password belum berhasil diganti.'));return}form.reset();setProfileNotice('Password berhasil diganti.')}}>
-              <div className="panel-head"><div><h3><KeyRound size={17}/> Ganti password</h3><p>Gunakan password unik minimal 6 karakter.</p></div></div>
+            <form className="panel settings-form" onSubmit={async event=>{event.preventDefault();const form=event.currentTarget;const values=new FormData(form);const current=String(values.get('current_password')||'');const next=String(values.get('new_password')||'');const confirmPassword=String(values.get('confirm_password')||'');if(next.length<8||next!==confirmPassword){setProfileNotice('Password baru minimal 8 karakter dan konfirmasinya harus sama.');return}const reauth=await supabase.auth.signInWithPassword({email:session.user.email,password:current});if(reauth.error){setProfileNotice('Password saat ini salah.');return}const changed=await supabase.auth.updateUser({password:next});if(changed.error){setProfileNotice(userFacingError(changed.error,'Password belum berhasil diganti.'));return}form.reset();setProfileNotice('Password berhasil diganti.')}}>
+              <div className="panel-head"><div><h3><KeyRound size={17}/> Ganti password</h3><p>Gunakan password unik minimal 8 karakter.</p></div></div>
               <label>Password saat ini</label><input className="text-input" name="current_password" type="password" autoComplete="current-password" required/>
-              <label>Password baru</label><input className="text-input" name="new_password" type="password" autoComplete="new-password" minLength={6} required/>
-              <label>Ulangi password baru</label><input className="text-input" name="confirm_password" type="password" autoComplete="new-password" minLength={6} required/>
+              <label>Password baru</label><input className="text-input" name="new_password" type="password" autoComplete="new-password" minLength={8} required/>
+              <label>Ulangi password baru</label><input className="text-input" name="confirm_password" type="password" autoComplete="new-password" minLength={8} required/>
               <button className="btn btn-primary" type="submit"><ShieldCheck size={16}/> Ganti password</button>
             </form>
           </div>
@@ -1306,9 +1306,9 @@ function App() {
   }
 
   const resetTeamMemberPassword = async member => {
-    const password = window.prompt('Password sementara baru (minimal 6 karakter) untuk ' + (member.full_name || member.email || 'karyawan') + '.')
+    const password = window.prompt('Password sementara baru (minimal 8 karakter) untuk ' + (member.full_name || member.email || 'karyawan') + '.')
     if (password === null) return
-    if (password.length < 6 || password.length > 128) { setNotice('Password harus 6–128 karakter.'); return }
+    if (password.length < 8 || password.length > 128) { setNotice('Password harus 8–128 karakter.'); return }
     const { data: sessionData } = await supabase.auth.getSession()
     const token = sessionData?.session?.access_token
     if (!token) { setNotice('Sesi login tidak tersedia. Silakan masuk kembali.'); return }
@@ -1954,9 +1954,9 @@ function SuperAdminScreen({session,syncStatus,setSyncStatus,onSignOut,platformAd
   }
   const resetUserPassword=async(user)=>{
     if(user.is_super_admin||user.user_id===session.user.id){setNotice('Akun Super Admin dilindungi dari reset password lewat menu ini.');return}
-    const nextPassword=prompt('Masukkan password sementara baru (minimal 6 karakter) untuk '+user.email)
+    const nextPassword=prompt('Masukkan password sementara baru (minimal 8 karakter) untuk '+user.email)
     if(!nextPassword)return
-    if(nextPassword.length<6){setNotice('Password minimal 6 karakter.');return}
+    if(nextPassword.length<8){setNotice('Password minimal 8 karakter.');return}
     if(!confirm('Ganti password akun '+user.email+'? Sampaikan password sementara secara aman kepada pemilik akun.'))return
     setUserActionId(user.user_id)
     try{
