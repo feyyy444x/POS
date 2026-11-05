@@ -149,7 +149,7 @@ export default function StoreControlCenter({ tenant, onBack, onStatusChange, onO
   const totalSales = orders.filter(order => order.status === 'paid').reduce((sum, order) => sum + Number(order.total || 0), 0)
   const events = useMemo(() => {
     const rows = [
-      { id: 'store-created', type: 'store', title: 'Toko didaftarkan', detail: 'Data toko dibuat di NexaPos', at: tenant?.created_at },
+      { id: 'store-created', type: 'store', title: 'Toko didaftarkan', detail: 'Data toko dibuat di ChillPos', at: tenant?.created_at },
       ...(tenant?.activated_at ? [{ id: 'store-activated', type: 'activation', title: 'Aktivasi toko tercatat', detail: 'Durasi aktivasi: ' + (tenant.activation_days || '—') + ' hari', at: tenant.activated_at }] : []),
       ...members.map(member => ({ id: 'member-' + member.id, type: 'member', title: member.full_name || member.email || 'Akun karyawan', detail: 'Keanggotaan ' + (member.role || 'staf') + (member.disabled_at ? ' dinonaktifkan' : member.is_active ? ' aktif' : ' tidak aktif'), at: member.disabled_at || member.created_at })),
       ...invites.map(invite => ({ id: 'invite-' + invite.id, type: 'invite', title: 'Undangan ' + (invite.full_name || invite.email || 'anggota'), detail: invite.accepted_at ? 'Undangan diterima' : invite.expires_at && new Date(invite.expires_at) < new Date() ? 'Undangan kedaluwarsa' : 'Undangan dibuat', at: invite.accepted_at || invite.created_at })),
