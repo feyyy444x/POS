@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 
 /**
- * NexaPos motion layer.
+ * ChillPos motion layer.
  * Progressive visual enhancement only; it never changes business state or data.
  */
 export default function MotionSystem() {
