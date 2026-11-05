@@ -1,6 +1,6 @@
-# NexaPos — Master Specification & Release Acceptance
+# ChillPos — Master Specification & Release Acceptance
 
-Dokumen ini menjadi sumber status pekerjaan NexaPos. Status kode, status migrasi produksi, preview, dan uji operasional dicatat terpisah agar fitur yang baru ada di kode tidak keliru disebut sudah aktif untuk pelanggan.
+Dokumen ini menjadi sumber status pekerjaan ChillPos. Status kode, status migrasi produksi, preview, dan uji operasional dicatat terpisah agar fitur yang baru ada di kode tidak keliru disebut sudah aktif untuk pelanggan.
 
 ## Lingkungan yang digunakan
 
@@ -27,9 +27,9 @@ Dokumen ini menjadi sumber status pekerjaan NexaPos. Status kode, status migrasi
 
 **Status: Implemented in branch; authenticated E2E pending.**
 
-- NexaSpace adalah pusat kendali Owner untuk model multi-tenant.
-- Owner NexaSpace mengelola perusahaan dan tenant; data serta stok antar-tenant tetap terisolasi.
-- Single Workspace adalah model terpisah: satu Owner langsung masuk ke satu workspace POS, tanpa NexaSpace dan tanpa organisasi induk.
+- Pusat Kendali adalah pusat kendali Owner untuk model multi-tenant.
+- Owner Pusat Kendali mengelola perusahaan dan tenant; data serta stok antar-tenant tetap terisolasi.
+- Single Workspace adalah model terpisah: satu Owner langsung masuk ke satu workspace POS, tanpa Pusat Kendali dan tanpa organisasi induk.
 - Single Workspace sudah memiliki alur registrasi, aktivasi, perpanjangan, dan routing tersendiri.
 - Konfigurasi produksi saat pemeriksaan: paket `single_workspace` masih nonaktif di `site_activation_packages`. Harga seed tersedia, tetapi paket tidak ditampilkan di homepage sebelum Admin mengaktifkannya. Jangan mengaktifkan penawaran publik sebelum harga dan teks penawarannya disetujui.
 - Paket Khusus ditampilkan sebagai penawaran konsultasi tanpa harga/kuota publik. Aktivasi internal memakai key `special` dan kuota ditentukan Super Admin.
@@ -41,8 +41,8 @@ Dokumen ini menjadi sumber status pekerjaan NexaPos. Status kode, status migrasi
 - Arah visual terbaru: NEXA / ARCHITECTURE (Digital Architecture × Nexa Control × Kinetic Dimension), identitas Navy–Teal, halaman dengan komposisi dan karakter berbeda; redesign struktural, bukan CSS facelift atau template AI. Login wajib satu kanvas non-split dan dimulai dari nol.
 - Blueprint: `docs/NEXA_ARCHITECTURE_DESIGN_BLUEPRINT.md`.
 - Sistem gerak mencakup scroll reveal, parallax, cursor aura, magnetic controls, transition, kinetic typography, liquid motion, dan tilt 3D ringan.
-- Login, homepage, NexaSpace, Admin, dan workspace memakai fondasi visual yang konsisten tanpa menyamakan semua layout.
-- Homepage memuat penjelasan fitur, model NexaSpace dan Single Workspace, paket reguler, Paket Khusus, promo, FAQ, serta kanal WhatsApp/Telegram sesuai konfigurasi.
+- Login, homepage, Pusat Kendali, Admin, dan workspace memakai fondasi visual yang konsisten tanpa menyamakan semua layout.
+- Homepage memuat penjelasan fitur, model Pusat Kendali dan Single Workspace, paket reguler, Paket Khusus, promo, FAQ, serta kanal WhatsApp/Telegram sesuai konfigurasi.
 - Homepage hanya menampilkan durasi standar 3/7/30/365 hari; durasi Custom tetap untuk pengaturan Admin dan tidak menjadi opsi publik.
 - Seluruh animasi wajib menghormati `prefers-reduced-motion`, perangkat sentuh, dan ukuran layar kecil.
 
@@ -56,25 +56,25 @@ Dokumen ini menjadi sumber status pekerjaan NexaPos. Status kode, status migrasi
 - Harga per durasi disimpan di database dan dipakai homepage; jangan mengandalkan nilai fallback saat tabel belum tersedia.
 - Form aktivasi perusahaan mendukung pemilihan paket atau kuota Custom, termasuk Paket Khusus.
 - Validasi aktivasi, kuota, masa berlaku, promo, dan voucher dilakukan di backend.
-- Single Workspace mempunyai pengaturan harga dan status aktif terpisah dari paket NexaSpace.
+- Single Workspace mempunyai pengaturan harga dan status aktif terpisah dari paket Pusat Kendali.
 
-## 4. Super Admin dan Admin NexaPos
+## 4. Super Admin dan Admin ChillPos
 
 **Status: Implemented in branch; authenticated E2E pending.**
 
-- Super Admin dan Admin NexaPos memiliki panel dan kewenangan platform sesuai spesifikasi.
+- Super Admin dan Admin ChillPos memiliki panel dan kewenangan platform sesuai spesifikasi.
 - Tidak ada role Customer Service platform.
 - Admin mengelola paket, durasi, promo, tenant, aktivasi, pengguna, dan dukungan.
 - Aksi sensitif harus memeriksa hak akses di backend; UI yang menyembunyikan tombol bukan pengganti RLS/RPC authorization.
 - Setiap tombol aksi harus memiliki tujuan dan konfirmasi yang jelas.
 
-## 5. Owner dan NexaSpace
+## 5. Owner dan Pusat Kendali
 
 **Status: Implemented in branch; authenticated E2E pending.**
 
-- Owner NexaSpace dapat melihat organisasi, kuota, masa sewa, tenant, laporan gabungan, audit, serta pengaturan organisasi.
+- Owner Pusat Kendali dapat melihat organisasi, kuota, masa sewa, tenant, laporan gabungan, audit, serta pengaturan organisasi.
 - Owner dapat membuat tenant sesuai kuota dan berpindah ke tenant yang dimiliki.
-- Tenant yang nonaktif/kedaluwarsa tidak boleh menjalankan operasi POS, tetapi Owner tetap dapat membuka NexaSpace untuk melihat status dan mengelola tenant sesuai izin.
+- Tenant yang nonaktif/kedaluwarsa tidak boleh menjalankan operasi POS, tetapi Owner tetap dapat membuka Pusat Kendali untuk melihat status dan mengelola tenant sesuai izin.
 - Penghapusan tenant dan organisasi memiliki cakupan data yang berbeda dan harus selalu memakai konfirmasi permanen.
 - Single Workspace tidak boleh otomatis terhubung ke `owner_organizations`.
 
@@ -118,14 +118,14 @@ Dokumen ini menjadi sumber status pekerjaan NexaPos. Status kode, status migrasi
 - Bukti pembayaran memakai bucket privat, batas ukuran dan MIME, serta policy upload berbasis order yang masih menunggu pembayaran.
 - Verifikasi pembayaran dan perubahan status pesanan hanya boleh dilakukan oleh anggota tenant yang berwenang dan memenuhi syarat operasional/shift.
 
-## 10. NexaBot dan dukungan
+## 10. Joeclyn dan dukungan
 
 **Status: Implemented in branch and production migrations; authenticated E2E pending.**
 
-- Nama bot yang terlihat adalah NexaBot, bukan label generik AI.
-- Basis pengetahuan berfokus pada penggunaan NexaPos.
-- Handoff diarahkan ke Admin NexaPos.
-- Indikator mengetik tersedia untuk NexaBot dan Admin.
+- Nama bot yang terlihat adalah Joeclyn, bukan label generik AI.
+- Basis pengetahuan berfokus pada penggunaan ChillPos.
+- Handoff diarahkan ke Admin ChillPos.
+- Indikator mengetik tersedia untuk Joeclyn dan Admin.
 - Homepage tidak menampilkan live chat guest; kanal publik adalah WhatsApp dan Telegram sesuai konfigurasi.
 
 ## 11. Audit log
@@ -186,7 +186,7 @@ Sebelum merge/deploy produksi, seluruh hal berikut wajib selesai:
 
 1. CI terbaru setelah dependency overrides lulus, termasuk audit moderate, Capacitor CLI smoke, build, tes statis, dan preview smoke.
 2. Deploy Preview harus cocok dengan head PR #22 terbaru.
-3. Login dan routing Super Admin, Admin, Owner NexaSpace, Single Workspace, Manager, dan Karyawan diuji dengan akun yang sah.
+3. Login dan routing Super Admin, Admin, Owner Pusat Kendali, Single Workspace, Manager, dan Karyawan diuji dengan akun yang sah.
 4. Uji RLS langsung lintas dua organisasi/tenant untuk produk, stok, transaksi, anggota, laporan, audit, antrean, dan realtime.
 5. Uji dua atau lebih kasir bersamaan, stok, idempotency, struk, shift, dan antrean on/off.
 6. Uji aktivasi, perpanjangan, masa kedaluwarsa, kuota, Paket Khusus, Single Workspace, promo, dan voucher.
