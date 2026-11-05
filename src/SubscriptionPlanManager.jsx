@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { ArrowLeft, CheckCircle2, Eye, EyeOff, RefreshCw, Save, ShieldCheck } from 'lucide-react'
 import { supabase } from './lib/supabase'
 import './admin-subscription-plans.css'
+import './chillpos-design-system.css'
 
 const defaultDurations = [
   { duration_key: 'daily', name: 'Harian', duration_days: 3, sort_order: 1, is_active: true },
