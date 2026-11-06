@@ -199,3 +199,12 @@
 .cinema-human-note{display:block;margin-top:14px;color:#7b8984;font-size:9px;line-height:1.6}
 @media(max-width:980px){.cinema-human-scene{grid-template-columns:1fr}}
 @media(max-width:640px){.cinema-human-scene{grid-template-columns:1fr;padding:58px 20px}.cinema-human-preview{padding:16px;transform:none}}
+
+.cinema-home .living-manifesto{grid-template-columns:.5fr 1.5fr .8fr}
+.cinema-marquee{grid-column:1/-1;overflow:hidden;margin-top:28px;padding:17px 0;border-top:1px solid rgba(20,41,54,.16);border-bottom:1px solid rgba(20,41,54,.16)}
+.cinema-marquee>div{display:flex;align-items:center;justify-content:space-around;gap:28px;width:max-content;min-width:100%;animation:cinema-marquee-flow 34s linear infinite}
+.cinema-marquee span{color:#142936;font-size:clamp(18px,2.3vw,30px);font-weight:800;letter-spacing:-.045em}
+.cinema-marquee i{color:#71857f;font-size:18px;font-style:normal}
+@keyframes cinema-marquee-flow{to{transform:translateX(-22%)}}
+@media(max-width:640px){.cinema-marquee>div{justify-content:flex-start;gap:20px}.cinema-home .living-manifesto{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.cinema-marquee>div{animation:none!important}}
