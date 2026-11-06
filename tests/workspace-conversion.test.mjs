@@ -27,3 +27,11 @@ test('Admin conversion UI calls the guarded RPC and verifies returned store iden
   assert.match(app, /WorkspaceConversionModal/)
   assert.match(app, /setConversionTarget\(t\)/)
 })
+
+test('conversion requires exactly one active, enabled, verified Owner account matching the workspace email', () => {
+  assert.match(migration, /select count\(\*\)::integer into v_owner_count/i)
+  assert.match(migration, /if v_owner_count <> 1 then/i)
+  assert.match(migration, /m\.disabled_at is null/i)
+  assert.match(migration, /u\.email_confirmed_at is not null/i)
+  assert.match(migration, /if v_owner_user_id is null or not exists/i)
+})
