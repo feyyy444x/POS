@@ -47,3 +47,24 @@ test('login and registration form labels, inputs and helper text use compact ali
   assert.match(accessCss, /@media\(max-width:640px\)[\s\S]*?\.nx-access-portal \.access-form\{[\s\S]*?padding:19px 17px!important/)
   assert.match(accessCss, /\.nx-access-portal \.access-mode-switch\{[\s\S]*?text-align:center/)
 })
+
+
+const globalSafety = await readFile(new URL('../src/chillpos-layout-safety.css', import.meta.url), 'utf8')
+
+test('cross-page typography covers Admin, Control Center, Owner and Workspace surfaces', () => {
+  for (const scope of ['.app-shell','.super-admin-shell','.nx-owner-shell','.owner-shell','.tenant-operations-shell','.store-control-shell','.control-center-shell','.workspace-shell']) {
+    assert.ok(globalSafety.includes(scope), `Missing global typography scope: ${scope}`)
+  }
+  assert.match(globalSafety, /--nx-text-heading:clamp/)
+  assert.match(globalSafety, /--nx-text-label:12px/)
+  assert.match(globalSafety, /\.nav-link,.owner-nav-link/)
+})
+
+test('every menu and content area gets readable hierarchy and aligned form/table text', () => {
+  assert.match(globalSafety, /\.page-heading h1,.page-title,.page-header h1/)
+  assert.match(globalSafety, /\.section-title,.section-title-row h2,.panel-head h3/)
+  assert.match(globalSafety, /\.form-label,.field-label/)
+  assert.match(globalSafety, /\.table-wrap,.table-scroll,.table-container/)
+  assert.match(globalSafety, /@media\(max-width:640px\)/)
+  assert.match(globalSafety, /font-size:16px/)
+})
