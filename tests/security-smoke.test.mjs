@@ -850,6 +850,6 @@ test('Interactive Demo is retired and homepage CTA opens verified public free re
   assert.ok(registration.includes("aggregateBy: 'ip'"))
   assert.ok(registration.includes('windowLimit: 5'))
   assert.match(migration, /free_workspace/)
-  assert.ok(migration.includes("grant execute on function public.prepare_free_single_workspace_registration(uuid,text,text,text,text,text) to service_role"))
+  assert.ok(migration.includes("grant execute on function public.prepare_free_single_workspace_registration(uuid,text,text,text,text,text,text) to service_role"))
   assert.ok(migration.includes("grant execute on function public.complete_free_single_workspace_registration(uuid) to service_role"))
 })
