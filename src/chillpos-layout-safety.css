@@ -419,3 +419,81 @@ small{font-size:max(10px,.8em)}
     --nx-text-subheading:15px;
   }
 }
+
+
+/* Final cascade layer: enforce readable typography across every nested menu and module.
+   !important is intentionally limited to text metrics so lazy-loaded module CSS cannot
+   silently shrink/clip the shared typography system. */
+:where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.owner-center-shell,.owner-workspace,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell) :where(h1){
+  font-size:clamp(21px,2.1vw,27px)!important;
+  line-height:1.25!important;
+  letter-spacing:-.025em!important;
+}
+:where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.owner-center-shell,.owner-workspace,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell) :where(h2){
+  font-size:clamp(17px,1.65vw,21px)!important;
+  line-height:1.32!important;
+}
+:where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.owner-center-shell,.owner-workspace,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell) :where(h3){
+  font-size:clamp(14px,1.25vw,17px)!important;
+  line-height:1.35!important;
+}
+:where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.owner-center-shell,.owner-workspace,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell) :where(h4,h5,h6){
+  font-size:13px!important;
+  line-height:1.4!important;
+}
+:where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.owner-center-shell,.owner-workspace,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell) :where(p,.description,.subtitle,.helper-text,.field-help,.form-hint,.empty-state p,.notice,.alert,.muted){
+  font-size:12px!important;
+  line-height:1.6!important;
+}
+:where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.owner-center-shell,.owner-workspace,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell) :where(label,legend,.form-label,.field-label,.filter-label,.table-caption){
+  font-size:12px!important;
+  line-height:1.45!important;
+}
+:where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.owner-center-shell,.owner-workspace,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell) :where(input:not([type=checkbox]):not([type=radio]),select,textarea,.text-input){
+  font-size:13px!important;
+  line-height:1.45!important;
+}
+:where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.owner-center-shell,.owner-workspace,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell) :where(button,.btn,.btn-primary,.btn-outline,.btn-ghost,.text-button,[role=button]){
+  font-size:12px!important;
+  line-height:1.4!important;
+}
+:where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.owner-center-shell,.owner-workspace,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell) :where(.nav-link,.owner-nav-link,.side-nav a,.sidebar a,.sidebar button,.admin-nav a,.admin-nav button){
+  font-size:12px!important;
+  line-height:1.45!important;
+}
+:where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.owner-center-shell,.owner-workspace,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell) :where(th,td){
+  font-size:12px!important;
+  line-height:1.5!important;
+  vertical-align:middle!important;
+  overflow-wrap:anywhere!important;
+}
+:where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.owner-center-shell,.owner-workspace,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell) :where(.page-heading,.panel-head,.panel-header,.card-header,.section-title-row,.toolbar,.filter-row,.form-actions,.action-row){
+  min-width:0;
+  max-width:100%;
+  flex-wrap:wrap!important;
+  align-items:flex-start;
+  row-gap:9px;
+  column-gap:12px;
+}
+:where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.owner-center-shell,.owner-workspace,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell) :where(.form-label,.field-label,.filter-label,.settings-form label){
+  text-align:left!important;
+  overflow-wrap:anywhere!important;
+}
+:where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.owner-center-shell,.owner-workspace,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell) :where(.card,.panel,.content-card,.settings-card,.admin-card,.owner-card,.modal-card,.section-card,.form-card){
+  min-width:0;
+  max-width:100%;
+}
+.living-home :where(.living-hero-copy>p,.living-story-intro>p,.living-demo-copy>p,.living-bridge-copy>p,.living-section-head>p,.living-feature-copy p,.living-plan>p,.living-plan li,.living-faq-item>button>span,.living-faq-item>p,.living-pricing-note,.living-final-copy>p,.living-footer>p){
+  font-size:clamp(12px,.95vw,15px)!important;
+  line-height:1.65!important;
+}
+.living-home :where(.living-nav-links a,.living-footer-links a,.living-text-link,.living-final-login,.living-cta,.living-button){
+  font-size:12px!important;
+  line-height:1.45!important;
+}
+@media(max-width:640px){
+  :where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.owner-center-shell,.owner-workspace,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell) :where(h1){font-size:21px!important}
+  :where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.owner-center-shell,.owner-workspace,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell) :where(h2){font-size:17px!important}
+  :where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.owner-center-shell,.owner-workspace,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell) :where(p,.description,.subtitle,.helper-text,.field-help,.form-hint,.empty-state p,.notice,.alert,.muted){font-size:12px!important}
+  :where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.owner-center-shell,.owner-workspace,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell) :where(input:not([type=checkbox]):not([type=radio]),select,textarea,.text-input){font-size:16px!important}
+}
