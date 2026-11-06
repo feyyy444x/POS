@@ -34,3 +34,12 @@ test('registration success is not shown before the registration intent is prepar
   assert.ok(registration.indexOf('if (!prepareResponse.ok)') < registration.indexOf('setSuccess(true)'))
   assert.match(registration, /register-free/)
 })
+
+test('interrupted public signups can resume without creating a duplicate auth account', async () => {
+  const portal = await read('../src/AccessPortal.jsx')
+  assert.match(portal, /data\.user\.identities\?\.length === 0/)
+  assert.match(portal, /supabase\.auth\.signInWithPassword\(\{ email: email\.trim\(\), password \}\)/)
+  assert.match(portal, /supabase\.auth\.resend\(\{ type: 'signup', email: email\.trim\(\) \}\)/)
+  assert.match(portal, /existing\.data\?\.user\?\.user_metadata\?\.free_workspace_pending !== true/)
+  assert.match(portal, /userId: registrationUser\.id/)
+})
