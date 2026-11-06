@@ -259,11 +259,11 @@ export default function Homepage() {
         <div className="living-hero-orbit orbit-large" aria-hidden="true" />
         <div className="living-hero-orbit orbit-small" aria-hidden="true" />
         <div className="living-hero-copy">
-          <div className="living-kicker"><span className="living-live-dot" /> ONE CONNECTED BUSINESS SYSTEM <span className="living-kicker-line" /></div>
-          <h1>Satu sistem.<br/><span>Kendali banyak operasional.</span></h1>
-          <p>Kelola transaksi, produk dan stok, tim, serta laporan toko melalui ChillPos. Untuk pemilik beberapa tenant, Pusat Kendali menjadi pusat kendali Perusahaan agar setiap workspace tetap terkelola dalam satu tempat.</p>
+          <div className="living-kicker"><span className="living-live-dot" /> CINEMATIC DIGITAL SHOWROOM <span className="living-kicker-line" /></div>
+          <h1>Bisnis bergerak.<br/><span>Sistem ikut bekerja.</span></h1>
+          <p>Kenali cara ChillPos membantu menghubungkan transaksi, produk, stok, tim, dan laporan dalam satu pengalaman operasional yang lebih teratur.</p>
           <div className="living-hero-actions"><a className="living-cta" href="#cerita">Jelajahi cara kerja <ArrowDown size={16}/></a><a className="living-cta living-demo-cta" href="/?screen=register">Pendaftaran Gratis <ArrowUpRight size={14}/></a><a className="living-text-link" href="/login">Sudah punya akun? <span>Masuk workspace <ArrowUpRight size={14}/></span></a></div>
-          <div className="living-hero-index"><span>01 — THE LIVING SYSTEM</span><span>SCROLL TO EXPLORE ↓</span></div>
+          <div className="living-hero-index"><span>01 — THE PRODUCT EXPERIENCE</span><span>SCROLL TO EXPLORE ↓</span></div>
         </div>
         <div className="living-stage" aria-label="Ilustrasi alur ChillPos">
           <div className="living-stage-ring ring-one" /><div className="living-stage-ring ring-two" /><div className="living-stage-ring ring-three" />
@@ -276,7 +276,7 @@ export default function Homepage() {
           <svg className="living-connectors" viewBox="0 0 600 600" fill="none" aria-hidden="true"><path d="M300 300 L165 170"/><path d="M300 300 L445 160"/><path d="M300 300 L450 425"/><path d="M300 300 L150 435"/></svg>
           <div className="living-stage-caption"><span className="living-caption-pulse" /> REAL-TIME WORKFLOW <span>•</span> BUILT FOR BUSINESS</div>
         </div>
-        <div className="living-hero-bottom"><span>SCROLL-LED PRODUCT STORY</span><span>DESIGNED AROUND REAL WORKFLOWS</span><span>01 / 04</span></div>
+        <div className="living-hero-bottom"><span>CINEMATIC PRODUCT SHOWCASE</span><span>DESIGNED AROUND REAL WORKFLOWS</span><span>01 / 04</span></div>
       </section>
 
       <section className="living-manifesto living-reveal">
@@ -292,7 +292,7 @@ export default function Homepage() {
       </section>
 
       <section className="living-story" id="cerita">
-        <div className="living-story-intro living-reveal"><span className="living-eyebrow">THE SYSTEM IN MOTION / 01—03</span><h2>Ikuti alurnya.<br/><span>Lihat semuanya terhubung.</span></h2><p>Lihat bagaimana pekerjaan harian saling terhubung—mulai dari transaksi pelanggan, aktivitas beberapa kasir, hingga pencatatan antrean dan loket.</p></div>
+        <div className="living-story-intro living-reveal"><span className="living-eyebrow">CINEMATIC PRODUCT STORY / 01—03</span><h2>Masuk ke dalam alur.<br/><span>Lihat bagaimana semuanya terhubung.</span></h2><p>Lihat bagaimana pekerjaan harian saling terhubung—mulai dari transaksi pelanggan, aktivitas beberapa kasir, hingga pencatatan antrean dan loket.</p></div>
         <div className="living-story-layout">
           <div className="living-story-tabs" role="tablist" aria-label="Pilih alur bisnis">
             {Object.entries(storyScenes).map(([key,item]) => {
@@ -323,10 +323,28 @@ export default function Homepage() {
       {activePromo && <section className="living-promo-spotlight" aria-label="Promo ChillPos"><div className="living-promo-spotlight-orbit" aria-hidden="true"/><div className="living-promo-spotlight-label"><Sparkles size={16}/> PENAWARAN CHILLPOS <span className="living-live-dot"/></div><div className="living-promo-spotlight-main"><div><span className="living-eyebrow">PENAWARAN TERBATAS / CHILLPOS</span><h2>{activePromo.title || 'Penawaran khusus ChillPos'}</h2><p>{activePromo.description || 'Dapatkan harga khusus untuk masa akses ChillPos pilihanmu.'}</p><div className="living-promo-spotlight-meta"><span><CheckCircle2 size={14}/> Ketentuan mengikuti paket dan durasi yang memenuhi syarat</span>{activePromo.starts_at && <span><Activity size={14}/> Mulai {new Date(activePromo.starts_at).toLocaleString('id-ID',{day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit',timeZone:'Asia/Jakarta'})} WIB</span>}</div></div><div className="living-promo-spotlight-value"><small>DISKON</small><strong>{promoDiscountLabel(activePromo)}</strong><span>{promoStartsLater ? 'Segera dimulai' : requiresPromoCode(activePromo) ? 'Gunakan kode promo' : 'Potongan otomatis jika memenuhi syarat'}</span></div></div><a className="living-cta living-cta-light" href="#harga">Lihat harga setelah diskon <ArrowRight size={15}/></a></section>}
 
       <section className="living-features" id="fitur">
-        <div className="living-section-head living-reveal"><div><span className="living-eyebrow">BUILT AROUND YOUR BUSINESS</span><h2>Semua bagian punya peran.<br/><em>Semuanya saling mendukung.</em></h2></div><p>Semua fitur dirancang untuk membantu usaha bekerja lebih rapi: melayani pelanggan, membagi akses tim, mengelola produk, dan memantau hasil penjualan.</p></div>
+        <div className="living-section-head living-reveal"><div><span className="living-eyebrow">THE DIGITAL PRODUCT GALLERY</span><h2>Setiap fitur punya ruang.<br/><em>Setiap proses punya tujuan.</em></h2></div><p>Jelajahi fitur utama ChillPos dan kenali perannya dalam aktivitas bisnis sehari-hari.</p></div>
         <div className="living-feature-list">{features.map(({number,icon:Icon,title,text},index)=><article className="living-feature-row living-reveal" key={number}><span className="living-feature-number">{number}</span><span className="living-feature-icon"><Icon size={23}/></span><div className="living-feature-copy"><h3>{title}</h3><p>{text}</p></div><span className="living-feature-meta">{index===0?'POINT OF SALE':index===1?'MULTI-ACCOUNT':index===2?'QUEUE DISPLAY':index===3?'CATALOGUE':index===4?'REPORTING':'THERMAL PRINT'}</span><ArrowUpRight className="living-feature-arrow" size={20}/></article>)}</div>
       </section>
 
+
+      <section className="cinema-product-scene cinema-pos-scene" id="cinema-pos">
+        <div className="cinema-product-copy"><span className="cinema-eyebrow">06 / THE POS EXPERIENCE</span><h2>Pelayanan pelanggan.<br/><em>Dalam alur yang jelas.</em></h2><p>Perlihatkan bagaimana tim memilih produk, memeriksa keranjang, dan memahami ringkasan transaksi dalam satu alur kasir.</p><span className="cinema-demo-label">SIMULASI ANTARMUKA • BUKAN TRANSAKSI NYATA</span></div>
+        <div className="cinema-pos-preview"><div className="cinema-preview-top"><span/> <span/> <span/><b>CHILLPOS / POS PREVIEW</b></div><div className="cinema-pos-preview-body"><div><b>Daftar produk</b><small>Katalog dan kategori</small><i/><i/><i/><i/></div><aside><b>Keranjang</b><span>Produk contoh <strong>—</strong></span><span>Jumlah item <strong>—</strong></span><hr/><span>Total transaksi <strong>Preview</strong></span><small>Simulasi visual, tidak menyimpan transaksi.</small></aside></div></div>
+      </section>
+      <section className="cinema-product-scene cinema-inventory-scene" id="cinema-inventory">
+        <div className="cinema-inventory-preview"><div><b>Produk & inventaris</b><span>PREVIEW UI</span></div><article><i/><span><b>Produk</b><small>Informasi katalog</small></span><em>Detail</em></article><article><i/><span><b>Kategori</b><small>Pengelompokan produk</small></span><em>Detail</em></article><article><i/><span><b>Persediaan</b><small>Informasi stok</small></span><em>Detail</em></article><article><i/><span><b>Riwayat stok</b><small>Perubahan inventaris</small></span><em>Detail</em></article></div>
+        <div className="cinema-product-copy"><span className="cinema-eyebrow">07 / THE INVENTORY GALLERY</span><h2>Produk tertata.<br/><em>Stok lebih terpantau.</em></h2><p>Kenali katalog produk, kategori, informasi persediaan, dan riwayat perubahan stok dalam satu area pengelolaan.</p></div>
+      </section>
+      <section className="cinema-product-scene cinema-selforder-scene" id="cinema-self-order">
+        <div className="cinema-product-copy"><span className="cinema-eyebrow">08 / THE SELF ORDER EXPERIENCE</span><h2>Berikan pelanggan<br/><em>ruang untuk memesan.</em></h2><p>Perkenalkan pengalaman Self Order melalui katalog, keranjang, ringkasan pesanan, dan instruksi pembayaran.</p><span className="cinema-demo-label">DEMO • BUKAN PESANAN NYATA</span></div>
+        <div className="cinema-phone-preview"><div className="cinema-phone-screen"><img src="/chillpos-mark.svg" alt=""/><small>SELF ORDER / PREVIEW</small><h3>Menu toko</h3><article><i/><span><b>Produk contoh</b><small>Detail produk</small></span><em>+</em></article><article><i/><span><b>Produk pilihan</b><small>Detail produk</small></span><em>+</em></article><div className="cinema-phone-summary">Ringkasan pesanan <b>Demo checkout</b></div></div></div>
+      </section>
+      <section className="cinema-product-scene cinema-data-scene" id="cinema-data">
+        <div className="cinema-data-heading"><span className="cinema-eyebrow">09 / THE DATA DIMENSION</span><h2>Informasi untuk<br/><em>memahami aktivitas bisnis.</em></h2><p>Ringkasan transaksi, laporan penjualan, dan informasi produk membantu pemilik usaha membaca aktivitas operasional.</p></div>
+        <div className="cinema-data-preview"><article><small>RINGKASAN PENJUALAN</small><b>Data laporan</b><div className="cinema-data-bars"><i/><i/><i/><i/><i/><i/><i/></div><span>Ilustrasi tampilan laporan</span></article><article><small>AKTIVITAS TRANSAKSI</small><b>Riwayat operasional</b><div className="cinema-data-lines"><i/><i/><i/><i/></div><span>Ilustrasi daftar aktivitas</span></article><article><small>PRODUK & PERFORMA</small><b>Informasi produk</b><div className="cinema-data-ring"><span>Preview</span></div><span>Ilustrasi analitik</span></article></div>
+        <p className="cinema-data-note">Visual dan angka contoh bersifat ilustratif, bukan klaim performa pelanggan.</p>
+      </section>
 
       <section className="living-pricing living-pricing-redesign" id="harga">
         <div className="living-section-head living-reveal">
@@ -409,7 +427,7 @@ export default function Homepage() {
       <section className="living-faq" id="faq"><div className="living-section-head living-reveal"><div><span className="living-eyebrow">GOOD TO KNOW</span><h2>Sebelum mulai,<br/><em>ini yang perlu diketahui.</em></h2></div><p>Jawaban ringkas untuk membantu Anda memahami cara memulai menggunakan ChillPos.</p></div><div className="living-faq-list">{[{q:'Apa yang membedakan paket ChillPos?',a:'Fitur utama ChillPos tersedia untuk setiap paket. Paket reguler menentukan kuota tenant dan harga sesuai masa sewa. Paket Khusus memungkinkan masa aktif serta jumlah tenant ditentukan sesuai kebutuhan melalui konsultasi dengan tim ChillPos.'},{q:'Bagaimana cara mulai menggunakan ChillPos?',a:'Pilih salah satu paket yang tersedia, atau hubungi tim ChillPos melalui Telegram jika membutuhkan Paket Khusus dengan masa aktif dan jumlah tenant yang disesuaikan. Aktivasi diproses oleh Super Admin.'},{q:'Apa itu Pusat Kendali?',a:'Pusat Kendali adalah pusat kendali pemilik Perusahaan untuk melihat dan mengelola tenant dalam satu Perusahaan, termasuk memilih workspace tenant yang akan dikelola. Data dan stok setiap tenant tetap terpisah.'},{q:'Apakah ChillPos mendukung printer thermal?',a:'ChillPos menyediakan alur cetak struk untuk printer thermal yang kompatibel dengan perangkat dan browser yang digunakan.'},{q:'Bisakah beberapa karyawan menjadi kasir bersamaan?',a:'Bisa. Beberapa akun karyawan dapat digunakan pada toko yang sama secara bersamaan. Setiap transaksi tetap tercatat berdasarkan akun kasir yang melayaninya.'},{q:'Apakah data usaha langsung hilang saat masa aktif berakhir?',a:'Berakhirnya masa aktif membatasi akses operasional tenant sesuai status aktivasi. Owner tetap dapat membuka Pusat Kendali untuk melihat informasi Perusahaan, sedangkan data operasional tidak otomatis dihapus hanya karena masa sewa berakhir.'}].map((item,i)=><div className={'living-faq-item'+(faqOpen===i?' is-open':'')} key={item.q}><button onClick={()=>setFaqOpen(faqOpen===i?-1:i)} aria-expanded={faqOpen===i}><span><small>0{i+1}</small>{item.q}</span><ChevronDown size={17}/></button>{faqOpen===i&&<p>{item.a}</p>}</div>)}</div></section>
 
       <section className="living-final">
-        <div className="living-final-orbit" aria-hidden="true"/><div className="living-final-copy living-reveal"><span className="living-eyebrow">THE NEXT MOVE IS YOURS</span><h2>Bisnis bergerak.<br/><em>Pastikan sistemnya ikut.</em></h2><p>Mulai bangun operasional yang lebih teratur dengan alur kasir, tim, produk, laporan, dan layanan pelanggan yang saling terhubung.</p></div>
+        <div className="living-final-orbit" aria-hidden="true"/><div className="living-final-copy living-reveal"><span className="living-eyebrow">THE FINAL INVITATION</span><h2>Mulai dari satu langkah.<br/><em>Bangun operasional lebih terarah.</em></h2><p>Mulai bangun operasional yang lebih teratur dengan alur kasir, tim, produk, laporan, dan layanan pelanggan yang saling terhubung.</p></div>
         <div className="living-final-actions"><a className="living-cta living-cta-light" href="#harga">Pilih paket sewa <ArrowRight size={16}/></a><a className="living-final-login" href="/login">Sudah punya akun? Login workspace <ArrowUpRight size={14}/></a></div>
       </section>
     </main>
