@@ -16,6 +16,7 @@ export default async (request) => {
   const ownerName = String(payload?.ownerName || '').trim()
   const companyName = String(payload?.companyName || '').trim()
   const workspaceName = String(payload?.workspaceName || '').trim()
+  const businessCategory = String(payload?.businessCategory || '').trim()
   const pin = String(payload?.pin || '')
   if (!/^[0-9a-f-]{36}$/i.test(userId)) return json({ error: 'Identitas akun tidak valid.' }, 400)
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json({ error: 'Masukkan alamat email yang valid.' }, 400)
@@ -37,7 +38,7 @@ export default async (request) => {
     }
     const { data, error } = await admin.rpc('prepare_free_single_workspace_registration', {
       p_user_id: userId, p_email: email, p_owner_name: ownerName,
-      p_company_name: companyName, p_workspace_name: workspaceName, p_pin: pin,
+      p_company_name: companyName, p_workspace_name: workspaceName, p_business_category: businessCategory, p_pin: pin,
     })
     if (error || data !== true) {
       console.error('Free registration intent could not be prepared:', error?.message || 'unexpected response')
