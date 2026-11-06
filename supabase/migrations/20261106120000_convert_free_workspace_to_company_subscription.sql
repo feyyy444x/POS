@@ -2,6 +2,64 @@
 -- The conversion keeps the original store row and every operational relation intact.
 -- No owner approval is required; platform Admin/Super Admin must pass PIN verification.
 
+-- A permanently free Workspace Only must not be converted into a timed
+-- Single Workspace subscription by the ordinary activation/renewal button.
+create or replace function public.activate_single_workspace(
+  p_store_id uuid,
+  p_duration_days integer
+) returns public.stores
+language plpgsql
+security definer
+set search_path = ''
+as $function$
+declare
+  v_store public.stores;
+begin
+  if not private.is_super_admin() then
+    raise exception 'Super Admin access required';
+  end if;
+  if not private.is_pin_verified() then
+    raise exception 'Verifikasi PIN diperlukan untuk mengubah aktivasi';
+  end if;
+  if p_duration_days is null or p_duration_days < 1 or p_duration_days > 36500 then
+    raise exception 'Durasi harus 1 sampai 36500 hari';
+  end if;
+
+  select * into v_store
+  from public.stores
+  where id = p_store_id
+    and workspace_mode = 'single_workspace'
+    and status <> 'deleted'
+    and deleted_at is null
+  for update;
+
+  if not found then
+    raise exception 'Single Workspace tidak ditemukan atau sudah diarsipkan';
+  end if;
+  if v_store.activation_package_key = 'free_workspace' then
+    raise exception 'Workspace Only Gratis Permanen tidak dapat diaktivasi ulang. Gunakan proses Konversi ke Perusahaan jika ingin upgrade.';
+  end if;
+
+  update public.stores
+  set status = 'active',
+      workspace_mode = 'single_workspace',
+      organization_id = null,
+      activation_package_key = 'single_workspace',
+      activation_location_limit = 1,
+      activated_at = now(),
+      expires_at = now() + make_interval(days => p_duration_days),
+      activation_days = p_duration_days,
+      deleted_at = null
+  where id = v_store.id
+  returning * into v_store;
+
+  return v_store;
+end;
+$function$;
+
+revoke all on function public.activate_single_workspace(uuid,integer) from public, anon;
+grant execute on function public.activate_single_workspace(uuid,integer) to authenticated;
+
 create or replace function public.convert_single_workspace_to_company(
   p_store_id uuid,
   p_organization_name text,
