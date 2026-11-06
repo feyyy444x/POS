@@ -4,6 +4,14 @@ import { supabase } from './lib/supabase'
 import './admin-promotions.css'
 import './chillpos-design-system.css'
 
+function AdminHeaderClock(){
+  const [now,setNow]=useState(()=>new Date())
+  useEffect(()=>{const timer=setInterval(()=>setNow(new Date()),1000);return()=>clearInterval(timer)},[])
+  const date=new Intl.DateTimeFormat('id-ID',{timeZone:'Asia/Jakarta',day:'2-digit',month:'short',year:'numeric'}).format(now)
+  const time=new Intl.DateTimeFormat('id-ID',{timeZone:'Asia/Jakarta',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(now)
+  return <span className="wib-digital-clock"><strong>{time}</strong><small>WIB</small><em>{date}</em></span>
+}
+
 const defaultPeriods = [
   { value: 'daily', label: 'Harian' },
   { value: 'weekly', label: 'Mingguan' },
@@ -32,7 +40,7 @@ const promotionErrorMessage = (error) => {
   return 'Promo belum berhasil diproses. Periksa kembali data dan koneksi, lalu coba lagi.'
 }
 
-export default function PromotionManager({ onBack, onSignOut, staffMode = false, session = null }) {
+export default function PromotionManager({ onBack, onSignOut, staffMode = false, session = null, syncStatus = 'checking' }) {
   const [promos, setPromos] = useState([])
   const [periodOptions, setPeriodOptions] = useState(defaultPeriods)
   const [form, setForm] = useState(initialForm)
@@ -137,7 +145,7 @@ export default function PromotionManager({ onBack, onSignOut, staffMode = false,
   }
   return <div className="app-shell super-admin-shell">
     <aside className="sidebar"><div className="sidebar-brand"><div className="brand"><span className="brand-mark">C</span><span>ChillPos<small>BUSINESS OPERATIONS</small></span></div></div><div className="store-switch"><span className="store-avatar"><ShieldCheck size={17}/></span><span className="store-copy"><strong>{staffMode ? 'Staf ChillPos' : 'Super Admin'}</strong><small>{staffMode ? 'Akses sesuai izin' : 'Kontrol seluruh tenant'}</small></span></div><nav className="side-nav"><div className="nav-group"><div className="nav-section">PLATFORM</div><button className="nav-link" onClick={onBack}><ArrowLeft size={18}/><span>Kembali ke ringkasan</span></button><button className="nav-link nav-active"><Ticket size={18}/><span>Promo & Diskon</span></button></div></nav><div className="sidebar-bottom"><div className="user-card"><span className="user-avatar">C</span><span className="user-copy"><strong>Super Admin</strong><small>Pengaturan promo</small></span><button className="icon-button" onClick={onSignOut} title="Keluar"><X size={17}/></button></div></div></aside>
-    <main className="main-area"><header className="topbar"><div className="topbar-left"><button className="btn btn-outline btn-small nx-back-button" onClick={onBack}><ArrowLeft size={15}/> Kembali</button><div><div className="topbar-title-group"><div className="breadcrumb">CHILLPOS <span>/</span> SUPER ADMIN <span>/</span> <strong>Promo & Diskon</strong></div><div className="topbar-date">Atur penawaran yang tampil di homepage ChillPos</div></div></div></div><div className="topbar-actions"><span className="role-chip"><ShieldCheck size={14}/> {staffMode ? 'STAF PLATFORM' : 'SUPER ADMIN'}</span><button className="icon-button" onClick={load} title="Muat ulang"><RefreshCw size={17}/></button></div></header>
+    <main className="main-area"><header className="topbar"><div className="topbar-left"><button className="btn btn-outline btn-small nx-back-button" onClick={onBack}><ArrowLeft size={15}/> Kembali</button><div className="topbar-title-group"><div className="breadcrumb">CHILLPOS <span>/</span> SUPER ADMIN</div><h1>Promo & Diskon</h1></div></div><div className="topbar-actions"><span className="live-status"><i className={syncStatus}/>{syncStatus==='connected'?'LIVE SYNC':syncStatus==='unstable'?'SYNC LAMBAT':syncStatus==='offline'?'OFFLINE':'MEMERIKSA'}</span><AdminHeaderClock/><button className="icon-button refresh-btn" onClick={load} title="Perbarui data" aria-label="Perbarui data"><RefreshCw size={17}/></button></div></header>
       <div className="page-content"><div className="page-heading"><div><span className="eyebrow muted">PLATFORM / PROMOTIONS</span><h1>Promo <span className="heading-accent">& diskon.</span></h1><p>Semua pelanggan tetap mendapatkan fitur yang sama. Promosi hanya mengubah harga untuk masa sewa yang dipilih.</p></div><span className="date-pill"><Ticket size={14}/>{promos.length} promo</span></div>
         {notice&&<div className="toast"><Check size={17}/><span>{notice}</span><button onClick={()=>setNotice('')}><X size={15}/></button></div>}
         {error&&<div className="notice" role="alert">{error}</div>}
