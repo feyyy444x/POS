@@ -65,7 +65,7 @@ test('Single Workspace subscription is configurable in Admin and only public whe
 
 
 test('Public free registration provisions a standalone workspace with mandatory password and four-digit PIN', async () => {
-  const migration = await read('../supabase/migrations/20261106100000_public_free_single_workspace_registration.sql')
+  const migration = await read('../supabase/migrations/20261106111736_public_free_single_workspace_registration.sql')
   const handler = await read('../netlify/functions/register-free.mjs')
   const completion = await read('../netlify/functions/complete-free-registration.mjs')
   const portal = await read('../src/AccessPortal.jsx')
