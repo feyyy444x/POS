@@ -2,7 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 
-const migration = await readFile(new URL('../supabase/migrations/20261106120000_convert_free_workspace_to_company_subscription.sql', import.meta.url), 'utf8')
+const migration = await readFile(new URL('../supabase/migrations/20261106112051_convert_free_workspace_to_company_subscription.sql', import.meta.url), 'utf8')
 const modal = await readFile(new URL('../src/WorkspaceConversionModal.jsx', import.meta.url), 'utf8')
 const app = await readFile(new URL('../src/App.jsx', import.meta.url), 'utf8')
 
