@@ -23,7 +23,7 @@ export default function WorkspaceConversionModal({ tenant, packages = [], durati
   const selectedDuration = activeDurations.find(item => item.duration_key === durationKey)
   const days = durationKey === 'custom' ? Number(customDays) : Number(selectedDuration?.duration_days)
   const selectedPackage = activePackages.find(item => item.package_key === packageKey)
-  const needsCustomQuota = quotaMode === 'custom' || packageKey === 'special'
+  const needsCustomQuota = quotaMode === 'custom' || packageKey === 'special' || packageKey === 'custom'
   const quota = needsCustomQuota ? Number(customQuota) : Number(selectedPackage?.location_limit)
   const valid = companyName.trim().length >= 2 && Number.isInteger(days) && days >= 1 && days <= 36500
     && Number.isInteger(quota) && quota >= 1 && quota <= 1000
