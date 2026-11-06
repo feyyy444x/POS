@@ -1,5 +1,5 @@
 {
-  "name": "nexapos",
+  "name": "chillpos",
   "private": true,
   "version": "0.1.0",
   "type": "module",
@@ -17,7 +17,8 @@
     "@supabase/supabase-js": "2.57.0",
     "lucide-react": "0.468.0",
     "react": "19.1.1",
-    "react-dom": "19.1.1"
+    "react-dom": "19.1.1",
+    "qrcode": "1.5.4"
   },
   "devDependencies": {
     "@capacitor/cli": "^7.4.2",
@@ -25,5 +26,9 @@
     "@vitejs/plugin-react": "5.0.2",
     "typescript": "^5.9.2",
     "vite": "^7.3.7"
+  },
+  "overrides": {
+    "glob": "^14.0.2",
+    "minimatch": "^11.0.1"
   }
 }

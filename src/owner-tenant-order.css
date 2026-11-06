@@ -1,0 +1,8 @@
+/* Keep operational tenants first in both NexaSpace tenant grids. */
+.owner-tenant-grid > .owner-tenant-card {
+  order: 2;
+}
+
+.owner-tenant-grid > .owner-tenant-card:has(.owner-status.is-active) {
+  order: 1;
+}

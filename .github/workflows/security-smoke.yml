@@ -5,7 +5,7 @@ on:
   pull_request:
     branches: [main]
   push:
-    branches: [main, feature/nexapos-operations-bundle-v2]
+    branches: [main, feature/nexapos-operations-bundle-v2, nexapos/consolidated-pr-22]
 
 permissions:
   contents: read
@@ -15,17 +15,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 22
       - name: Install dependencies
         run: npm install --no-fund
-      - name: Audit dependencies for high or critical vulnerabilities
-        run: npm audit --audit-level=high
+      - name: Verify Capacitor CLI and resolved glob dependencies
+        run: |
+          npx cap --version
+          npm ls glob minimatch
+      - name: Audit dependencies for moderate or higher vulnerabilities
+        run: npm audit --audit-level=moderate
       - name: Run static security regression checks
-        run: node --test tests/security-smoke.test.mjs
+        run: node --test tests/security-smoke.test.mjs tests/read-only-lock.test.mjs tests/tenant-lifecycle-sync.test.mjs tests/self-order.test.mjs tests/single-workspace.test.mjs tests/workspace-conversion.test.mjs tests/ui-typography-safety.test.mjs tests/chillpos-homepage-cinematic.test.mjs tests/free-registration-flow.test.mjs
       - name: Build production bundle
         run: npm run build
       - name: Run deployed preview end-to-end smoke checks
