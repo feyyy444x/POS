@@ -21,6 +21,7 @@ export default async (request) => {
   if (!/^[0-9a-f-]{36}$/i.test(userId)) return json({ error: 'Identitas akun tidak valid.' }, 400)
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json({ error: 'Masukkan alamat email yang valid.' }, 400)
   if (![ownerName, companyName, workspaceName].every(validName)) return json({ error: 'Nama Owner, Perusahaan, dan workspace wajib 2–120 karakter.' }, 400)
+  if (!['Retail / Toko','Minimarket','Fashion / Pakaian','Kuliner / Restoran','Kafe / Kedai','Jasa','Salon / Barbershop','Apotek','Elektronik','Lainnya'].includes(businessCategory)) return json({ error: 'Pilih kategori usaha yang tersedia.' }, 400)
   if (!/^\d{4}$/.test(pin)) return json({ error: 'PIN harus tepat 4 angka.' }, 400)
 
   const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
