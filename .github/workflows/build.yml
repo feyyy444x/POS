@@ -22,6 +22,8 @@ jobs:
           node-version: 22
       - name: Install dependencies
         run: npm install --no-package-lock
+      - name: Run Workspace Only conversion regression tests
+        run: node --test tests/workspace-conversion.test.mjs
       - name: Build production bundle
         run: npm run build
         env:
