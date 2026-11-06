@@ -2,8 +2,8 @@ import { useState } from 'react'
 import { ArrowRight, KeyRound, ShieldCheck, UserRound, LockKeyhole } from 'lucide-react'
 import { isSupabaseConfigured, supabase } from './lib/supabase'
 import { userFacingError } from './lib/userFacingError'
-import './access-portal.css'
 import './chillpos-design-system.css'
+import './access-portal.css'
 
 function AccessBrand() {
   return <a className="access-brand" href="/" aria-label="ChillPos beranda">
