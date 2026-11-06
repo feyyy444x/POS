@@ -1,5 +1,7 @@
-# ChillPos — Soft Motion Premium
+# ChillPos — Global Product Design & Compatibility Baseline
 ## Blueprint Rebranding & Redesign Menyeluruh
+
+> **Pembaruan arah homepage (6 November 2026):** Arah visual homepage yang berlaku sekarang adalah **Cinematic Product Storytelling × Digital Gallery × Digital Showroom** dengan dominasi hybrid, motion balanced, dan showcase hybrid. Blueprint khusus homepage yang menjadi acuan terbaru adalah `docs/CHILLPOS_CINEMATIC_DIGITAL_SHOWROOM_BLUEPRINT.md`. Sistem desain global dan aturan modul non-homepage dalam dokumen ini tetap menjadi konteks kompatibilitas; dokumen ini tidak lagi menjadi acuan visual homepage.
 
 **Status:** Arah desain disetujui; implementasi dan pemeriksaan per modul berlangsung di PR #22.  
 **Repositori:** `feyyy444x/POS`  
