@@ -59,6 +59,7 @@ declare
   v_business_category text := btrim(coalesce(p_business_category, ''));
   v_auth_email text;
   v_pending_flag text;
+  v_prepared_user_id uuid;
 begin
   if coalesce(auth.jwt() ->> 'role', '') <> 'service_role' then
     raise exception 'Registration service access required';
@@ -104,17 +105,28 @@ begin
   delete from private.free_workspace_registration_intents
   where expires_at <= now();
 
-  insert into private.free_workspace_registration_intents(
+  -- Idempotent retry: an identical registration request reuses its original
+  -- intent and PIN hash. A conflicting retry cannot silently replace account data.
+  insert into private.free_workspace_registration_intents as existing (
     user_id, email, owner_name, company_name, workspace_name, business_category, pin_hash, expires_at
   ) values (
     p_user_id, v_email, v_owner_name, v_company_name, v_workspace_name, v_business_category,
     extensions.crypt(p_pin, extensions.gen_salt('bf')),
     now() + interval '30 days'
   )
-  on conflict (user_id) do nothing;
+  on conflict (user_id) do update
+    set expires_at = greatest(existing.expires_at, excluded.expires_at)
+    where existing.expires_at > now()
+      and existing.email = excluded.email
+      and existing.owner_name = excluded.owner_name
+      and existing.company_name = excluded.company_name
+      and existing.workspace_name = excluded.workspace_name
+      and existing.business_category = excluded.business_category
+      and extensions.crypt(p_pin, existing.pin_hash) = existing.pin_hash
+  returning user_id into v_prepared_user_id;
 
-  if not found then
-    raise exception 'Pendaftaran workspace untuk akun ini sudah disiapkan';
+  if v_prepared_user_id is null then
+    raise exception 'Pendaftaran sebelumnya berbeda atau telah kedaluwarsa. Hubungi dukungan untuk pemulihan akun.';
   end if;
   return true;
 end;
