@@ -1577,3 +1577,39 @@ tbody tr:hover{background:#f7fbfd}
   .app-shell .topbar-actions .live-status, .app-shell .owner-topbar-actions .live-status { font-size:6px; padding:4px 5px; }
   .app-shell .wib-digital-clock em { max-width:48px; }
 }
+
+
+/* Owner Center uses its own shell, so apply the same compact header outside .app-shell. */
+.owner-console .owner-topbar { min-height:68px; padding:11px 22px; display:flex; align-items:center; justify-content:space-between; gap:14px; }
+.owner-console .owner-topbar-left { display:flex; align-items:center; gap:12px; flex:1 1 auto; min-width:0; }
+.owner-console .owner-heading { display:flex; align-items:baseline; gap:12px; min-width:0; }
+.owner-console .owner-heading .owner-breadcrumb { font-size:10px; letter-spacing:.07em; white-space:nowrap; }
+.owner-console .owner-heading h1 { margin:0; font-size:18px; line-height:1.25; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.owner-console .owner-topbar-actions { display:flex; align-items:center; justify-content:flex-end; gap:10px; flex:0 0 auto; min-width:0; }
+.owner-console .owner-topbar-actions .live-status { display:inline-flex; align-items:center; gap:6px; white-space:nowrap; font-size:9px; font-weight:800; letter-spacing:.055em; padding:6px 8px; border:1px solid var(--cp-line,#e3e1d9); border-radius:999px; background:var(--cp-surface,#fff); }
+.owner-console .owner-topbar-actions .live-status i { width:7px; height:7px; flex:0 0 7px; border-radius:50%; background:#94a3b8; }
+.owner-console .owner-topbar-actions .live-status i.connected { background:#16a34a; box-shadow:0 0 0 3px rgba(22,163,74,.12); }
+.owner-console .owner-topbar-actions .live-status i.unstable { background:#eab308; }
+.owner-console .owner-topbar-actions .live-status i.offline { background:#b76d62; }
+.owner-console .wib-digital-clock { display:inline-flex; align-items:center; gap:5px; white-space:nowrap; font-size:10px; }
+.owner-console .wib-digital-clock em { font-style:normal; color:var(--cp-muted,#7b8178); font-size:9px; }
+.owner-console .owner-refresh-button { width:34px; height:34px; min-width:34px; padding:0; display:inline-grid; place-items:center; border:1px solid var(--cp-line,#e3e1d9); border-radius:10px; background:var(--cp-surface,#fff); color:var(--cp-ink,#424943); cursor:pointer; }
+@media(max-width:760px) {
+ .owner-console .owner-topbar { min-height:68px; padding:10px 12px; gap:8px; }
+ .owner-console .owner-heading { display:flex; flex-direction:column; align-items:flex-start; gap:3px; }
+ .owner-console .owner-heading .owner-breadcrumb { font-size:8px; line-height:1.2; letter-spacing:.045em; }
+ .owner-console .owner-heading h1 { max-width:100%; font-size:13px; line-height:1.2; }
+ .owner-console .owner-topbar-actions { gap:5px; }
+ .owner-console .owner-topbar-actions .live-status { font-size:7px; padding:5px 6px; gap:4px; }
+ .owner-console .wib-digital-clock { gap:3px; font-size:8px; }
+ .owner-console .wib-digital-clock svg, .owner-console .wib-digital-clock small { display:none; }
+ .owner-console .wib-digital-clock em { display:inline; max-width:68px; overflow:hidden; text-overflow:ellipsis; font-size:7px; }
+ .owner-console .owner-refresh-button { width:30px; height:30px; min-width:30px; border-radius:9px; }
+}
+@media(max-width:390px) {
+ .owner-console .owner-topbar { padding-left:9px; padding-right:9px; gap:5px; }
+ .owner-console .owner-topbar-left { gap:7px; }
+ .owner-console .owner-topbar-actions { gap:4px; }
+ .owner-console .owner-topbar-actions .live-status { font-size:6px; padding:4px 5px; }
+ .owner-console .wib-digital-clock em { max-width:48px; }
+}
