@@ -84,6 +84,7 @@ declare
   v_package public.site_activation_packages;
   v_org_id uuid;
   v_owner_user_id uuid;
+  v_owner_count integer;
   v_company_name text := btrim(coalesce(p_organization_name, ''));
   v_email text;
   v_limit integer;
@@ -171,19 +172,33 @@ begin
     end if;
   end if;
 
+  select count(*)::integer into v_owner_count
+  from public.store_members m
+  where m.store_id = v_store.id
+    and m.role = 'owner'
+    and m.is_active = true
+    and m.disabled_at is null;
+
+  if v_owner_count <> 1 then
+    raise exception 'Konversi membutuhkan tepat satu akun Owner aktif pada Workspace Only. Perbaiki keanggotaan Owner terlebih dahulu.';
+  end if;
+
   select m.user_id into v_owner_user_id
   from public.store_members m
   where m.store_id = v_store.id
     and m.role = 'owner'
     and m.is_active = true
+    and m.disabled_at is null
   order by m.created_at
   limit 1;
 
-  if v_owner_user_id is not null and not exists (
+  if v_owner_user_id is null or not exists (
     select 1 from auth.users u
-    where u.id = v_owner_user_id and lower(u.email) = v_email
+    where u.id = v_owner_user_id
+      and lower(u.email) = v_email
+      and u.email_confirmed_at is not null
   ) then
-    raise exception 'Akun Owner aktif tidak cocok dengan email Owner pada workspace';
+    raise exception 'Akun Owner aktif dan email terverifikasi harus cocok dengan email Owner pada workspace';
   end if;
 
   v_expiry := now() + make_interval(days => p_duration_days);
