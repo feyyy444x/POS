@@ -84,6 +84,11 @@ test('Public free registration provisions a standalone workspace with mandatory 
   assert.ok(migration.includes("grant execute on function public.prepare_free_single_workspace_registration(uuid,text,text,text,text,text,text) to service_role"))
   assert.ok(migration.includes("grant execute on function public.complete_free_single_workspace_registration(uuid) to service_role"))
   assert.ok(migration.includes("private.free_workspace_registration_intents"))
+  assert.match(migration, /on conflict \(user_id\) do update/i)
+  assert.match(migration, /extensions\.crypt\(p_pin, existing\.pin_hash\) = existing\.pin_hash/i)
+  assert.match(migration, /v_prepared_user_id is null/i)
+  assert.match(completion, /Free registration metadata cleanup after idempotent retry failed/)
+
   assert.ok(!migration.includes(" to anon"))
   assert.ok(handler.includes("prepare_free_single_workspace_registration"))
   assert.ok(handler.includes("payload?.businessCategory"))
