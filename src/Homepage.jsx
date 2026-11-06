@@ -253,7 +253,7 @@ export default function Homepage() {
       </nav>
       <div className="living-nav-actions"><a className="living-login" href="/login">Login workspace <ArrowUpRight size={14}/></a><a className="living-cta living-cta-nav" href="#harga">Mulai jelajahi <ArrowRight size={15}/></a></div>
     </header>
-    <main>
+    <main className="cinema-home">
       <section className="living-hero">
         <div className="living-hero-grid" aria-hidden="true" />
         <div className="living-hero-noise" aria-hidden="true" />
