@@ -1613,3 +1613,114 @@ tbody tr:hover{background:#f7fbfd}
  .owner-console .owner-topbar-actions .live-status { font-size:6px; padding:4px 5px; }
  .owner-console .wib-digital-clock em { max-width:48px; }
 }
+
+
+/* Header refinement: keep sync, WIB clock/date and icon refresh in one balanced row. */
+.app-shell .topbar,
+.owner-console .owner-topbar {
+  min-width:0;
+  flex-wrap:nowrap;
+}
+.app-shell .topbar-actions,
+.owner-console .owner-topbar-actions {
+  flex-wrap:nowrap;
+  white-space:nowrap;
+}
+.app-shell .wib-digital-clock,
+.owner-console .wib-digital-clock {
+  flex:0 1 auto;
+  min-width:0;
+  padding:7px 9px;
+  border:1px solid var(--cp-line,#e3e1d9);
+  border-radius:10px;
+  background:var(--cp-surface,#fff);
+  color:var(--cp-ink,#424943);
+  font-variant-numeric:tabular-nums;
+}
+.app-shell .wib-digital-clock strong,
+.owner-console .wib-digital-clock strong {
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.025em;
+}
+.app-shell .wib-digital-clock em,
+.owner-console .wib-digital-clock em {
+  display:inline;
+  max-width:none;
+  overflow:visible;
+  text-overflow:clip;
+  white-space:nowrap;
+  font-size:9px;
+}
+.app-shell .wib-digital-clock em::before,
+.owner-console .wib-digital-clock em::before {
+  content:"·";
+  margin-right:5px;
+  color:var(--cp-muted,#7b8178);
+}
+.app-shell .refresh-btn,
+.app-shell .owner-refresh-button,
+.owner-console .owner-refresh-button {
+  flex:0 0 34px;
+  width:34px;
+  min-width:34px;
+  height:34px;
+  padding:0;
+}
+@media(max-width:760px) {
+  .app-shell .topbar,
+  .owner-console .owner-topbar {
+    flex-wrap:nowrap!important;
+    min-width:0;
+  }
+  .app-shell .topbar-left,
+  .owner-console .owner-topbar-left {
+    flex:1 1 auto;
+    min-width:0;
+  }
+  .app-shell .topbar-title-group,
+  .owner-console .owner-heading {
+    min-width:0;
+    max-width:clamp(76px,27vw,150px)!important;
+  }
+  .app-shell .topbar-actions,
+  .owner-console .owner-topbar-actions {
+    flex:0 0 auto;
+    gap:5px;
+  }
+  .app-shell .wib-digital-clock,
+  .owner-console .wib-digital-clock {
+    gap:3px;
+    padding:5px 6px;
+    font-size:8px;
+  }
+  .app-shell .wib-digital-clock strong,
+  .owner-console .wib-digital-clock strong {
+    font-size:8px;
+  }
+  .app-shell .wib-digital-clock em,
+  .owner-console .wib-digital-clock em {
+    max-width:64px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    font-size:7px;
+  }
+  .app-shell .wib-digital-clock em::before,
+  .owner-console .wib-digital-clock em::before {
+    margin-right:3px;
+  }
+}
+@media(max-width:390px) {
+  .app-shell .topbar-title-group,
+  .owner-console .owner-heading {
+    max-width:clamp(68px,23vw,94px)!important;
+  }
+  .app-shell .topbar-actions,
+  .owner-console .owner-topbar-actions {
+    gap:4px;
+  }
+  .app-shell .wib-digital-clock em,
+  .owner-console .wib-digital-clock em {
+    max-width:48px;
+  }
+}
