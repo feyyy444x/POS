@@ -346,6 +346,11 @@ export default function Homepage() {
         <div className="cinema-data-preview"><article><small>RINGKASAN PENJUALAN</small><b>Data laporan</b><div className="cinema-data-bars"><i/><i/><i/><i/><i/><i/><i/></div><span>Ilustrasi tampilan laporan</span></article><article><small>AKTIVITAS TRANSAKSI</small><b>Riwayat operasional</b><div className="cinema-data-lines"><i/><i/><i/><i/></div><span>Ilustrasi daftar aktivitas</span></article><article><small>PRODUK & PERFORMA</small><b>Informasi produk</b><div className="cinema-data-ring"><span>Preview</span></div><span>Ilustrasi analitik</span></article></div>
         <p className="cinema-data-note">Visual dan angka contoh bersifat ilustratif, bukan klaim performa pelanggan.</p>
       </section>
+      <section className="cinema-human-scene" id="cinema-team">
+        <div className="cinema-human-copy"><span className="cinema-eyebrow">10 / THE HUMAN & WORKSPACE EXPERIENCE</span><h2>Tim bekerja bersama.<br/><em>Akses tetap terarah.</em></h2><p>Pengelolaan akun, peran, dan hak akses membantu setiap anggota tim bekerja sesuai tanggung jawabnya. Pemilik beberapa tenant juga dapat memantau workspace melalui Pusat Kendali.</p><a className="living-inline-link" href="/login">Jelajahi workspace <ArrowUpRight size={15}/></a></div>
+        <div className="cinema-human-preview"><div><b>Manajemen tim</b><span>WORKSPACE PREVIEW</span></div><article><i>A</i><span><b>Manager</b><small>Pengelolaan workspace</small></span><em>ROLE</em></article><article><i>B</i><span><b>Karyawan</b><small>Akses operasional</small></span><em>ROLE</em></article><article><i>C</i><span><b>Karyawan</b><small>Akses operasional</small></span><em>ROLE</em></article><small className="cinema-human-note">Contoh tampilan — akses mengikuti pengaturan peran yang berlaku.</small></div>
+      </section>
+
 
       <section className="living-pricing living-pricing-redesign" id="harga">
         <div className="living-section-head living-reveal">
