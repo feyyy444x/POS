@@ -29,7 +29,7 @@ jobs:
       - name: Audit dependencies for moderate or higher vulnerabilities
         run: npm audit --audit-level=moderate
       - name: Run static security regression checks
-        run: node --test tests/security-smoke.test.mjs tests/read-only-lock.test.mjs tests/tenant-lifecycle-sync.test.mjs tests/self-order.test.mjs tests/single-workspace.test.mjs tests/ui-typography-safety.test.mjs tests/chillpos-homepage-cinematic.test.mjs
+        run: node --test tests/security-smoke.test.mjs tests/read-only-lock.test.mjs tests/tenant-lifecycle-sync.test.mjs tests/self-order.test.mjs tests/single-workspace.test.mjs tests/workspace-conversion.test.mjs tests/ui-typography-safety.test.mjs tests/chillpos-homepage-cinematic.test.mjs
       - name: Build production bundle
         run: npm run build
       - name: Run deployed preview end-to-end smoke checks
