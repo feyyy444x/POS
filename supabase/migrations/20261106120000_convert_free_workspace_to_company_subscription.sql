@@ -121,6 +121,13 @@ begin
   order by m.created_at
   limit 1;
 
+  if v_owner_user_id is not null and not exists (
+    select 1 from auth.users u
+    where u.id = v_owner_user_id and lower(u.email) = v_email
+  ) then
+    raise exception 'Akun Owner aktif tidak cocok dengan email Owner pada workspace';
+  end if;
+
   v_expiry := now() + make_interval(days => p_duration_days);
   v_before := to_jsonb(v_store);
 
