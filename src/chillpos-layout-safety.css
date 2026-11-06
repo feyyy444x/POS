@@ -239,3 +239,183 @@ small{font-size:max(10px,.8em)}
   overflow:visible;
   flex-wrap:wrap;
 }
+
+
+/* Cross-module typography system: Admin, Control Center, Owner and every Workspace menu.
+   This layer standardizes text hierarchy, field alignment and responsive density without
+   changing business logic, navigation, permissions or data presentation. */
+:where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell){
+  --nx-text-body:13px;
+  --nx-text-small:11px;
+  --nx-text-label:12px;
+  --nx-text-heading:clamp(19px,2vw,26px);
+  --nx-text-subheading:clamp(15px,1.5vw,19px);
+  font-size:var(--nx-text-body);
+  -webkit-text-size-adjust:100%;
+  text-size-adjust:100%;
+}
+:where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell)
+:where(h1,h2,h3,h4,h5,h6){
+  max-width:100%;
+  margin-block:0 .55em;
+  line-height:1.3;
+  letter-spacing:-.025em;
+  text-wrap:pretty;
+  overflow-wrap:break-word;
+}
+:where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell)
+:where(.page-heading h1,.page-title,.page-header h1,.content-header h1,.owner-topbar h1){
+  font-size:var(--nx-text-heading);
+  font-weight:750;
+  line-height:1.25;
+}
+:where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell)
+:where(.section-title,.section-title-row h2,.panel-head h3,.card-header h3,.owner-section-heading h2,.settings-section h2){
+  font-size:var(--nx-text-subheading);
+  font-weight:700;
+  line-height:1.35;
+}
+:where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell)
+:where(p,.description,.subtitle,.helper-text,.field-help,.form-hint,.empty-state p,.notice,.alert){
+  font-size:var(--nx-text-small);
+  line-height:1.6;
+  overflow-wrap:break-word;
+}
+:where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell)
+:where(label,legend,.form-label,.field-label,.settings-form label,.filter-label){
+  display:block;
+  max-width:100%;
+  margin-block:0 7px;
+  font-size:var(--nx-text-label);
+  font-weight:650;
+  line-height:1.45;
+  text-align:left;
+  overflow-wrap:break-word;
+}
+:where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell)
+:where(input:not([type=checkbox]):not([type=radio]),select,textarea,.text-input,.search-box input){
+  min-width:0;
+  max-width:100%;
+  font-size:13px;
+  line-height:1.45;
+}
+:where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell)
+:where(.field,.form-field,.input-wrap,.search-box){
+  min-width:0;
+  max-width:100%;
+}
+:where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell)
+:where(button,.btn,.btn-primary,.btn-outline,.btn-ghost,.text-button,.icon-button,[role=button]){
+  max-width:100%;
+  min-width:0;
+  line-height:1.4;
+  text-align:center;
+  white-space:normal;
+  overflow-wrap:break-word;
+}
+:where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell)
+:where(.nav-link,.owner-nav-link,.side-nav a,.sidebar a,.sidebar button,.admin-nav a,.admin-nav button){
+  min-width:0;
+  min-height:40px;
+  font-size:12px;
+  line-height:1.4;
+  white-space:normal;
+  text-align:left;
+  overflow-wrap:break-word;
+}
+:where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell)
+:where(.nav-section,.nav-group-title,.sidebar-section-title,.owner-nav-group>small){
+  font-size:10px;
+  line-height:1.4;
+  letter-spacing:.1em;
+}
+:where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell)
+:where(.stat-label,.stat-meta,.card-caption,.muted,.meta-text,.table-caption,.breadcrumb,.topbar-date){
+  font-size:11px;
+  line-height:1.5;
+  overflow-wrap:break-word;
+}
+:where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell)
+:where(.stat-value,.metric-value,.owner-stat-card strong){
+  max-width:100%;
+  font-size:clamp(17px,2vw,23px);
+  line-height:1.25;
+  overflow-wrap:anywhere;
+  font-variant-numeric:tabular-nums;
+}
+:where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell)
+:where(.panel,.card,.content-card,.settings-card,.admin-card,.owner-card,.modal-card,.section-card){
+  min-width:0;
+}
+:where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell)
+:where(.panel-head,.panel-header,.card-header,.section-title-row,.page-heading,.toolbar,.filter-row,.form-actions,.action-row){
+  min-width:0;
+  max-width:100%;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:10px 14px;
+}
+:where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell)
+:where(.table-wrap,.table-scroll,.table-container,.table-responsive,.owner-table-wrap){
+  min-width:0;
+  max-width:100%;
+  overflow-x:auto;
+  overscroll-behavior-x:contain;
+  -webkit-overflow-scrolling:touch;
+}
+:where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell) table{
+  width:100%;
+  min-width:max-content;
+  font-size:12px;
+  line-height:1.5;
+  white-space:normal;
+}
+:where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell) :where(th,td){
+  max-width:360px;
+  padding:11px 12px;
+  vertical-align:middle;
+  font-size:11px;
+  line-height:1.5;
+  white-space:normal;
+  overflow-wrap:anywhere;
+}
+:where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell)
+:where(.badge,.tag,.chip,.status-pill,.payment-tag,.category-tag){
+  max-width:100%;
+  font-size:10px;
+  line-height:1.35;
+  white-space:normal;
+  text-align:center;
+}
+@media(max-width:900px){
+  :where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell){
+    --nx-text-body:13px;
+    --nx-text-small:11px;
+  }
+  :where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell)
+  :where(.page-heading,.panel-head,.panel-header,.card-header,.section-title-row){align-items:flex-start}
+}
+@media(max-width:640px){
+  :where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell){
+    --nx-text-body:13px;
+    --nx-text-small:11px;
+    --nx-text-label:12px;
+    --nx-text-heading:21px;
+    --nx-text-subheading:16px;
+  }
+  :where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell)
+  :where(.panel,.card,.content-card,.settings-card,.admin-card,.owner-card,.section-card){min-width:0}
+  :where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell)
+  :where(input:not([type=checkbox]):not([type=radio]),select,textarea,.text-input){font-size:16px}
+  :where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell)
+  :where(.nav-link,.owner-nav-link,.side-nav a,.sidebar a,.sidebar button,.admin-nav a,.admin-nav button){font-size:12px}
+  :where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell)
+  :where(.page-heading,.panel-head,.panel-header,.card-header,.section-title-row,.toolbar,.filter-row){gap:8px 10px}
+  :where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell) :where(th,td){padding:9px 10px;font-size:11px}
+}
+@media(max-width:380px){
+  :where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell){
+    --nx-text-heading:19px;
+    --nx-text-subheading:15px;
+  }
+}
