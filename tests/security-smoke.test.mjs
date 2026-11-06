@@ -836,7 +836,7 @@ test('Interactive Demo is retired and homepage CTA opens verified public free re
   const registration = await readFile(new URL('netlify/functions/register-free.mjs', root), 'utf8')
   const completion = await readFile(new URL('netlify/functions/complete-free-registration.mjs', root), 'utf8')
   const accessPortal = await readFile(new URL('src/AccessPortal.jsx', root), 'utf8')
-  const migration = await readFile(new URL('supabase/migrations/20261106100000_public_free_single_workspace_registration.sql', root), 'utf8')
+  const migration = await readFile(new URL('supabase/migrations/20261106111736_public_free_single_workspace_registration.sql', root), 'utf8')
   assert.doesNotMatch(app, /import\(['"]\.\/Demo\.jsx['"]\)/)
   assert.doesNotMatch(app, /screen==='demo'/)
   assert.ok(homepageUi.includes('href="/?screen=register">Pendaftaran Gratis'))
