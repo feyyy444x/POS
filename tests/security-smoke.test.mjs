@@ -180,7 +180,7 @@ test('internal platform Admin uses the Super Admin workspace and server-side PIN
   assert.match(app, /setIsPlatformAdmin\(isPlatformAdmin\)/)
   assert.match(app, /platformAdmin=\{isPlatformAdmin\}/)
   assert.match(app, /platformAdmin \? 'Admin CHILLPOS' : 'Super Admin'/)
-  assert.match(app, /platformAdmin \? 'ADMIN CHILLPOS' : 'SUPER ADMIN'/)
+  assert.ok((app.match(/platformAdmin \? 'Admin CHILLPOS' : 'Super Admin'/g) || []).length >= 2)
   assert.match(platformStaffManagerUi, /<div id="platform-staff-role" className="text-input" aria-readonly="true">Admin CHILLPOS — FULL AKSES<\/div>/)
   assert.doesNotMatch(platformStaffManagerUi, /Customer Service|customer_service/)
   assert.match(platformAdminParityMigration, /private\.is_pin_verified\(\)/)
