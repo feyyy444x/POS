@@ -61,7 +61,7 @@ function WibClock({ className = '', showDate = false }) {
     return () => clearInterval(timer)
   }, [])
   const time = new Intl.DateTimeFormat('id-ID', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).format(now)
-  const date = new Intl.DateTimeFormat('id-ID', { timeZone: 'Asia/Jakarta', weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }).format(now)
+  const date = new Intl.DateTimeFormat('id-ID', { timeZone: 'Asia/Jakarta', day: '2-digit', month: 'short', year: 'numeric' }).format(now)
   return <span className={`wib-digital-clock ${className}`} title="Waktu Indonesia Barat"><Clock3 size={14}/><strong>{time}</strong><small>WIB</small>{showDate && <em>{date}</em>}</span>
 }
 
