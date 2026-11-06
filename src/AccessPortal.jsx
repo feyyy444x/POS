@@ -42,6 +42,7 @@ export function AuthScreen() {
   const [ownerName, setOwnerName] = useState('')
   const [companyName, setCompanyName] = useState('')
   const [workspaceName, setWorkspaceName] = useState('')
+  const [businessCategory, setBusinessCategory] = useState('')
   const [pin, setPin] = useState('')
   const [pinConfirm, setPinConfirm] = useState('')
   const [passwordConfirm, setPasswordConfirm] = useState('')
@@ -62,6 +63,7 @@ export function AuthScreen() {
       if (password !== passwordConfirm) { setMessage('Konfirmasi password tidak sama.'); return }
       if (!/^\d{4}$/.test(pin)) { setMessage('PIN harus tepat 4 angka.'); return }
       if (pin !== pinConfirm) { setMessage('Konfirmasi PIN tidak sama.'); return }
+      if (!['Retail / Toko','Minimarket','Fashion / Pakaian','Kuliner / Restoran','Kafe / Kedai','Jasa','Salon / Barbershop','Apotek','Elektronik','Lainnya'].includes(businessCategory)) { setMessage('Pilih kategori usaha terlebih dahulu.'); return }
       if ([ownerName, companyName, workspaceName].some(value => value.trim().length < 2 || value.trim().length > 120)) {
         setMessage('Nama Owner, Perusahaan, dan workspace wajib 2–120 karakter.')
         return
@@ -92,7 +94,7 @@ export function AuthScreen() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             userId: data.user.id, email: email.trim(), ownerName: ownerName.trim(),
-            companyName: companyName.trim(), workspaceName: workspaceName.trim(), pin,
+            companyName: companyName.trim(), workspaceName: workspaceName.trim(), businessCategory, pin,
           }),
         })
         const prepared = await prepareResponse.json().catch(() => ({}))
@@ -164,6 +166,13 @@ export function AuthScreen() {
         <div className="access-field"><UserRound size={17} aria-hidden="true" /><input id="register-company-name" value={companyName} onChange={event => setCompanyName(event.target.value)} placeholder="Nama Perusahaan" required minLength={2} maxLength={120} autoComplete="organization" /></div>
         <label htmlFor="register-workspace-name">Nama usaha / workspace utama</label>
         <div className="access-field"><UserRound size={17} aria-hidden="true" /><input id="register-workspace-name" value={workspaceName} onChange={event => setWorkspaceName(event.target.value)} placeholder="Nama toko atau workspace" required minLength={2} maxLength={120} /></div>
+        <label htmlFor="register-business-category">Kategori usaha</label>
+        <div className="access-field access-select-field">
+          <select id="register-business-category" value={businessCategory} onChange={event => setBusinessCategory(event.target.value)} required>
+            <option value="" disabled>Pilih kategori usaha</option>
+            {['Retail / Toko','Minimarket','Fashion / Pakaian','Kuliner / Restoran','Kafe / Kedai','Jasa','Salon / Barbershop','Apotek','Elektronik','Lainnya'].map(category => <option key={category} value={category}>{category}</option>)}
+          </select>
+        </div>
       </>}
       <label htmlFor="access-email">Email {mode === 'login' ? 'terdaftar' : 'akun'}</label>
       <div className="access-field">
