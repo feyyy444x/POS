@@ -2089,8 +2089,8 @@ function SuperAdminScreen({session,syncStatus,setSyncStatus,onSignOut,platformAd
   const selectSection=(id)=>{setSection(id);setMobileNav(false)}
   const pageTitle={dashboard:'Ringkasan platform',stores:'Manajemen Tenant',nexaspace:'Manajemen Pusat Kendali','store-control':'Pusat Kendali Tenant',users:'Manajemen user',disabled:'Akun staf nonaktif',audit:'Audit aktivitas',support:'Pusat bantuan','platform-staff':'Tim & Hak Akses',promotions:'Promo & Diskon', 'subscription-plans':'Paket Aktivasi & Harga'}[section]
       <header className="topbar"><div className="topbar-left"><button className="mobile-menu icon-button" onClick={()=>setMobileNav(true)} aria-label="Buka sidebar"><Menu size={20}/></button><div className="topbar-title-group"><div className="breadcrumb">CHILLPOS <span>/</span> SUPER ADMIN</div><h1>Tim & Hak Akses</h1></div></div><div className="topbar-actions"><span className="live-status"><i className={syncStatus}/>{syncStatus==='connected'?'LIVE SYNC':syncStatus==='unstable'?'SYNC LAMBAT':syncStatus==='offline'?'OFFLINE':'MEMERIKSA'}</span><WibClock showDate/><button className="icon-button refresh-btn" onClick={()=>{load();loadUsers();loadDisabledMembers()}} title="Perbarui data" aria-label="Perbarui data"><RefreshCw size={17}/></button></div></header>
-  if(section==='promotions') return <PromotionManager onBack={()=>setSection('dashboard')} onSignOut={onSignOut}/>
-  if(section==='subscription-plans') return <SubscriptionPlanManager onBack={()=>setSection('dashboard')}/>
+  if(section==='promotions') return <PromotionManager onBack={()=>setSection('dashboard')} onSignOut={onSignOut} syncStatus={syncStatus}/>
+  if(section==='subscription-plans') return <SubscriptionPlanManager onBack={()=>setSection('dashboard')} syncStatus={syncStatus}/>
   return <div className="app-shell super-admin-shell nx-platform-shell">
     <aside className={`sidebar ${mobileNav?'sidebar-open':''}`}>
       <div className="sidebar-brand"><Brand/></div>
