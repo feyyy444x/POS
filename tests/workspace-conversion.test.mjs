@@ -9,6 +9,7 @@ const app = await readFile(new URL('../src/App.jsx', import.meta.url), 'utf8')
 test('conversion is a PIN-verified platform-admin RPC and excludes free workspace package keys', () => {
   assert.match(migration, /if not private\.is_super_admin\(\) then/i)
   assert.match(migration, /if not private\.is_pin_verified\(\) then/i)
+  assert.match(migration, /Workspace Only Gratis Permanen tidak dapat diaktivasi ulang/i)
   assert.match(migration, /'single_workspace', 'free_workspace'/i)
   assert.match(migration, /for update;/i)
   assert.match(migration, /grant execute on function public\.convert_single_workspace_to_company[\s\S]*to authenticated/i)
