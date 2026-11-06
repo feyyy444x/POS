@@ -38,6 +38,12 @@ export default async (request) => {
       if (!existingOwnerMembership?.length && user.user_metadata?.free_workspace_pending === true) {
         return json({ error: 'Data pendaftaran belum ditemukan. Hubungi dukungan agar akun tidak tertinggal tanpa workspace.' }, 409)
       }
+      if (existingOwnerMembership?.length && user.user_metadata?.free_workspace_pending === true) {
+        const { error: metadataError } = await admin.auth.admin.updateUserById(user.id, {
+          user_metadata: { ...(user.user_metadata || {}), free_workspace_pending: false },
+        })
+        if (metadataError) console.error('Free registration metadata cleanup after idempotent retry failed:', metadataError.message)
+      }
       return json({ pending: false })
     }
 
