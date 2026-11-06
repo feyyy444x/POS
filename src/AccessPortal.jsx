@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ArrowRight, KeyRound, ShieldCheck, UserRound, LockKeyhole } from 'lucide-react'
 import { isSupabaseConfigured, supabase } from './lib/supabase'
 import { userFacingError } from './lib/userFacingError'
@@ -80,7 +80,7 @@ export function AuthScreen() {
           email: email.trim(),
           password,
           options: {
-            emailRedirectTo: window.location.origin,
+            emailRedirectTo: `${window.location.origin}/?screen=complete-free-registration`,
             data: { full_name: ownerName.trim(), free_workspace_pending: true },
           },
         })
@@ -104,7 +104,6 @@ export function AuthScreen() {
         setPasswordConfirm('')
         setPin('')
         setPinConfirm('')
-        setSuccess(true)
         if (data.session?.access_token) {
           const completion = await fetch('/.netlify/functions/complete-free-registration', {
             method: 'POST',
@@ -112,11 +111,12 @@ export function AuthScreen() {
           })
           const completed = await completion.json().catch(() => ({}))
           if (!completion.ok) throw new Error(completed.error || 'Workspace belum berhasil disiapkan.')
-          window.location.assign('/login')
+          window.location.assign('/')
           return
         }
+        setSuccess(true)
         setMode('login')
-        setMessage('Akun berhasil dibuat. Periksa email Anda dan klik tautan verifikasi. Setelah email terverifikasi, workspace gratis akan disiapkan otomatis saat Anda masuk.')
+        setMessage('Akun berhasil dibuat. Periksa email Anda dan klik tautan verifikasi. Setelah email terverifikasi, sistem akan otomatis membuat Workspace Gratis dan mengarahkan Anda ke dalamnya.')
       } else {
         const response = await fetch('/.netlify/functions/activate-invitation', {
           method: 'POST',
@@ -215,6 +215,83 @@ export function AuthScreen() {
     <div className="access-security-note"><span><i /></span><p>Password minimal 8 karakter dan PIN pribadi 4 angka. Jangan bagikan kredensial akun kepada orang lain.</p></div>
   </AccessFrame>
 }
+export function FreeRegistrationCompletion() {
+  const [session, setSession] = useState(null)
+  const [status, setStatus] = useState('checking')
+  const [message, setMessage] = useState('')
+  const [retry, setRetry] = useState(0)
+  const completing = useRef(false)
+
+  useEffect(() => {
+    let active = true
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      if (active && nextSession) setSession(nextSession)
+    })
+    supabase.auth.getSession().then(({ data, error }) => {
+      if (!active) return
+      if (error) {
+        setMessage(userFacingError(error, 'Sesi verifikasi belum dapat dibaca.'))
+        setStatus('error')
+      } else if (data?.session) {
+        setSession(data.session)
+      } else {
+        setStatus('waiting')
+      }
+    })
+    return () => {
+      active = false
+      subscription.unsubscribe()
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!session?.access_token || completing.current) return
+    let active = true
+    completing.current = true
+    setStatus('completing')
+    setMessage('')
+    fetch('/.netlify/functions/complete-free-registration', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + session.access_token },
+    }).then(async response => {
+      const result = await response.json().catch(() => ({}))
+      if (!response.ok) throw new Error(result.error || 'Workspace Gratis belum berhasil disiapkan.')
+      if (!active) return
+      setStatus('done')
+      window.location.replace('/')
+    }).catch(error => {
+      if (!active) return
+      completing.current = false
+      setMessage(userFacingError(error, 'Penyelesaian pendaftaran gagal. Silakan coba lagi.'))
+      setStatus('error')
+    })
+    return () => { active = false }
+  }, [session, retry])
+
+  return <AccessFrame eyebrow="EMAIL VERIFICATION / WORKSPACE SETUP">
+    <div className="access-heading">
+      <span className="access-kicker">CHILLPOS / FREE WORKSPACE</span>
+      <h1>{status === 'done' ? <>Workspace<br/><em>siap digunakan.</em></> : <>Menyiapkan<br/><em>workspace.</em></>}</h1>
+      <p>{status === 'checking' || status === 'completing'
+        ? 'Email Anda telah diverifikasi. Sistem sedang menyelesaikan pembuatan Workspace Gratis.'
+        : status === 'waiting'
+          ? 'Menunggu sesi verifikasi email. Jika baru saja mengeklik tautan email, tunggu sebentar atau masuk kembali.'
+          : status === 'done'
+            ? 'Pendaftaran berhasil. Anda akan diarahkan ke Workspace.'
+            : 'Pembuatan Workspace belum selesai. Anda dapat mencoba kembali tanpa mengulang pendaftaran.'}</p>
+    </div>
+    {message && <div className="access-message is-error" role="alert">{message}</div>}
+    {(status === 'checking' || status === 'completing') && <div className="access-security-note"><span><i /></span><p>Mohon jangan tutup halaman ini sampai proses selesai.</p></div>}
+    {status === 'error' && <div className="access-form">
+      <button className="access-submit" type="button" onClick={() => { completing.current = false; setRetry(value => value + 1) }}>
+        <span>Coba selesaikan lagi</span><span className="access-submit-icon"><ArrowRight size={18}/></span>
+      </button>
+      <div className="access-mode-switch"><span>Butuh bantuan?</span><a href="/login">Kembali ke login</a></div>
+    </div>}
+    {status === 'waiting' && <div className="access-mode-switch"><span>Sudah verifikasi email?</span><a href="/login">Masuk untuk melanjutkan</a></div>}
+  </AccessFrame>
+}
+
 export function PinGate({ status, onReady, onSignOut }) {
   const [pin, setPin] = useState('')
   const [busy, setBusy] = useState(false)
