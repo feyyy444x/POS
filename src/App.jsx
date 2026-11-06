@@ -8,7 +8,7 @@ import {
 } from 'lucide-react'
 import { isSupabaseConfigured, supabase } from './lib/supabase'
 import { userFacingError } from './lib/userFacingError'
-import { AuthScreen, PinGate } from './AccessPortal.jsx'
+import { AuthScreen, FreeRegistrationCompletion, PinGate } from './AccessPortal.jsx'
 import WorkspaceConversionModal from './WorkspaceConversionModal.jsx'
 // Heavy route modules are split into separate chunks so public visitors and
 // everyday cashiers do not download Admin, reporting, support and self-order code up front.
@@ -2274,6 +2274,7 @@ export default function Root(){
   const screen=new URLSearchParams(window.location.search).get('screen')
   if(screen==='queue')return <QueueScreen/>
   if(screen==='self-order')return <SelfOrderPublic/>
+  if(screen==='complete-free-registration')return <FreeRegistrationCompletion/>
   if(screen==='register')return <AuthScreen/>
   return <><App/><SupportPortal/></>
 }
