@@ -76,6 +76,8 @@ test('Public free registration provisions a standalone workspace with mandatory 
   assert.ok(migration.includes("business_category text not null"))
   assert.ok(migration.includes("v_business_category not in"))
   assert.ok(migration.includes("v_intent.business_category"))
+  assert.match(migration, /name, company_name, business_category, owner_name, owner_email/)
+  assert.doesNotMatch(migration, /\n then\n\s+raise exception/)
   assert.ok(migration.includes("workspace_mode"))
   assert.ok(migration.includes("'single_workspace'"))
   assert.ok(migration.includes("extensions.crypt(p_pin, extensions.gen_salt('bf'))"))
