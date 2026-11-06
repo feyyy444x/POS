@@ -51,3 +51,22 @@
 .access-pin-field input{text-align:center;letter-spacing:.55em;font-size:20px}
 @media(max-width:640px){.access-portal{padding:20px 21px 18px;min-height:100svh}.access-system-label{font-size:7px;letter-spacing:.1em}.access-brand{font-size:19px}.access-brand img{width:33px;height:33px}.access-content{padding:66px 0 54px}.access-index{font-size:8px;gap:13px}.access-heading h1{font-size:clamp(43px,13vw,64px)}.access-heading p{font-size:13px}.access-form{margin-top:35px}.access-footer{gap:9px;font-size:7px;letter-spacing:.07em}.access-footer span:nth-child(2){display:none}.access-grid{background-size:48px 48px}.access-background-word{font-size:43vw;bottom:-.08em}}
 @media(prefers-reduced-motion:reduce){.access-field,.access-submit{transition:none}}
+
+
+/* Mobile access pages: long registration forms must expand, never crop their last fields. */
+.access-portal{overflow:visible!important;min-height:100svh;height:auto!important}
+.access-content{flex:0 0 auto;min-height:0}
+.access-form{width:100%;min-width:0}
+.access-field select{width:100%;min-width:0;height:100%;border:0!important;outline:0;background:transparent!important;color:var(--cp-ink)!important;font:500 13px 'DM Sans',sans-serif!important;appearance:auto}
+.access-field select:invalid{color:#71869a!important}
+.access-field select option{background:#fff;color:#424943}
+@media(max-width:640px){
+  .access-portal{padding-bottom:max(24px,env(safe-area-inset-bottom))!important}
+  .access-content{padding-top:42px!important;padding-bottom:34px!important;margin:0 auto!important}
+  .access-form{margin-top:28px!important}
+  .access-form label{font-size:12px;line-height:1.45}
+  .access-field{min-height:56px;height:auto}
+  .access-field input,.access-field select{min-height:54px;font-size:16px!important}
+  .access-footer{margin-top:20px;flex-wrap:wrap;line-height:1.5}
+  .access-background-word{pointer-events:none}
+}
