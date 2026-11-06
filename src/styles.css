@@ -1724,3 +1724,36 @@ tbody tr:hover{background:#f7fbfd}
     max-width:48px;
   }
 }
+
+
+/* Final responsive guard: retain a single-line header on wide screens,
+   but allow compact wrapping on narrow screens to prevent clipped controls. */
+@media(max-width:760px) {
+  .app-shell .topbar,
+  .owner-console .owner-topbar {
+    flex-wrap:wrap!important;
+    align-items:center;
+    row-gap:7px;
+  }
+  .app-shell .topbar-left,
+  .owner-console .owner-topbar-left {
+    flex:1 1 100%;
+  }
+  .app-shell .topbar-actions,
+  .owner-console .owner-topbar-actions {
+    flex:1 1 100%;
+    justify-content:flex-end;
+    flex-wrap:wrap;
+    white-space:normal;
+  }
+}
+@media(max-width:390px) {
+  .app-shell .topbar-title-group,
+  .owner-console .owner-heading {
+    max-width:none!important;
+  }
+  .app-shell .topbar-actions,
+  .owner-console .owner-topbar-actions {
+    justify-content:space-between;
+  }
+}
