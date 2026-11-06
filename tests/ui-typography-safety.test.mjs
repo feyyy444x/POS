@@ -68,3 +68,11 @@ test('every menu and content area gets readable hierarchy and aligned form/table
   assert.match(globalSafety, /@media\(max-width:640px\)/)
   assert.match(globalSafety, /font-size:16px/)
 })
+
+
+test('final typography cascade overrides late-loaded module styles on every application surface', () => {
+  assert.match(globalSafety, /font-size:clamp\(21px,2\.1vw,27px\)!important/)
+  assert.match(globalSafety, /font-size:12px!important/)
+  assert.match(globalSafety, /font-size:16px!important/)
+  assert.match(globalSafety, /living-home :where\(\.living-hero-copy>p/)
+})
