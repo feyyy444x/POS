@@ -1414,3 +1414,124 @@ tbody tr:hover{background:#f7fbfd}
 .store-control-warning small{color:#a17c3e;font-size:9px}
 @media(max-width:1050px){.store-control-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.store-control-hero{flex-wrap:wrap}.store-control-hero-actions{max-width:none;width:100%;justify-content:flex-start}}
 @media(max-width:720px){.store-control-grid{grid-template-columns:minmax(0,1fr)}.store-control-heading{align-items:flex-start;flex-direction:column}.store-control-heading-actions{width:100%;justify-content:space-between}.store-control-hero{padding:17px;gap:13px}.store-control-hero-mark{width:43px;height:43px}.store-control-hero-main h2{font-size:19px}.store-control-meta{flex-direction:column;gap:7px}.store-control-hero-actions .btn{flex:1;justify-content:center}.store-control-details{grid-template-columns:minmax(0,1fr)}.store-control-metrics{gap:9px}.store-control-metric{padding:13px}.store-control-metric strong{font-size:17px}.store-control-card{padding:15px}.store-control-activity-tools{flex-direction:column}.store-control-activity-tools .text-input{max-width:none}.store-control-conversation-list .status-pill,.store-control-invites .status-pill{white-space:nowrap}}
+
+/* ChillPos global header alignment: keep identity, current page and utilities
+   on one deliberate horizontal line instead of stacking the title blocks. */
+.topbar {
+  display:flex;
+  flex-wrap:nowrap;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+}
+.topbar-left,
+.topbar-title-group,
+.topbar-actions {
+  min-width:0;
+}
+.topbar-title-group {
+  display:flex;
+  align-items:center;
+  gap:14px;
+}
+.topbar-title-group .breadcrumb {
+  min-width:0;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.topbar-date {
+  flex:0 0 auto;
+  margin:0;
+  white-space:nowrap;
+}
+.owner-topbar-left > div {
+  display:flex;
+  align-items:center;
+  gap:14px;
+  min-width:0;
+}
+.owner-breadcrumb {
+  flex:0 0 auto;
+  white-space:nowrap;
+}
+.owner-topbar h1 {
+  min-width:0;
+  margin:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+@media (max-width:760px) {
+  .topbar {
+    flex-wrap:nowrap !important;
+    align-items:center !important;
+    gap:7px !important;
+  }
+  .topbar-left {
+    flex:1 1 auto !important;
+    min-width:0 !important;
+  }
+  .topbar-title-group {
+    display:block !important;
+    flex:1 1 auto !important;
+    width:auto !important;
+    max-width:min(48vw,220px) !important;
+    min-width:0 !important;
+  }
+  .topbar-title-group .breadcrumb {
+    display:block !important;
+    max-width:100%;
+    font-size:10px;
+    line-height:1.25;
+  }
+  .topbar-date {
+    display:none !important;
+  }
+  .topbar-actions {
+    flex:0 0 auto !important;
+    width:auto !important;
+    min-width:0 !important;
+    flex-wrap:nowrap !important;
+    justify-content:flex-end !important;
+    gap:6px !important;
+  }
+  .topbar-actions .live-status {
+    white-space:nowrap !important;
+  }
+  .owner-topbar {
+    flex-wrap:nowrap !important;
+    align-items:center !important;
+    gap:8px !important;
+  }
+  .owner-topbar-left {
+    flex:1 1 auto !important;
+    min-width:0 !important;
+    gap:7px !important;
+  }
+  .owner-topbar-left > div {
+    flex:1 1 auto;
+    gap:8px;
+    overflow:hidden;
+  }
+  .owner-breadcrumb {
+    font-size:8px !important;
+    letter-spacing:.07em !important;
+  }
+  .owner-topbar h1 {
+    font-size:14px !important;
+    white-space:nowrap !important;
+  }
+  .owner-topbar-actions {
+    flex:0 0 auto !important;
+    gap:6px !important;
+  }
+}
+@media (max-width:420px) {
+  .topbar-title-group { max-width:42vw !important; }
+  .topbar-title-group .breadcrumb { font-size:9px; }
+  .topbar-actions .live-status { font-size:8px !important; padding:6px 6px !important; }
+  .owner-breadcrumb { font-size:7px !important; }
+  .owner-topbar h1 { font-size:12px !important; }
+}
+
