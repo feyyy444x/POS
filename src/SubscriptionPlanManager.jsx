@@ -4,6 +4,14 @@ import { supabase } from './lib/supabase'
 import './admin-subscription-plans.css'
 import './chillpos-design-system.css'
 
+function AdminHeaderClock(){
+  const [now,setNow]=useState(()=>new Date())
+  useEffect(()=>{const timer=setInterval(()=>setNow(new Date()),1000);return()=>clearInterval(timer)},[])
+  const date=new Intl.DateTimeFormat('id-ID',{timeZone:'Asia/Jakarta',day:'2-digit',month:'short',year:'numeric'}).format(now)
+  const time=new Intl.DateTimeFormat('id-ID',{timeZone:'Asia/Jakarta',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(now)
+  return <span className="wib-digital-clock"><strong>{time}</strong><small>WIB</small><em>{date}</em></span>
+}
+
 const defaultDurations = [
   { duration_key: 'daily', name: 'Harian', duration_days: 3, sort_order: 1, is_active: true },
   { duration_key: 'weekly', name: 'Mingguan', duration_days: 7, sort_order: 2, is_active: true },
@@ -21,7 +29,7 @@ const packageDefaults = [
 ]
 const money = value => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value || 0))
 
-export default function SubscriptionPlanManager({ onBack }) {
+export default function SubscriptionPlanManager({ onBack, syncStatus = 'checking' }) {
   const [plans, setPlans] = useState(packageDefaults)
   const [durations, setDurations] = useState(defaultDurations)
   const [loading, setLoading] = useState(true)
@@ -86,7 +94,7 @@ export default function SubscriptionPlanManager({ onBack }) {
 
   return <div className="app-shell super-admin-shell nx-plan-admin">
     <main className="main-area">
-      <header className="topbar"><div className="topbar-left"><button className="btn btn-outline btn-small nx-back-button" onClick={onBack}><ArrowLeft size={15}/> Kembali</button><div><div className="topbar-title-group"><div className="breadcrumb">CHILLPOS <span>/</span> SUPER ADMIN <span>/</span> <strong>Paket Aktivasi & Harga</strong></div><div className="topbar-date">Atur kuota tenant/lokasi dan harga untuk empat masa aktif standar</div></div></div></div><div className="topbar-actions"><span className="role-chip"><ShieldCheck size={14}/> SUPER ADMIN</span><button className="btn btn-outline btn-small" onClick={load}><RefreshCw size={14}/> Muat ulang</button></div></header>
+      <header className="topbar"><div className="topbar-left"><button className="btn btn-outline btn-small nx-back-button" onClick={onBack}><ArrowLeft size={15}/> Kembali</button><div className="topbar-title-group"><div className="breadcrumb">CHILLPOS <span>/</span> SUPER ADMIN</div><h1>Paket Aktivasi & Harga</h1></div></div><div className="topbar-actions"><span className="live-status"><i className={syncStatus}/>{syncStatus==='connected'?'LIVE SYNC':syncStatus==='unstable'?'SYNC LAMBAT':syncStatus==='offline'?'OFFLINE':'MEMERIKSA'}</span><AdminHeaderClock/><button className="icon-button refresh-btn" onClick={load} title="Perbarui data" aria-label="Perbarui data"><RefreshCw size={17}/></button></div></header>
       <div className="page-content"><section className="page-section">
         <div className="page-heading"><div><span className="eyebrow muted">KONTROL AKTIVASI</span><h1>Paket aktivasi <span className="heading-accent">ChillPos.</span></h1><p>Semua paket memiliki fitur yang sama. Perbedaannya adalah kuota lokasi dan harga berdasarkan masa aktif. Kode aktivasi tetap diterbitkan oleh Super Admin.</p></div><span className="date-pill"><CheckCircle2 size={14}/> Aktivasi manual</span></div>
         {!loading && !plansReady && !error && <div className="notice">Data paket belum tersedia. Pastikan keempat paket aktivasi sudah dibuat di database sebelum mengedit harga.</div>}{notice&&<div className="toast"><CheckCircle2 size={17}/><span>{notice}</span></div>}{error&&<div className="notice">{error}</div>}
