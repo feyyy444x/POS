@@ -91,7 +91,7 @@ begin
   if v_business_category not in ('Retail / Toko','Minimarket','Fashion / Pakaian','Kuliner / Restoran','Kafe / Kedai','Jasa','Salon / Barbershop','Apotek','Elektronik','Lainnya') then
     raise exception 'Kategori usaha wajib dipilih dari daftar';
   end if;
-  if p_pin !~ '^[0-9]{4}
+  if p_pin !~ '^[0-9]{4}$' then
     raise exception 'PIN harus tepat 4 angka';
   end if;
   if exists (select 1 from public.store_members m where m.user_id = p_user_id and m.is_active) then
