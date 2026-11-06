@@ -73,8 +73,19 @@ export function AuthScreen() {
     try {
       if (mode === 'login') {
         const result = await supabase.auth.signInWithPassword({ email: email.trim(), password })
-        if (result.error) setMessage(userFacingError(result.error))
-        else if (new URLSearchParams(window.location.search).get('screen') === 'register') window.location.assign('/login')
+        if (result.error) {
+          setMessage(userFacingError(result.error))
+        } else {
+          if (result.data?.user?.user_metadata?.free_workspace_pending === true && result.data?.session?.access_token) {
+            const completion = await fetch('/.netlify/functions/complete-free-registration', {
+              method: 'POST',
+              headers: { Authorization: 'Bearer ' + result.data.session.access_token },
+            })
+            const completed = await completion.json().catch(() => ({}))
+            if (!completion.ok) throw new Error(completed.error || 'Workspace Gratis belum berhasil disiapkan.')
+          }
+          window.location.assign('/')
+        }
       } else if (mode === 'register') {
         const { data, error: signUpError } = await supabase.auth.signUp({
           email: email.trim(),
