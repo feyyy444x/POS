@@ -32,3 +32,29 @@ $function$;
 
 revoke all on function public.super_admin_reset_user_pin(uuid) from public, anon, authenticated;
 grant execute on function public.super_admin_reset_user_pin(uuid) to authenticated;
+
+
+create or replace function public.super_admin_list_owner_user_ids()
+returns table(user_id uuid)
+language plpgsql
+security definer
+set search_path = ''
+as $function$
+begin
+  if not private.is_super_admin() then
+    raise exception 'Super Admin access required';
+  end if;
+  return query
+  select distinct u.id
+  from auth.users u
+  where exists (
+    select 1 from public.owner_organizations o where o.owner_user_id = u.id
+  )
+  or exists (
+    select 1 from public.store_members m where m.user_id = u.id and m.role = 'owner'
+  );
+end;
+$function$;
+
+revoke all on function public.super_admin_list_owner_user_ids() from public, anon;
+grant execute on function public.super_admin_list_owner_user_ids() to authenticated;

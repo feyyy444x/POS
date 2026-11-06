@@ -1,8 +1,47 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 
-const baseUrl = (process.env.NEXAPOS_E2E_BASE_URL || 'https://deploy-preview-15--posfeyyy.netlify.app').replace(/\/$/, '')
+const baseUrl = (process.env.NEXAPOS_E2E_BASE_URL || 'https://deploy-preview-22--posfeyyy.netlify.app').replace(/\/$/, '')
 const activationUrl = new URL('/.netlify/functions/activate-invitation', baseUrl)
+const freeRegistrationUrl = new URL('/.netlify/functions/register-free', baseUrl)
+const completeRegistrationUrl = new URL('/.netlify/functions/complete-free-registration', baseUrl)
+
+async function fetchWithRetry(url, options, attempts = 4) {
+  let lastError
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    try { return await fetch(url, options) } catch (error) {
+      lastError = error
+      if (attempt < attempts - 1) await new Promise(resolve => setTimeout(resolve, 1200))
+    }
+  }
+  throw lastError || new Error('Preview endpoint did not respond')
+}
+
+async function fetchApplicationBundleGraph(entryPath) {
+  const queue = [new URL(entryPath, baseUrl)]
+  const visited = new Set()
+  const bundles = []
+
+  while (queue.length && visited.size < 80) {
+    const url = queue.shift()
+    if (visited.has(url.href) || url.origin !== new URL(baseUrl).origin) continue
+    visited.add(url.href)
+    const response = await fetch(url, { signal: AbortSignal.timeout(15000) })
+    if (!response.ok) continue
+    const source = await response.text()
+    bundles.push(source)
+
+    const imports = [...source.matchAll(/(?:import\(\s*|from\s*|import\s*)["']([^"']+\.js(?:\?[^"']*)?)["']/g)]
+    for (const match of imports) {
+      try {
+        const asset = new URL(match[1], url)
+        if (asset.origin === new URL(baseUrl).origin && !visited.has(asset.href)) queue.push(asset)
+      } catch {}
+    }
+  }
+
+  return bundles.join('\n')
+}
 
 async function getReachableApp() {
   let lastError
@@ -55,7 +94,7 @@ test('deployed preview sends baseline browser security headers', async () => {
 })
 
 test('activation endpoint rejects GET without touching invitation data', async () => {
-  const response = await fetch(activationUrl, { method: 'GET', signal: AbortSignal.timeout(15000) })
+  const response = await fetchWithRetry(activationUrl, { method: 'GET', signal: AbortSignal.timeout(15000) })
   assert.equal(response.status, 405)
   assert.match(response.headers.get('content-type') || '', /application\/json/i)
   assert.match(await response.text(), /Metode tidak didukung/i)
@@ -88,14 +127,38 @@ test('activation endpoint denies a nonexistent invitation without creating an ac
 })
 
 
-test('deployed preview bundle includes the NexaPos FAQ bot and human handoff UI', async () => {
+
+test('free registration preparation endpoint rejects unsupported methods and malformed payloads', async () => {
+  const getResponse = await fetchWithRetry(freeRegistrationUrl, { method: 'GET', signal: AbortSignal.timeout(15000) })
+  assert.equal(getResponse.status, 405)
+  const postResponse = await fetchWithRetry(freeRegistrationUrl, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: '{invalid-json',
+    signal: AbortSignal.timeout(15000),
+  })
+  assert.equal(postResponse.status, 400)
+})
+
+test('free registration completion requires an authenticated session', async () => {
+  const response = await fetchWithRetry(completeRegistrationUrl, {
+    method: 'POST',
+    signal: AbortSignal.timeout(15000),
+  })
+  assert.equal(response.status, 401)
+})
+
+test('deployed preview bundle includes the ChillPos Joeclyn assistant and human handoff UI', async () => {
   const expectedStrings = [
-    'NexaPos Bot',
-    'Hubungi Admin NexaPos',
+    'Joeclyn',
+    'Hubungi Admin ChillPos',
     'submit_support_message',
     'request_support_handoff',
     'admin_reply_support_message',
     'set_support_conversation_status',
+    'set_support_typing_status',
+    'Admin ChillPos sedang mengetik...',
+    'Joeclyn sedang mengetik...',
   ]
   let lastBundle = ''
   let lastError
@@ -106,9 +169,8 @@ test('deployed preview bundle includes the NexaPos FAQ bot and human handoff UI'
       const html = await response.text()
       const scriptPath = html.match(/<script[^>]+type="module"[^>]+src="([^"]+)"/i)?.[1]
       assert.ok(scriptPath, 'Expected a Vite module entry script')
-      const scriptResponse = await fetch(new URL(scriptPath, baseUrl), { signal: AbortSignal.timeout(15000) })
-      assert.equal(scriptResponse.status, 200, 'Application bundle should be served')
-      lastBundle = await scriptResponse.text()
+      lastBundle = await fetchApplicationBundleGraph(scriptPath)
+      assert.ok(lastBundle.length > 0, 'Application entry and lazy-loaded JavaScript chunks should be served')
       if (expectedStrings.every(value => lastBundle.includes(value))) return
       lastError = new Error('Latest preview bundle does not include all support UI/RPC labels yet')
     } catch (error) {

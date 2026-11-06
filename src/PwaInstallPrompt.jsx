@@ -52,7 +52,7 @@ export default function PwaInstallPrompt() {
   const buttonStyle = {
     border: 0,
     borderRadius: 10,
-    background: '#102d50',
+    background: '#858f7d',
     color: '#fff',
     fontWeight: 700,
     padding: '10px 14px',
@@ -62,7 +62,7 @@ export default function PwaInstallPrompt() {
 
   return (
     <aside
-      aria-label="Instal NexaPos"
+      aria-label="Instal ChillPos"
       style={{
         position: 'fixed',
         zIndex: 9999,
@@ -72,19 +72,19 @@ export default function PwaInstallPrompt() {
         maxWidth: 560,
         margin: '0 auto',
         padding: 14,
-        border: '1px solid #d7e0eb',
+        border: '1px solid #e3e1d9',
         borderRadius: 16,
         background: '#fff',
-        color: '#15283d',
-        boxShadow: '0 8px 32px rgba(16,45,80,.18)',
+        color: '#424943',
+        boxShadow: '0 8px 32px rgba(66,73,67,.11)',
         fontFamily: 'inherit',
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <img src="/nexapos-mark.svg" alt="" width="42" height="42" />
+        <img src="/chillpos-mark.svg" alt="" width="42" height="42" />
         <div style={{ flex: 1, minWidth: 0 }}>
-          <strong style={{ display: 'block', fontSize: 14 }}>Pasang NexaPos</strong>
-          <span style={{ display: 'block', fontSize: 12, color: '#52657a', marginTop: 3 }}>
+          <strong style={{ display: 'block', fontSize: 14 }}>Pasang ChillPos</strong>
+          <span style={{ display: 'block', fontSize: 12, color: '#7b8178', marginTop: 3 }}>
             Akses lebih cepat dari layar utama perangkat.
           </span>
         </div>
@@ -101,10 +101,10 @@ export default function PwaInstallPrompt() {
         </button>
       </div>
       {showHelp && (
-        <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #e5ebf2', fontSize: 13, lineHeight: 1.55 }}>
+        <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #e3e1d9', fontSize: 13, lineHeight: 1.55 }}>
           <strong>Android / komputer</strong>
           <ol style={{ margin: '4px 0 10px', paddingLeft: 20 }}>
-            <li>Buka NexaPos melalui Chrome atau browser yang mendukung pemasangan aplikasi.</li>
+            <li>Buka ChillPos melalui Chrome atau browser yang mendukung pemasangan aplikasi.</li>
             <li>Buka menu browser (ikon ⋮ atau menu berbagi) lalu pilih <b>Instal aplikasi</b> atau <b>Tambahkan ke layar utama</b>.</li>
           </ol>
           <strong>iPhone / iPad</strong>
