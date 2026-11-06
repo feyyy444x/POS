@@ -190,7 +190,7 @@ $function$;
 
 revoke all on function public.prepare_free_single_workspace_registration(uuid,text,text,text,text,text,text) from public, anon, authenticated;
 revoke all on function public.complete_free_single_workspace_registration(uuid) from public, anon, authenticated;
-grant execute on function public.prepare_free_single_workspace_registration(uuid,text,text,text,text,text) to service_role;
+grant execute on function public.prepare_free_single_workspace_registration(uuid,text,text,text,text,text,text) to service_role;
 grant execute on function public.complete_free_single_workspace_registration(uuid) to service_role;
  then
     raise exception 'PIN harus tepat 4 angka';
@@ -289,7 +289,7 @@ begin
 end;
 $function$;
 
-revoke all on function public.prepare_free_single_workspace_registration(uuid,text,text,text,text,text) from public, anon, authenticated;
+revoke all on function public.prepare_free_single_workspace_registration(uuid,text,text,text,text,text,text) from public, anon, authenticated;
 revoke all on function public.complete_free_single_workspace_registration(uuid) from public, anon, authenticated;
-grant execute on function public.prepare_free_single_workspace_registration(uuid,text,text,text,text,text) to service_role;
+grant execute on function public.prepare_free_single_workspace_registration(uuid,text,text,text,text,text,text) to service_role;
 grant execute on function public.complete_free_single_workspace_registration(uuid) to service_role;
