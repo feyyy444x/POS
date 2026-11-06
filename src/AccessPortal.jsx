@@ -96,15 +96,33 @@ export function AuthScreen() {
           },
         })
         if (signUpError) throw signUpError
-        if (!data?.user?.id || data.user.identities?.length === 0) {
-          throw new Error('Email ini sudah terdaftar. Silakan masuk atau gunakan email lain.')
+        if (!data?.user?.id) throw new Error('Akun pendaftaran tidak dapat dibuat. Silakan coba kembali.')
+
+        let registrationUser = data.user
+        let registrationSession = data.session
+        if (data.user.identities?.length === 0) {
+          const existing = await supabase.auth.signInWithPassword({ email: email.trim(), password })
+          if (existing.error) {
+            if (/email not confirmed/i.test(existing.error.message || '')) {
+              const resent = await supabase.auth.resend({ type: 'signup', email: email.trim() })
+              if (resent.error) throw resent.error
+              throw new Error('Akun dengan email ini sudah dibuat tetapi belum diverifikasi. Tautan verifikasi telah dikirim ulang. Buka email, verifikasi, lalu kirim kembali formulir ini.')
+            }
+            throw new Error('Email ini sudah terdaftar. Jika ini akun Anda, gunakan password yang benar atau masuk melalui halaman login.')
+          }
+          if (existing.data?.user?.user_metadata?.free_workspace_pending !== true) {
+            await supabase.auth.signOut()
+            throw new Error('Email ini sudah digunakan oleh akun ChillPos yang aktif. Silakan masuk melalui halaman login.')
+          }
+          registrationUser = existing.data.user
+          registrationSession = existing.data.session
         }
 
         const prepareResponse = await fetch('/.netlify/functions/register-free', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            userId: data.user.id, email: email.trim(), ownerName: ownerName.trim(),
+            userId: registrationUser.id, email: email.trim(), ownerName: ownerName.trim(),
             companyName: companyName.trim(), workspaceName: workspaceName.trim(), businessCategory, pin,
           }),
         })
@@ -115,10 +133,10 @@ export function AuthScreen() {
         setPasswordConfirm('')
         setPin('')
         setPinConfirm('')
-        if (data.session?.access_token) {
+        if (registrationSession?.access_token) {
           const completion = await fetch('/.netlify/functions/complete-free-registration', {
             method: 'POST',
-            headers: { Authorization: 'Bearer ' + data.session.access_token },
+            headers: { Authorization: 'Bearer ' + registrationSession.access_token },
           })
           const completed = await completion.json().catch(() => ({}))
           if (!completion.ok) throw new Error(completed.error || 'Workspace belum berhasil disiapkan.')
