@@ -117,7 +117,7 @@ test('Public free registration provisions a standalone workspace with mandatory 
 
 
 test('Owner credentials can only be changed by the Owner through their own profile', async () => {
-  const migration = await read('../supabase/migrations/20261106110000_protect_owner_credentials_from_admin_reset.sql')
+  const migration = await read('../supabase/migrations/20261106112045_protect_owner_credentials_from_admin_reset.sql')
   const passwordHandler = await read('../netlify/functions/manage-user-password.mjs')
   const app = await read('../src/App.jsx')
   assert.match(migration, /owner_organizations where owner_user_id = p_user_id/)
