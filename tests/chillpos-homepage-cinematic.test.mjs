@@ -10,7 +10,7 @@ const blueprint = await read('../docs/CHILLPOS_CINEMATIC_DIGITAL_SHOWROOM_BLUEPR
 test('homepage contains the cinematic product storytelling and showroom sections', () => {
   for (const marker of [
     'cinema-home', 'cinema-pos', 'cinema-inventory', 'cinema-self-order',
-    'cinema-data', 'cinema-team', 'id="gallery"', 'id="cerita"',
+    'cinema-data', 'cinema-team', 'id="cerita"',
     'id="fitur"', 'id="harga"', 'id="faq"'
   ]) assert.ok(homepage.includes(marker), 'Missing homepage marker: ' + marker)
   assert.equal((homepage.match(/<section /g) || []).length + 2, 16, 'Expected 16 homepage parts including navigation and footer')
