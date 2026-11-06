@@ -1798,16 +1798,24 @@ function SuperAdminScreen({session,syncStatus,setSyncStatus,onSignOut,platformAd
     setUsersLoading(true)
     setUsersError('')
     try {
-      const [{data,error},{data:ownerRows,error:ownerError}]=await Promise.all([
+      // Use relations already present in the production schema. The optional
+      // owner-list RPC is introduced by a newer migration and must not make the
+      // entire account directory unavailable while production is being upgraded.
+      const [{data,error},{data:organizationOwners,error:organizationOwnerError},{data:tenantOwners,error:tenantOwnerError}]=await Promise.all([
         supabase.rpc('super_admin_list_users_detailed'),
-        supabase.rpc('super_admin_list_owner_user_ids'),
+        supabase.from('owner_organizations').select('owner_user_id'),
+        supabase.from('store_members').select('user_id').eq('role','owner'),
       ])
-      if(error||ownerError) {
+      if(error||organizationOwnerError||tenantOwnerError) {
         setUsers([])
-        setUsersError('Gagal memuat akun atau memverifikasi status Owner: '+(error?.message||ownerError?.message||'Kesalahan tidak diketahui'))
-        setNotice('Daftar akun belum dapat dimuat dengan aman. Periksa akses Super Admin dan migrasi keamanan akun.')
+        const cause=error?.message||organizationOwnerError?.message||tenantOwnerError?.message||'Kesalahan tidak diketahui'
+        setUsersError('Gagal memuat akun atau memverifikasi status Owner: '+cause)
+        setNotice('Daftar akun belum dapat dimuat dengan aman. Periksa akses Super Admin dan kebijakan database.')
       } else {
-        const ownerIds=new Set((ownerRows||[]).map(row=>row.user_id))
+        const ownerIds=new Set([
+          ...(organizationOwners||[]).map(row=>row.owner_user_id),
+          ...(tenantOwners||[]).map(row=>row.user_id),
+        ].filter(Boolean))
         setUsers((data||[]).map(user=>({...user,is_owner:ownerIds.has(user.user_id)})))
       }
     } catch (error) {
