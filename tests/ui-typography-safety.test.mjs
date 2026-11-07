@@ -18,6 +18,9 @@ test('shared layout safety loads after the design system', () => {
 test('mobile headers keep identity and utilities in one horizontal row', () => {
   assert.match(safety, /flex-flow:row nowrap/)
   assert.match(safety, /flex-wrap:nowrap!important/)
+  assert.match(safety, /topbar-title-group \\.breadcrumb,.owner-breadcrumb\\)\\{display:none/)
+  assert.match(safety, /content:\"SYNC\"/)
+  assert.match(safety, /wib-digital-clock em/)
   assert.match(safety, /\.topbar-actions,.owner-topbar-actions\{flex:0 0 auto/)
   assert.match(app, /className="topbar-title-group"/)
   assert.match(app, /className="owner-heading"/)
