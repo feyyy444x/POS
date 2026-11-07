@@ -130,11 +130,19 @@ button,a,[role="button"]{-webkit-tap-highlight-color:transparent}
   :where(.topbar-title-group,.owner-heading,.owner-topbar-left>div){
     flex:1 1 auto;flex-direction:column;align-items:flex-start;justify-content:center;gap:2px;min-width:0
   }
-  :where(.topbar-title-group .breadcrumb,.owner-breadcrumb,.breadcrumb){
-    max-width:100%;font-size:8px;line-height:1.15;letter-spacing:.035em
-  }
+  :where(.topbar-title-group .breadcrumb,.owner-breadcrumb){display:none}
   :where(.topbar-title-group h1,.owner-heading h1,.owner-topbar h1){
-    max-width:100%;font-size:clamp(12px,3.4vw,15px);line-height:1.15
+    flex:0 1 auto;max-width:100%;font-size:clamp(12px,3.4vw,15px);line-height:1.15;
+    overflow:visible;text-overflow:clip;white-space:nowrap
+  }
+  :where(.wib-digital-clock svg,.wib-digital-clock small){display:none}
+  :where(.wib-digital-clock em){max-width:62px;overflow:hidden;text-overflow:ellipsis}
+  :where(.topbar-actions .live-status,.owner-topbar-actions .live-status){
+    font-size:0;gap:0;padding:7px
+  }
+  :where(.topbar-actions .live-status i,.owner-topbar-actions .live-status i){margin:0}
+  :where(.topbar-actions .live-status)::after,.owner-topbar-actions .live-status::after{
+    content:"SYNC";font-size:8px;line-height:1;margin-left:5px
   }
   :where(.topbar-actions,.owner-topbar-actions){flex:0 0 auto;gap:5px;justify-content:flex-end}
   :where(.topbar-actions .live-status,.owner-topbar-actions .live-status,.live-status){
