@@ -327,7 +327,7 @@ export function FreeRegistrationCompletion() {
   const finishSetup = async (event) => {
     event.preventDefault()
     setMessage('')
-    if (!/^\\d{4}$/.test(pin)) { setMessage('PIN harus tepat 4 angka.'); return }
+    if (!/^\d{4}$/.test(pin)) { setMessage('PIN harus tepat 4 angka.'); return }
     if (pin !== pinConfirm) { setMessage('Konfirmasi PIN tidak sama.'); return }
     const metadata = session?.user?.user_metadata || {}
     const ownerName = String(metadata.free_workspace_owner_name || metadata.full_name || '').trim()
@@ -384,9 +384,9 @@ export function FreeRegistrationCompletion() {
     {message && <div className="access-message is-error" role="alert">{message}</div>}
     {status === 'setup' && <form className="access-form" onSubmit={finishSetup}>
       <label htmlFor="free-registration-pin">Buat PIN pribadi (4 angka)</label>
-      <div className="access-field access-pin-field"><LockKeyhole size={17} aria-hidden="true" /><input id="free-registration-pin" type="password" inputMode="numeric" pattern="[0-9]{4}" maxLength={4} autoComplete="off" value={pin} onChange={event => setPin(event.target.value.replace(/\\D/g, '').slice(0, 4))} placeholder="••••" required /></div>
+      <div className="access-field access-pin-field"><LockKeyhole size={17} aria-hidden="true" /><input id="free-registration-pin" type="password" inputMode="numeric" pattern="[0-9]{4}" maxLength={4} autoComplete="off" value={pin} onChange={event => setPin(event.target.value.replace(/\D/g, '').slice(0, 4))} placeholder="••••" required /></div>
       <label htmlFor="free-registration-pin-confirm">Konfirmasi PIN</label>
-      <div className="access-field access-pin-field"><LockKeyhole size={17} aria-hidden="true" /><input id="free-registration-pin-confirm" type="password" inputMode="numeric" pattern="[0-9]{4}" maxLength={4} autoComplete="off" value={pinConfirm} onChange={event => setPinConfirm(event.target.value.replace(/\\D/g, '').slice(0, 4))} placeholder="Ulangi PIN" required /></div>
+      <div className="access-field access-pin-field"><LockKeyhole size={17} aria-hidden="true" /><input id="free-registration-pin-confirm" type="password" inputMode="numeric" pattern="[0-9]{4}" maxLength={4} autoComplete="off" value={pinConfirm} onChange={event => setPinConfirm(event.target.value.replace(/\D/g, '').slice(0, 4))} placeholder="Ulangi PIN" required /></div>
       <button className="access-submit" type="submit" disabled={busy || pin.length !== 4 || pinConfirm.length !== 4}><span>{busy ? 'Menyelesaikan workspace…' : 'Buat Workspace Gratis'}</span><span className="access-submit-icon"><ArrowRight size={18}/></span></button>
     </form>}
     {(status === 'checking' || status === 'completing') && <div className="access-security-note"><span><i /></span><p>Mohon jangan tutup halaman ini sampai proses selesai.</p></div>}
