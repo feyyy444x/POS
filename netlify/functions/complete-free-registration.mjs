@@ -36,7 +36,7 @@ export default async (request) => {
         return json({ error: 'Status workspace belum dapat diverifikasi.' }, 503)
       }
       if (!existingOwnerMembership?.length && user.user_metadata?.free_workspace_pending === true) {
-        return json({ error: 'Data pendaftaran belum ditemukan. Hubungi dukungan agar akun tidak tertinggal tanpa workspace.' }, 409)
+        return json({ needs_setup: true, message: 'Verifikasi email berhasil. Lengkapi PIN untuk menyelesaikan Workspace Gratis.' })
       }
       if (existingOwnerMembership?.length && user.user_metadata?.free_workspace_pending === true) {
         const { error: metadataError } = await admin.auth.admin.updateUserById(user.id, {
