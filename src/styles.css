@@ -1146,345 +1146,103 @@ tbody tr:hover{background:#f7fbfd}
 @media(max-width:1050px){.store-control-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.store-control-hero{flex-wrap:wrap}.store-control-hero-actions{max-width:none;width:100%;justify-content:flex-start}}
 @media(max-width:720px){.store-control-grid{grid-template-columns:minmax(0,1fr)}.store-control-heading{align-items:flex-start;flex-direction:column}.store-control-heading-actions{width:100%;justify-content:space-between}.store-control-hero{padding:17px;gap:13px}.store-control-hero-mark{width:43px;height:43px}.store-control-hero-main h2{font-size:19px}.store-control-meta{flex-direction:column;gap:7px}.store-control-hero-actions .btn{flex:1;justify-content:center}.store-control-details{grid-template-columns:minmax(0,1fr)}.store-control-metrics{gap:9px}.store-control-metric{padding:13px}.store-control-metric strong{font-size:17px}.store-control-card{padding:15px}.store-control-activity-tools{flex-direction:column}.store-control-activity-tools .text-input{max-width:none}.store-control-conversation-list .status-pill,.store-control-invites .status-pill{white-space:nowrap}}
 
-/* ChillPos global header alignment: keep identity, current page and utilities
-   on one deliberate horizontal line instead of stacking the title blocks. */
-.topbar {
-  display:flex;
-  flex-wrap:nowrap;
-  align-items:center;
-  justify-content:space-between;
-  gap:18px;
+/* Final shared header system — replaces legacy overlapping header overrides. */
+.topbar,.owner-console .owner-topbar{
+  display:flex;flex-wrap:nowrap;align-items:center;justify-content:space-between;
+  gap:14px;min-width:0;
 }
-.topbar-left,
-.topbar-title-group,
-.topbar-actions {
-  min-width:0;
+.topbar-left,.topbar-title-group,.topbar-actions,
+.owner-topbar-left,.owner-heading,.owner-topbar-actions{min-width:0}
+.topbar-left,.owner-topbar-left{display:flex;align-items:center;gap:10px;flex:1 1 auto}
+.topbar-title-group{display:flex;align-items:center;gap:12px;flex:1 1 auto}
+.topbar-title-group h1,.owner-topbar h1{
+  min-width:0;margin:0;font-size:clamp(16px,1.4vw,19px);line-height:1.2;
+  font-weight:750;letter-spacing:-.025em;white-space:normal;overflow-wrap:normal;word-break:normal;
 }
-.topbar-title-group {
-  display:flex;
-  align-items:center;
-  gap:14px;
+.topbar-actions,.owner-topbar-actions{
+  display:flex;align-items:center;justify-content:flex-end;gap:8px;flex:0 0 auto;white-space:nowrap;
 }
-.topbar-title-group .breadcrumb {
-  min-width:0;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
+.owner-heading{display:flex;align-items:baseline;gap:10px;flex:1 1 auto}
+.owner-heading h1{font-size:18px}
+.owner-topbar .live-status,.owner-topbar-actions .live-status{
+  display:inline-flex;align-items:center;gap:5px;white-space:nowrap;font-size:9px;font-weight:800;
+  padding:6px 8px;border:1px solid var(--cp-line,#e3e1d9);border-radius:999px;background:var(--cp-surface,#fff);
 }
-.topbar-date {
-  flex:0 0 auto;
-  margin:0;
-  white-space:nowrap;
+.live-status i{width:7px;height:7px;flex:0 0 7px;border-radius:50%;background:#94a3b8}
+.live-status i.connected{background:#16a34a;box-shadow:0 0 0 3px rgba(22,163,74,.12)}
+.live-status i.unstable{background:#eab308}
+.live-status i.offline{background:#b76d62}
+.wib-digital-clock{
+  display:inline-flex;align-items:center;gap:5px;white-space:nowrap;font-size:10px;
+  padding:6px 8px;border:1px solid var(--cp-line,#e3e1d9);border-radius:10px;
+  background:var(--cp-surface,#fff);font-variant-numeric:tabular-nums;
 }
-.owner-topbar-left > div {
-  display:flex;
-  align-items:center;
-  gap:14px;
-  min-width:0;
+.wib-digital-clock em{font-style:normal;color:var(--cp-muted,#7b8178);font-size:9px}
+.refresh-btn,.owner-refresh-button{
+  display:inline-grid;place-items:center;flex:0 0 34px;width:34px;min-width:34px;height:34px;
+  padding:0;border:1px solid var(--cp-line,#e3e1d9);border-radius:10px;
+  background:var(--cp-surface,#fff);color:var(--cp-ink,#424943);
 }
-.owner-breadcrumb {
-  flex:0 0 auto;
-  white-space:nowrap;
-}
-.owner-topbar h1 {
-  min-width:0;
-  margin:0;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  white-space:nowrap;
-}
-@media (max-width:760px) {
-  .topbar {
-    flex-wrap:nowrap !important;
-    align-items:center !important;
-    gap:7px !important;
+.topbar-back{display:none}
+@media(max-width:760px){
+  .topbar,.owner-console .owner-topbar{
+    flex-wrap:nowrap!important;align-items:center!important;gap:6px!important;
+    min-height:58px!important;height:auto!important;padding:8px 9px!important;overflow:visible!important;
   }
-  .topbar-left {
-    flex:1 1 auto !important;
-    min-width:0 !important;
+  .topbar-left,.owner-console .owner-topbar-left{
+    flex:1 1 auto!important;width:auto!important;min-width:0!important;gap:5px!important;flex-wrap:nowrap!important;
   }
-  .topbar-title-group {
-    display:block !important;
-    flex:1 1 auto !important;
-    width:auto !important;
-    max-width:min(48vw,220px) !important;
-    min-width:0 !important;
+  .mobile-menu,.owner-mobile-menu{
+    display:inline-grid!important;place-items:center;flex:0 0 32px!important;
+    width:32px!important;min-width:32px!important;height:34px!important;
   }
-  .topbar-title-group .breadcrumb {
-    display:block !important;
-    max-width:100%;
-    font-size:10px;
-    line-height:1.25;
+  .topbar-back{display:inline-flex;flex:0 0 30px;align-items:center;justify-content:center;width:30px;min-width:30px;height:34px;padding:0}
+  .topbar-back span{display:none}
+  .topbar-title-group,.owner-console .owner-heading{
+    display:flex!important;flex:1 1 84px!important;width:auto!important;min-width:0!important;
+    max-width:none!important;flex-direction:column;align-items:flex-start;justify-content:center;gap:2px!important;
   }
-  .topbar-date {
-    display:none !important;
+  .topbar-title-group .breadcrumb,.owner-console .owner-breadcrumb{
+    display:none!important;
   }
-  .topbar-actions {
-    flex:0 0 auto !important;
-    width:auto !important;
-    min-width:0 !important;
-    flex-wrap:nowrap !important;
-    justify-content:flex-end !important;
-    gap:6px !important;
+  .topbar-title-group h1,.owner-console .owner-heading h1{
+    max-width:100%;font-size:clamp(12px,3.5vw,16px)!important;line-height:1.2!important;
+    white-space:normal!important;overflow-wrap:normal!important;word-break:normal!important;
   }
-  .topbar-actions .live-status {
-    white-space:nowrap !important;
+  .topbar-actions,.owner-console .owner-topbar-actions{
+    flex:0 1 auto!important;width:auto!important;min-width:0!important;flex-wrap:nowrap!important;
+    justify-content:flex-end!important;gap:4px!important;
   }
-  .owner-topbar {
-    flex-wrap:nowrap !important;
-    align-items:center !important;
-    gap:8px !important;
+  .topbar-actions .live-status,.owner-console .owner-topbar-actions .live-status{
+    display:inline-flex!important;flex:0 0 auto!important;gap:3px!important;
+    padding:4px 5px!important;font-size:7px!important;letter-spacing:0!important;white-space:nowrap!important;
   }
-  .owner-topbar-left {
-    flex:1 1 auto !important;
-    min-width:0 !important;
-    gap:7px !important;
+  .topbar-actions .live-status i,.owner-console .owner-topbar-actions .live-status i{width:5px;height:5px;flex-basis:5px}
+  .wib-digital-clock,.owner-console .wib-digital-clock{
+    display:inline-flex!important;flex:0 1 auto!important;flex-wrap:wrap!important;
+    justify-content:center!important;gap:2px!important;min-width:55px!important;padding:4px 5px!important;font-size:8px!important;
   }
-  .owner-topbar-left > div {
-    flex:1 1 auto;
-    gap:8px;
-    overflow:hidden;
+  .wib-digital-clock svg{display:none!important}
+  .wib-digital-clock strong{font-size:9px!important}
+  .wib-digital-clock small{font-size:7px!important}
+  .wib-digital-clock em{
+    display:block!important;flex-basis:100%!important;max-width:none!important;
+    font-size:7px!important;line-height:1.1!important;font-style:normal!important;
+    text-align:center!important;white-space:nowrap!important;overflow:visible!important;
   }
-  .owner-breadcrumb {
-    font-size:8px !important;
-    letter-spacing:.07em !important;
-  }
-  .owner-topbar h1 {
-    font-size:14px !important;
-    white-space:nowrap !important;
-  }
-  .owner-topbar-actions {
-    flex:0 0 auto !important;
-    gap:6px !important;
+  .refresh-btn,.owner-console .owner-refresh-button{
+    display:inline-grid!important;flex:0 0 30px!important;width:30px!important;min-width:30px!important;
+    height:30px!important;padding:0!important;font-size:0!important;
   }
 }
-@media (max-width:420px) {
-  .topbar-title-group { max-width:42vw !important; }
-  .topbar-title-group .breadcrumb { font-size:9px; }
-  .topbar-actions .live-status { font-size:8px !important; padding:6px 6px !important; }
-  .owner-breadcrumb { font-size:7px !important; }
-  .owner-topbar h1 { font-size:12px !important; }
-}
-
-
-
-/* ChillPos compact command header — shared by Super Admin, Center Control and Workspace. */
-.app-shell .topbar { min-height:68px; padding:11px 22px; gap:14px; border-bottom:1px solid var(--cp-line,#e3e1d9); }
-.app-shell .topbar-left { display:flex; align-items:center; gap:12px; flex:1 1 auto; min-width:0; }
-.app-shell .topbar-title-group { display:flex; align-items:baseline; gap:12px; min-width:0; }
-.app-shell .topbar-title-group .breadcrumb { flex:0 1 auto; font-size:10px; letter-spacing:.07em; }
-.app-shell .topbar-title-group h1 { min-width:0; margin:0; font-size:18px; line-height:1.25; font-weight:750; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.app-shell .topbar-actions { display:flex; align-items:center; justify-content:flex-end; flex:0 0 auto; gap:10px; min-width:0; }
-.app-shell .topbar-actions .live-status, .app-shell .owner-topbar-actions .live-status { display:inline-flex; align-items:center; gap:6px; white-space:nowrap; font-size:9px; font-weight:800; letter-spacing:.055em; padding:6px 8px; border:1px solid var(--cp-line,#e3e1d9); border-radius:999px; background:var(--cp-surface,#fff); }
-.app-shell .topbar-actions .live-status i, .app-shell .owner-topbar-actions .live-status i { width:7px; height:7px; flex:0 0 7px; border-radius:50%; background:#94a3b8; }
-.app-shell .topbar-actions .live-status i.connected, .app-shell .owner-topbar-actions .live-status i.connected { background:#16a34a; box-shadow:0 0 0 3px rgba(22,163,74,.12); }
-.app-shell .topbar-actions .live-status i.unstable, .app-shell .owner-topbar-actions .live-status i.unstable { background:#eab308; }
-.app-shell .topbar-actions .live-status i.offline, .app-shell .owner-topbar-actions .live-status i.offline { background:#b76d62; }
-.app-shell .wib-digital-clock { display:inline-flex; align-items:center; gap:5px; white-space:nowrap; font-size:10px; }
-.app-shell .wib-digital-clock em { font-style:normal; color:var(--cp-muted,#7b8178); font-size:9px; }
-.app-shell .refresh-btn, .app-shell .owner-refresh-button { width:34px; height:34px; min-width:34px; padding:0; display:inline-grid; place-items:center; border:1px solid var(--cp-line,#e3e1d9); border-radius:10px; background:var(--cp-surface,#fff); color:var(--cp-ink,#424943); cursor:pointer; }
-.app-shell .owner-topbar { min-height:68px; padding:11px 22px; display:flex; align-items:center; justify-content:space-between; gap:14px; }
-.app-shell .owner-topbar-left { display:flex; align-items:center; gap:12px; flex:1 1 auto; min-width:0; }
-.app-shell .owner-heading { display:flex; align-items:baseline; gap:12px; min-width:0; }
-.app-shell .owner-heading .owner-breadcrumb { font-size:10px; letter-spacing:.07em; }
-.app-shell .owner-heading h1 { margin:0; font-size:18px; line-height:1.25; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.app-shell .owner-topbar-actions { display:flex; align-items:center; justify-content:flex-end; gap:10px; flex:0 0 auto; min-width:0; }
-@media (max-width:760px) {
-  .app-shell .topbar, .app-shell .owner-topbar { min-height:68px; padding:10px 12px; gap:8px; }
-  .app-shell .topbar-title-group, .app-shell .owner-heading { display:flex; flex-direction:column; align-items:flex-start; justify-content:center; gap:3px; max-width:none !important; }
-  .app-shell .topbar-title-group .breadcrumb, .app-shell .owner-heading .owner-breadcrumb { font-size:8px; line-height:1.2; letter-spacing:.045em; }
-  .app-shell .topbar-title-group h1, .app-shell .owner-heading h1 { max-width:100%; font-size:13px; line-height:1.2; }
-  .app-shell .topbar-actions, .app-shell .owner-topbar-actions { gap:5px; }
-  .app-shell .topbar-actions .live-status, .app-shell .owner-topbar-actions .live-status { font-size:7px; padding:5px 6px; gap:4px; }
-  .app-shell .wib-digital-clock { gap:3px; font-size:8px; }
-  .app-shell .wib-digital-clock svg, .app-shell .wib-digital-clock small { display:none; }
-  .app-shell .wib-digital-clock em { display:inline; max-width:68px; overflow:hidden; text-overflow:ellipsis; font-size:7px; }
-  .app-shell .refresh-btn, .app-shell .owner-refresh-button { width:30px; height:30px; min-width:30px; border-radius:9px; }
-}
-@media (max-width:390px) {
-  .app-shell .topbar, .app-shell .owner-topbar { padding-left:9px; padding-right:9px; gap:5px; }
-  .app-shell .topbar-left, .app-shell .owner-topbar-left { gap:7px; }
-  .app-shell .topbar-actions, .app-shell .owner-topbar-actions { gap:4px; }
-  .app-shell .topbar-actions .live-status, .app-shell .owner-topbar-actions .live-status { font-size:6px; padding:4px 5px; }
-  .app-shell .wib-digital-clock em { max-width:48px; }
-}
-
-
-/* Owner Center uses its own shell, so apply the same compact header outside .app-shell. */
-.owner-console .owner-topbar { min-height:68px; padding:11px 22px; display:flex; align-items:center; justify-content:space-between; gap:14px; }
-.owner-console .owner-topbar-left { display:flex; align-items:center; gap:12px; flex:1 1 auto; min-width:0; }
-.owner-console .owner-heading { display:flex; align-items:baseline; gap:12px; min-width:0; }
-.owner-console .owner-heading .owner-breadcrumb { font-size:10px; letter-spacing:.07em; white-space:nowrap; }
-.owner-console .owner-heading h1 { margin:0; font-size:18px; line-height:1.25; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.owner-console .owner-topbar-actions { display:flex; align-items:center; justify-content:flex-end; gap:10px; flex:0 0 auto; min-width:0; }
-.owner-console .owner-topbar-actions .live-status { display:inline-flex; align-items:center; gap:6px; white-space:nowrap; font-size:9px; font-weight:800; letter-spacing:.055em; padding:6px 8px; border:1px solid var(--cp-line,#e3e1d9); border-radius:999px; background:var(--cp-surface,#fff); }
-.owner-console .owner-topbar-actions .live-status i { width:7px; height:7px; flex:0 0 7px; border-radius:50%; background:#94a3b8; }
-.owner-console .owner-topbar-actions .live-status i.connected { background:#16a34a; box-shadow:0 0 0 3px rgba(22,163,74,.12); }
-.owner-console .owner-topbar-actions .live-status i.unstable { background:#eab308; }
-.owner-console .owner-topbar-actions .live-status i.offline { background:#b76d62; }
-.owner-console .wib-digital-clock { display:inline-flex; align-items:center; gap:5px; white-space:nowrap; font-size:10px; }
-.owner-console .wib-digital-clock em { font-style:normal; color:var(--cp-muted,#7b8178); font-size:9px; }
-.owner-console .owner-refresh-button { width:34px; height:34px; min-width:34px; padding:0; display:inline-grid; place-items:center; border:1px solid var(--cp-line,#e3e1d9); border-radius:10px; background:var(--cp-surface,#fff); color:var(--cp-ink,#424943); cursor:pointer; }
-@media(max-width:760px) {
- .owner-console .owner-topbar { min-height:68px; padding:10px 12px; gap:8px; }
- .owner-console .owner-heading { display:flex; flex-direction:column; align-items:flex-start; gap:3px; }
- .owner-console .owner-heading .owner-breadcrumb { font-size:8px; line-height:1.2; letter-spacing:.045em; }
- .owner-console .owner-heading h1 { max-width:100%; font-size:13px; line-height:1.2; }
- .owner-console .owner-topbar-actions { gap:5px; }
- .owner-console .owner-topbar-actions .live-status { font-size:7px; padding:5px 6px; gap:4px; }
- .owner-console .wib-digital-clock { gap:3px; font-size:8px; }
- .owner-console .wib-digital-clock svg, .owner-console .wib-digital-clock small { display:none; }
- .owner-console .wib-digital-clock em { display:inline; max-width:68px; overflow:hidden; text-overflow:ellipsis; font-size:7px; }
- .owner-console .owner-refresh-button { width:30px; height:30px; min-width:30px; border-radius:9px; }
-}
-@media(max-width:390px) {
- .owner-console .owner-topbar { padding-left:9px; padding-right:9px; gap:5px; }
- .owner-console .owner-topbar-left { gap:7px; }
- .owner-console .owner-topbar-actions { gap:4px; }
- .owner-console .owner-topbar-actions .live-status { font-size:6px; padding:4px 5px; }
- .owner-console .wib-digital-clock em { max-width:48px; }
-}
-
-
-/* Header refinement: keep sync, WIB clock/date and icon refresh in one balanced row. */
-.app-shell .topbar,
-.owner-console .owner-topbar {
-  min-width:0;
-  flex-wrap:nowrap;
-}
-.app-shell .topbar-actions,
-.owner-console .owner-topbar-actions {
-  flex-wrap:nowrap;
-  white-space:nowrap;
-}
-.app-shell .wib-digital-clock,
-.owner-console .wib-digital-clock {
-  flex:0 1 auto;
-  min-width:0;
-  padding:7px 9px;
-  border:1px solid var(--cp-line,#e3e1d9);
-  border-radius:10px;
-  background:var(--cp-surface,#fff);
-  color:var(--cp-ink,#424943);
-  font-variant-numeric:tabular-nums;
-}
-.app-shell .wib-digital-clock strong,
-.owner-console .wib-digital-clock strong {
-  font-size:10px;
-  font-weight:800;
-  letter-spacing:.025em;
-}
-.app-shell .wib-digital-clock em,
-.owner-console .wib-digital-clock em {
-  display:inline;
-  max-width:none;
-  overflow:visible;
-  text-overflow:clip;
-  white-space:nowrap;
-  font-size:9px;
-}
-.app-shell .wib-digital-clock em::before,
-.owner-console .wib-digital-clock em::before {
-  content:"·";
-  margin-right:5px;
-  color:var(--cp-muted,#7b8178);
-}
-.app-shell .refresh-btn,
-.app-shell .owner-refresh-button,
-.owner-console .owner-refresh-button {
-  flex:0 0 34px;
-  width:34px;
-  min-width:34px;
-  height:34px;
-  padding:0;
-}
-@media(max-width:760px) {
-  .app-shell .topbar,
-  .owner-console .owner-topbar {
-    flex-wrap:nowrap!important;
-    min-width:0;
-  }
-  .app-shell .topbar-left,
-  .owner-console .owner-topbar-left {
-    flex:1 1 auto;
-    min-width:0;
-  }
-  .app-shell .topbar-title-group,
-  .owner-console .owner-heading {
-    min-width:0;
-    max-width:clamp(76px,27vw,150px)!important;
-  }
-  .app-shell .topbar-actions,
-  .owner-console .owner-topbar-actions {
-    flex:0 0 auto;
-    gap:5px;
-  }
-  .app-shell .wib-digital-clock,
-  .owner-console .wib-digital-clock {
-    gap:3px;
-    padding:5px 6px;
-    font-size:8px;
-  }
-  .app-shell .wib-digital-clock strong,
-  .owner-console .wib-digital-clock strong {
-    font-size:8px;
-  }
-  .app-shell .wib-digital-clock em,
-  .owner-console .wib-digital-clock em {
-    max-width:64px;
-    overflow:hidden;
-    text-overflow:ellipsis;
-    font-size:7px;
-  }
-  .app-shell .wib-digital-clock em::before,
-  .owner-console .wib-digital-clock em::before {
-    margin-right:3px;
-  }
-}
-@media(max-width:390px) {
-  .app-shell .topbar-title-group,
-  .owner-console .owner-heading {
-    max-width:clamp(68px,23vw,94px)!important;
-  }
-  .app-shell .topbar-actions,
-  .owner-console .owner-topbar-actions {
-    gap:4px;
-  }
-  .app-shell .wib-digital-clock em,
-  .owner-console .wib-digital-clock em {
-    max-width:48px;
-  }
-}
-
-
-/* Final responsive guard: retain a single-line header on wide screens,
-   but allow compact wrapping on narrow screens to prevent clipped controls. */
-@media(max-width:760px) {
-  .app-shell .topbar,
-  .owner-console .owner-topbar {
-    flex-wrap:wrap!important;
-    align-items:center;
-    row-gap:7px;
-  }
-  .app-shell .topbar-left,
-  .owner-console .owner-topbar-left {
-    flex:1 1 100%;
-  }
-  .app-shell .topbar-actions,
-  .owner-console .owner-topbar-actions {
-    flex:1 1 100%;
-    justify-content:flex-end;
-    flex-wrap:wrap;
-    white-space:normal;
-  }
-}
-@media(max-width:390px) {
-  .app-shell .topbar-title-group,
-  .owner-console .owner-heading {
-    max-width:none!important;
-  }
-  .app-shell .topbar-actions,
-  .owner-console .owner-topbar-actions {
-    justify-content:space-between;
-  }
+@media(max-width:380px){
+  .topbar,.owner-console .owner-topbar{gap:4px!important;padding-inline:6px!important}
+  .topbar-left,.owner-console .owner-topbar-left{gap:3px!important}
+  .mobile-menu,.owner-mobile-menu{flex-basis:29px!important;width:29px!important;min-width:29px!important}
+  .topbar-back{flex-basis:27px;width:27px;min-width:27px}
+  .topbar-title-group h1,.owner-console .owner-heading h1{font-size:12px!important}
+  .topbar-actions,.owner-console .owner-topbar-actions{gap:3px!important}
+  .topbar-actions .live-status,.owner-console .owner-topbar-actions .live-status{padding:3px 4px!important;font-size:6px!important}
+  .wib-digital-clock,.owner-console .wib-digital-clock{min-width:50px!important;padding:3px!important}
+  .refresh-btn,.owner-console .owner-refresh-button{flex-basis:27px!important;width:27px!important;min-width:27px!important;height:27px!important}
 }
