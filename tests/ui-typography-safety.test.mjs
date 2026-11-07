@@ -23,7 +23,7 @@ test('mobile headers keep identity and utilities in one horizontal row', () => {
   assert.match(app, /className="owner-heading"/)
   assert.match(app, /className="topbar-actions"/)
   assert.match(app, /className="owner-topbar-actions"/)
-  assert.doesNotMatch(styles.slice(styles.indexOf('/* ChillPos global header alignment:')), /./)
+  assert.ok(!styles.includes('/* ChillPos global header alignment:'))
 })
 
 test('all operational headers retain live sync, WIB clock/date and icon refresh controls', () => {
