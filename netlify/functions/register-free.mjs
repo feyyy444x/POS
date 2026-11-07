@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js'
 
 const json = (body, status = 200) => new Response(JSON.stringify(body), {
   status,
-  headers: { 'Content-Type': 'application/json; charset=utf--8', 'Cache-Control': 'no-store' },
+  headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' },
 })
 const validName = value => typeof value === 'string' && value.trim().length >= 2 && value.trim().length <= 120
 const categories = ['Retail / Toko','Minimarket','Fashion / Pakaian','Kuliner / Restoran','Kafe / Kedai','Jasa','Salon / Barbershop','Apotek','Elektronik','Lainnya']
