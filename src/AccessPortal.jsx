@@ -83,6 +83,10 @@ export function AuthScreen() {
             })
             const completed = await completion.json().catch(() => ({}))
             if (!completion.ok) throw new Error(completed.error || 'Workspace Gratis belum berhasil disiapkan.')
+            if (completed.needs_setup) {
+              window.location.assign('/?screen=complete-free-registration')
+              return
+            }
           }
           window.location.assign('/')
         }
@@ -92,7 +96,14 @@ export function AuthScreen() {
           password,
           options: {
             emailRedirectTo: `${window.location.origin}/?screen=complete-free-registration`,
-            data: { full_name: ownerName.trim(), free_workspace_pending: true },
+            data: {
+              full_name: ownerName.trim(),
+              free_workspace_pending: true,
+              free_workspace_owner_name: ownerName.trim(),
+              free_workspace_company_name: companyName.trim(),
+              free_workspace_workspace_name: workspaceName.trim(),
+              free_workspace_business_category: businessCategory,
+            },
           },
         })
         if (signUpError) throw signUpError
@@ -118,16 +129,21 @@ export function AuthScreen() {
           registrationSession = existing.data.session
         }
 
-        const prepareResponse = await fetch('/.netlify/functions/register-free', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            userId: registrationUser.id, email: email.trim(), ownerName: ownerName.trim(),
-            companyName: companyName.trim(), workspaceName: workspaceName.trim(), businessCategory, pin,
-          }),
-        })
-        const prepared = await prepareResponse.json().catch(() => ({}))
-        if (!prepareResponse.ok) throw new Error(prepared.error || 'Persiapan workspace gagal. Silakan coba kembali.')
+        if (registrationSession?.access_token) {
+          const prepareResponse = await fetch('/.netlify/functions/register-free', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: 'Bearer ' + registrationSession.access_token,
+            },
+            body: JSON.stringify({
+              email: email.trim(), ownerName: ownerName.trim(),
+              companyName: companyName.trim(), workspaceName: workspaceName.trim(), businessCategory, pin,
+            }),
+          })
+          const prepared = await prepareResponse.json().catch(() => ({}))
+          if (!prepareResponse.ok) throw new Error(prepared.error || 'Persiapan workspace gagal. Silakan coba kembali.')
+        }
 
         setPassword('')
         setPasswordConfirm('')
@@ -140,12 +156,16 @@ export function AuthScreen() {
           })
           const completed = await completion.json().catch(() => ({}))
           if (!completion.ok) throw new Error(completed.error || 'Workspace belum berhasil disiapkan.')
+          if (completed.needs_setup) {
+            window.location.assign('/?screen=complete-free-registration')
+            return
+          }
           window.location.assign('/')
           return
         }
         setSuccess(true)
         setMode('login')
-        setMessage('Akun berhasil dibuat. Periksa email Anda dan klik tautan verifikasi. Setelah email terverifikasi, sistem akan otomatis membuat Workspace Gratis dan mengarahkan Anda ke dalamnya.')
+        setMessage('Akun berhasil dibuat. Periksa email dan verifikasi akun Anda. Setelah itu masuk kembali untuk membuat PIN dan menyelesaikan Workspace Gratis.')
       } else {
         const response = await fetch('/.netlify/functions/activate-invitation', {
           method: 'POST',
