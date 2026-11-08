@@ -770,3 +770,152 @@ small{font-size:max(10px,.8em)}
   :where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.owner-center-shell,.owner-workspace,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell,.owner-console) :where(.topbar-title-group h1,.owner-heading h1){font-size:8px!important}
   :where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.owner-center-shell,.owner-workspace,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell,.owner-console) :where(.topbar-actions,.owner-topbar-actions) .wib-digital-clock em{font-size:5px!important}
 }
+
+
+/* 2026-11-08: reference-matched single-row application header.
+   Intentionally appended after legacy rules; preserves existing layout and logic. */
+:where(.topbar,.owner-topbar){
+  display:flex!important;
+  flex-direction:row!important;
+  flex-wrap:nowrap!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  width:100%!important;
+  min-width:0!important;
+  max-width:100%!important;
+  min-height:58px!important;
+  height:auto!important;
+  padding:7px clamp(7px,1.7vw,18px)!important;
+  gap:clamp(4px,.8vw,10px)!important;
+  overflow:visible!important;
+}
+:where(.topbar-left,.owner-topbar-left){
+  display:flex!important;
+  flex:1 1 auto!important;
+  flex-direction:row!important;
+  flex-wrap:nowrap!important;
+  align-items:center!important;
+  min-width:0!important;
+  max-width:100%!important;
+  gap:clamp(5px,.8vw,10px)!important;
+}
+:where(.topbar-title-group,.owner-heading){
+  display:flex!important;
+  flex:1 1 auto!important;
+  flex-direction:row!important;
+  flex-wrap:nowrap!important;
+  align-items:center!important;
+  min-width:0!important;
+  max-width:100%!important;
+  width:auto!important;
+  overflow:hidden!important;
+}
+:where(.topbar-title-group,.owner-heading) :where(.breadcrumb,.owner-breadcrumb){
+  display:none!important;
+}
+:where(.topbar-title-group,.owner-heading)>h1{
+  display:block!important;
+  flex:1 1 auto!important;
+  min-width:0!important;
+  max-width:100%!important;
+  margin:0!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+  overflow-wrap:normal!important;
+  word-break:normal!important;
+  font-size:clamp(12px,1.45vw,18px)!important;
+  line-height:1.2!important;
+}
+:where(.topbar-actions,.owner-topbar-actions){
+  display:flex!important;
+  flex:0 0 auto!important;
+  flex-direction:row!important;
+  flex-wrap:nowrap!important;
+  align-items:center!important;
+  justify-content:flex-end!important;
+  width:auto!important;
+  min-width:0!important;
+  max-width:none!important;
+  margin-left:auto!important;
+  gap:clamp(3px,.65vw,8px)!important;
+  white-space:nowrap!important;
+}
+:where(.topbar-actions,.owner-topbar-actions) .live-status{
+  display:inline-flex!important;
+  flex:0 0 auto!important;
+  flex-direction:row!important;
+  flex-wrap:nowrap!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:4px!important;
+  white-space:nowrap!important;
+  padding:5px clamp(5px,.8vw,9px)!important;
+  font-size:clamp(7px,.8vw,10px)!important;
+  line-height:1.15!important;
+}
+:where(.topbar-actions,.owner-topbar-actions) .wib-digital-clock{
+  display:inline-flex!important;
+  flex:0 0 auto!important;
+  flex-direction:row!important;
+  flex-wrap:nowrap!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:clamp(2px,.4vw,5px)!important;
+  min-width:0!important;
+  max-width:none!important;
+  white-space:nowrap!important;
+  padding:5px clamp(5px,.8vw,9px)!important;
+  font-size:clamp(7px,.85vw,10px)!important;
+  line-height:1.15!important;
+  font-variant-numeric:tabular-nums;
+}
+:where(.topbar-actions,.owner-topbar-actions) .wib-digital-clock :where(svg,strong,small,em){
+  flex:0 0 auto!important;
+  white-space:nowrap!important;
+  line-height:1!important;
+}
+:where(.topbar-actions,.owner-topbar-actions) .wib-digital-clock strong{font-size:clamp(9px,1vw,12px)!important}
+:where(.topbar-actions,.owner-topbar-actions) .wib-digital-clock small,
+:where(.topbar-actions,.owner-topbar-actions) .wib-digital-clock em{font-size:clamp(6px,.7vw,9px)!important}
+:where(.topbar-actions,.owner-topbar-actions) :where(.refresh-btn,.owner-refresh-button){
+  display:inline-grid!important;
+  flex:0 0 36px!important;
+  place-items:center!important;
+  width:36px!important;
+  min-width:36px!important;
+  height:36px!important;
+  min-height:36px!important;
+  padding:0!important;
+}
+:where(.topbar,.owner-topbar) :where(.mobile-menu,.owner-mobile-menu){
+  display:inline-grid!important;
+  flex:0 0 36px!important;
+  place-items:center!important;
+  width:36px!important;
+  min-width:36px!important;
+  height:36px!important;
+  min-height:36px!important;
+  padding:0!important;
+}
+@media(max-width:600px){
+  :where(.topbar,.owner-topbar){min-height:58px!important;padding:6px 8px!important;gap:4px!important}
+  :where(.topbar-left,.owner-topbar-left){gap:5px!important}
+  :where(.topbar-title-group,.owner-heading)>h1{font-size:clamp(11px,3.15vw,15px)!important}
+  :where(.topbar-actions,.owner-topbar-actions){gap:3px!important}
+  :where(.topbar-actions,.owner-topbar-actions) .live-status{padding:5px 6px!important;font-size:clamp(6px,1.8vw,8px)!important}
+  :where(.topbar-actions,.owner-topbar-actions) .wib-digital-clock{padding:5px 6px!important;gap:2px!important;font-size:clamp(6px,1.8vw,8px)!important}
+  :where(.topbar-actions,.owner-topbar-actions) .wib-digital-clock strong{font-size:clamp(8px,2.2vw,10px)!important}
+  :where(.topbar-actions,.owner-topbar-actions) .wib-digital-clock small,
+  :where(.topbar-actions,.owner-topbar-actions) .wib-digital-clock em{font-size:clamp(5px,1.45vw,7px)!important}
+  :where(.topbar-actions,.owner-topbar-actions) :where(.refresh-btn,.owner-refresh-button){flex-basis:36px!important;width:36px!important;min-width:36px!important;height:36px!important;min-height:36px!important}
+}
+@media(max-width:390px){
+  :where(.topbar,.owner-topbar){padding-inline:6px!important;gap:3px!important}
+  :where(.topbar-left,.owner-topbar-left){gap:4px!important}
+  :where(.topbar-actions,.owner-topbar-actions){gap:2px!important}
+  :where(.topbar-actions,.owner-topbar-actions) .live-status{padding-inline:4px!important}
+  :where(.topbar-actions,.owner-topbar-actions) .wib-digital-clock{padding-inline:4px!important}
+  :where(.topbar,.owner-topbar) :where(.mobile-menu,.owner-mobile-menu),
+  :where(.topbar-actions,.owner-topbar-actions) :where(.refresh-btn,.owner-refresh-button){flex-basis:32px!important;width:32px!important;min-width:32px!important;height:32px!important;min-height:32px!important}
+}
