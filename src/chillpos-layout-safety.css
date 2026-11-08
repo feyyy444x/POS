@@ -497,3 +497,184 @@ small{font-size:max(10px,.8em)}
   :where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.owner-center-shell,.owner-workspace,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell) :where(p,.description,.subtitle,.helper-text,.field-help,.form-hint,.empty-state p,.notice,.alert,.muted){font-size:12px!important}
   :where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.owner-center-shell,.owner-workspace,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell) :where(input:not([type=checkbox]):not([type=radio]),select,textarea,.text-input){font-size:16px!important}
 }
+
+
+/* FINAL HEADER + CONTAINER REPAIR — Admin, Center Control and Workspace.
+   Keep header groups horizontal; on narrow screens use two clean horizontal rows,
+   with all status/time/actions aligned to the right. Never stack controls vertically. */
+:where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.owner-center-shell,.owner-workspace,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell) :where(.topbar,.owner-topbar){
+  box-sizing:border-box!important;
+  width:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+  height:auto!important;
+  min-height:64px!important;
+  max-height:none!important;
+  overflow:visible!important;
+  display:flex!important;
+  flex-direction:row!important;
+  flex-wrap:nowrap!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:clamp(8px,1.5vw,18px)!important;
+}
+:where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.owner-center-shell,.owner-workspace,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell) :where(.topbar-left,.owner-topbar-left){
+  display:flex!important;
+  flex:1 1 auto!important;
+  width:auto!important;
+  min-width:0!important;
+  max-width:100%!important;
+  flex-wrap:nowrap!important;
+  align-items:center!important;
+  gap:10px!important;
+}
+:where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.owner-center-shell,.owner-workspace,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell) :where(.topbar-title-group,.owner-heading){
+  display:block!important;
+  flex:1 1 auto!important;
+  width:auto!important;
+  min-width:0!important;
+  max-width:100%!important;
+  order:0!important;
+}
+:where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.owner-center-shell,.owner-workspace,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell) :where(.topbar-title-group h1,.owner-heading h1){
+  max-width:100%!important;
+  min-width:0!important;
+  margin:0!important;
+  white-space:normal!important;
+  overflow:visible!important;
+  overflow-wrap:anywhere!important;
+  text-overflow:clip!important;
+  line-height:1.25!important;
+}
+:where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.owner-center-shell,.owner-workspace,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell) :where(.topbar-actions,.owner-topbar-actions){
+  display:flex!important;
+  flex:0 1 auto!important;
+  width:auto!important;
+  min-width:0!important;
+  max-width:100%!important;
+  flex-direction:row!important;
+  flex-wrap:nowrap!important;
+  align-items:center!important;
+  justify-content:flex-end!important;
+  gap:8px!important;
+  margin-left:auto!important;
+  overflow:visible!important;
+}
+:where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.owner-center-shell,.owner-workspace,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell) :where(.topbar-actions,.owner-topbar-actions) > *{
+  flex:0 0 auto!important;
+  min-width:0!important;
+  max-width:100%!important;
+}
+:where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.owner-center-shell,.owner-workspace,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell) :where(.live-status,.wib-digital-clock){
+  white-space:nowrap!important;
+  flex-wrap:nowrap!important;
+  max-width:100%!important;
+}
+:where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.owner-center-shell,.owner-workspace,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell) :where(.topbar,.owner-topbar) :where(button,.live-status,.wib-digital-clock){
+  flex-shrink:0!important;
+}
+:where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.owner-center-shell,.owner-workspace,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell) :where(.page-content,.page-container,.content-area,.main-area,.owner-content,.owner-main,.page-section){
+  box-sizing:border-box;
+  min-width:0!important;
+  max-width:100%!important;
+}
+:where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.owner-center-shell,.owner-workspace,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell) :where(.panel,.card,.content-card,.table-card,.settings-card,.admin-card,.owner-card,.section-card,.modal-card,.form-card,.dashboard-card){
+  box-sizing:border-box;
+  min-width:0!important;
+  max-width:100%!important;
+}
+:where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.owner-center-shell,.owner-workspace,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell) :where(.panel,.card,.content-card,.table-card,.settings-card,.admin-card,.owner-card,.section-card,.modal-card,.form-card,.dashboard-card) > *{
+  min-width:0;
+  max-width:100%;
+}
+:where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.owner-center-shell,.owner-workspace,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell) :where(.table-wrap,.table-scroll,.table-container,.table-responsive,.owner-table-wrap){
+  display:block;
+  width:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+  overflow-x:auto!important;
+  overflow-y:hidden;
+  -webkit-overflow-scrolling:touch;
+}
+:where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.owner-center-shell,.owner-workspace,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell) :where(th,td){
+  max-width: min(360px, 65vw);
+  white-space:normal!important;
+  overflow-wrap:anywhere!important;
+  word-break:normal!important;
+  text-overflow:clip!important;
+}
+@media(max-width:760px){
+  :where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.owner-center-shell,.owner-workspace,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell) :where(.topbar,.owner-topbar){
+    display:flex!important;
+    flex-direction:row!important;
+    flex-wrap:wrap!important;
+    align-items:center!important;
+    justify-content:space-between!important;
+    row-gap:7px!important;
+    column-gap:8px!important;
+    padding:10px 12px!important;
+  }
+  :where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.owner-center-shell,.owner-workspace,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell) :where(.topbar-left,.owner-topbar-left){
+    flex:1 1 100%!important;
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
+    order:0!important;
+  }
+  :where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.owner-center-shell,.owner-workspace,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell) :where(.topbar-title-group,.owner-heading){
+    flex:1 1 auto!important;
+    min-width:0!important;
+    max-width:none!important;
+    width:auto!important;
+  }
+  :where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.owner-center-shell,.owner-workspace,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell) :where(.topbar-actions,.owner-topbar-actions){
+    flex:0 0 100%!important;
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+    margin:0!important;
+    order:1!important;
+    display:flex!important;
+    flex-direction:row!important;
+    flex-wrap:nowrap!important;
+    align-items:center!important;
+    justify-content:flex-end!important;
+    gap:7px!important;
+  }
+  :where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.owner-center-shell,.owner-workspace,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell) :where(.topbar-actions,.owner-topbar-actions) > *{
+    flex:0 0 auto!important;
+  }
+  :where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.owner-center-shell,.owner-workspace,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell) :where(.topbar-actions,.owner-topbar-actions) .wib-digital-clock{
+    display:inline-flex!important;
+    white-space:nowrap!important;
+    padding:6px 9px!important;
+    font-size:10px!important;
+  }
+  :where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.owner-center-shell,.owner-workspace,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell) :where(.topbar-actions,.owner-topbar-actions) .live-status{
+    display:inline-flex!important;
+    white-space:nowrap!important;
+    padding:6px 9px!important;
+    font-size:9px!important;
+  }
+  :where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.owner-center-shell,.owner-workspace,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell) :where(.topbar-actions,.owner-topbar-actions) .refresh-btn,
+  :where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.owner-center-shell,.owner-workspace,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell) .owner-refresh-button{
+    display:inline-grid!important;
+    width:38px!important;
+    min-width:38px!important;
+    height:38px!important;
+    min-height:38px!important;
+    place-items:center!important;
+  }
+}
+@media(max-width:380px){
+  :where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.owner-center-shell,.owner-workspace,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell) :where(.topbar,.owner-topbar){
+    padding-inline:9px!important;
+  }
+  :where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.owner-center-shell,.owner-workspace,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell) :where(.topbar-actions,.owner-topbar-actions){
+    gap:5px!important;
+  }
+  :where(.app-shell,.super-admin-shell,.nx-owner-shell,.owner-shell,.owner-center-shell,.owner-workspace,.tenant-operations-shell,.store-control-shell,.control-center-shell,.workspace-shell) :where(.topbar-actions,.owner-topbar-actions) .wib-digital-clock{
+    padding:5px 6px!important;
+    gap:3px!important;
+  }
+}
