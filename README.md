@@ -1,6 +1,6 @@
-# ChillPos
+# acoPos
 
-ChillPos is a responsive point-of-sale, inventory, and real-time queue management web app built with React, Vite, and Supabase.
+acoPos is a responsive point-of-sale, inventory, and real-time queue management web app built with React, Vite, and Supabase.
 
 ## Included modules
 - Supabase email/password authentication with invitation-based tenant membership; public sign-up alone does not create a store or grant an Owner role
@@ -17,7 +17,7 @@ ChillPos is a responsive point-of-sale, inventory, and real-time queue managemen
 ## Local setup
 1. Copy `.env.example` to `.env`.
 2. Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`.
-3. Set `VITE_TELEGRAM_SUPPORT_USERNAME` to the support team's Telegram username without the @ sign (example: `chillpos_support`).
+3. Set `VITE_TELEGRAM_SUPPORT_USERNAME` to the support team's Telegram username without the @ sign (example: `acoPos_support`).
 4. Run `npm install`, then `npm run dev`.
 5. Build with `npm run build`.
 
@@ -36,4 +36,4 @@ Netlify uses `npm run build` and publishes `dist`. SPA routing is configured in 
 - Checkout is processed by a database RPC that validates membership, product activity, stock, and payment amount before creating the order and queue ticket.
 - Queue TV view: append `?screen=queue` to the app URL. Sign in with a store account on the TV browser.
 - Thermal printing uses the browser print dialog; some Bluetooth printers require their vendor driver or companion app.
-- Work is currently in `feature/nexapos-foundation`; production has not been published from this branch.
+- Work is currently in `feature/acoPos-foundation`; production has not been published from this branch.
