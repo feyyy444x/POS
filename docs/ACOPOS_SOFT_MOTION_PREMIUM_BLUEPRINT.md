@@ -1,16 +1,16 @@
-# ChillPos — Global Product Design & Compatibility Baseline
+# acoPos — Global Product Design & Compatibility Baseline
 ## Blueprint Rebranding & Redesign Menyeluruh
 
-> **Pembaruan arah homepage (6 November 2026):** Arah visual homepage yang berlaku sekarang adalah **Cinematic Product Storytelling × Digital Gallery × Digital Showroom** dengan dominasi hybrid, motion balanced, dan showcase hybrid. Blueprint khusus homepage yang menjadi acuan terbaru adalah `docs/CHILLPOS_CINEMATIC_DIGITAL_SHOWROOM_BLUEPRINT.md`. Sistem desain global dan aturan modul non-homepage dalam dokumen ini tetap menjadi konteks kompatibilitas; dokumen ini tidak lagi menjadi acuan visual homepage.
+> **Pembaruan arah homepage (6 November 2026):** Arah visual homepage yang berlaku sekarang adalah **Cinematic Product Storytelling × Digital Gallery × Digital Showroom** dengan dominasi hybrid, motion balanced, dan showcase hybrid. Blueprint khusus homepage yang menjadi acuan terbaru adalah `docs/acoPos_CINEMATIC_DIGITAL_SHOWROOM_BLUEPRINT.md`. Sistem desain global dan aturan modul non-homepage dalam dokumen ini tetap menjadi konteks kompatibilitas; dokumen ini tidak lagi menjadi acuan visual homepage.
 
 **Status:** Arah desain disetujui; implementasi dan pemeriksaan per modul berlangsung di PR #22.  
 **Repositori:** `feyyy444x/POS`  
-**Branch kerja:** `nexapos/consolidated-pr-22` (nama branch teknis dipertahankan agar PR yang berjalan tidak terputus).  
+**Branch kerja:** `acoPos/consolidated-pr-22` (nama branch teknis dipertahankan agar PR yang berjalan tidak terputus).  
 **Batas rilis:** tidak merge ke main, tidak menjalankan migrasi produksi, dan tidak deploy domain publik tanpa persetujuan eksplisit.
 
 ## 1. Identitas merek
 
-- Nama produk dan seluruh brand publik: **ChillPos**.
+- Nama produk dan seluruh brand publik: **acoPos**.
 - Tidak boleh ada nama brand lama pada logo, teks, title, metadata, halaman, navigasi, notifikasi, email, struk, demo, atau materi publik.
 - Nama modul lama untuk pusat Owner diganti menjadi **Pusat Kendali**; tidak ada identitas merek lama yang dipertahankan di UI.
 - Asisten dukungan bernama **Joeclyn**.
@@ -44,7 +44,7 @@
 
 ## 4. Panel platform
 
-### Super Admin dan Admin ChillPos
+### Super Admin dan Admin acoPos
 - Dashboard ringkasan platform.
 - Manajemen tenant dan detail tenant.
 - Aktivasi perusahaan, durasi, paket, harga, kuota, dan status.
@@ -132,7 +132,7 @@ Target uji: 360, 390, 430, 768, 1024, 1280, 1440, dan 1920 piksel.
 
 1. Audit inventaris halaman, komponen, aset, dan referensi brand lama.
 2. Tetapkan token dan komponen bersama.
-3. Terapkan identitas ChillPos ke homepage, login, panel platform, Pusat Kendali, dan workspace.
+3. Terapkan identitas acoPos ke homepage, login, panel platform, Pusat Kendali, dan workspace.
 4. Redesain tiap modul sesuai tugasnya dan audit semua state komponen.
 5. Jalankan build, tes statis, security smoke, dan Deploy Preview pada PR #22.
 6. Lakukan visual QA desktop/tablet/mobile serta authenticated E2E semua role.

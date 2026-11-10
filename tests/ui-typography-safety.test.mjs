@@ -2,13 +2,13 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 
-const safety = await readFile(new URL('../src/chillpos-layout-safety.css', import.meta.url), 'utf8')
-const designSystem = await readFile(new URL('../src/chillpos-design-system.css', import.meta.url), 'utf8')
+const safety = await readFile(new URL('../src/acoPos-layout-safety.css', import.meta.url), 'utf8')
+const designSystem = await readFile(new URL('../src/acoPos-design-system.css', import.meta.url), 'utf8')
 const homepage = await readFile(new URL('../src/homepage.css', import.meta.url), 'utf8')
 const entry = await readFile(new URL('../src/main.jsx', import.meta.url), 'utf8')
 
 test('global safety stylesheet loads after design system and prevents text clipping', () => {
-  assert.ok(entry.indexOf("import './chillpos-design-system.css'") < entry.indexOf("import './chillpos-layout-safety.css'"))
+  assert.ok(entry.indexOf("import './acoPos-design-system.css'") < entry.indexOf("import './acoPos-layout-safety.css'"))
   assert.match(safety, /text-overflow:clip/)
   assert.match(safety, /overflow-wrap:anywhere/)
   assert.match(safety, /white-space:normal/)
@@ -33,7 +33,7 @@ const accessCss = await readFile(new URL('../src/access-portal.css', import.meta
 const accessPortal = await readFile(new URL('../src/AccessPortal.jsx', import.meta.url), 'utf8')
 
 test('access portal page-specific styles load after shared design system', () => {
-  assert.ok(accessPortal.indexOf("import './chillpos-design-system.css'") < accessPortal.indexOf("import './access-portal.css'"))
+  assert.ok(accessPortal.indexOf("import './acoPos-design-system.css'") < accessPortal.indexOf("import './access-portal.css'"))
 })
 
 test('access headline highlight no longer paints over the heading text', () => {
@@ -49,7 +49,7 @@ test('login and registration form labels, inputs and helper text use compact ali
 })
 
 
-const globalSafety = await readFile(new URL('../src/chillpos-layout-safety.css', import.meta.url), 'utf8')
+const globalSafety = await readFile(new URL('../src/acoPos-layout-safety.css', import.meta.url), 'utf8')
 
 test('cross-page typography covers Admin, Control Center, Owner and Workspace surfaces', () => {
   for (const scope of ['.app-shell','.super-admin-shell','.nx-owner-shell','.owner-shell','.tenant-operations-shell','.store-control-shell','.control-center-shell','.workspace-shell']) {

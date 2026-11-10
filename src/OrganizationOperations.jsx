@@ -158,7 +158,7 @@ export default function OrganizationOperations({ mode = 'team', tenants = [] }) 
     if (!token) { setError('Sesi login tidak tersedia. Silakan masuk kembali.'); return }
     setSecurityBusy(member.id); setError(''); setNotice('')
     try {
-      const response = await fetch('/.netlify/functions/manage-store-member-password', {
+      const response = await fetch('/api/manage-store-member-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
         body: JSON.stringify({ memberId: member.id, password }),

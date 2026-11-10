@@ -79,7 +79,7 @@ export default function OrganizationReports({ organization, tenants = [] }) {
   useEffect(() => {
     load()
     if (!supabase || !organization?.id) return
-    const channel = supabase.channel('chillpos-organization-reports-' + organization.id)
+    const channel = supabase.channel('acoPos-organization-reports-' + organization.id)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, load)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'order_items' }, load)
       .subscribe()
@@ -118,7 +118,7 @@ export default function OrganizationReports({ organization, tenants = [] }) {
     const url = URL.createObjectURL(new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' }))
     const link = document.createElement('a')
     link.href = url
-    link.download = 'chillpos-laporan-perusahaan-' + startDate + '-sampai-' + endDate + '.csv'
+    link.download = 'acoPos-laporan-perusahaan-' + startDate + '-sampai-' + endDate + '.csv'
     link.click()
     URL.revokeObjectURL(url)
   }

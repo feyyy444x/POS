@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "ChillPos",
+  "productName": "acoPos",
   "version": "0.1.0",
-  "identifier": "id.nexapos.app",
+  "identifier": "id.acopos.app",
   "build": {
     "beforeBuildCommand": "npm run build",
     "beforeDevCommand": "npm run dev",
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "ChillPos",
+        "title": "acoPos",
         "width": 1280,
         "height": 800,
         "minWidth": 900,
@@ -36,7 +36,7 @@
       "icons/icon.ico"
     ],
     "category": "Business",
-    "shortDescription": "ChillPos kasir dan operasional bisnis",
-    "longDescription": "Aplikasi ChillPos untuk kasir, pengelolaan produk, stok, dan operasional bisnis."
+    "shortDescription": "acoPos kasir dan operasional bisnis",
+    "longDescription": "Aplikasi acoPos untuk kasir, pengelolaan produk, stok, dan operasional bisnis."
   }
 }

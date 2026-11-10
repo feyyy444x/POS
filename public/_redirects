@@ -1,3 +1,13 @@
+/api/register-free      /.netlify/functions/register-free      200
+/api/complete-free-registration  /.netlify/functions/complete-free-registration  200
+/api/activate-invitation  /.netlify/functions/activate-invitation  200
+/api/create-platform-staff  /.netlify/functions/create-platform-staff  200
+/api/manage-store-member-password  /.netlify/functions/manage-store-member-password  200
+/api/manage-user-password  /.netlify/functions/manage-user-password  200
+/api/platform-staff-workspace  /.netlify/functions/platform-staff-workspace  200
+
 /login      /index.html   200
 /workspace  /index.html   200
 /admin      /index.html   200
+/daftar-gratis /index.html 200
+/*  /index.html  200

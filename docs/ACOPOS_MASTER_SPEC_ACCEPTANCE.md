@@ -1,11 +1,11 @@
-# ChillPos — Master Specification & Release Acceptance
+# acoPos — Master Specification & Release Acceptance
 
-Dokumen ini menjadi sumber status pekerjaan ChillPos. Status kode, status migrasi produksi, preview, dan uji operasional dicatat terpisah agar fitur yang baru ada di kode tidak keliru disebut sudah aktif untuk pelanggan.
+Dokumen ini menjadi sumber status pekerjaan acoPos. Status kode, status migrasi produksi, preview, dan uji operasional dicatat terpisah agar fitur yang baru ada di kode tidak keliru disebut sudah aktif untuk pelanggan.
 
 ## Lingkungan yang digunakan
 
 - Repository: `feyyy444x/POS`
-- Jalur pekerjaan: PR #22 — `nexapos/consolidated-pr-22`
+- Jalur pekerjaan: PR #22 — `acoPos/consolidated-pr-22`
 - Netlify site: `posfeyyy`
 - Domain publik saat ini: domain lama dipertahankan sementara; penggantian memerlukan domain baru dan perubahan DNS yang disetujui.
 - Supabase produksi: `zoplanjzcizvjhorsldm`
@@ -36,7 +36,7 @@ Dokumen ini menjadi sumber status pekerjaan ChillPos. Status kode, status migras
 
 ## 2. Homepage dan identitas visual
 
-**Status: Redesain ChillPos disetujui sebagai arah baru; implementasi dan QA visual menyeluruh masih berlangsung.**
+**Status: Redesain acoPos disetujui sebagai arah baru; implementasi dan QA visual menyeluruh masih berlangsung.**
 
 - Arah visual yang berlaku: **Soft Motion Premium** — hangat, tenang, modern, rapi, dengan gerak yang halus dan penuh tujuan.
 - Palet: Warm Ivory `#F2F0E9`, Soft Stone `#E4E1D8`, Muted Sage `#AAB5A7`, Dusty Olive `#858F7D`, Soft Charcoal `#424943`, dan Cloud White `#FAFAF7`.
@@ -46,7 +46,7 @@ Dokumen ini menjadi sumber status pekerjaan ChillPos. Status kode, status migras
 - Login memakai satu kanvas, bukan split-screen.
 - Animasi menghormati `prefers-reduced-motion`, perangkat sentuh, GPU terbatas, dan ukuran layar kecil.
 - Blueprint lama bertema Architectural Future, Digital Universe, dan Infinite Experience dinyatakan **digantikan** oleh arah Soft Motion Premium.
-- Acuan utama: `docs/CHILLPOS_SOFT_MOTION_PREMIUM_BLUEPRINT.md`.
+- Acuan utama: `docs/acoPos_SOFT_MOTION_PREMIUM_BLUEPRINT.md`.
 
 ## 3. Paket, harga, durasi, promosi, dan aktivasi
 
@@ -60,11 +60,11 @@ Dokumen ini menjadi sumber status pekerjaan ChillPos. Status kode, status migras
 - Validasi aktivasi, kuota, masa berlaku, promo, dan voucher dilakukan di backend.
 - Single Workspace mempunyai pengaturan harga dan status aktif terpisah dari paket Pusat Kendali.
 
-## 4. Super Admin dan Admin ChillPos
+## 4. Super Admin dan Admin acoPos
 
 **Status: Implemented in branch; authenticated E2E pending.**
 
-- Super Admin dan Admin ChillPos memiliki panel dan kewenangan platform sesuai spesifikasi.
+- Super Admin dan Admin acoPos memiliki panel dan kewenangan platform sesuai spesifikasi.
 - Tidak ada role Customer Service platform.
 - Admin mengelola paket, durasi, promo, tenant, aktivasi, pengguna, dan dukungan.
 - Aksi sensitif harus memeriksa hak akses di backend; UI yang menyembunyikan tombol bukan pengganti RLS/RPC authorization.
@@ -125,8 +125,8 @@ Dokumen ini menjadi sumber status pekerjaan ChillPos. Status kode, status migras
 **Status: Implemented in branch and production migrations; authenticated E2E pending.**
 
 - Nama bot yang terlihat adalah Joeclyn, bukan label generik AI.
-- Basis pengetahuan berfokus pada penggunaan ChillPos.
-- Handoff diarahkan ke Admin ChillPos.
+- Basis pengetahuan berfokus pada penggunaan acoPos.
+- Handoff diarahkan ke Admin acoPos.
 - Indikator mengetik tersedia untuk Joeclyn dan Admin.
 - Homepage tidak menampilkan live chat guest; kanal publik adalah WhatsApp dan Telegram sesuai konfigurasi.
 

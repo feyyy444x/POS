@@ -1,0 +1,101 @@
+/* acoPos — global text contrast and readable controls.
+   Presentation-only: preserves layouts, actions, data, and responsive behavior. */
+:root {
+  --cp-ink: #202b36;
+  --cp-muted: #596674;
+  --cp-line: #d7dde3;
+  --cp-olive-deep: #42584d;
+}
+.app-shell, .tenant-operations-shell, .super-admin-shell {
+  color: #202b36 !important;
+}
+.app-shell :where(h1,h2,h3,h4,h5,h6),
+.tenant-operations-shell :where(h1,h2,h3,h4,h5,h6),
+.super-admin-shell :where(h1,h2,h3,h4,h5,h6) {
+  color: #202b36;
+}
+.app-shell :where(p,small,label,legend,dt,dd,th,td,.muted,.subtle,.helper-text,.field-hint,.description,.form-hint,.empty-state p),
+.tenant-operations-shell :where(p,small,label,legend,dt,dd,th,td,.muted,.subtle,.helper-text,.field-hint,.description,.form-hint,.empty-state p),
+.super-admin-shell :where(p,small,label,legend,dt,dd,th,td,.muted,.subtle,.helper-text,.field-hint,.description,.form-hint,.empty-state p) {
+  color: #4b5865 !important;
+}
+.app-shell :where(.eyebrow,.section-label,.page-kicker),
+.tenant-operations-shell :where(.eyebrow,.section-label,.page-kicker),
+.super-admin-shell :where(.eyebrow,.section-label,.page-kicker) {
+  color: #465b50 !important;
+}
+.app-shell :where(a:not(.btn):not(.nav-link)),
+.tenant-operations-shell :where(a:not(.btn):not(.nav-link)),
+.super-admin-shell :where(a:not(.btn):not(.nav-link)) {
+  color: #075e50;
+}
+.app-shell :where(input,select,textarea,.text-input),
+.tenant-operations-shell :where(input,select,textarea,.text-input),
+.super-admin-shell :where(input,select,textarea,.text-input) {
+  color: #202b36 !important;
+  background-color: #fff;
+  border-color: #b9c4ce;
+}
+.app-shell :where(input,textarea)::placeholder,
+.tenant-operations-shell :where(input,textarea)::placeholder,
+.super-admin-shell :where(input,textarea)::placeholder {
+  color: #687583 !important;
+  opacity: 1;
+}
+.app-shell :where(th),
+.tenant-operations-shell :where(th),
+.super-admin-shell :where(th) {
+  color: #344353 !important;
+}
+.app-shell :where(td),
+.tenant-operations-shell :where(td),
+.super-admin-shell :where(td) {
+  color: #34404c;
+}
+.app-shell :where(.status-pill,.badge,.chip,.tag),
+.tenant-operations-shell :where(.status-pill,.badge,.chip,.tag),
+.super-admin-shell :where(.status-pill,.badge,.chip,.tag) {
+  font-weight: 650;
+}
+.app-shell :where(button,a,input,select,textarea,[tabindex]):focus-visible,
+.tenant-operations-shell :where(button,a,input,select,textarea,[tabindex]):focus-visible,
+.super-admin-shell :where(button,a,input,select,textarea,[tabindex]):focus-visible {
+  outline: 3px solid #167d69 !important;
+  outline-offset: 3px !important;
+}
+.access-portal :where(p,small,.access-index,.access-footer,.access-system-label) {
+  color: #c0ccd8 !important;
+}
+.access-portal .access-heading p { color: #d0d9e2 !important; }
+.access-portal :where(input,textarea,select)::placeholder { color: #8293a5 !important; opacity: 1; }
+@media (max-width: 720px) {
+  .app-shell :where(th,td), .tenant-operations-shell :where(th,td), .super-admin-shell :where(th,td) {
+    font-size: 12px;
+  }
+}
+
+
+/* Homepage hero copy: explicit pure-black typography as requested. */
+.cinema-home .living-hero-copy,
+.cinema-home .living-hero-copy :where(h1,h1 span,p,.living-kicker,.living-hero-index,.living-hero-index span,.living-hero-actions a,.living-text-link,.living-text-link span) {
+  color: #000000 !important;
+}
+.cinema-home .living-hero-copy .living-cta,
+.cinema-home .living-hero-copy .living-demo-cta {
+  color: #000000 !important;
+}
+
+
+/* Final homepage hero override: outrank the legacy cinematic silver palette. */
+.cinema-home .living-hero .living-hero-copy h1,
+.cinema-home .living-hero .living-hero-copy h1 span,
+.cinema-home .living-hero .living-hero-copy > p,
+.cinema-home .living-hero .living-hero-copy .living-kicker,
+.cinema-home .living-hero .living-hero-copy .living-hero-index,
+.cinema-home .living-hero .living-hero-copy .living-hero-index span,
+.cinema-home .living-hero .living-hero-copy .living-text-link,
+.cinema-home .living-hero .living-hero-copy .living-text-link span,
+.cinema-home .living-hero .living-hero-copy .living-hero-actions a,
+.cinema-home .living-hero .living-hero-copy .living-hero-actions a span {
+  color: #000000 !important;
+}

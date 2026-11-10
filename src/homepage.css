@@ -321,7 +321,7 @@
 @media(max-width:760px){.living-voucher-list{grid-template-columns:1fr}.living-voucher-list article{align-items:flex-start}.living-voucher-list article button{max-width:125px;white-space:normal}}
 
 
-/* Subscription and promo refresh — retain ChillPos palette and motion language. */
+/* Subscription and promo refresh — retain acoPos palette and motion language. */
 .living-pricing-redesign{position:relative;overflow:hidden}
 .living-pricing-redesign:before{content:"";position:absolute;right:-11%;top:13%;width:430px;height:430px;border:1px solid #078b7818;border-radius:50%;box-shadow:0 0 0 35px #078b7805,0 0 0 70px #078b7804;pointer-events:none;animation:living-orbit 75s linear infinite}
 .living-pricing-redesign>*{position:relative;z-index:1}
@@ -421,7 +421,7 @@
 }
 
 
-/* Promo spotlight — follows the existing ChillPos kinetic/living visual system. */
+/* Promo spotlight — follows the existing acoPos kinetic/living visual system. */
 .living-promo-spotlight{position:relative;isolation:isolate;overflow:hidden;margin:0 auto;padding:clamp(24px,4vw,48px) clamp(22px,6vw,84px);background:var(--navy);color:#f4f8f3;border-top:1px solid #7fd4bb45;border-bottom:1px solid #7fd4bb45}
 .living-promo-spotlight:before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 85% 45%,#08b99622 0,transparent 42%),linear-gradient(105deg,#102d50 0%,#153d52 58%,#102d50 100%);z-index:-2}
 .living-promo-spotlight-orbit{position:absolute;right:8%;top:-190px;width:430px;height:430px;border:1px solid #8de5c51e;border-radius:50%;box-shadow:0 0 0 35px #8de5c508,0 0 0 75px #8de5c506;pointer-events:none;animation:living-orbit 65s linear infinite;z-index:-1}
@@ -467,3 +467,11 @@
  .living-plan-custom ul{grid-template-columns:1fr;gap:7px}
  .living-plan-custom .living-plan-cta{max-width:none;margin:0}
 }
+
+
+/* Dedicated 30-day free trial invitation on the homepage. */
+.living-final{position:relative}
+.living-final .living-final-copy h2{max-width:900px}
+.living-final .living-final-actions{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.living-final .living-cta-light{min-height:52px;padding:0 22px;font-weight:750}
+@media(max-width:700px){.living-final .living-final-actions{align-items:stretch;flex-direction:column}.living-final .living-final-actions>*{justify-content:center}.living-final .living-final-login{white-space:normal}}

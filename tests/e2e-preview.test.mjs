@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 
-const baseUrl = (process.env.NEXAPOS_E2E_BASE_URL || 'https://deploy-preview-22--posfeyyy.netlify.app').replace(/\/$/, '')
+const baseUrl = (process.env.acoPos_E2E_BASE_URL || 'https://acopos-rebrand-preview--acopos.netlify.app').replace(/\/$/, '')
 const activationUrl = new URL('/.netlify/functions/activate-invitation', baseUrl)
 const freeRegistrationUrl = new URL('/.netlify/functions/register-free', baseUrl)
 const completeRegistrationUrl = new URL('/.netlify/functions/complete-free-registration', baseUrl)
@@ -58,7 +58,7 @@ async function getReachableApp() {
   throw lastError || new Error('Preview did not become reachable')
 }
 
-test('deployed preview serves the NexaPos entry page and application bundle', async () => {
+test('deployed preview serves the acoPos entry page and application bundle', async () => {
   const response = await getReachableApp()
   assert.equal(response.status, 200)
   const html = await response.text()
@@ -116,7 +116,7 @@ test('activation endpoint denies a nonexistent invitation without creating an ac
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({
-      email: 'nexapos-e2e-no-invite@example.invalid',
+      email: 'acoPos-e2e-no-invite@example.invalid',
       password: 'E2E-only-password-NotARealAccount-2026',
       activationCode: '00000000000000000000000000000000',
     }),
@@ -148,16 +148,16 @@ test('free registration completion requires an authenticated session', async () 
   assert.equal(response.status, 401)
 })
 
-test('deployed preview bundle includes the ChillPos Joeclyn assistant and human handoff UI', async () => {
+test('deployed preview bundle includes the acoPos Joeclyn assistant and human handoff UI', async () => {
   const expectedStrings = [
     'Joeclyn',
-    'Hubungi Admin ChillPos',
+    'Hubungi Admin acoPos',
     'submit_support_message',
     'request_support_handoff',
     'admin_reply_support_message',
     'set_support_conversation_status',
     'set_support_typing_status',
-    'Admin ChillPos sedang mengetik...',
+    'Admin acoPos sedang mengetik...',
     'Joeclyn sedang mengetik...',
   ]
   let lastBundle = ''

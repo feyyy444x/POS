@@ -62,7 +62,7 @@ export default function PwaInstallPrompt() {
 
   return (
     <aside
-      aria-label="Instal ChillPos"
+      aria-label="Instal acoPos"
       style={{
         position: 'fixed',
         zIndex: 9999,
@@ -81,9 +81,9 @@ export default function PwaInstallPrompt() {
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <img src="/chillpos-mark.svg" alt="" width="42" height="42" />
+        <img src="/acopos-mark.svg" alt="" width="42" height="42" />
         <div style={{ flex: 1, minWidth: 0 }}>
-          <strong style={{ display: 'block', fontSize: 14 }}>Pasang ChillPos</strong>
+          <strong style={{ display: 'block', fontSize: 14 }}>Pasang acoPos</strong>
           <span style={{ display: 'block', fontSize: 12, color: '#7b8178', marginTop: 3 }}>
             Akses lebih cepat dari layar utama perangkat.
           </span>
@@ -104,7 +104,7 @@ export default function PwaInstallPrompt() {
         <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #e3e1d9', fontSize: 13, lineHeight: 1.55 }}>
           <strong>Android / komputer</strong>
           <ol style={{ margin: '4px 0 10px', paddingLeft: 20 }}>
-            <li>Buka ChillPos melalui Chrome atau browser yang mendukung pemasangan aplikasi.</li>
+            <li>Buka acoPos melalui Chrome atau browser yang mendukung pemasangan aplikasi.</li>
             <li>Buka menu browser (ikon ⋮ atau menu berbagi) lalu pilih <b>Instal aplikasi</b> atau <b>Tambahkan ke layar utama</b>.</li>
           </ol>
           <strong>iPhone / iPad</strong>

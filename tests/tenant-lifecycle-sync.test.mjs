@@ -17,7 +17,7 @@ test('Outdated production activation RPC errors explain the missing migration', 
   assert.match(errorMap, /Migrasi aktivasi tenant perlu diterapkan terlebih dahulu/)
 })
 
-test('Admin ChillPos and Super Admin can reactivate one tenant only within organization quota', () => {
+test('Admin acoPos and Super Admin can reactivate one tenant only within organization quota', () => {
   assert.match(lifecycle, /if not private\.is_super_admin\(\) then/)
   assert.match(lifecycle, /if not private\.is_pin_verified\(\) then/)
   assert.match(lifecycle, /p_status not in \('active','pending','suspended'\)/)
@@ -47,7 +47,7 @@ test('Admin, Owner, and tenant workspace subscribe to shared lifecycle changes',
   assert.match(app, /table:'stores'},\(\)=>\{load\(\);loadUsers\(\)\}/)
   assert.match(app, /table:'owner_organizations'},refreshOwnerData/)
   assert.match(app, /table:'store_members'},refreshOwnerData/)
-  assert.match(app, /nexapos-tenant-lifecycle-sync-/)
+  assert.match(app, /acoPos-tenant-lifecycle-sync-/)
   assert.match(app, /table:'store_settings'},payload=>/)
   assert.match(app, /table:'store_members'},payload=>/)
   assert.match(lifecycle, /alter publication supabase_realtime add table public\.%I/)

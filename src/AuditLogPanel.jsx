@@ -55,7 +55,7 @@ export default function AuditLogPanel({ scope = 'organization', organizationId =
       : scope === 'store' && storeId ? 'store_id=eq.' + storeId : null
     const config = { event: 'INSERT', schema: 'public', table: 'platform_audit_logs' }
     if (filter) config.filter = filter
-    const channel = supabase.channel('chillpos-audit-' + scope + '-' + (organizationId || storeId || 'platform'))
+    const channel = supabase.channel('acoPos-audit-' + scope + '-' + (organizationId || storeId || 'platform'))
       .on('postgres_changes', config, load)
       .subscribe()
     return () => { supabase.removeChannel(channel) }

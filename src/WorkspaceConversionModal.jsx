@@ -106,7 +106,7 @@ export default function WorkspaceConversionModal({ tenant, packages = [], durati
         </label>}
         <div style={{ display: 'flex', gap: 9, alignItems: 'flex-start', border: '1px solid #dce8df', background: '#f5f8f5', borderRadius: 12, padding: 12, color: '#52695a', fontSize: 12, lineHeight: 1.55 }}>
           <ShieldCheck size={17} style={{ flex: '0 0 auto', marginTop: 1 }}/>
-          <span>Admin CHILLPOS dapat menjalankan konversi setelah PIN terverifikasi. Proses ini mempertahankan ID workspace dan seluruh data; sistem mencatat perubahan pada audit aktivitas.</span>
+          <span>Admin acoPos dapat menjalankan konversi setelah PIN terverifikasi. Proses ini mempertahankan ID workspace dan seluruh data; sistem mencatat perubahan pada audit aktivitas.</span>
         </div>
         {error && <div role="alert" className="notice">{error}</div>}
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 9, marginTop: 4 }}>

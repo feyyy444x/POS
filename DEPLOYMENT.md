@@ -1,11 +1,35 @@
-# Deployment checklist
+# acoPos — Vercel deployment checklist
 
+## Project
+- Vercel project: `acopos`
+- Framework: Vite
+- Install command: `npm install`
 - Build command: `npm run build`
-- Publish directory: `dist`
-- Required build variables: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`
-- Required Netlify Functions runtime variables: `SUPABASE_URL` (or reuse `VITE_SUPABASE_URL`) and `SUPABASE_SERVICE_ROLE_KEY`. Store the service-role key only in Netlify's server-side environment; never use a `VITE_` prefix or expose it to browser code.
-- `manage-user-password` also requires `SUPABASE_ANON_KEY` or `VITE_SUPABASE_PUBLISHABLE_KEY`; it checks the caller's PIN-verified Super Admin session before using the service-role key.
-- The PIN migration must be released together with the frontend. Until then, the production site continues using its existing login flow; do not apply the PIN-enforcement migration alone because it intentionally blocks workspace RLS access until users set a PIN.
-- Invitation activation validates a pending, unexpired `store_invites` row before setting the password. The migration `20261027070000_invitation_activation_without_email_confirmation.sql` must be applied to the target Supabase database before enabling this flow.
-- Important: the current Deploy Preview uses the configured production Supabase project. Do not add the production `SUPABASE_SERVICE_ROLE_KEY` to the Deploy Preview/branch-deploy context. Test activation against an isolated staging Supabase project first, or configure the secret only for Production when explicitly releasing this feature.
-- The pull request preview is the review target; do not publish the feature branch to production until the app has been tested end-to-end.
+- Output directory: `dist`
+- Functions region: Singapore (`sin1`)
+- Production deployment: not authorized by this setup task; use Preview until separately approved.
+
+## Frontend environment variables
+Set in Vercel Project Settings → Environment Variables:
+- `VITE_SUPABASE_URL` — Supabase production API URL
+- `VITE_SUPABASE_PUBLISHABLE_KEY` — publishable/anon client key
+
+## Server-side environment variables
+- `SUPABASE_URL` — same project API URL
+- `SUPABASE_ANON_KEY` — publishable/anon key used to validate caller sessions
+- `SUPABASE_SERVICE_ROLE_KEY` — encrypted server-only key required by registration, invitation activation, staff management, and password-management functions. Never expose it with a `VITE_` prefix and never commit it.
+- `VITE_TELEGRAM_SUPPORT_USERNAME` — optional confirmed support username.
+
+The Preview environment currently targets the production Supabase project. Do **not** add the production `SUPABASE_SERVICE_ROLE_KEY` to Preview. Registration completion, invitation activation, staff creation, and password reset routes will return a configuration error until a safe server-side key is supplied. Use an isolated staging database for end-to-end tests of privileged functions.
+
+## API routing
+- Existing frontend calls to `/.netlify/functions/<name>` are preserved by `vercel.json`.
+- Vercel Node handlers under `api/` adapt the existing Netlify-compatible backend handlers.
+- Do not delete the original handler implementations until all Vercel routes have been validated.
+
+## Data and release safeguards
+- Use the existing Supabase production project as the data source; do not apply the production migration set to the test project.
+- Check applied migrations against `supabase/migrations/` before any database change.
+- Validate RLS, tenant isolation, read-only suspension, audit logging, realtime, registration, Self Order, and Owner/tenant status consistency.
+- Do not run destructive data migrations or production deployment as part of preview setup.
+- Only attach the live custom domain after preview acceptance and separate release approval.

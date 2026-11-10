@@ -313,3 +313,8 @@
   .nx-access-portal .access-form{padding:17px 14px!important}
   .nx-access-portal .access-heading h1{font-size:clamp(38px,11vw,44px)}
 }
+
+
+/* Registration is a dedicated destination, with a clear trial identity. */
+.nx-access-portal:has(.access-kicker){scroll-margin-top:12px}
+.nx-access-portal .access-heading h1{max-width:100%;overflow-wrap:normal}

@@ -1,4 +1,4 @@
-/* ChillPos — Cinematic Product Storytelling × Digital Gallery × Digital Showroom */
+/* acoPos — Cinematic Product Storytelling × Digital Gallery × Digital Showroom */
 .cinema-home{--cinema-ivory:#f4f0e8;--cinema-navy:#142936;--cinema-charcoal:#20272b;--cinema-sand:#d9cbb8;--cinema-white:#fff;--cinema-teal:#6f9990;background:var(--cinema-ivory);color:var(--cinema-charcoal);overflow:clip}
 .cinema-home .living-nav{background:rgba(244,240,232,.92)!important;border-bottom:1px solid rgba(20,41,54,.09)!important;backdrop-filter:blur(18px);box-shadow:none!important}
 .cinema-home .living-brand span{color:var(--cinema-navy)!important}

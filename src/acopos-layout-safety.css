@@ -1,4 +1,4 @@
-/* ChillPos — global layout safety layer
+/* acoPos — global layout safety layer
    Additive presentation-only safeguards. No business logic or data behavior is changed. */
 *,*::before,*::after{box-sizing:border-box}
 html{max-width:100%;overflow-x:clip}

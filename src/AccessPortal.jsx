@@ -2,13 +2,13 @@ import { useEffect, useRef, useState } from 'react'
 import { ArrowRight, KeyRound, ShieldCheck, UserRound, LockKeyhole } from 'lucide-react'
 import { isSupabaseConfigured, supabase } from './lib/supabase'
 import { userFacingError } from './lib/userFacingError'
-import './chillpos-design-system.css'
+import './acopos-design-system.css'
 import './access-portal.css'
 
 function AccessBrand() {
-  return <a className="access-brand" href="/" aria-label="ChillPos beranda">
-    <img src="/chillpos-mark.svg" alt="" />
-    <span>ChillPos<small>BUSINESS OPERATIONS</small></span>
+  return <a className="access-brand" href="/" aria-label="acoPos beranda">
+    <img src="/acopos-mark.svg" alt="" />
+    <span>acoPos<small>BUSINESS OPERATIONS</small></span>
   </a>
 }
 
@@ -19,23 +19,23 @@ function AccessFrame({ children, eyebrow = 'SECURE WORKSPACE ACCESS' }) {
     <div className="access-grid" aria-hidden="true" />
     <header className="access-topline">
       <AccessBrand />
-      <span className="access-system-label"><i /> CHILLPOS / ACCESS SYSTEM</span>
+      <span className="access-system-label"><i /> acoPos / ACCESS SYSTEM</span>
     </header>
     <section className="access-content">
       <div className="access-index"><span>CP—01</span><span>{eyebrow}</span></div>
       {children}
     </section>
     <footer className="access-footer">
-      <span>© {new Date().getFullYear()} ChillPos</span>
-      <span>CHILLPOS PLATFORM</span>
+      <span>© {new Date().getFullYear()} acoPos</span>
+      <span>acoPos PLATFORM</span>
       <span>SECURE SESSION</span>
     </footer>
-    <span className="access-background-word" aria-hidden="true">CHILL</span>
+    <span className="access-background-word" aria-hidden="true">ACOPOS</span>
   </main>
 }
 
-export function AuthScreen() {
-  const [mode, setMode] = useState('login')
+export function AuthScreen({ initialMode = 'login' } = {}) {
+  const [mode, setMode] = useState(initialMode === 'register' ? 'register' : 'login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [activationCode, setActivationCode] = useState('')
@@ -77,7 +77,7 @@ export function AuthScreen() {
           setMessage(userFacingError(result.error))
         } else {
           if (result.data?.user?.user_metadata?.free_workspace_pending === true && result.data?.session?.access_token) {
-            const completion = await fetch('/.netlify/functions/complete-free-registration', {
+            const completion = await fetch('/api/complete-free-registration', {
               method: 'POST',
               headers: { Authorization: 'Bearer ' + result.data.session.access_token },
             })
@@ -87,67 +87,26 @@ export function AuthScreen() {
           window.location.assign('/')
         }
       } else if (mode === 'register') {
-        const { data, error: signUpError } = await supabase.auth.signUp({
-          email: email.trim(),
-          password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/?screen=complete-free-registration`,
-            data: { full_name: ownerName.trim(), free_workspace_pending: true },
-          },
-        })
-        if (signUpError) throw signUpError
-        if (!data?.user?.id) throw new Error('Akun pendaftaran tidak dapat dibuat. Silakan coba kembali.')
-
-        let registrationUser = data.user
-        let registrationSession = data.session
-        if (data.user.identities?.length === 0) {
-          const existing = await supabase.auth.signInWithPassword({ email: email.trim(), password })
-          if (existing.error) {
-            if (/email not confirmed/i.test(existing.error.message || '')) {
-              const resent = await supabase.auth.resend({ type: 'signup', email: email.trim() })
-              if (resent.error) throw resent.error
-              throw new Error('Akun dengan email ini sudah dibuat tetapi belum diverifikasi. Tautan verifikasi telah dikirim ulang. Buka email, verifikasi, lalu kirim kembali formulir ini.')
-            }
-            throw new Error('Email ini sudah terdaftar. Jika ini akun Anda, gunakan password yang benar atau masuk melalui halaman login.')
-          }
-          if (existing.data?.user?.user_metadata?.free_workspace_pending !== true) {
-            await supabase.auth.signOut()
-            throw new Error('Email ini sudah digunakan oleh akun ChillPos yang aktif. Silakan masuk melalui halaman login.')
-          }
-          registrationUser = existing.data.user
-          registrationSession = existing.data.session
-        }
-
-        const prepareResponse = await fetch('/.netlify/functions/register-free', {
+        const prepareResponse = await fetch('/api/register-free', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            userId: registrationUser.id, email: email.trim(), ownerName: ownerName.trim(),
+            email: email.trim(), password, ownerName: ownerName.trim(),
             companyName: companyName.trim(), workspaceName: workspaceName.trim(), businessCategory, pin,
           }),
         })
         const prepared = await prepareResponse.json().catch(() => ({}))
-        if (!prepareResponse.ok) throw new Error(prepared.error || 'Persiapan workspace gagal. Silakan coba kembali.')
-
+        if (!prepareResponse.ok) throw new Error(prepared.error || 'Pendaftaran gratis gagal. Silakan coba kembali.')
+        const signedIn = await supabase.auth.signInWithPassword({ email: email.trim(), password })
+        if (signedIn.error) throw new Error('Workspace berhasil disiapkan, tetapi sesi masuk belum terbentuk. Silakan masuk menggunakan email dan password yang baru dibuat.')
         setPassword('')
         setPasswordConfirm('')
         setPin('')
         setPinConfirm('')
-        if (registrationSession?.access_token) {
-          const completion = await fetch('/.netlify/functions/complete-free-registration', {
-            method: 'POST',
-            headers: { Authorization: 'Bearer ' + registrationSession.access_token },
-          })
-          const completed = await completion.json().catch(() => ({}))
-          if (!completion.ok) throw new Error(completed.error || 'Workspace belum berhasil disiapkan.')
-          window.location.assign('/')
-          return
-        }
-        setSuccess(true)
-        setMode('login')
-        setMessage('Akun berhasil dibuat. Periksa email Anda dan klik tautan verifikasi. Setelah email terverifikasi, sistem akan otomatis membuat Workspace Gratis dan mengarahkan Anda ke dalamnya.')
+        window.location.assign('/')
+        return
       } else {
-        const response = await fetch('/.netlify/functions/activate-invitation', {
+        const response = await fetch('/api/activate-invitation', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: email.trim(), password, activationCode: activationCode.trim() }),
@@ -172,20 +131,20 @@ export function AuthScreen() {
     setActivationCode('')
   }
 
-  return <AccessFrame eyebrow={mode === 'login' ? 'IDENTITY VERIFICATION' : mode === 'register' ? 'FREE WORKSPACE REGISTRATION' : 'INVITATION ACTIVATION'}>
+  return <AccessFrame eyebrow={mode === 'login' ? 'IDENTITY VERIFICATION' : mode === 'register' ? '30-DAY FREE WORKSPACE TRIAL' : 'INVITATION ACTIVATION'}>
     <div className="access-heading">
       <span className="access-kicker">{mode === 'login' ? 'YOUR BUSINESS. YOUR WORKSPACE.' : mode === 'register' ? 'START YOUR BUSINESS WORKSPACE.' : 'COMPLETE YOUR ACCESS.'}</span>
-      <h1>{mode === 'login' ? <>Masuk ke<br /><em>ruang kerja.</em></> : mode === 'register' ? <>Daftar<br /><em>gratis.</em></> : <>Aktifkan<br /><em>akses Anda.</em></>}</h1>
+      <h1>{mode === 'login' ? <>Masuk ke<br /><em>ruang kerja.</em></> : mode === 'register' ? <>Daftar gratis<br /><em>30 hari.</em></> : <>Aktifkan<br /><em>akses Anda.</em></>}</h1>
       <p>{mode === 'login'
-        ? 'Gunakan akun ChillPos yang telah terdaftar untuk melanjutkan aktivitas operasional.'
+        ? 'Gunakan akun acoPos yang telah terdaftar untuk melanjutkan aktivitas operasional.'
         : mode === 'register'
-          ? 'Buat akun Owner dan satu workspace mandiri. Tidak diperlukan kode aktivasi atau pembayaran.'
-          : 'Aktivasi hanya tersedia untuk email yang telah menerima undangan dari Owner atau Admin ChillPos.'}</p>
+          ? 'Mulai dengan Workspace mandiri acoPos tanpa kode aktivasi atau pembayaran. Nikmati masa uji coba gratis selama 30 hari.'
+          : 'Aktivasi hanya tersedia untuk email yang telah menerima undangan dari Owner atau Admin acoPos.'}</p>
     </div>
 
     <form className="access-form" onSubmit={submit}>
       <div className="access-form-meta">
-        <span><ShieldCheck size={15} /> {mode === 'login' ? 'ACCOUNT SIGN-IN' : mode === 'register' ? 'FREE REGISTRATION' : 'INVITATION VERIFICATION'}</span>
+        <span><ShieldCheck size={15} /> {mode === 'login' ? 'ACCOUNT SIGN-IN' : mode === 'register' ? '30-DAY FREE TRIAL' : 'INVITATION VERIFICATION'}</span>
         <span>{mode === 'register' ? '01 / 03' : '01 / 02'}</span>
       </div>
       {mode === 'register' && <>
@@ -230,7 +189,7 @@ export function AuthScreen() {
       </>}
       {message && <div className={'access-message ' + (success ? 'is-success' : 'is-error')} role="status" aria-live="polite">{message}</div>}
       <button className="access-submit" type="submit" disabled={busy}>
-        <span>{busy ? 'Memproses akses…' : mode === 'login' ? 'Masuk ke ChillPos' : mode === 'register' ? 'Buat akun gratis' : 'Verifikasi undangan'}</span>
+        <span>{busy ? 'Memproses akses…' : mode === 'login' ? 'Masuk ke acoPos' : mode === 'register' ? 'Mulai uji coba gratis' : 'Verifikasi undangan'}</span>
         <span className="access-submit-icon"><ArrowRight size={18} /></span>
       </button>
       <div className="access-mode-switch">
@@ -279,7 +238,7 @@ export function FreeRegistrationCompletion() {
     completing.current = true
     setStatus('completing')
     setMessage('')
-    fetch('/.netlify/functions/complete-free-registration', {
+    fetch('/api/complete-free-registration', {
       method: 'POST',
       headers: { Authorization: 'Bearer ' + session.access_token },
     }).then(async response => {
@@ -299,7 +258,7 @@ export function FreeRegistrationCompletion() {
 
   return <AccessFrame eyebrow="EMAIL VERIFICATION / WORKSPACE SETUP">
     <div className="access-heading">
-      <span className="access-kicker">CHILLPOS / FREE WORKSPACE</span>
+      <span className="access-kicker">acoPos / FREE WORKSPACE</span>
       <h1>{status === 'done' ? <>Workspace<br/><em>siap digunakan.</em></> : <>Menyiapkan<br/><em>workspace.</em></>}</h1>
       <p>{status === 'checking' || status === 'completing'
         ? 'Email Anda telah diverifikasi. Sistem sedang menyelesaikan pembuatan Workspace Gratis.'
@@ -343,7 +302,7 @@ export function PinGate({ status, onReady, onSignOut }) {
     <div className="access-heading">
       <span className="access-kicker">A SECOND LAYER OF PROTECTION</span>
       <h1>{setup ? <>Buat PIN<br /><em>keamanan.</em></> : <>Verifikasi<br /><em>identitas.</em></>}</h1>
-      <p>{setup ? 'Buat PIN pribadi sebelum menggunakan workspace ChillPos.' : 'Password telah diterima. Masukkan PIN pribadi untuk membuka workspace.'}</p>
+      <p>{setup ? 'Buat PIN pribadi sebelum menggunakan workspace acoPos.' : 'Password telah diterima. Masukkan PIN pribadi untuk membuka workspace.'}</p>
     </div>
     <form className="access-form" onSubmit={submit}>
       <div className="access-form-meta"><span><ShieldCheck size={15} /> PIN SECURITY</span><span>04 DIGITS</span></div>
@@ -359,6 +318,6 @@ export function PinGate({ status, onReady, onSignOut }) {
       </button>
       <button type="button" className="access-signout" onClick={onSignOut}>Keluar dari akun</button>
     </form>
-    <div className="access-security-note"><span><i /></span><p>PIN diverifikasi oleh server dan sesi workspace dibatasi sesuai kebijakan keamanan ChillPos.</p></div>
+    <div className="access-security-note"><span><i /></span><p>PIN diverifikasi oleh server dan sesi workspace dibatasi sesuai kebijakan keamanan acoPos.</p></div>
   </AccessFrame>
 }

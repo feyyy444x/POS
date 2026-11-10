@@ -1,0 +1,171 @@
+/* acoPos text contrast and legibility pass */
+.living-home .cinema-home { color-scheme: light; }
+.cinema-home .living-hero .living-kicker,
+.cinema-home .living-hero .living-eyebrow,
+.cinema-home .living-hero .cinema-eyebrow { color:#465c56!important; }
+.cinema-home .living-hero h1 span { color:#52665f!important; }
+.cinema-home .living-hero-copy>p { color:#3f4d50!important; }
+.cinema-home .living-hero-index { color:#53635f!important; }
+.cinema-home .living-stage-label,
+.cinema-home .living-stage-caption { color:#465b56!important; }
+.cinema-home .living-stage-core span { color:#263b39!important; }
+.cinema-home .living-node small,
+.cinema-home .living-node i { color:#4b625a!important; }
+.cinema-home .living-node b { color:#172d35!important; }
+.cinema-home .living-node-icon { color:#294c47!important; }
+.cinema-home .living-manifesto-index,
+.cinema-home .living-manifesto-copy>span { color:#4c5b55!important; }
+.cinema-home .living-manifesto-copy h2 em { color:#465d55!important; }
+.cinema-home .living-manifesto-note { color:#465650!important; }
+.cinema-home .cinema-marquee i { color:#52675e!important; }
+.cinema-home .living-story-intro .living-eyebrow,
+.cinema-home .living-section-head .living-eyebrow { color:#425a52!important; }
+.cinema-home .living-story-intro h2 span,
+.cinema-home .living-section-head h2 em { color:#52685f!important; }
+.cinema-home .living-story-intro p,
+.cinema-home .living-section-head>p { color:#465357!important; }
+.cinema-home .living-story-tabs>button { color:#263e46!important; }
+.cinema-home .living-story-tabs>button>span,
+.cinema-home .living-story-tabs>button>svg:first-of-type { color:#52665f!important; }
+.cinema-home .living-story-aside,
+.cinema-home .living-story-aside p { color:#36594f!important; }
+.cinema-home .living-feature-number,
+.cinema-home .living-feature-meta { color:#4b5c56!important; }
+.cinema-home .living-feature-copy p { color:#465357!important; }
+.cinema-home .living-feature-arrow { color:#263f47!important; }
+.cinema-home .living-pricing .living-eyebrow,
+.cinema-home .living-faq .living-eyebrow { color:#40584f!important; }
+.cinema-home .living-plan-top span,
+.cinema-home .living-plan-note,
+.cinema-home .living-plan-redesign li,
+.cinema-home .living-plan-price-label,
+.cinema-home .living-plan-location,
+.cinema-home .living-plan-footnote { color:#39494a!important; }
+.cinema-home .living-plan-price strong,
+.cinema-home .living-price-redesign strong { color:#142936!important; }
+.cinema-home .living-plan-redesign .living-plan-cta-redesign { color:#fff!important; }
+.cinema-home .living-faq-item button { color:#142936!important; }
+.cinema-home .living-faq-item p { color:#465357!important; }
+.cinema-home .living-login,
+.cinema-home .living-nav-links a { color:#263f47!important; }
+.cinema-home .living-nav-links a:hover,
+.cinema-home .living-login:hover { color:#075e50!important; }
+.cinema-home .living-text-link { color:#435750!important; }
+.cinema-home .living-text-link span { color:#1c3539!important; }
+.cinema-home .living-inline-link { color:#075e50!important; }
+.cinema-home .living-promo p { color:#3f5a52!important; }
+.cinema-home .living-promo>div:nth-child(2)>span { color:#075e50!important; }
+.cinema-home .living-promo-spotlight-label,
+.cinema-home .living-promo-spotlight-main .living-eyebrow { color:#e4eee8!important; }
+.cinema-home .living-promo-spotlight-value strong { color:#f1e4d1!important; }
+.cinema-home .cinema-product-copy p,
+.cinema-home .cinema-human-copy p { color:#465357!important; }
+.cinema-home .cinema-product-copy h2 em,
+.cinema-home .cinema-human-copy h2 em { color:#52685f!important; }
+.cinema-home .cinema-demo-label { color:#315b50!important; }
+.cinema-home .cinema-inventory-preview>div span,
+.cinema-home .cinema-inventory-preview article small,
+.cinema-home .cinema-inventory-preview article em { color:#4d5e57!important; }
+.cinema-home .cinema-phone-screen>small,
+.cinema-home .cinema-phone-screen article small { color:#52625b!important; }
+.cinema-home .cinema-phone-screen article em { color:#315c50!important; }
+.cinema-home .cinema-human-preview>div span,
+.cinema-home .cinema-human-preview article small,
+.cinema-home .cinema-human-preview article em { color:#4d5e57!important; }
+.cinema-home .cinema-human-note { color:#4d5e57!important; }
+.cinema-home .cinema-data-preview article small,
+.cinema-home .cinema-data-preview article>span { color:#d0dcd6!important; }
+.cinema-home .cinema-data-note,
+.cinema-home .cinema-disclaimer { color:#d0dcd6!important; }
+
+/* Spatial feature sections use dark graphite surfaces. */
+.living-home .acopos-spatial-section { color:#f1f4f7!important; }
+.living-home .acopos-spatial-eyebrow { color:#d0d8e2!important; }
+.living-home .acopos-spatial-heading h2,
+.living-home .acopos-explorer-copy h3,
+.living-home .acopos-device-card h3,
+.living-home .acopos-trust-cards h3,
+.living-home .acopos-why-grid h3 { color:#f4f6f8!important; }
+.living-home .acopos-spatial-heading h2 em { color:#c5cfdb!important; }
+.living-home .acopos-spatial-heading p,
+.living-home .acopos-explorer-copy p,
+.living-home .acopos-device-card p,
+.living-home .acopos-trust-cards p,
+.living-home .acopos-why-grid p { color:#c3ccd7!important; }
+.living-home .acopos-explorer-copy li { color:#e1e6ed!important; }
+.living-home .acopos-explorer-copy li svg { color:#d4dde7!important; }
+.living-home .acopos-spatial-note { color:#b9c4d0!important; }
+.living-home .acopos-explorer-visual-top,
+.living-home .acopos-explorer-visual-caption { color:#cbd4df!important; }
+.living-home .acopos-explorer-visual-top small { color:#b5c0cd!important; }
+.living-home .acopos-explorer-visual-caption b { color:#f4f6f8!important; }
+.living-home .acopos-explorer-tabs button { color:#e0e6ed!important; }
+.living-home .acopos-explorer-tabs button.is-active { color:#101720!important; }
+.living-home .acopos-why-grid article>span { color:#d0d8e2!important; }
+.living-home .acopos-support-options>a { color:#f1f4f7!important; }
+.living-home .acopos-support-options>a small { color:#c3ccd7!important; }
+.living-home .acopos-support-options>a>svg { color:#d5dee8!important; }
+.living-home .acopos-device-bar { color:#e0e6ed!important; }
+.living-home .acopos-device-content { color:#f0f3f6!important; }
+.living-home .acopos-device-side { background:linear-gradient(#303c4a,#18222e)!important; }
+.living-home .acopos-device-screen { border-color:#d7e0eb55!important; }
+.living-home .acopos-device-stats i { border-color:#d7e0eb55!important; }
+.living-home .acopos-security-section,
+.living-home .acopos-support-section { background:#0b1119!important; }
+.living-home .acopos-why-section { background:#111a24!important; }
+
+/* Visible keyboard focus and form placeholders. */
+.living-home a:focus-visible,
+.living-home button:focus-visible,
+.living-home input:focus-visible { outline:3px solid #aebdce!important; outline-offset:3px!important; }
+.living-home input::placeholder { color:#aeb9c7!important; opacity:1; }
+@media(prefers-reduced-motion:reduce) {
+ .living-home .acopos-spatial-section *, .living-home .acopos-spatial-section *:before,
+ .living-home .acopos-spatial-section *:after { animation:none!important; transition:none!important; }
+}
+
+
+/* Inventory preview: strengthen every label against the warm light card. */
+.cinema-home .cinema-inventory-scene .cinema-inventory-preview > div b,
+.cinema-home .cinema-inventory-scene .cinema-inventory-preview article b {
+  color: #142936 !important;
+  font-weight: 750 !important;
+}
+.cinema-home .cinema-inventory-scene .cinema-inventory-preview > div span {
+  color: #31574f !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  letter-spacing: .12em !important;
+}
+.cinema-home .cinema-inventory-scene .cinema-inventory-preview article small {
+  color: #344d4b !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+}
+.cinema-home .cinema-inventory-scene .cinema-inventory-preview article em {
+  color: #174f48 !important;
+  font-size: 10px !important;
+  font-weight: 750 !important;
+  font-style: normal !important;
+}
+
+
+/* Promo voucher title: clear high-contrast type on the dark spotlight card. */
+.cinema-home .living-promo-spotlight .living-promo-spotlight-main .living-eyebrow,
+.cinema-home .living-promo-spotlight .living-promo-spotlight-label {
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  opacity: 1 !important;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, .24) !important;
+}
+.cinema-home .living-promo-spotlight .living-promo-spotlight-main h1,
+.cinema-home .living-promo-spotlight .living-promo-spotlight-main h2,
+.cinema-home .living-promo-spotlight .living-promo-spotlight-main h3,
+.cinema-home .living-promo-spotlight .living-promo-spotlight-main h1 *,
+.cinema-home .living-promo-spotlight .living-promo-spotlight-main h2 *,
+.cinema-home .living-promo-spotlight .living-promo-spotlight-main h3 * {
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  opacity: 1 !important;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, .28) !important;
+}
