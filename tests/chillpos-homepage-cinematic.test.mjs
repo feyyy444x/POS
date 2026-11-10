@@ -13,7 +13,7 @@ test('homepage contains the cinematic product storytelling and showroom sections
     'cinema-data', 'cinema-team', 'id="cerita"',
     'id="fitur"', 'id="harga"', 'id="faq"'
   ]) assert.ok(homepage.includes(marker), 'Missing homepage marker: ' + marker)
-  assert.equal((homepage.match(/<section /g) || []).length + 2, 16, 'Expected 16 homepage parts including navigation and footer')
+  assert.equal((homepage.match(/<section /g) || []).length + 2, 17, 'Expected 17 homepage parts including navigation and footer')
   assert.match(homepage, /cinema-marquee/)
   assert.match(blueprint, /## Struktur 17 bagian/)
 })
