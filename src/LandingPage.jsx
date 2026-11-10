@@ -1,11 +1,11 @@
-import { ArrowRight, ArrowUpRight, Boxes, ChartNoAxesCombined, ClipboardList, CreditCard, Package, ShieldCheck, ShoppingCart, Store, Users } from 'lucide-react'
+import { ArrowRight, ArrowUpRight, Boxes, BarChart3, ClipboardList, CreditCard, Package, ShieldCheck, ShoppingCart, Store, Users } from 'lucide-react'
 import './nexapos-spatial.css'
 
 const capabilities = [
   { icon: ShoppingCart, title: 'Transaksi kasir', text: 'Pilih produk, hitung total, proses pembayaran, dan simpan riwayat transaksi dalam satu alur kerja.' },
   { icon: Package, title: 'Produk & persediaan', text: 'Kelola katalog, kategori, harga, dan stok workspace agar operasional lebih tertata.' },
   { icon: Users, title: 'Tim & hak akses', text: 'Gunakan akun karyawan masing-masing dan atur peran sesuai tanggung jawab di workspace.' },
-  { icon: ChartNoAxesCombined, title: 'Laporan operasional', text: 'Tinjau riwayat dan ringkasan penjualan untuk membantu mengevaluasi aktivitas usaha.' },
+  { icon: BarChart3, title: 'Laporan operasional', text: 'Tinjau riwayat dan ringkasan penjualan untuk membantu mengevaluasi aktivitas usaha.' },
   { icon: Boxes, title: 'NexaSpace', text: 'Pusat pengelolaan perusahaan untuk memantau dan mengelola beberapa tenant.' },
   { icon: ClipboardList, title: 'Self Order & antrean', text: 'Sediakan alur pemesanan mandiri dan pengelolaan antrean sesuai pengaturan workspace.' },
 ]
