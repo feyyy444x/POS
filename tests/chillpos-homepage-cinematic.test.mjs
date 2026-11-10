@@ -15,7 +15,7 @@ test('homepage contains the cinematic product storytelling and showroom sections
   ]) assert.ok(homepage.includes(marker), 'Missing homepage marker: ' + marker)
   assert.equal((homepage.match(/<section /g) || []).length + 2, 16, 'Expected 16 homepage parts including navigation and footer')
   assert.match(homepage, /cinema-marquee/)
-  assert.match(blueprint, /## Struktur 16 bagian/)
+  assert.match(blueprint, /## Struktur 17 bagian/)
 })
 
 test('pricing remains connected to the existing live package, duration, promotion, and quote sources', () => {
@@ -23,7 +23,7 @@ test('pricing remains connected to the existing live package, duration, promotio
   assert.match(homepage, /site_activation_durations/)
   assert.match(homepage, /site_promotions/)
   assert.match(homepage, /get_activation_quote/)
-  assert.match(homepage, /single_workspace/)
+  assert.match(homepage, /'single_workspace'\]\.includes/)
   assert.match(homepage, /Paket Khusus/)
 })
 
