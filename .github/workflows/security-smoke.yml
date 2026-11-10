@@ -32,6 +32,8 @@ jobs:
         run: node --test tests/security-smoke.test.mjs tests/read-only-lock.test.mjs tests/tenant-lifecycle-sync.test.mjs tests/self-order.test.mjs tests/single-workspace.test.mjs tests/workspace-conversion.test.mjs tests/ui-typography-safety.test.mjs tests/chillpos-homepage-cinematic.test.mjs tests/free-registration-flow.test.mjs
       - name: Build production bundle
         run: npm run build
-      - name: Run deployed preview end-to-end smoke checks
+      - name: Run local built-app HTTP smoke checks
+        run: node --test tests/e2e-build-smoke.test.mjs
+      - name: Run optional deployed preview end-to-end smoke checks
         run: node --test tests/e2e-preview.test.mjs
         timeout-minutes: 3
