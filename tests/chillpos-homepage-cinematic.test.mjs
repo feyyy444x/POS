@@ -5,7 +5,7 @@ import { readFile } from 'node:fs/promises'
 const read = path => readFile(new URL(path, import.meta.url), 'utf8')
 const homepage = await read('../src/Homepage.jsx')
 const styles = await read('../src/homepage-cinematic.css')
-const blueprint = await read('../docs/CHILLPOS_CINEMATIC_DIGITAL_SHOWROOM_BLUEPRINT.md')
+const blueprint = await read('../docs/acoPos_CINEMATIC_DIGITAL_SHOWROOM_BLUEPRINT.md')
 
 test('homepage contains the cinematic product storytelling and showroom sections', () => {
   for (const marker of [
