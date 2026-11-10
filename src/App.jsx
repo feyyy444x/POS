@@ -14,6 +14,7 @@ import WorkspaceConversionModal from './WorkspaceConversionModal.jsx'
 // everyday cashiers do not download Admin, reporting, support and self-order code up front.
 const SupportCenter = lazy(() => import('./SupportCenter.jsx'))
 const Homepage = lazy(() => import('./Homepage.jsx'))
+const LandingPage = lazy(() => import('./LandingPage.jsx'))
 const PromotionManager = lazy(() => import('./PromotionManager.jsx'))
 const SubscriptionPlanManager = lazy(() => import('./SubscriptionPlanManager.jsx'))
 const TvDisplaySettings = lazy(() => import('./TvDisplaySettings.jsx'))
@@ -1494,7 +1495,7 @@ function App() {
   ]
 
   if(!authReady || (session && !adminCheckReady))return <div className="loading-screen"><span className="spinner spinner-large"/><span>Menyiapkan ChillPos…</span></div>
-  if(!session)return (window.location.pathname === '/' || window.location.pathname === '/index.html' ? <Homepage/> : <AuthScreen/>)
+  if(!session)return (window.location.pathname === '/landing' ? <LandingPage/> : (window.location.pathname === '/' || window.location.pathname === '/index.html' ? <Homepage/> : <AuthScreen/>))
   if(!pinStatus)return <div className="loading-screen"><span className="spinner spinner-large"/><span>Memeriksa keamanan akun…</span></div>
   if(pinStatus.error)return <div className="loading-screen"><p>Modul keamanan PIN belum siap: {pinStatus.error}</p><p>Terapkan migrasi PIN sebelum memakai versi ini.</p><button className="btn btn-outline" onClick={()=>supabase.auth.signOut()}>Keluar</button></div>
   if(!pinStatus.has_pin||!pinStatus.is_verified)return <PinGate session={session} status={pinStatus} onReady={setPinStatus} onSignOut={()=>supabase.auth.signOut()}/>
