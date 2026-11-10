@@ -467,3 +467,11 @@
  .living-plan-custom ul{grid-template-columns:1fr;gap:7px}
  .living-plan-custom .living-plan-cta{max-width:none;margin:0}
 }
+
+
+/* Dedicated 30-day free trial invitation on the homepage. */
+.living-final{position:relative}
+.living-final .living-final-copy h2{max-width:900px}
+.living-final .living-final-actions{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.living-final .living-cta-light{min-height:52px;padding:0 22px;font-weight:750}
+@media(max-width:700px){.living-final .living-final-actions{align-items:stretch;flex-direction:column}.living-final .living-final-actions>*{justify-content:center}.living-final .living-final-login{white-space:normal}}
