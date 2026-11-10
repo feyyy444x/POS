@@ -179,9 +179,9 @@ test('internal platform Admin uses the Super Admin workspace and server-side PIN
   assert.match(app, /setIsSuperAdmin\(Boolean\(adminResult\.data\)\|\|isPlatformAdmin\)/)
   assert.match(app, /setIsPlatformAdmin\(isPlatformAdmin\)/)
   assert.match(app, /platformAdmin=\{isPlatformAdmin\}/)
-  assert.match(app, /platformAdmin \? 'Admin CHILLPOS' : 'Super Admin'/)
-  assert.ok((app.match(/platformAdmin \? 'Admin CHILLPOS' : 'Super Admin'/g) || []).length >= 2)
-  assert.match(platformStaffManagerUi, /<div id="platform-staff-role" className="text-input" aria-readonly="true">Admin CHILLPOS — FULL AKSES<\/div>/)
+  assert.match(app, /platformAdmin \? 'Admin NexaPos' : 'Super Admin'/)
+  assert.ok((app.match(/platformAdmin \? 'Admin NEXAPOS' : 'Super Admin'/g) || []).length >= 2)
+  assert.match(platformStaffManagerUi, /<div id="platform-staff-role" className="text-input" aria-readonly="true">Admin NEXAPOS — FULL AKSES<\/div>/)
   assert.doesNotMatch(platformStaffManagerUi, /Customer Service|customer_service/)
   assert.match(platformAdminParityMigration, /private\.is_pin_verified\(\)/)
   assert.match(platformAdminParityMigration, /platform_staff_roles/)
@@ -245,15 +245,15 @@ test('Customer Service role and workspace are fully retired', () => {
 })
 
 
-test('active Admin ChillPos is routed into the exact Super Admin workspace', () => {
+test('active Admin NexaPos is routed into the exact Super Admin workspace', () => {
   assert.match(app, /staffData\?\.role==='admin';setIsPlatformAdmin\(isPlatformAdmin\);setIsSuperAdmin\(Boolean\(adminResult\.data\)\|\|isPlatformAdmin\)/)
   assert.match(app, /if\(isSuperAdmin\)return <SuperAdminScreen session=\{session\} syncStatus=\{syncStatus\} setSyncStatus=\{setSyncStatus\} onSignOut=\{\(\)=>supabase\.auth\.signOut\(\)\} platformAdmin=\{isPlatformAdmin\} ?\/>/)
   assert.doesNotMatch(app, /PlatformStaffWorkspace|platformStaffRole/)
 })
 
 
-test('Tim & Hak Akses offers only full-access Admin ChillPos role', () => {
-  assert.match(platformStaffManagerUi, /Hanya ada satu role staf platform: Admin CHILLPOS/)
+test('Tim & Hak Akses offers only full-access Admin NexaPos role', () => {
+  assert.match(platformStaffManagerUi, /Hanya ada satu role staf platform: Admin NEXAPOS/)
   assert.match(platformStaffManagerUi, /FULL AKSES — setara Super Admin/)
   assert.match(platformStaffManagerUi, /FULL AKSES · Setara Super Admin/)
   assert.doesNotMatch(platformStaffManagerUi, /Customer Service|customer_service|CS_PERMISSIONS/)
@@ -290,7 +290,7 @@ test('support RPCs validate customer input, require authenticated sessions, and 
   assert.match(supportLockdownMigration, /GRANT EXECUTE ON FUNCTION public\.submit_support_message\(text, text\) TO authenticated/)
 })
 
-test('customer RLS isolates support messages and conversations while Admin ChillPos is PIN-gated', () => {
+test('customer RLS isolates support messages and conversations while Admin NexaPos is PIN-gated', () => {
   assert.match(supportMigration, /ALTER TABLE public\.support_conversations ENABLE ROW LEVEL SECURITY/)
   assert.match(supportMigration, /ALTER TABLE public\.support_knowledge_base ENABLE ROW LEVEL SECURITY/)
   assert.match(supportMigration, /user_id = \(SELECT auth\.uid\(\)\)/)
@@ -312,7 +312,7 @@ test('human handoff stops bot replies until Admin takes over or reactivates bot'
   assert.match(supportCenter, /request_support_handoff/)
   assert.match(supportCenter, /admin_reply_support_message/)
   assert.match(supportCenter, /set_support_conversation_status/)
-  assert.match(supportCenter, /Hubungi Admin ChillPos/)
+  assert.match(supportCenter, /Hubungi Admin NexaPos/)
   assert.match(supportCenter, /Menunggu admin/)
   assert.match(supportCenter, /table: 'support_conversations'/)
 })
@@ -449,14 +449,15 @@ test('Homepage never exposes custom duration or custom activation package choice
 })
 
 
-test('homepage pricing fallback matches package defaults and does not fabricate promotions', () => {
+test('homepage uses configured packages only and does not fabricate prices or promotions', () => {
   assert.doesNotMatch(homepageUi, /\bupcomingPromo\b/)
 
-  assert.match(homepageUi, /duration_key: 'daily', name: 'Harian', duration_days: 3/)
-  assert.match(homepageUi, /key: 'starter', name: 'Starter', location_limit: 3/)
-  assert.match(homepageUi, /key: 'growth', name: 'Growth', location_limit: 5/)
-  assert.match(homepageUi, /key: 'business', name: 'Business', location_limit: 10/)
-  assert.match(homepageUi, /key: 'enterprise', name: 'Enterprise', location_limit: 15/)
+  assert.match(homepageUi, /const \[plans, setPlans\] = useState\(\[\]\)/)
+  assert.match(homepageUi, /setPlans\(configuredPackages\.filter/)
+  assert.doesNotMatch(homepageUi, /key: 'starter', name: 'Starter', location_limit: 3/)
+  assert.match(homepageUi, /\['starter', 'growth', 'business', 'enterprise', 'single_workspace'\]/)
+  assert.match(homepageUi, /\['starter', 'growth', 'business', 'enterprise', 'single_workspace'\]/)
+  assert.match(homepageUi, /\['starter', 'growth', 'business', 'enterprise', 'single_workspace'\]/)
   assert.doesNotMatch(homepageUi, /fallbackPromo|DISKON BARU CUYYY|nexapos-new-customer-80/)
   assert.match(homepageUi, /p\.starts_at.*p\.ends_at/)
   assert.match(homepageUi, /const availablePromos = promos/)
@@ -820,7 +821,7 @@ test('tenant-facing role labels use Manager and Karyawan while preserving POS fe
 })
 
 
-test('Admin ChillPos and customer typing indicators are private and realtime', () => {
+test('Admin NexaPos and customer typing indicators are private and realtime', () => {
   assert.ok(supportTypingMigration.includes('ADD COLUMN IF NOT EXISTS user_typing_at'))
   assert.ok(supportTypingMigration.includes('ADD COLUMN IF NOT EXISTS admin_typing_at'))
   assert.ok(supportTypingMigration.includes('private.is_super_admin()'))
@@ -828,7 +829,7 @@ test('Admin ChillPos and customer typing indicators are private and realtime', (
   assert.ok(supportTypingMigration.includes('REVOKE ALL ON FUNCTION public.set_support_typing_status(uuid, boolean) FROM PUBLIC, anon'))
   assert.ok(supportCenterTypingUi.includes("rpc('set_support_typing_status'"))
   assert.ok(supportCenterTypingUi.includes('Joeclyn sedang mengetik...'))
-  assert.ok(supportCenterTypingUi.includes('Admin ChillPos sedang mengetik...'))
+  assert.ok(supportCenterTypingUi.includes('Admin NexaPos sedang mengetik...'))
   assert.ok(supportCenterTypingUi.includes('sedang mengetik...'))
 })
 
