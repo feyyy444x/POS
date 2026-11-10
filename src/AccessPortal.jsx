@@ -2,12 +2,12 @@ import { useEffect, useRef, useState } from 'react'
 import { ArrowRight, KeyRound, ShieldCheck, UserRound, LockKeyhole } from 'lucide-react'
 import { isSupabaseConfigured, supabase } from './lib/supabase'
 import { userFacingError } from './lib/userFacingError'
-import './acoPos-design-system.css'
+import './acopos-design-system.css'
 import './access-portal.css'
 
 function AccessBrand() {
   return <a className="access-brand" href="/" aria-label="acoPos beranda">
-    <img src="/acoPos-mark.svg" alt="" />
+    <img src="/acopos-mark.svg" alt="" />
     <span>acoPos<small>BUSINESS OPERATIONS</small></span>
   </a>
 }
