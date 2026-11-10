@@ -29,7 +29,7 @@ const subscriptionPlanManagerUi = await readFile(new URL('src/SubscriptionPlanMa
 const storeControlCenterUi = await readFile(new URL('src/StoreControlCenter.jsx', root), 'utf8')
 const queueSettingsUi = await readFile(new URL('src/TvDisplaySettings.jsx', root), 'utf8')
 const queueRetirementMigration = await readFile(new URL('supabase/migrations/20261102115018_remove_queue_media_and_tv_templates.sql', root), 'utf8')
-const supportConversationRealtimeMigration = await readFile(new URL('supabase/migrations/20261102130341_nexapos_realtime_support_conversations.sql', root), 'utf8')
+const supportConversationRealtimeMigration = await readFile(new URL('supabase/migrations/20261102130341_acoPos_realtime_support_conversations.sql', root), 'utf8')
 const supportTypingMigration = await readFile(new URL('supabase/migrations/20261102132519_support_admin_typing_presence.sql', root), 'utf8')
 const supportCenterTypingUi = await readFile(new URL('src/SupportCenter.jsx', root), 'utf8')
 const supportCenterUi = await readFile(new URL('src/SupportCenter.jsx', root), 'utf8')
@@ -179,9 +179,9 @@ test('internal platform Admin uses the Super Admin workspace and server-side PIN
   assert.match(app, /setIsSuperAdmin\(Boolean\(adminResult\.data\)\|\|isPlatformAdmin\)/)
   assert.match(app, /setIsPlatformAdmin\(isPlatformAdmin\)/)
   assert.match(app, /platformAdmin=\{isPlatformAdmin\}/)
-  assert.match(app, /platformAdmin \? 'Admin CHILLPOS' : 'Super Admin'/)
-  assert.ok((app.match(/platformAdmin \? 'Admin CHILLPOS' : 'Super Admin'/g) || []).length >= 2)
-  assert.match(platformStaffManagerUi, /<div id="platform-staff-role" className="text-input" aria-readonly="true">Admin CHILLPOS — FULL AKSES<\/div>/)
+  assert.match(app, /platformAdmin \? 'Admin acoPos' : 'Super Admin'/)
+  assert.ok((app.match(/platformAdmin \? 'Admin acoPos' : 'Super Admin'/g) || []).length >= 2)
+  assert.match(platformStaffManagerUi, /<div id="platform-staff-role" className="text-input" aria-readonly="true">Admin acoPos — FULL AKSES<\/div>/)
   assert.doesNotMatch(platformStaffManagerUi, /Customer Service|customer_service/)
   assert.match(platformAdminParityMigration, /private\.is_pin_verified\(\)/)
   assert.match(platformAdminParityMigration, /platform_staff_roles/)
@@ -245,15 +245,15 @@ test('Customer Service role and workspace are fully retired', () => {
 })
 
 
-test('active Admin ChillPos is routed into the exact Super Admin workspace', () => {
+test('active Admin acoPos is routed into the exact Super Admin workspace', () => {
   assert.match(app, /staffData\?\.role==='admin';setIsPlatformAdmin\(isPlatformAdmin\);setIsSuperAdmin\(Boolean\(adminResult\.data\)\|\|isPlatformAdmin\)/)
   assert.match(app, /if\(isSuperAdmin\)return <SuperAdminScreen session=\{session\} syncStatus=\{syncStatus\} setSyncStatus=\{setSyncStatus\} onSignOut=\{\(\)=>supabase\.auth\.signOut\(\)\} platformAdmin=\{isPlatformAdmin\} ?\/>/)
   assert.doesNotMatch(app, /PlatformStaffWorkspace|platformStaffRole/)
 })
 
 
-test('Tim & Hak Akses offers only full-access Admin ChillPos role', () => {
-  assert.match(platformStaffManagerUi, /Hanya ada satu role staf platform: Admin CHILLPOS/)
+test('Tim & Hak Akses offers only full-access Admin acoPos role', () => {
+  assert.match(platformStaffManagerUi, /Hanya ada satu role staf platform: Admin acoPos/)
   assert.match(platformStaffManagerUi, /FULL AKSES — setara Super Admin/)
   assert.match(platformStaffManagerUi, /FULL AKSES · Setara Super Admin/)
   assert.doesNotMatch(platformStaffManagerUi, /Customer Service|customer_service|CS_PERMISSIONS/)
@@ -264,14 +264,14 @@ test('Tim & Hak Akses offers only full-access Admin ChillPos role', () => {
 })
 
 
-const supportMigration = await readFile(new URL('supabase/migrations/20261029104814_nexapos_free_ai_support.sql', root), 'utf8')
+const supportMigration = await readFile(new URL('supabase/migrations/20261029104814_acoPos_free_ai_support.sql', root), 'utf8')
 const supportLockdownMigration = await readFile(new URL('supabase/migrations/20261029104857_lock_down_support_rpc.sql', root), 'utf8')
 const supportHandoffMigration = await readFile(new URL('supabase/migrations/20261029105000_refine_support_bot_handoff.sql', root), 'utf8')
 const supportHardenMigration = await readFile(new URL('supabase/migrations/20261029111824_harden_support_handoff_and_admin_reply.sql', root), 'utf8')
 const supportWritesMigration = await readFile(new URL('supabase/migrations/20261029112052_route_support_writes_through_rpc.sql', root), 'utf8')
 const supportCenter = await readFile(new URL('src/SupportCenter.jsx', root), 'utf8')
 
-test('free ChillPos support bot is FAQ-only and never calls a paid external AI provider', () => {
+test('free acoPos support bot is FAQ-only and never calls a paid external AI provider', () => {
   assert.match(supportMigration, /CREATE TABLE IF NOT EXISTS public\.support_knowledge_base/)
   assert.match(supportMigration, /INSERT INTO public\.support_knowledge_base/)
   assert.match(supportHandoffMigration, /v_answer := 'Maaf, saya belum memiliki jawaban terverifikasi/)
@@ -290,7 +290,7 @@ test('support RPCs validate customer input, require authenticated sessions, and 
   assert.match(supportLockdownMigration, /GRANT EXECUTE ON FUNCTION public\.submit_support_message\(text, text\) TO authenticated/)
 })
 
-test('customer RLS isolates support messages and conversations while Admin ChillPos is PIN-gated', () => {
+test('customer RLS isolates support messages and conversations while Admin acoPos is PIN-gated', () => {
   assert.match(supportMigration, /ALTER TABLE public\.support_conversations ENABLE ROW LEVEL SECURITY/)
   assert.match(supportMigration, /ALTER TABLE public\.support_knowledge_base ENABLE ROW LEVEL SECURITY/)
   assert.match(supportMigration, /user_id = \(SELECT auth\.uid\(\)\)/)
@@ -299,7 +299,7 @@ test('customer RLS isolates support messages and conversations while Admin Chill
   assert.match(supportMigration, /USING \(private\.is_super_admin\(\)\)/)
   assert.match(supportMigration, /WITH CHECK \(private\.is_super_admin\(\)\)/)
   assert.match(supportMigration, /CREATE OR REPLACE FUNCTION public\.admin_reply_support_message/)
-  assert.match(supportMigration, /IF NOT private\.is_super_admin\(\) THEN RAISE EXCEPTION 'Admin NexaPos access required'/)
+  assert.match(supportMigration, /IF NOT private\.is_super_admin\(\) THEN RAISE EXCEPTION 'Admin acoPos access required'/)
 })
 
 test('human handoff stops bot replies until Admin takes over or reactivates bot', () => {
@@ -312,7 +312,7 @@ test('human handoff stops bot replies until Admin takes over or reactivates bot'
   assert.match(supportCenter, /request_support_handoff/)
   assert.match(supportCenter, /admin_reply_support_message/)
   assert.match(supportCenter, /set_support_conversation_status/)
-  assert.match(supportCenter, /Hubungi Admin ChillPos/)
+  assert.match(supportCenter, /Hubungi Admin acoPos/)
   assert.match(supportCenter, /Menunggu admin/)
   assert.match(supportCenter, /table: 'support_conversations'/)
 })
@@ -321,7 +321,7 @@ test('human handoff stops bot replies until Admin takes over or reactivates bot'
 test('handoff recognizes natural requests to speak with a human and validates admin targets', () => {
   assert.match(supportHardenMigration, /bicara \(dengan\|sama\) \(admin\|manusia\|petugas\)/)
   assert.match(supportHardenMigration, /IF NOT FOUND THEN RAISE EXCEPTION 'Percakapan tidak ditemukan'/)
-  assert.match(supportHardenMigration, /IF NOT private\.is_super_admin\(\) THEN RAISE EXCEPTION 'Admin NexaPos access required'/)
+  assert.match(supportHardenMigration, /IF NOT private\.is_super_admin\(\) THEN RAISE EXCEPTION 'Admin acoPos access required'/)
 })
 
 
@@ -407,7 +407,7 @@ test('password minimum is eight characters in profile forms and admin reset endp
 })
 
 
-test('activation package defaults match the ChillPos master specification', () => {
+test('activation package defaults match the acoPos master specification', () => {
   assert.match(activationPackagesMigration, /\('daily','Harian',3,1,true\)/)
   assert.match(activationPackagesMigration, /\('weekly','Mingguan',7,2,true\)/)
   assert.match(activationPackagesMigration, /\('monthly','Bulanan',30,3,true\)/)
@@ -457,7 +457,7 @@ test('homepage pricing fallback matches package defaults and does not fabricate 
   assert.match(homepageUi, /key: 'growth', name: 'Growth', location_limit: 5/)
   assert.match(homepageUi, /key: 'business', name: 'Business', location_limit: 10/)
   assert.match(homepageUi, /key: 'enterprise', name: 'Enterprise', location_limit: 15/)
-  assert.doesNotMatch(homepageUi, /fallbackPromo|DISKON BARU CUYYY|nexapos-new-customer-80/)
+  assert.doesNotMatch(homepageUi, /fallbackPromo|DISKON BARU CUYYY|acoPos-new-customer-80/)
   assert.match(homepageUi, /p\.starts_at.*p\.ends_at/)
   assert.match(homepageUi, /const availablePromos = promos/)
   assert.match(homepageUi, /if \(error\) \{ setPromos\(\[\]\); return \}/)
@@ -490,7 +490,7 @@ test('owner tenant management lists only stores linked to the authenticated owne
 
 test('audit events are recorded server-side with scoped read policies and redacted secrets', () => {
   assert.match(auditLogsMigration, /create table if not exists public\.platform_audit_logs/i)
-  assert.match(auditLogsMigration, /create or replace function private\.capture_nexapos_audit_event/i)
+  assert.match(auditLogsMigration, /create or replace function private\.capture_acoPos_audit_event/i)
   assert.match(auditLogsMigration, /v_before := v_before - 'activation_code_hash' - 'pin_hash'/)
   assert.match(auditLogsMigration, /v_after := v_after - 'activation_code_hash' - 'pin_hash'/)
   assert.match(auditLogsMigration, /Owner reads organization audit logs/)
@@ -517,14 +517,14 @@ test('activation discounts and vouchers are calculated against active server-sid
 })
 
 test('workspace browser history restores prior pages without clearing current tenant state', () => {
-  assert.match(app, /nexaposWorkspaceNav/)
-  assert.match(app, /nexaposSuperAdminNav/)
+  assert.match(app, /acoPosWorkspaceNav/)
+  assert.match(app, /acoPosSuperAdminNav/)
   assert.match(app, /window\.addEventListener\('popstate'/)
   assert.match(app, /setPage\(state\.page \|\| 'dashboard'\)/)
   assert.match(app, /setSelectedTenant\(state\.superSelectedTenant \|\| null\)/)
-  assert.match(app, /nexapos-selected-store-v1:/)
-  assert.match(app, /nexapos-workspace-page-v1:/)
-  assert.match(app, /nexapos-scroll-v1:/)
+  assert.match(app, /acoPos-selected-store-v1:/)
+  assert.match(app, /acoPos-workspace-page-v1:/)
+  assert.match(app, /acoPos-scroll-v1:/)
   assert.match(app, /Ada perubahan formulir yang belum dikonfirmasi/)
   assert.match(app, /window\.addEventListener\('beforeunload', onBeforeUnload\)/)
 })
@@ -738,10 +738,10 @@ test('Owner and Manager can securely manage employees, while cashiers can only i
 })
 
 
-test('Platform actions stay scoped to the selected company or tenant, and registration activation settings stay in ChillPos', async () => {
+test('Platform actions stay scoped to the selected company or tenant, and registration activation settings stay in acoPos', async () => {
   const app = await readFile(new URL('../src/App.jsx', import.meta.url), 'utf8')
   const tenantStart = app.indexOf("{section==='stores'&&")
-  const companyStart = app.indexOf("{section==='nexaspace'&&", tenantStart)
+  const companyStart = app.indexOf("{section==='acoPos Control Center'&&", tenantStart)
   const tenantSection = app.slice(tenantStart, companyStart)
   const companySection = app.slice(companyStart, app.indexOf("{section==='users'&&", companyStart))
   const tenantCenter = await readFile(new URL('../src/StoreControlCenter.jsx', import.meta.url), 'utf8')
@@ -805,7 +805,7 @@ test('secondary route modules are code-split behind an accessible loading bounda
   assert.match(app, /const SelfOrderPublic = lazy/)
   assert.match(app, /const SelfOrderSettings = lazy/)
   assert.match(appEntry, /React\.Suspense/)
-  assert.match(appEntry, /chillpos-module-loading/)
+  assert.match(appEntry, /acoPos-module-loading/)
 })
 
 
@@ -820,7 +820,7 @@ test('tenant-facing role labels use Manager and Karyawan while preserving POS fe
 })
 
 
-test('Admin ChillPos and customer typing indicators are private and realtime', () => {
+test('Admin acoPos and customer typing indicators are private and realtime', () => {
   assert.ok(supportTypingMigration.includes('ADD COLUMN IF NOT EXISTS user_typing_at'))
   assert.ok(supportTypingMigration.includes('ADD COLUMN IF NOT EXISTS admin_typing_at'))
   assert.ok(supportTypingMigration.includes('private.is_super_admin()'))
@@ -828,7 +828,7 @@ test('Admin ChillPos and customer typing indicators are private and realtime', (
   assert.ok(supportTypingMigration.includes('REVOKE ALL ON FUNCTION public.set_support_typing_status(uuid, boolean) FROM PUBLIC, anon'))
   assert.ok(supportCenterTypingUi.includes("rpc('set_support_typing_status'"))
   assert.ok(supportCenterTypingUi.includes('Joeclyn sedang mengetik...'))
-  assert.ok(supportCenterTypingUi.includes('Admin ChillPos sedang mengetik...'))
+  assert.ok(supportCenterTypingUi.includes('Admin acoPos sedang mengetik...'))
   assert.ok(supportCenterTypingUi.includes('sedang mengetik...'))
 })
 
