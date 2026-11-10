@@ -179,7 +179,7 @@ test('internal platform Admin uses the Super Admin workspace and server-side PIN
   assert.match(app, /setIsSuperAdmin\(Boolean\(adminResult\.data\)\|\|isPlatformAdmin\)/)
   assert.match(app, /setIsPlatformAdmin\(isPlatformAdmin\)/)
   assert.match(app, /platformAdmin=\{isPlatformAdmin\}/)
-  assert.match(app, /platformAdmin \? 'Admin NexaPos' : 'Super Admin'/)
+  assert.match(app, /platformAdmin \? 'Admin NEXAPOS' : 'Super Admin'/)
   assert.ok((app.match(/platformAdmin \? 'Admin NEXAPOS' : 'Super Admin'/g) || []).length >= 2)
   assert.match(platformStaffManagerUi, /<div id="platform-staff-role" className="text-input" aria-readonly="true">Admin NEXAPOS — FULL AKSES<\/div>/)
   assert.doesNotMatch(platformStaffManagerUi, /Customer Service|customer_service/)
