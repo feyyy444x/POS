@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 
-const baseUrl = (process.env.acoPos_E2E_BASE_URL || 'https://deploy-preview-22--posfeyyy.netlify.app').replace(/\/$/, '')
+const baseUrl = (process.env.acoPos_E2E_BASE_URL || 'https://acopos-rebrand-preview--acopos.netlify.app').replace(/\/$/, '')
 const activationUrl = new URL('/.netlify/functions/activate-invitation', baseUrl)
 const freeRegistrationUrl = new URL('/.netlify/functions/register-free', baseUrl)
 const completeRegistrationUrl = new URL('/.netlify/functions/complete-free-registration', baseUrl)
