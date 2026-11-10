@@ -224,7 +224,7 @@
   .receipt-modal-layer .receipt-item, .receipt-modal-layer .receipt-total { break-inside: avoid !important; }
 }
 
-/* ChillPos TV queue: clean, flat navy/teal identity */
+/* acoPos TV queue: clean, flat navy/teal identity */
 .tv-screen{--queue-navy:#102d50;--queue-teal:#08b996;--queue-ink:#102d50;--queue-muted:#60758b;min-height:100vh;background:#f5f8fb!important;color:var(--queue-ink)!important;padding:clamp(18px,3vw,42px) clamp(16px,4vw,64px) 22px!important;gap:0}
 .tv-header{padding:0 0 20px!important;border-bottom:1px solid #dfe7ee!important;gap:22px}
 .tv-header .brand{color:var(--queue-navy)!important}
@@ -268,10 +268,10 @@
 @media(max-width:600px){.tv-screen{padding:16px 12px!important}.tv-header{gap:10px!important;align-items:center!important;flex-wrap:wrap}.tv-header .brand{font-size:16px!important}.tv-header .brand-mark{width:30px!important;height:30px!important}.tv-header>div:nth-child(2){flex:1;min-width:120px}.tv-clock{font-size:20px!important}.tv-clock small{font-size:8px!important}.tv-content{padding:16px 0!important}.tv-current{min-height:320px!important;padding:16px!important}.tv-call-main span{font-size:clamp(48px,13vw,64px)!important}.tv-call{min-width:160px!important}.tv-next-head h2{font-size:18px!important}.tv-next-row span{font-size:20px!important}.tv-footer{font-size:10px!important}}
 
 
-/* ChillPos workspace + tenant theme: logo navy, teal and clean neutral surfaces */
+/* acoPos workspace + tenant theme: logo navy, teal and clean neutral surfaces */
 :root{
   --ink:#102d50;--muted:#60758b;--line:#dfe7ee;--purple:#087e65;--purple-dark:#066b58;
-  --surface:#fff;--bg:#f5f8fb;--nexa-navy:#102d50;--nexa-teal:#08b996;
+  --surface:#fff;--bg:#f5f8fb;--ACO-navy:#102d50;--ACO-teal:#08b996;
 }
 button:focus-visible,input:focus-visible,textarea:focus-visible{outline-color:#08b996}
 .sidebar{border-right-color:#dfe7ee}
@@ -328,11 +328,11 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline-color:#0
 @media(max-width:760px){.sidebar{border-right-color:#dfe7ee}}
 
 
-/* GLOBAL BRAND PASS — every ChillPos screen, workspace, tenant, auth, admin and TV */
+/* GLOBAL BRAND PASS — every acoPos screen, workspace, tenant, auth, admin and TV */
 :root{
   color-scheme:light;
   --ink:#102d50;--muted:#60758b;--line:#dfe7ee;--purple:#087e65;--purple-dark:#066b58;
-  --surface:#ffffff;--bg:#f5f8fb;--nexa-navy:#102d50;--nexa-teal:#08b996;
+  --surface:#ffffff;--bg:#f5f8fb;--ACO-navy:#102d50;--ACO-teal:#08b996;
 }
 body,.app-shell{background:#f5f8fb;color:#102d50}
 h1,h2,h3{color:inherit}
@@ -510,9 +510,9 @@ tbody tr:hover{background:#f7fbfd}
 @media(max-width:850px){.report-filter-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.report-summary-row{grid-template-columns:1fr}}
 @media(max-width:520px){.report-filter-panel{padding:17px}.report-filter-grid{grid-template-columns:1fr}.report-filter-panel .panel-head{flex-direction:column}}
 
-/* ChillPos identity palette: deep navy and emerald teal. Tenant-uploaded logos are intentionally untouched. */
-:root{--purple:#087e65;--purple-dark:#066b58;--nexa-navy:#102d50;--nexa-teal:#08b996;--ink:#102d50;--muted:#60758b;--line:#dfe7ee;--bg:#f5f8fb}
-.brand-mark-image{background:transparent!important;box-shadow:none!important;border-radius:0!important}.brand-mark-image .brand-logo-image{object-fit:contain}.brand-accent{color:var(--nexa-teal)!important}.sidebar .brand-mark{background:transparent!important;box-shadow:none!important}
+/* acoPos identity palette: deep navy and emerald teal. Tenant-uploaded logos are intentionally untouched. */
+:root{--purple:#087e65;--purple-dark:#066b58;--ACO-navy:#102d50;--ACO-teal:#08b996;--ink:#102d50;--muted:#60758b;--line:#dfe7ee;--bg:#f5f8fb}
+.brand-mark-image{background:transparent!important;box-shadow:none!important;border-radius:0!important}.brand-mark-image .brand-logo-image{object-fit:contain}.brand-accent{color:var(--ACO-teal)!important}.sidebar .brand-mark{background:transparent!important;box-shadow:none!important}
 
 .support-guest-form{display:flex;flex-direction:column;gap:8px;margin-top:18px}.support-guest-form label{font-size:11px;font-weight:700;color:#102d50;margin-top:5px}.support-guest-form input{width:100%;box-sizing:border-box;padding:12px 13px;border:1px solid #dfe7ee;border-radius:11px;background:#fff;color:#102d50;font:inherit;font-size:13px;outline:none}.support-guest-form input:focus{border-color:#08b996;box-shadow:0 0 0 3px #08b9961c}.support-guest-form .btn{margin-top:12px;justify-content:center;min-height:44px}.support-guest-form .support-error{margin-top:5px}
 
@@ -533,7 +533,7 @@ tbody tr:hover{background:#f7fbfd}
 @media(max-width:650px){.shift-required-banner{align-items:flex-start;flex-direction:column}.shift-form{padding:17px}.shift-form-grid,.shift-open-grid,.shift-difference-grid{grid-template-columns:1fr}.shift-notes-label{grid-column:auto}}
 
 
-/* Reliable support entry point: compact ChillPos mark instead of a text bubble. */
+/* Reliable support entry point: compact acoPos mark instead of a text bubble. */
 .support-floating-launcher {
   width: 50px !important;
   height: 50px !important;
@@ -1087,7 +1087,7 @@ tbody tr:hover{background:#f7fbfd}
 }
 
 
-/* ChillPos: keep the manual refresh control visible on phones and compact headers. */
+/* acoPos: keep the manual refresh control visible on phones and compact headers. */
 .refresh-btn{display:inline-grid;place-items:center;flex:0 0 34px;width:34px;min-width:34px;height:34px;border:1px solid #dfe4ee!important;background:#fff!important;color:#46516a!important;border-radius:10px!important;visibility:visible!important;}
 .refresh-btn:hover{background:#eef2ff!important;color:#4338ca!important;}
 @media(max-width:760px){.topbar-actions .refresh-btn{display:inline-grid!important;visibility:visible!important;flex:0 0 32px!important;width:32px!important;min-width:32px!important;height:32px!important;padding:0!important;}}
@@ -1333,7 +1333,7 @@ tbody tr:hover{background:#f7fbfd}
 @media(max-width:640px){.platform-staff-page{padding:18px 14px 32px}.platform-staff-page .page-heading{flex-direction:column;align-items:stretch;gap:14px;margin-bottom:18px}.platform-staff-page .page-heading>.btn{align-self:flex-start}.staff-layout{gap:16px}.staff-layout .panel{padding:16px;border-radius:15px}.staff-layout .panel-heading{gap:11px;margin-bottom:19px}.staff-layout .panel-icon{flex-basis:38px;width:38px;height:38px}.staff-table th,.staff-table td{padding:14px 12px}.staff-form-actions{flex-direction:column}.staff-form-actions .btn{width:100%}.staff-table{min-width:510px}}
 
 
-/* ChillPos free FAQ support and human handoff */
+/* acoPos free FAQ support and human handoff */
 .support-status{display:inline-flex;align-self:flex-start;width:max-content;max-width:100%;margin-top:5px;padding:4px 8px;border-radius:999px;background:#eef1f7;color:#5c6278;font-size:10px;font-style:normal;font-weight:700;line-height:1.3}
 .support-status-ai_active{background:#e4f8f2;color:#087d64}
 .support-status-waiting_admin{background:#fff4d8;color:#91631a}
@@ -1415,7 +1415,7 @@ tbody tr:hover{background:#f7fbfd}
 @media(max-width:1050px){.store-control-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.store-control-hero{flex-wrap:wrap}.store-control-hero-actions{max-width:none;width:100%;justify-content:flex-start}}
 @media(max-width:720px){.store-control-grid{grid-template-columns:minmax(0,1fr)}.store-control-heading{align-items:flex-start;flex-direction:column}.store-control-heading-actions{width:100%;justify-content:space-between}.store-control-hero{padding:17px;gap:13px}.store-control-hero-mark{width:43px;height:43px}.store-control-hero-main h2{font-size:19px}.store-control-meta{flex-direction:column;gap:7px}.store-control-hero-actions .btn{flex:1;justify-content:center}.store-control-details{grid-template-columns:minmax(0,1fr)}.store-control-metrics{gap:9px}.store-control-metric{padding:13px}.store-control-metric strong{font-size:17px}.store-control-card{padding:15px}.store-control-activity-tools{flex-direction:column}.store-control-activity-tools .text-input{max-width:none}.store-control-conversation-list .status-pill,.store-control-invites .status-pill{white-space:nowrap}}
 
-/* ChillPos global header alignment: keep identity, current page and utilities
+/* acoPos global header alignment: keep identity, current page and utilities
    on one deliberate horizontal line instead of stacking the title blocks. */
 .topbar {
   display:flex;
@@ -1537,7 +1537,7 @@ tbody tr:hover{background:#f7fbfd}
 
 
 
-/* ChillPos compact command header — shared by Super Admin, Center Control and Workspace. */
+/* acoPos compact command header — shared by Super Admin, Center Control and Workspace. */
 .app-shell .topbar { min-height:68px; padding:11px 22px; gap:14px; border-bottom:1px solid var(--cp-line,#e3e1d9); }
 .app-shell .topbar-left { display:flex; align-items:center; gap:12px; flex:1 1 auto; min-width:0; }
 .app-shell .topbar-title-group { display:flex; align-items:baseline; gap:12px; min-width:0; }
