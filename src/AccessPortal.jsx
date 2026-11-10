@@ -34,8 +34,8 @@ function AccessFrame({ children, eyebrow = 'SECURE WORKSPACE ACCESS' }) {
   </main>
 }
 
-export function AuthScreen() {
-  const [mode, setMode] = useState('login')
+export function AuthScreen({ initialMode = 'login' } = {}) {
+  const [mode, setMode] = useState(initialMode === 'register' ? 'register' : 'login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [activationCode, setActivationCode] = useState('')
@@ -131,20 +131,20 @@ export function AuthScreen() {
     setActivationCode('')
   }
 
-  return <AccessFrame eyebrow={mode === 'login' ? 'IDENTITY VERIFICATION' : mode === 'register' ? 'FREE WORKSPACE REGISTRATION' : 'INVITATION ACTIVATION'}>
+  return <AccessFrame eyebrow={mode === 'login' ? 'IDENTITY VERIFICATION' : mode === 'register' ? '30-DAY FREE WORKSPACE TRIAL' : 'INVITATION ACTIVATION'}>
     <div className="access-heading">
       <span className="access-kicker">{mode === 'login' ? 'YOUR BUSINESS. YOUR WORKSPACE.' : mode === 'register' ? 'START YOUR BUSINESS WORKSPACE.' : 'COMPLETE YOUR ACCESS.'}</span>
-      <h1>{mode === 'login' ? <>Masuk ke<br /><em>ruang kerja.</em></> : mode === 'register' ? <>Daftar<br /><em>gratis.</em></> : <>Aktifkan<br /><em>akses Anda.</em></>}</h1>
+      <h1>{mode === 'login' ? <>Masuk ke<br /><em>ruang kerja.</em></> : mode === 'register' ? <>Daftar gratis<br /><em>30 hari.</em></> : <>Aktifkan<br /><em>akses Anda.</em></>}</h1>
       <p>{mode === 'login'
         ? 'Gunakan akun acoPos yang telah terdaftar untuk melanjutkan aktivitas operasional.'
         : mode === 'register'
-          ? 'Buat akun Owner dan satu workspace mandiri. Tidak diperlukan kode aktivasi atau pembayaran.'
+          ? 'Mulai dengan Workspace mandiri acoPos tanpa kode aktivasi atau pembayaran. Nikmati masa uji coba gratis selama 30 hari.'
           : 'Aktivasi hanya tersedia untuk email yang telah menerima undangan dari Owner atau Admin acoPos.'}</p>
     </div>
 
     <form className="access-form" onSubmit={submit}>
       <div className="access-form-meta">
-        <span><ShieldCheck size={15} /> {mode === 'login' ? 'ACCOUNT SIGN-IN' : mode === 'register' ? 'FREE REGISTRATION' : 'INVITATION VERIFICATION'}</span>
+        <span><ShieldCheck size={15} /> {mode === 'login' ? 'ACCOUNT SIGN-IN' : mode === 'register' ? '30-DAY FREE TRIAL' : 'INVITATION VERIFICATION'}</span>
         <span>{mode === 'register' ? '01 / 03' : '01 / 02'}</span>
       </div>
       {mode === 'register' && <>
@@ -189,7 +189,7 @@ export function AuthScreen() {
       </>}
       {message && <div className={'access-message ' + (success ? 'is-success' : 'is-error')} role="status" aria-live="polite">{message}</div>}
       <button className="access-submit" type="submit" disabled={busy}>
-        <span>{busy ? 'Memproses akses…' : mode === 'login' ? 'Masuk ke acoPos' : mode === 'register' ? 'Buat akun gratis' : 'Verifikasi undangan'}</span>
+        <span>{busy ? 'Memproses akses…' : mode === 'login' ? 'Masuk ke acoPos' : mode === 'register' ? 'Mulai uji coba gratis' : 'Verifikasi undangan'}</span>
         <span className="access-submit-icon"><ArrowRight size={18} /></span>
       </button>
       <div className="access-mode-switch">
