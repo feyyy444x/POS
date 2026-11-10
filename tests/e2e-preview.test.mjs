@@ -1,7 +1,8 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 
-const baseUrl = (process.env.NEXAPOS_E2E_BASE_URL || 'https://deploy-preview-22--posfeyyy.netlify.app').replace(/\/$/, '')
+const baseUrl = (process.env.NEXAPOS_E2E_BASE_URL || 'http://127.0.0.1:4173').replace(/\/$/, '')
+const runRemoteE2E = process.env.NEXAPOS_E2E_BASE_URL ? test : test.skip
 const activationUrl = new URL('/.netlify/functions/activate-invitation', baseUrl)
 const freeRegistrationUrl = new URL('/.netlify/functions/register-free', baseUrl)
 const completeRegistrationUrl = new URL('/.netlify/functions/complete-free-registration', baseUrl)
@@ -58,7 +59,7 @@ async function getReachableApp() {
   throw lastError || new Error('Preview did not become reachable')
 }
 
-test('deployed preview serves the NexaPos entry page and application bundle', async () => {
+runRemoteE2E('deployed preview serves the NexaPos entry page and application bundle', async () => {
   const response = await getReachableApp()
   assert.equal(response.status, 200)
   const html = await response.text()
@@ -70,7 +71,7 @@ test('deployed preview serves the NexaPos entry page and application bundle', as
   assert.equal(scriptResponse.status, 200, 'Application entry script should be served')
 })
 
-test('deployed preview sends baseline browser security headers', async () => {
+runRemoteE2E('deployed preview sends baseline browser security headers', async () => {
   const requiredHeaders = [
     ['x-content-type-options', /nosniff/i],
     ['x-frame-options', /deny|sameorigin/i],
@@ -93,14 +94,14 @@ test('deployed preview sends baseline browser security headers', async () => {
   assert.deepEqual(missing, [], `Preview is missing browser security headers: ${missing.join(', ')}`)
 })
 
-test('activation endpoint rejects GET without touching invitation data', async () => {
+runRemoteE2E('activation endpoint rejects GET without touching invitation data', async () => {
   const response = await fetchWithRetry(activationUrl, { method: 'GET', signal: AbortSignal.timeout(15000) })
   assert.equal(response.status, 405)
   assert.match(response.headers.get('content-type') || '', /application\/json/i)
   assert.match(await response.text(), /Metode tidak didukung/i)
 })
 
-test('activation endpoint rejects malformed JSON', async () => {
+runRemoteE2E('activation endpoint rejects malformed JSON', async () => {
   const response = await fetch(activationUrl, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
@@ -111,7 +112,7 @@ test('activation endpoint rejects malformed JSON', async () => {
   assert.match(await response.text(), /Permintaan tidak valid/i)
 })
 
-test('activation endpoint denies a nonexistent invitation without creating an account', async () => {
+runRemoteE2E('activation endpoint denies a nonexistent invitation without creating an account', async () => {
   const response = await fetch(activationUrl, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
@@ -128,7 +129,7 @@ test('activation endpoint denies a nonexistent invitation without creating an ac
 
 
 
-test('free registration preparation endpoint rejects unsupported methods and malformed payloads', async () => {
+runRemoteE2E('free registration preparation endpoint rejects unsupported methods and malformed payloads', async () => {
   const getResponse = await fetchWithRetry(freeRegistrationUrl, { method: 'GET', signal: AbortSignal.timeout(15000) })
   assert.equal(getResponse.status, 405)
   const postResponse = await fetchWithRetry(freeRegistrationUrl, {
@@ -140,7 +141,7 @@ test('free registration preparation endpoint rejects unsupported methods and mal
   assert.equal(postResponse.status, 400)
 })
 
-test('free registration completion requires an authenticated session', async () => {
+runRemoteE2E('free registration completion requires an authenticated session', async () => {
   const response = await fetchWithRetry(completeRegistrationUrl, {
     method: 'POST',
     signal: AbortSignal.timeout(15000),
@@ -148,16 +149,16 @@ test('free registration completion requires an authenticated session', async () 
   assert.equal(response.status, 401)
 })
 
-test('deployed preview bundle includes the ChillPos Joeclyn assistant and human handoff UI', async () => {
+runRemoteE2E('deployed preview bundle includes the NexaPos Joeclyn assistant and human handoff UI', async () => {
   const expectedStrings = [
     'Joeclyn',
-    'Hubungi Admin ChillPos',
+    'Hubungi Admin NexaPos',
     'submit_support_message',
     'request_support_handoff',
     'admin_reply_support_message',
     'set_support_conversation_status',
     'set_support_typing_status',
-    'Admin ChillPos sedang mengetik...',
+    'Admin NexaPos sedang mengetik...',
     'Joeclyn sedang mengetik...',
   ]
   let lastBundle = ''
