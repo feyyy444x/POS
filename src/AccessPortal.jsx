@@ -83,6 +83,10 @@ export function AuthScreen() {
             })
             const completed = await completion.json().catch(() => ({}))
             if (!completion.ok) throw new Error(completed.error || 'Workspace Gratis belum berhasil disiapkan.')
+            if (completed.needs_setup) {
+              window.location.assign('/?screen=complete-free-registration')
+              return
+            }
           }
           window.location.assign('/')
         }
@@ -92,7 +96,14 @@ export function AuthScreen() {
           password,
           options: {
             emailRedirectTo: `${window.location.origin}/?screen=complete-free-registration`,
-            data: { full_name: ownerName.trim(), free_workspace_pending: true },
+            data: {
+              full_name: ownerName.trim(),
+              free_workspace_pending: true,
+              free_workspace_owner_name: ownerName.trim(),
+              free_workspace_company_name: companyName.trim(),
+              free_workspace_workspace_name: workspaceName.trim(),
+              free_workspace_business_category: businessCategory,
+            },
           },
         })
         if (signUpError) throw signUpError
@@ -118,16 +129,21 @@ export function AuthScreen() {
           registrationSession = existing.data.session
         }
 
-        const prepareResponse = await fetch('/.netlify/functions/register-free', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            userId: registrationUser.id, email: email.trim(), ownerName: ownerName.trim(),
-            companyName: companyName.trim(), workspaceName: workspaceName.trim(), businessCategory, pin,
-          }),
-        })
-        const prepared = await prepareResponse.json().catch(() => ({}))
-        if (!prepareResponse.ok) throw new Error(prepared.error || 'Persiapan workspace gagal. Silakan coba kembali.')
+        if (registrationSession?.access_token) {
+          const prepareResponse = await fetch('/.netlify/functions/register-free', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: 'Bearer ' + registrationSession.access_token,
+            },
+            body: JSON.stringify({
+              email: email.trim(), ownerName: ownerName.trim(),
+              companyName: companyName.trim(), workspaceName: workspaceName.trim(), businessCategory, pin,
+            }),
+          })
+          const prepared = await prepareResponse.json().catch(() => ({}))
+          if (!prepareResponse.ok) throw new Error(prepared.error || 'Persiapan workspace gagal. Silakan coba kembali.')
+        }
 
         setPassword('')
         setPasswordConfirm('')
@@ -140,12 +156,16 @@ export function AuthScreen() {
           })
           const completed = await completion.json().catch(() => ({}))
           if (!completion.ok) throw new Error(completed.error || 'Workspace belum berhasil disiapkan.')
+          if (completed.needs_setup) {
+            window.location.assign('/?screen=complete-free-registration')
+            return
+          }
           window.location.assign('/')
           return
         }
         setSuccess(true)
         setMode('login')
-        setMessage('Akun berhasil dibuat. Periksa email Anda dan klik tautan verifikasi. Setelah email terverifikasi, sistem akan otomatis membuat Workspace Gratis dan mengarahkan Anda ke dalamnya.')
+        setMessage('Akun berhasil dibuat. Periksa email dan verifikasi akun Anda. Setelah itu masuk kembali untuk membuat PIN dan menyelesaikan Workspace Gratis.')
       } else {
         const response = await fetch('/.netlify/functions/activate-invitation', {
           method: 'POST',
@@ -248,7 +268,9 @@ export function FreeRegistrationCompletion() {
   const [session, setSession] = useState(null)
   const [status, setStatus] = useState('checking')
   const [message, setMessage] = useState('')
-  const [retry, setRetry] = useState(0)
+  const [pin, setPin] = useState('')
+  const [pinConfirm, setPinConfirm] = useState('')
+  const [busy, setBusy] = useState(false)
   const completing = useRef(false)
 
   useEffect(() => {
@@ -286,6 +308,11 @@ export function FreeRegistrationCompletion() {
       const result = await response.json().catch(() => ({}))
       if (!response.ok) throw new Error(result.error || 'Workspace Gratis belum berhasil disiapkan.')
       if (!active) return
+      if (result.needs_setup) {
+        setStatus('setup')
+        completing.current = false
+        return
+      }
       setStatus('done')
       window.location.replace('/')
     }).catch(error => {
@@ -295,28 +322,75 @@ export function FreeRegistrationCompletion() {
       setStatus('error')
     })
     return () => { active = false }
-  }, [session, retry])
+  }, [session?.access_token])
+
+  const finishSetup = async (event) => {
+    event.preventDefault()
+    setMessage('')
+    if (!/^\d{4}$/.test(pin)) { setMessage('PIN harus tepat 4 angka.'); return }
+    if (pin !== pinConfirm) { setMessage('Konfirmasi PIN tidak sama.'); return }
+    const metadata = session?.user?.user_metadata || {}
+    const ownerName = String(metadata.free_workspace_owner_name || metadata.full_name || '').trim()
+    const companyName = String(metadata.free_workspace_company_name || '').trim()
+    const workspaceName = String(metadata.free_workspace_workspace_name || '').trim()
+    const businessCategory = String(metadata.free_workspace_business_category || '').trim()
+    if ([ownerName, companyName, workspaceName].some(value => value.length < 2) || !businessCategory) {
+      setMessage('Data pendaftaran tidak lengkap. Silakan hubungi dukungan ChillPos.')
+      return
+    }
+    setBusy(true)
+    try {
+      const prepare = await fetch('/.netlify/functions/register-free', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer ' + session.access_token,
+        },
+        body: JSON.stringify({
+          email: session.user.email, ownerName, companyName, workspaceName, businessCategory, pin,
+        }),
+      })
+      const prepared = await prepare.json().catch(() => ({}))
+      if (!prepare.ok) throw new Error(prepared.error || 'Persiapan workspace gagal.')
+      const completion = await fetch('/.netlify/functions/complete-free-registration', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + session.access_token },
+      })
+      const completed = await completion.json().catch(() => ({}))
+      if (!completion.ok || completed.needs_setup) throw new Error(completed.error || 'Workspace belum berhasil dibuat. Silakan coba kembali.')
+      setStatus('done')
+      window.location.replace('/')
+    } catch (error) {
+      setMessage(userFacingError(error, 'Penyelesaian pendaftaran gagal. Silakan coba lagi.'))
+    } finally {
+      setBusy(false)
+    }
+  }
 
   return <AccessFrame eyebrow="EMAIL VERIFICATION / WORKSPACE SETUP">
     <div className="access-heading">
       <span className="access-kicker">CHILLPOS / FREE WORKSPACE</span>
-      <h1>{status === 'done' ? <>Workspace<br/><em>siap digunakan.</em></> : <>Menyiapkan<br/><em>workspace.</em></>}</h1>
+      <h1>{status === 'done' ? <>Workspace<br/><em>siap digunakan.</em></> : status === 'setup' ? <>Selesaikan<br/><em>workspace.</em></> : <>Menyiapkan<br/><em>workspace.</em></>}</h1>
       <p>{status === 'checking' || status === 'completing'
-        ? 'Email Anda telah diverifikasi. Sistem sedang menyelesaikan pembuatan Workspace Gratis.'
+        ? 'Email Anda telah diverifikasi. Sistem sedang memeriksa persiapan Workspace Gratis.'
         : status === 'waiting'
-          ? 'Menunggu sesi verifikasi email. Jika baru saja mengeklik tautan email, tunggu sebentar atau masuk kembali.'
-          : status === 'done'
-            ? 'Pendaftaran berhasil. Anda akan diarahkan ke Workspace.'
-            : 'Pembuatan Workspace belum selesai. Anda dapat mencoba kembali tanpa mengulang pendaftaran.'}</p>
+          ? 'Menunggu sesi verifikasi email. Setelah mengeklik tautan verifikasi, halaman ini akan melanjutkan proses.'
+          : status === 'setup'
+            ? 'Verifikasi email berhasil. Buat PIN pribadi untuk menyelesaikan pembuatan Workspace Gratis Anda.'
+            : status === 'done'
+              ? 'Pendaftaran berhasil. Anda akan diarahkan ke Workspace.'
+              : 'Pembuatan Workspace belum selesai. Anda dapat mencoba kembali tanpa mengulang pendaftaran.'}</p>
     </div>
     {message && <div className="access-message is-error" role="alert">{message}</div>}
+    {status === 'setup' && <form className="access-form" onSubmit={finishSetup}>
+      <label htmlFor="free-registration-pin">Buat PIN pribadi (4 angka)</label>
+      <div className="access-field access-pin-field"><LockKeyhole size={17} aria-hidden="true" /><input id="free-registration-pin" type="password" inputMode="numeric" pattern="[0-9]{4}" maxLength={4} autoComplete="off" value={pin} onChange={event => setPin(event.target.value.replace(/\D/g, '').slice(0, 4))} placeholder="••••" required /></div>
+      <label htmlFor="free-registration-pin-confirm">Konfirmasi PIN</label>
+      <div className="access-field access-pin-field"><LockKeyhole size={17} aria-hidden="true" /><input id="free-registration-pin-confirm" type="password" inputMode="numeric" pattern="[0-9]{4}" maxLength={4} autoComplete="off" value={pinConfirm} onChange={event => setPinConfirm(event.target.value.replace(/\D/g, '').slice(0, 4))} placeholder="Ulangi PIN" required /></div>
+      <button className="access-submit" type="submit" disabled={busy || pin.length !== 4 || pinConfirm.length !== 4}><span>{busy ? 'Menyelesaikan workspace…' : 'Buat Workspace Gratis'}</span><span className="access-submit-icon"><ArrowRight size={18}/></span></button>
+    </form>}
     {(status === 'checking' || status === 'completing') && <div className="access-security-note"><span><i /></span><p>Mohon jangan tutup halaman ini sampai proses selesai.</p></div>}
-    {status === 'error' && <div className="access-form">
-      <button className="access-submit" type="button" onClick={() => { completing.current = false; setRetry(value => value + 1) }}>
-        <span>Coba selesaikan lagi</span><span className="access-submit-icon"><ArrowRight size={18}/></span>
-      </button>
-      <div className="access-mode-switch"><span>Butuh bantuan?</span><a href="/login">Kembali ke login</a></div>
-    </div>}
+    {status === 'error' && <div className="access-mode-switch"><span>Butuh bantuan?</span><a href="/login">Kembali ke login</a></div>}
     {status === 'waiting' && <div className="access-mode-switch"><span>Sudah verifikasi email?</span><a href="/login">Masuk untuk melanjutkan</a></div>}
   </AccessFrame>
 }
