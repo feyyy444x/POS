@@ -39,7 +39,7 @@ export default function LandingPage() {
     <section className="nx-landing-intro" id="solusi">
       <span className="nx-eyebrow">DESIGNED FOR DAILY OPERATIONS</span>
       <h2>Operasional yang saling terhubung, tanpa kehilangan kendali.</h2>
-      <p>Mulai dari satu workspace untuk menjalankan usaha sehari-hari. Saat bisnis berkembang, struktur perusahaan dan tenant membantu memisahkan ruang kerja sekaligus memberi Owner gambaran operasional yang lebih luas.</p>
+      <p>Mulai dari satu workspace untuk menjalankan usaha sehari-hari. Saat bisnis berkembang, struktur perusahaan dan tenant membantu memisahkan ruang kerja sekaligus memberi Owner gambaran operasional yang lebih luas. NexaPos dapat digunakan untuk retail/toko, minimarket, fashion, kuliner, kafe, jasa, salon, apotek, dan kategori usaha lainnya.</p>
     </section>
 
     <section className="nx-landing-capabilities" id="fitur">
