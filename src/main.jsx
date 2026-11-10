@@ -3,8 +3,8 @@ import { createRoot } from 'react-dom/client'
 import App from './App.jsx'
 import PwaInstallPrompt from './PwaInstallPrompt.jsx'
 import './styles.css'
-import './acoPos-design-system.css'
-import './acoPos-layout-safety.css'
+import './acopos-design-system.css'
+import './acopos-layout-safety.css'
 
 class AppErrorBoundary extends React.Component {
   constructor(props) {
