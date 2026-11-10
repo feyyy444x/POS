@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { ArrowLeft, CheckCircle2, Eye, EyeOff, RefreshCw, Save, ShieldCheck } from 'lucide-react'
 import { supabase } from './lib/supabase'
 import './admin-subscription-plans.css'
-import './chillpos-design-system.css'
+import './acoPos-design-system.css'
 
 function AdminHeaderClock(){
   const [now,setNow]=useState(()=>new Date())
@@ -19,7 +19,7 @@ const defaultDurations = [
   { duration_key: 'yearly', name: 'Tahunan', duration_days: 365, sort_order: 4, is_active: true },
   { duration_key: 'custom', name: 'Custom', duration_days: 15, sort_order: 5, is_active: true },
 ]
-const featureDefaults = ['Semua fitur ChillPos', 'Karyawan dan transaksi POS', 'Produk dan stok per tenant', 'Laporan operasional', 'Sistem antrean dan struk']
+const featureDefaults = ['Semua fitur acoPos', 'Karyawan dan transaksi POS', 'Produk dan stok per tenant', 'Laporan operasional', 'Sistem antrean dan struk']
 const packageDefaults = [
   { package_key: 'starter', name: 'Starter', location_limit: 3, note: 'Untuk satu lokasi usaha', prices: { daily: 5000, weekly: 15000, monthly: 49000, yearly: 490000 }, features: featureDefaults, is_popular: false, is_active: true, sort_order: 1 },
   { package_key: 'growth', name: 'Growth', location_limit: 5, note: 'Untuk bisnis yang mulai berkembang', prices: { daily: 10000, weekly: 30000, monthly: 99000, yearly: 990000 }, features: featureDefaults, is_popular: false, is_active: true, sort_order: 2 },
@@ -94,9 +94,9 @@ export default function SubscriptionPlanManager({ onBack, syncStatus = 'checking
 
   return <div className="app-shell super-admin-shell nx-plan-admin">
     <main className="main-area">
-      <header className="topbar"><div className="topbar-left"><button className="btn btn-outline btn-small nx-back-button" onClick={onBack}><ArrowLeft size={15}/> Kembali</button><div className="topbar-title-group"><div className="breadcrumb">CHILLPOS <span>/</span> SUPER ADMIN</div><h1>Paket Aktivasi & Harga</h1></div></div><div className="topbar-actions"><span className="live-status"><i className={syncStatus}/>{syncStatus==='connected'?'LIVE SYNC':syncStatus==='unstable'?'SYNC LAMBAT':syncStatus==='offline'?'OFFLINE':'MEMERIKSA'}</span><AdminHeaderClock/><button className="icon-button refresh-btn" onClick={load} title="Perbarui data" aria-label="Perbarui data"><RefreshCw size={17}/></button></div></header>
+      <header className="topbar"><div className="topbar-left"><button className="btn btn-outline btn-small nx-back-button" onClick={onBack}><ArrowLeft size={15}/> Kembali</button><div className="topbar-title-group"><div className="breadcrumb">acoPos <span>/</span> SUPER ADMIN</div><h1>Paket Aktivasi & Harga</h1></div></div><div className="topbar-actions"><span className="live-status"><i className={syncStatus}/>{syncStatus==='connected'?'LIVE SYNC':syncStatus==='unstable'?'SYNC LAMBAT':syncStatus==='offline'?'OFFLINE':'MEMERIKSA'}</span><AdminHeaderClock/><button className="icon-button refresh-btn" onClick={load} title="Perbarui data" aria-label="Perbarui data"><RefreshCw size={17}/></button></div></header>
       <div className="page-content"><section className="page-section">
-        <div className="page-heading"><div><span className="eyebrow muted">KONTROL AKTIVASI</span><h1>Paket aktivasi <span className="heading-accent">ChillPos.</span></h1><p>Semua paket memiliki fitur yang sama. Perbedaannya adalah kuota lokasi dan harga berdasarkan masa aktif. Kode aktivasi tetap diterbitkan oleh Super Admin.</p></div><span className="date-pill"><CheckCircle2 size={14}/> Aktivasi manual</span></div>
+        <div className="page-heading"><div><span className="eyebrow muted">KONTROL AKTIVASI</span><h1>Paket aktivasi <span className="heading-accent">acoPos.</span></h1><p>Semua paket memiliki fitur yang sama. Perbedaannya adalah kuota lokasi dan harga berdasarkan masa aktif. Kode aktivasi tetap diterbitkan oleh Super Admin.</p></div><span className="date-pill"><CheckCircle2 size={14}/> Aktivasi manual</span></div>
         {!loading && !plansReady && !error && <div className="notice">Data paket belum tersedia. Pastikan keempat paket aktivasi sudah dibuat di database sebelum mengedit harga.</div>}{notice&&<div className="toast"><CheckCircle2 size={17}/><span>{notice}</span></div>}{error&&<div className="notice">{error}</div>}
         <div className="panel nx-duration-panel"><div className="panel-head"><div><h3>Pengaturan masa aktif</h3><p>Atur jumlah hari untuk durasi 3, 7, 30, dan 365 hari. Durasi Custom dapat diisi sendiri oleh Admin dan hanya digunakan saat aktivasi perusahaan.</p></div></div>
           {!error && plansReady && durations.filter(duration=>duration.is_active).map(duration=><div className="nx-duration-row" key={duration.duration_key}>
