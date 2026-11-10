@@ -15,7 +15,7 @@
 - Tidak menggunakan light neon, cyberpunk, glow agresif, atau efek berlebihan.
 - Tidak menambah dependency animasi/3D tanpa kebutuhan.
 
-## Struktur 16 bagian
+## Struktur 17 bagian
 
 1. Navigation / The Entrance — navigasi ringkas, login, pendaftaran.
 2. The Opening Scene — headline utama, CTA, hero visual produk.
