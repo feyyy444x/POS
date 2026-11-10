@@ -52,7 +52,7 @@ const shortTime = (value) => new Date(value).toLocaleTimeString('id-ID', { hour:
 const initial = (name) => (name || 'N').trim().slice(0, 1).toUpperCase()
 
 function Brand({ small = false }) {
-  return <div className={`brand ${small ? 'brand-small' : ''}`}><span className="brand-mark brand-mark-image"><img className="brand-logo-image" src="/acoPos-mark.svg" alt="" /></span><span>acoPos<small>BUSINESS OPERATIONS</small></span></div>
+  return <div className={`brand ${small ? 'brand-small' : ''}`}><span className="brand-mark brand-mark-image"><img className="brand-logo-image" src="/acopos-mark.svg" alt="" /></span><span>acoPos<small>BUSINESS OPERATIONS</small></span></div>
 }
 
 function WibClock({ className = '', showDate = false }) {
@@ -2265,7 +2265,7 @@ function SupportPortal() {
   }, [session?.user?.id, session?.access_token])
   if (!session) return null
   return <>
-    <button type="button" className="support-floating-launcher" onClick={() => setOpened(true)} aria-label="Buka pusat bantuan" title="Pusat bantuan"><img src="/acoPos-mark.svg" alt="" /></button>
+    <button type="button" className="support-floating-launcher" onClick={() => setOpened(true)} aria-label="Buka pusat bantuan" title="Pusat bantuan"><img src="/acopos-mark.svg" alt="" /></button>
     {opened && <SupportCenter session={session} isSuperAdmin={isSuperAdmin} onClose={() => setOpened(false)}/>}
   </>
 }
