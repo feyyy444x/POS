@@ -6,7 +6,7 @@ const read = path => readFile(new URL(path, import.meta.url), 'utf8')
 
 test('Single Workspace is a distinct store mode and bypasses Owner organization creation', async () => {
   const sql = await read('../supabase/migrations/20261102051423_single_workspace_subscription.sql')
-  assert.match(sql, /workspace_mode in \('nexaspace', 'single_workspace'\)/)
+  assert.match(sql, /workspace_mode in \('acoPos Control Center', 'single_workspace'\)/)
   assert.match(sql, /if new\.workspace_mode = 'single_workspace' then[\s\S]*?new\.organization_id := null[\s\S]*?return new/i)
   assert.match(sql, /v_has_primary/)
   assert.match(sql, /is_primary_workspace = false/)
