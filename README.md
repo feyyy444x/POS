@@ -1,40 +1,48 @@
 # acoPos
 
-acoPos is a responsive point-of-sale, inventory, and real-time queue management platform built with React, Vite, and Supabase.
+acoPos is a responsive point-of-sale and business-operations platform built with React, Vite, and Supabase. It includes multi-tenant management, a company control center, POS checkout, inventory, reports, Self Order, queue management, and Joeclyn support.
 
 ## Included modules
-- Super Admin activation and tenant management
-- Owner company control center and independent Single Workspace
-- Product catalog, inventory, barcode/SKU, and stock controls
-- Multi-cashier POS, server-validated checkout, payment records, and receipts
-- Real-time queue management and cashier display
+- Super Admin activation and account management
+- NexaSpace-style company control center presented as **acoPos Control Center**, plus tenant management
+- Single Workspace registration and conversion to a company subscription
+- Role-based Owner, Manager, and Karyawan access with PIN verification
+- Product catalog, stock, categories, SKU/barcode, and pricing
+- POS cart and server-validated checkout with transaction identity
+- 80mm thermal receipt printing
+- Queue tickets and TV display
 - Sales history, reports, and CSV export
-- Self Order with QRIS proof submission and cashier approval
-- Role-based staff management, PIN verification, and read-only suspended workspaces
-- Audit logs, support center, and Joeclyn assistant
+- Self Order with payment-proof review and cashier shift validation
+- Company/tenant lifecycle, audit log, and realtime synchronization
+- Joeclyn support chat and WhatsApp/Telegram support links
 
 ## Local setup
 1. Copy `.env.example` to `.env`.
-2. Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`.
+2. Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` for the browser client.
 3. Set `VITE_TELEGRAM_SUPPORT_USERNAME` to the support team's Telegram username without the @ sign.
 4. Run `npm install`, then `npm run dev`.
 5. Build with `npm run build`.
 
 ## Vercel deployment
 - Framework: Vite
+- Install command: `npm install`
 - Build command: `npm run build`
 - Output directory: `dist`
-- Required Preview and Production build variables: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`
-- Server-only variables for privileged API routes: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY`
-- Never expose `SUPABASE_SERVICE_ROLE_KEY` through a `VITE_` variable.
-- The API adapters in `api/` preserve the existing server-side registration, invitation, staff, and password-management routes.
-- Do not place the production service-role key in Preview when Preview is connected to the production database. Use a separate staging project for privileged Preview testing; configure the production service-role key only in the Production environment after explicit release approval.
+- Vercel serves the API adapters in `api/`. The adapters preserve the existing backend handlers in `netlify/functions/` and the `vercel.json` rewrite preserves their existing browser URLs.
+- Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` to Preview and Development for frontend access.
+- Add `SUPABASE_URL` and `SUPABASE_ANON_KEY` for server-side authentication helpers.
+- The backend functions that create/complete registrations, activate invitations, and manage passwords/staff also require `SUPABASE_SERVICE_ROLE_KEY`. Add it as an **Encrypted** environment variable in Vercel; never prefix it with `VITE_`, expose it to the browser, or commit it to Git.
+- Add `VITE_TELEGRAM_SUPPORT_USERNAME` only when the support username is confirmed.
+- Do not place the production service-role key in Preview. Preview currently points to the production Supabase project; until an isolated staging project is configured, keep privileged backend operations disabled in Preview or use a separate non-production credential scope.
 
-## Data and security
-- Application tables use Row Level Security.
-- Checkout is processed through database RPC validation.
-- Self Order approval requires an active cashier shift.
-- Suspended/expired workspaces remain readable but block operational writes.
-- Existing tenant, transaction, and audit data is preserved during branding changes.
+## Database and data safety
+- The existing Supabase production project is the source of truth. Do not create a new database or apply migrations to the test project.
+- Existing migrations are retained as historical records. Do not rename or rewrite applied migration files.
+- All exposed application tables have Row Level Security enabled.
+- Checkout and operational actions are validated by database RPCs; suspended companies/tenants must remain read-only.
+- Never use a service-role key in client-side variables.
 - Queue TV view: append `?screen=queue` to the app URL.
-- Thermal printing uses the browser print dialog.
+- Thermal printing uses the browser print dialog; some Bluetooth printers require their vendor driver or companion app.
+
+## Validation
+Run `npm run build` and the repository's Node test suite before approving a production release. Production deployment and custom-domain cutover require a separate release approval.
