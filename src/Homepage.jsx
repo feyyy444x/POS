@@ -18,12 +18,6 @@ const fallbackDurations = [
   { duration_key: 'yearly', name: 'Tahunan', duration_days: 365, sort_order: 4, is_active: true },
 ]
 const defaultFeatures = ['Semua fitur NexaPos', 'Kasir dan transaksi', 'Produk dan stok terpisah per tenant/lokasi', 'Laporan operasional', 'Sistem antrean dan struk']
-const fallbackPlans = [
-  { key: 'starter', name: 'Starter', location_limit: 3, note: 'Untuk usaha yang mulai menambah tenant operasional', prices: { daily: 5000, weekly: 15000, monthly: 49000, yearly: 490000 }, features: defaultFeatures, popular: false, sort_order: 1 },
-  { key: 'growth', name: 'Growth', location_limit: 5, note: 'Untuk bisnis yang mulai berkembang', prices: { daily: 10000, weekly: 30000, monthly: 99000, yearly: 990000 }, features: defaultFeatures, popular: false, sort_order: 2 },
-  { key: 'business', name: 'Business', location_limit: 10, note: 'Untuk bisnis dengan beberapa lokasi', prices: { daily: 15000, weekly: 50000, monthly: 179000, yearly: 1790000 }, features: defaultFeatures, popular: true, sort_order: 3 },
-  { key: 'enterprise', name: 'Enterprise', location_limit: 15, note: 'Untuk jaringan usaha yang lebih besar', prices: { daily: 25000, weekly: 85000, monthly: 299000, yearly: 2990000 }, features: defaultFeatures, popular: false, sort_order: 4 },
-]
 const features = [
   { number: '01', icon: ShoppingCart, title: 'Transaksi kasir lebih praktis', text: 'Layani pelanggan dari satu layar: pilih produk, hitung total otomatis, proses pembayaran, dan simpan riwayat transaksi dengan lebih rapi.' },
   { number: '02', icon: Users, title: 'Banyak kasir, tetap terpantau', text: 'Berikan akun masing-masing kepada karyawan. Beberapa kasir bekerja bersamaan untuk melayani pelanggan, sementara setiap transaksi tetap memiliki identitas kasir yang mengerjakannya.' },
@@ -252,7 +246,7 @@ export default function Homepage() {
         <a href="#fitur" onClick={() => setMenuOpen(false)}>Fitur</a>
         <a href="#harga" onClick={() => setMenuOpen(false)}>Harga</a>
         <a href="#faq" onClick={() => setMenuOpen(false)}>FAQ</a>
-        <a href="/landing">Ringkasan</a>
+        <a href="/landing" onClick={() => setMenuOpen(false)}>Ringkasan</a>
       </nav>
       <div className="living-nav-actions"><a className="living-login" href="/login">Login workspace <ArrowUpRight size={14}/></a><a className="living-cta living-cta-nav" href="/landing">Lihat ringkasan <ArrowRight size={15}/></a></div>
     </header>
@@ -404,12 +398,12 @@ export default function Homepage() {
           {plans.map((plan,index)=>{
             const duration=durations.find(d=>d.duration_key===selectedDuration) || durations[0]
             const hasConfiguredPrice=Boolean(plan.prices && Object.prototype.hasOwnProperty.call(plan.prices,selectedDuration) && plan.prices[selectedDuration] !== null && plan.prices[selectedDuration] !== '')
-            const basePrice=hasConfiguredPrice?Math.max(0,Number(plan.prices[selectedDuration])):0
             const serverQuote=serverQuotes[plan.key]
+            const basePrice=hasConfiguredPrice?Math.max(0,Number(plan.prices[selectedDuration])):Math.max(0,Number(serverQuote?.base_price ?? serverQuote?.original_price ?? serverQuote?.final_price ?? 0))
             const hasPrice=hasConfiguredPrice || Boolean(serverQuote?.ok)
             const pricedPlan={...plan,price:hasPrice?basePrice:null,duration:duration?.name||selectedDuration,duration_days:Number(duration?.duration_days||0)}
             const displayPromo=serverQuote?.promo_id?{id:serverQuote.promo_id,title:serverQuote.promo_title,description:serverQuote.promo_description,discount_type:serverQuote.discount_type,discount_value:serverQuote.discount_value,eligible_periods:serverQuote.eligible_periods,promo_code:serverQuote.promo_code,requires_code:serverQuote.requires_code,starts_at:serverQuote.starts_at,ends_at:serverQuote.ends_at}:null
-            const isEligible=Boolean(displayPromo)
+            const isEligible=Boolean(displayPromo && hasPrice)
             const discount=isEligible?Math.max(0,Number(serverQuote?.discount||0)):0
             const finalPrice=hasPrice?Math.max(0,Number(serverQuote?.final_price ?? basePrice)):null
             const planFeatures=plan.features?.length?plan.features:defaultFeatures
