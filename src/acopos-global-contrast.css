@@ -84,3 +84,18 @@
 .cinema-home .living-hero-copy .living-demo-cta {
   color: #000000 !important;
 }
+
+
+/* Final homepage hero override: outrank the legacy cinematic silver palette. */
+.cinema-home .living-hero .living-hero-copy h1,
+.cinema-home .living-hero .living-hero-copy h1 span,
+.cinema-home .living-hero .living-hero-copy > p,
+.cinema-home .living-hero .living-hero-copy .living-kicker,
+.cinema-home .living-hero .living-hero-copy .living-hero-index,
+.cinema-home .living-hero .living-hero-copy .living-hero-index span,
+.cinema-home .living-hero .living-hero-copy .living-text-link,
+.cinema-home .living-hero .living-hero-copy .living-text-link span,
+.cinema-home .living-hero .living-hero-copy .living-hero-actions a,
+.cinema-home .living-hero .living-hero-copy .living-hero-actions a span {
+  color: #000000 !important;
+}
