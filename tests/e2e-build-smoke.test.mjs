@@ -1,25 +1,31 @@
-import test from 'node:test'
+import test, { before, after } from 'node:test'
 import assert from 'node:assert/strict'
 import { spawn } from 'node:child_process'
 import { readdir, readFile } from 'node:fs/promises'
 
 const baseUrl = 'http://127.0.0.1:4173'
+let server
 
-test('built NexaPos app serves homepage, landing, login and registration routes', async t => {
-  const server = spawn('npm', ['run', 'preview', '--', '--host', '127.0.0.1', '--port', '4173', '--strictPort'], { stdio: 'ignore' })
-  t.after(() => server.kill('SIGTERM'))
-
+before(async () => {
+  server = spawn('npm', ['run', 'preview', '--', '--host', '127.0.0.1', '--port', '4173', '--strictPort'], { stdio: 'ignore' })
   let response
   let lastError
   for (let attempt = 0; attempt < 40; attempt += 1) {
     try {
       response = await fetch(baseUrl, { signal: AbortSignal.timeout(1500) })
-      if (response.ok) break
+      if (response.ok) return
       lastError = new Error('Preview returned HTTP ' + response.status)
     } catch (error) { lastError = error }
     await new Promise(resolve => setTimeout(resolve, 250))
   }
-  assert.ok(response?.ok, lastError?.message || 'Local Vite preview did not start')
+  throw lastError || new Error('Local Vite preview did not start')
+})
+
+after(() => { if (server) server.kill('SIGTERM') })
+
+test('built NexaPos app serves homepage, landing, login and registration routes', async () => {
+  const response = await fetch(baseUrl)
+  assert.equal(response.status, 200)
   const html = await response.text()
   assert.match(html, /<div id="root">|id="root"/i)
   assert.match(html, /NexaPos/i)
