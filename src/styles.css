@@ -1942,3 +1942,72 @@ tbody tr:hover{background:#f7fbfd}
   .app-shell .topbar-actions .live-status { padding:5px 6px !important; font-size:7px !important; }
   .app-shell .topbar-actions .refresh-btn { flex-basis:32px !important; width:32px !important; height:32px !important; }
 }
+
+
+/* Content-fit rule: never force long labels into cramped responsive layouts. */
+.app-shell .topbar-title-group,
+.owner-console .owner-heading,
+.app-shell .topbar-actions,
+.owner-console .owner-topbar-actions {
+  min-width:0;
+}
+.app-shell .topbar-title-group h1,
+.owner-console .owner-heading h1,
+.app-shell .topbar-title-group .breadcrumb,
+.owner-console .owner-heading .owner-breadcrumb {
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.app-shell .topbar-actions .live-status,
+.owner-console .owner-topbar-actions .live-status {
+  min-width:0;
+  max-width:clamp(76px,12vw,142px);
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.app-shell .topbar-actions .wib-digital-clock em,
+.owner-console .owner-topbar-actions .wib-digital-clock em {
+  min-width:0;
+  max-width:clamp(54px,9vw,104px);
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+@media (max-width:760px) {
+  .app-shell .topbar-title-group h1,
+  .owner-console .owner-heading h1 {
+    max-width:100%;
+    white-space:nowrap !important;
+    overflow:hidden !important;
+    text-overflow:ellipsis !important;
+    overflow-wrap:normal !important;
+  }
+  .app-shell .topbar-title-group .breadcrumb,
+  .owner-console .owner-heading .owner-breadcrumb {
+    max-width:100%;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .app-shell .topbar-actions .live-status,
+  .owner-console .owner-topbar-actions .live-status {
+    max-width:104px;
+  }
+  .app-shell .topbar-actions .wib-digital-clock em,
+  .owner-console .owner-topbar-actions .wib-digital-clock em {
+    max-width:clamp(42px,15vw,72px);
+  }
+}
+@media (max-width:390px) {
+  .app-shell .topbar-actions .live-status,
+  .owner-console .owner-topbar-actions .live-status {
+    max-width:82px;
+  }
+  .app-shell .topbar-actions .wib-digital-clock em,
+  .owner-console .owner-topbar-actions .wib-digital-clock em {
+    display:none !important;
+  }
+}
