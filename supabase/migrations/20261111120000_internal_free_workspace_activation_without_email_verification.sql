@@ -50,8 +50,8 @@ begin
  if v_intent.email is distinct from v_auth_email then raise exception 'Email akun tidak cocok'; end if;
  if v_intent.activation_code_hash is null or v_intent.activation_code_hash<>encode(extensions.digest(coalesce(p_activation_code,''),'sha256'),'hex') then raise exception 'Kode aktivasi internal tidak valid atau sudah digunakan'; end if;
  if exists(select 1 from public.store_members m where m.user_id=p_user_id and m.is_active) then raise exception 'Akun ini sudah terhubung ke workspace'; end if;
- insert into public.stores(name,company_name,business_category,owner_name,owner_email,status,activated_at,expires_at,activation_days,activation_package_key,activation_location_limit,workspace_mode)
- values(v_intent.workspace_name,v_intent.company_name,v_intent.business_category,v_intent.owner_name,v_intent.email,'active',now(),null,null,'free_workspace',1,'single_workspace') returning id into v_store_id;
+ insert into public.stores(name,company_name,business_category,owner_name,owner_email,status,activated_at,expires_at,activation_days,activation_package_key,activation_location_limit,workspace_mode,is_primary_workspace)
+ values(v_intent.workspace_name,v_intent.company_name,v_intent.business_category,v_intent.owner_name,v_intent.email,'active',now(),now()+interval '30 days',30,'free_workspace',1,'single_workspace',true) returning id into v_store_id;
  insert into public.store_members(store_id,user_id,role,email,full_name,is_active) values(v_store_id,p_user_id,'owner',v_intent.email,v_intent.owner_name,true);
  insert into public.store_settings(store_id,store_name) values(v_store_id,v_intent.workspace_name);
  insert into public.user_security_pins(user_id,pin_hash) values(p_user_id,v_intent.pin_hash);
@@ -65,3 +65,41 @@ revoke all on function public.prepare_free_single_workspace_registration(uuid,te
 revoke all on function public.complete_free_single_workspace_registration(uuid,text) from public,anon,authenticated;
 grant execute on function public.prepare_free_single_workspace_registration(uuid,text,text,text,text,text,text,text) to service_role;
 grant execute on function public.complete_free_single_workspace_registration(uuid,text) to service_role;
+
+
+-- Free workspaces expire after 30 days. Only Super Admin (with verified PIN)
+-- may extend them through the existing admin activation workflow.
+create or replace function public.activate_single_workspace(p_store_id uuid,p_duration_days integer)
+returns public.stores language plpgsql security definer set search_path='' as $function$
+declare v_store public.stores;
+begin
+  if not private.is_super_admin() then
+    raise exception 'Super Admin access required';
+  end if;
+  if not private.is_pin_verified() then
+    raise exception 'Verifikasi PIN diperlukan untuk mengubah aktivasi';
+  end if;
+  if p_duration_days is null or p_duration_days < 1 or p_duration_days > 36500 then
+    raise exception 'Durasi harus 1 sampai 36500 hari';
+  end if;
+  select * into v_store from public.stores
+  where id=p_store_id and workspace_mode='single_workspace'
+    and status<>'deleted' and deleted_at is null for update;
+  if not found then
+    raise exception 'Single Workspace tidak ditemukan atau sudah diarsipkan';
+  end if;
+  update public.stores
+  set status='active',
+      workspace_mode='single_workspace',
+      organization_id=null,
+      activation_package_key=case when v_store.activation_package_key='free_workspace' then 'free_workspace' else 'single_workspace' end,
+      activation_location_limit=1,
+      activated_at=now(),
+      expires_at=now()+make_interval(days=>p_duration_days),
+      activation_days=p_duration_days,
+      is_primary_workspace=true,
+      deleted_at=null
+  where id=v_store.id returning * into v_store;
+  return v_store;
+end;
+$function$;
