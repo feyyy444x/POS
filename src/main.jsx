@@ -5,6 +5,7 @@ import PwaInstallPrompt from './PwaInstallPrompt.jsx'
 import './styles.css'
 import './acopos-design-system.css'
 import './acopos-layout-safety.css'
+import './acopos-global-contrast.css'
 
 class AppErrorBoundary extends React.Component {
   constructor(props) {
