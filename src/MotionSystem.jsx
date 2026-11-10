@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 
 /**
- * ChillPos motion layer.
+ * acoPos motion layer.
  * Progressive visual enhancement only; it never changes business state or data.
  */
 export default function MotionSystem() {
@@ -11,10 +11,10 @@ export default function MotionSystem() {
     const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches
     const finePointer = window.matchMedia?.('(pointer: fine)')?.matches
 
-    body.classList.add('nexa-motion-ready')
+    body.classList.add('ACO-motion-ready')
     if (reduceMotion) {
-      body.classList.add('nexa-motion-reduced')
-      return () => body.classList.remove('nexa-motion-ready', 'nexa-motion-reduced')
+      body.classList.add('ACO-motion-reduced')
+      return () => body.classList.remove('ACO-motion-ready', 'ACO-motion-reduced')
     }
 
     let cursor = null
@@ -25,7 +25,7 @@ export default function MotionSystem() {
 
     if (finePointer) {
       cursor = document.createElement('span')
-      cursor.className = 'nexa-cursor-aura'
+      cursor.className = 'ACO-cursor-aura'
       cursor.setAttribute('aria-hidden', 'true')
       body.appendChild(cursor)
     }
@@ -33,12 +33,12 @@ export default function MotionSystem() {
     const updatePointer = (event) => {
       pointerX = event.clientX
       pointerY = event.clientY
-      root.style.setProperty('--nexa-pointer-x', pointerX + 'px')
-      root.style.setProperty('--nexa-pointer-y', pointerY + 'px')
-      root.style.setProperty('--nexa-parallax-x', ((pointerX / Math.max(window.innerWidth, 1)) - 0.5).toFixed(3))
-      root.style.setProperty('--nexa-parallax-y', ((pointerY / Math.max(window.innerHeight, 1)) - 0.5).toFixed(3))
-      root.style.setProperty('--nexa-tilt-x', (((pointerY / Math.max(window.innerHeight, 1)) - 0.5) * -4).toFixed(2) + 'deg')
-      root.style.setProperty('--nexa-tilt-y', (((pointerX / Math.max(window.innerWidth, 1)) - 0.5) * 4).toFixed(2) + 'deg')
+      root.style.setProperty('--ACO-pointer-x', pointerX + 'px')
+      root.style.setProperty('--ACO-pointer-y', pointerY + 'px')
+      root.style.setProperty('--ACO-parallax-x', ((pointerX / Math.max(window.innerWidth, 1)) - 0.5).toFixed(3))
+      root.style.setProperty('--ACO-parallax-y', ((pointerY / Math.max(window.innerHeight, 1)) - 0.5).toFixed(3))
+      root.style.setProperty('--ACO-tilt-x', (((pointerY / Math.max(window.innerHeight, 1)) - 0.5) * -4).toFixed(2) + 'deg')
+      root.style.setProperty('--ACO-tilt-y', (((pointerX / Math.max(window.innerWidth, 1)) - 0.5) * 4).toFixed(2) + 'deg')
       if (cursor && !cursorFrame) {
         cursorFrame = window.requestAnimationFrame(() => {
           cursor.style.transform = 'translate3d(' + pointerX + 'px,' + pointerY + 'px,0)'
@@ -47,15 +47,15 @@ export default function MotionSystem() {
       }
     }
 
-    const onPointerDown = () => body.classList.add('nexa-pointer-pressed')
-    const onPointerUp = () => body.classList.remove('nexa-pointer-pressed')
+    const onPointerDown = () => body.classList.add('ACO-pointer-pressed')
+    const onPointerUp = () => body.classList.remove('ACO-pointer-pressed')
 
     let revealObserver = null
     if ('IntersectionObserver' in window) {
       revealObserver = new IntersectionObserver((entries) => {
         entries.forEach((entry) => {
           if (!entry.isIntersecting) return
-          entry.target.classList.add('nexa-is-visible')
+          entry.target.classList.add('ACO-is-visible')
           revealObserver.unobserve(entry.target)
         })
       }, { threshold: 0.12, rootMargin: '0px 0px -36px 0px' })
@@ -73,33 +73,33 @@ export default function MotionSystem() {
 
       matching(scope, '.living-home section, .living-reveal, .stat-card, .owner-stat-card, .owner-tenant-card, .report-card, .dashboard-card, .page-section .panel, .page-section .queue-stat-card, .page-section .queue-feature, .owner-page .owner-section, .owner-page .owner-setting-card, .demo-table-panel, .demo-cart-panel')
         .forEach((element) => {
-          if (element.dataset.nexaMotionReveal) return
-          element.dataset.nexaMotionReveal = 'true'
-          element.classList.add('nexa-motion-reveal')
+          if (element.dataset.ACOMotionReveal) return
+          element.dataset.ACOMotionReveal = 'true'
+          element.classList.add('ACO-motion-reveal')
           if (revealObserver) revealObserver.observe(element)
-          else element.classList.add('nexa-is-visible')
+          else element.classList.add('ACO-is-visible')
         })
 
       matching(scope, '.page-section, .owner-page').forEach((element) => {
-        if (element.dataset.nexaPageEnter) return
-        element.dataset.nexaPageEnter = 'true'
-        element.classList.add('nexa-page-enter')
+        if (element.dataset.ACOPageEnter) return
+        element.dataset.ACOPageEnter = 'true'
+        element.classList.add('ACO-page-enter')
       })
 
       matching(scope, '.living-cta, .btn-primary, .nav-link, .owner-nav-link').forEach((element) => {
-        if (element.dataset.nexaMagnetic) return
-        element.dataset.nexaMagnetic = 'true'
-        element.classList.add('nexa-magnetic')
+        if (element.dataset.ACOMagnetic) return
+        element.dataset.ACOMagnetic = 'true'
+        element.classList.add('ACO-magnetic')
         const move = (event) => {
           const rect = element.getBoundingClientRect()
           const x = (event.clientX - rect.left - rect.width / 2) * 0.10
           const y = (event.clientY - rect.top - rect.height / 2) * 0.10
-          element.style.setProperty('--nexa-magnet-x', x.toFixed(1) + 'px')
-          element.style.setProperty('--nexa-magnet-y', y.toFixed(1) + 'px')
+          element.style.setProperty('--ACO-magnet-x', x.toFixed(1) + 'px')
+          element.style.setProperty('--ACO-magnet-y', y.toFixed(1) + 'px')
         }
         const leave = () => {
-          element.style.setProperty('--nexa-magnet-x', '0px')
-          element.style.setProperty('--nexa-magnet-y', '0px')
+          element.style.setProperty('--ACO-magnet-x', '0px')
+          element.style.setProperty('--ACO-magnet-y', '0px')
         }
         element.addEventListener('pointermove', move, { passive: true })
         element.addEventListener('pointerleave', leave, { passive: true })
@@ -108,9 +108,9 @@ export default function MotionSystem() {
 
       matching(scope, '.panel, .owner-section, .owner-setting-card, .workspace-card, .living-plan, .living-feature-card')
         .forEach((element) => {
-          if (element.dataset.nexaMotionSurface) return
-          element.dataset.nexaMotionSurface = 'true'
-          element.classList.add('nexa-motion-surface')
+          if (element.dataset.ACOMotionSurface) return
+          element.dataset.ACOMotionSurface = 'true'
+          element.classList.add('ACO-motion-surface')
         })
     }
 
@@ -143,13 +143,13 @@ export default function MotionSystem() {
       magneticTargets.clear()
       if (cursorFrame) window.cancelAnimationFrame(cursorFrame)
       cursor?.remove()
-      body.classList.remove('nexa-motion-ready', 'nexa-pointer-pressed')
-      root.style.removeProperty('--nexa-pointer-x')
-      root.style.removeProperty('--nexa-pointer-y')
-      root.style.removeProperty('--nexa-parallax-x')
-      root.style.removeProperty('--nexa-parallax-y')
-      root.style.removeProperty('--nexa-tilt-x')
-      root.style.removeProperty('--nexa-tilt-y')
+      body.classList.remove('ACO-motion-ready', 'ACO-pointer-pressed')
+      root.style.removeProperty('--ACO-pointer-x')
+      root.style.removeProperty('--ACO-pointer-y')
+      root.style.removeProperty('--ACO-parallax-x')
+      root.style.removeProperty('--ACO-parallax-y')
+      root.style.removeProperty('--ACO-tilt-x')
+      root.style.removeProperty('--ACO-tilt-y')
     }
   }, [])
 
