@@ -1,13 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   ArrowDown, ArrowRight, ArrowUpRight, BarChart3, Check, CheckCircle2, ChevronDown,
-  CircleDollarSign, Monitor, Package, Phone, Printer, Send, ShieldCheck, ShoppingCart,
+  CircleDollarSign, Monitor, Package, Phone, Printer, QrCode, Send, ShieldCheck, ShoppingCart,
   Sparkles, Ticket, Users, X, Zap, Activity, Store, Workflow
 } from 'lucide-react'
 import { supabase } from './lib/supabase'
 import './homepage.css'
 import './acopos-design-system.css'
 import './homepage-cinematic.css'
+import { FeatureExplorer, DeviceShowcase, TrustAndSupport } from './HomepageEnhancements.jsx'
 
 const money = (value) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value || 0))
 const fallbackDurations = [
@@ -30,6 +31,7 @@ const features = [
   { number: '04', icon: Package, title: 'Produk dan stok lebih tertata', text: 'Susun katalog, kategori, harga, dan informasi persediaan dalam satu tempat agar tim lebih mudah menemukan produk dan memantau kebutuhan stok.' },
   { number: '05', icon: BarChart3, title: 'Laporan untuk memahami usaha', text: 'Lihat riwayat transaksi dan ringkasan penjualan untuk membantu memantau aktivitas toko serta menjadi bahan evaluasi operasional.' },
   { number: '06', icon: Printer, title: 'Struk transaksi siap dicetak', text: 'Selesaikan transaksi dengan bukti pembayaran yang dapat dicetak melalui printer thermal yang kompatibel dengan perangkat dan browser Anda.' },
+  { number: '07', icon: QrCode, title: 'QR Menu & Self Ordering', text: 'Pelanggan memindai QR Code toko, melihat menu digital, memilih produk, lalu mengirim pesanan melalui alur pembayaran yang ditetapkan toko.' },
 ]
 const storyScenes = {
   kasir: { index: '01', eyebrow: 'SAAT TRANSAKSI DIMULAI', title: 'Dari pilih produk hingga transaksi tercatat.', description: 'Kasir memilih produk, memeriksa total, memproses pembayaran, lalu menyimpan transaksi dalam satu alur kerja.', icon: ShoppingCart, status: 'Transaksi tersimpan', tag: 'POS WORKSPACE' },
@@ -245,10 +247,11 @@ export default function Homepage() {
       <Brand />
       <button className="living-menu-toggle" onClick={() => setMenuOpen(!menuOpen)} aria-label={menuOpen ? 'Tutup navigasi' : 'Buka navigasi'}>{menuOpen ? <X /> : <span className="living-menu-lines"><i /><i /></span>}</button>
       <nav className={menuOpen ? 'living-nav-links is-open' : 'living-nav-links'}>
+        <a href="#fitur" onClick={() => setMenuOpen(false)}>Ekosistem</a>
+        <a href="#feature-explorer" onClick={() => setMenuOpen(false)}>Feature Explorer</a>
         <a href="#cerita" onClick={() => setMenuOpen(false)}>Cara kerja</a>
         <a href="#pusat-kendali" onClick={() => setMenuOpen(false)}>Pusat Kendali</a>
-        <a href="#fitur" onClick={() => setMenuOpen(false)}>Fitur</a>
-        <a href="#harga" onClick={() => setMenuOpen(false)}>Harga</a>
+        <a href="#harga" onClick={() => setMenuOpen(false)}>Paket</a>
         <a href="#faq" onClick={() => setMenuOpen(false)}>FAQ</a>
       </nav>
       <div className="living-nav-actions"><a className="living-login" href="/login">Login workspace <ArrowUpRight size={14}/></a><a className="living-cta living-cta-nav" href="#harga">Mulai jelajahi <ArrowRight size={15}/></a></div>
@@ -316,42 +319,44 @@ export default function Homepage() {
         </div>
       </section>
 
-      <section className="living-bridge">
+      <article className="living-bridge">
         <div className="living-bridge-line" aria-hidden="true" />
         <div className="living-bridge-copy living-reveal"><span className="living-eyebrow">FROM ONE ACTION TO THE NEXT</span><h2>Lebih sedikit proses terpisah.<br/><em>Lebih banyak hal yang terhubung.</em></h2><p>Satukan proses penjualan, aktivitas karyawan, pengelolaan produk, dan layanan pelanggan agar pemilik usaha punya gambaran operasional yang lebih utuh.</p><a className="living-inline-link" href="#fitur">Jelajahi ekosistem <ArrowRight size={15}/></a></div>
         <div className="living-bridge-map living-reveal"><div className="living-map-core"><img src="/acopos-mark.svg" alt=""/><span>acoPos</span></div><div className="living-map-item map-one"><ShoppingCart size={17}/><span>Transaksi</span></div><div className="living-map-item map-two"><Users size={17}/><span>Karyawan</span></div><div className="living-map-item map-three"><Monitor size={17}/><span>Antrean</span></div><div className="living-map-item map-four"><BarChart3 size={17}/><span>Laporan</span></div><div className="living-map-link link-one"/><div className="living-map-link link-two"/><div className="living-map-link link-three"/><div className="living-map-link link-four"/></div>
-      </section>
+      </article>
 
       {activePromo && <div className="living-promo-spotlight" aria-label="Promo acoPos"><div className="living-promo-spotlight-orbit" aria-hidden="true"/><div className="living-promo-spotlight-label"><Sparkles size={16}/> PENAWARAN acoPos <span className="living-live-dot"/></div><div className="living-promo-spotlight-main"><div><span className="living-eyebrow">PENAWARAN TERBATAS / acoPos</span><h2>{activePromo.title || 'Penawaran khusus acoPos'}</h2><p>{activePromo.description || 'Dapatkan harga khusus untuk masa akses acoPos pilihanmu.'}</p><div className="living-promo-spotlight-meta"><span><CheckCircle2 size={14}/> Ketentuan mengikuti paket dan durasi yang memenuhi syarat</span>{activePromo.starts_at && <span><Activity size={14}/> Mulai {new Date(activePromo.starts_at).toLocaleString('id-ID',{day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit',timeZone:'Asia/Jakarta'})} WIB</span>}</div></div><div className="living-promo-spotlight-value"><small>DISKON</small><strong>{promoDiscountLabel(activePromo)}</strong><span>{promoStartsLater ? 'Segera dimulai' : requiresPromoCode(activePromo) ? 'Gunakan kode promo' : 'Potongan otomatis jika memenuhi syarat'}</span></div></div><a className="living-cta living-cta-light" href="#harga">Lihat harga setelah diskon <ArrowRight size={15}/></a></div>}
 
       <section className="living-features" id="fitur">
         <div className="living-section-head living-reveal"><div><span className="living-eyebrow">THE DIGITAL PRODUCT GALLERY</span><h2>Setiap fitur punya ruang.<br/><em>Setiap proses punya tujuan.</em></h2></div><p>Jelajahi fitur utama acoPos dan kenali perannya dalam aktivitas bisnis sehari-hari.</p></div>
-        <div className="living-feature-list">{features.map(({number,icon:Icon,title,text},index)=><article className="living-feature-row living-reveal" key={number}><span className="living-feature-number">{number}</span><span className="living-feature-icon"><Icon size={23}/></span><div className="living-feature-copy"><h3>{title}</h3><p>{text}</p></div><span className="living-feature-meta">{index===0?'POINT OF SALE':index===1?'MULTI-ACCOUNT':index===2?'QUEUE DISPLAY':index===3?'CATALOGUE':index===4?'REPORTING':'THERMAL PRINT'}</span><ArrowUpRight className="living-feature-arrow" size={20}/></article>)}</div>
+        <div className="living-feature-list">{features.map(({number,icon:Icon,title,text},index)=><article className="living-feature-row living-reveal" key={number}><span className="living-feature-number">{number}</span><span className="living-feature-icon"><Icon size={23}/></span><div className="living-feature-copy"><h3>{title}</h3><p>{text}</p></div><span className="living-feature-meta">{index===0?'POINT OF SALE':index===1?'MULTI-ACCOUNT':index===2?'QUEUE DISPLAY':index===3?'CATALOGUE':index===4?'REPORTING':index===5?'THERMAL PRINT':'QR MENU ORDER'}</span><ArrowUpRight className="living-feature-arrow" size={20}/></article>)}</div>
       </section>
 
 
-      <section className="cinema-product-scene cinema-pos-scene" id="cinema-pos">
+      <FeatureExplorer />
+      <article className="cinema-product-scene cinema-pos-scene" id="cinema-pos">
         <div className="cinema-product-copy"><span className="cinema-eyebrow">06 / THE POS EXPERIENCE</span><h2>Pelayanan pelanggan.<br/><em>Dalam alur yang jelas.</em></h2><p>Perlihatkan bagaimana tim memilih produk, memeriksa keranjang, dan memahami ringkasan transaksi dalam satu alur kasir.</p><span className="cinema-demo-label">SIMULASI ANTARMUKA • BUKAN TRANSAKSI NYATA</span></div>
         <div className="cinema-pos-preview"><div className="cinema-preview-top"><span/> <span/> <span/><b>acoPos / POS PREVIEW</b></div><div className="cinema-pos-preview-body"><div><b>Daftar produk</b><small>Katalog dan kategori</small><i/><i/><i/><i/></div><aside><b>Keranjang</b><span>Produk contoh <strong>—</strong></span><span>Jumlah item <strong>—</strong></span><hr/><span>Total transaksi <strong>Preview</strong></span><small>Simulasi visual, tidak menyimpan transaksi.</small></aside></div></div>
-      </section>
-      <section className="cinema-product-scene cinema-inventory-scene" id="cinema-inventory">
+      </article>
+      <article className="cinema-product-scene cinema-inventory-scene" id="cinema-inventory">
         <div className="cinema-inventory-preview"><div><b>Produk & inventaris</b><span>PREVIEW UI</span></div><article><i/><span><b>Produk</b><small>Informasi katalog</small></span><em>Detail</em></article><article><i/><span><b>Kategori</b><small>Pengelompokan produk</small></span><em>Detail</em></article><article><i/><span><b>Persediaan</b><small>Informasi stok</small></span><em>Detail</em></article><article><i/><span><b>Riwayat stok</b><small>Perubahan inventaris</small></span><em>Detail</em></article></div>
         <div className="cinema-product-copy"><span className="cinema-eyebrow">07 / THE INVENTORY GALLERY</span><h2>Produk tertata.<br/><em>Stok lebih terpantau.</em></h2><p>Kenali katalog produk, kategori, informasi persediaan, dan riwayat perubahan stok dalam satu area pengelolaan.</p></div>
-      </section>
-      <section className="cinema-product-scene cinema-selforder-scene" id="cinema-self-order">
-        <div className="cinema-product-copy"><span className="cinema-eyebrow">08 / THE SELF ORDER EXPERIENCE</span><h2>Berikan pelanggan<br/><em>ruang untuk memesan.</em></h2><p>Perkenalkan pengalaman Self Order melalui katalog, keranjang, ringkasan pesanan, dan instruksi pembayaran.</p><span className="cinema-demo-label">DEMO • BUKAN PESANAN NYATA</span></div>
-        <div className="cinema-phone-preview"><div className="cinema-phone-screen"><img src="/acopos-mark.svg" alt=""/><small>SELF ORDER / PREVIEW</small><h3>Menu toko</h3><article><i/><span><b>Produk contoh</b><small>Detail produk</small></span><em>+</em></article><article><i/><span><b>Produk pilihan</b><small>Detail produk</small></span><em>+</em></article><div className="cinema-phone-summary">Ringkasan pesanan <b>Demo checkout</b></div></div></div>
-      </section>
+      </article>
+      <article className="cinema-product-scene cinema-selforder-scene" id="cinema-self-order">
+        <div className="cinema-product-copy"><span className="cinema-eyebrow">08 / QR MENU & SELF ORDERING</span><h2>Menu digital.<br/><em>Pesan lewat QR Code.</em></h2><p>Pelanggan memindai QR Code toko, menjelajahi menu, memilih produk, mengirim pesanan, lalu mengikuti alur unggah bukti pembayaran dan persetujuan kasir.</p><span className="cinema-demo-label">DEMO • BUKAN PESANAN NYATA</span></div>
+        <div className="cinema-phone-preview"><div className="cinema-phone-screen"><img src="/acopos-mark.svg" alt=""/><small>QR MENU / PREVIEW</small><h3>Menu toko</h3><article><i/><span><b>Produk contoh</b><small>Detail produk</small></span><em>+</em></article><article><i/><span><b>Produk pilihan</b><small>Detail produk</small></span><em>+</em></article><div className="cinema-phone-summary">Ringkasan pesanan <b>Demo checkout</b></div></div></div>
+      </article>
       <section className="cinema-product-scene cinema-data-scene" id="cinema-data">
         <div className="cinema-data-heading"><span className="cinema-eyebrow">09 / THE DATA DIMENSION</span><h2>Informasi untuk<br/><em>memahami aktivitas bisnis.</em></h2><p>Ringkasan transaksi, laporan penjualan, dan informasi produk membantu pemilik usaha membaca aktivitas operasional.</p></div>
         <div className="cinema-data-preview"><article><small>RINGKASAN PENJUALAN</small><b>Data laporan</b><div className="cinema-data-bars"><i/><i/><i/><i/><i/><i/><i/></div><span>Ilustrasi tampilan laporan</span></article><article><small>AKTIVITAS TRANSAKSI</small><b>Riwayat operasional</b><div className="cinema-data-lines"><i/><i/><i/><i/></div><span>Ilustrasi daftar aktivitas</span></article><article><small>PRODUK & PERFORMA</small><b>Informasi produk</b><div className="cinema-data-ring"><span>Preview</span></div><span>Ilustrasi analitik</span></article></div>
         <p className="cinema-data-note">Visual dan angka contoh bersifat ilustratif, bukan klaim performa pelanggan.</p>
       </section>
+      <DeviceShowcase />
       <section className="cinema-human-scene" id="cinema-team">
         <div className="cinema-human-copy"><span className="cinema-eyebrow">10 / THE HUMAN & WORKSPACE EXPERIENCE</span><h2>Tim bekerja bersama.<br/><em>Akses tetap terarah.</em></h2><p>Pengelolaan akun, peran, dan hak akses membantu setiap anggota tim bekerja sesuai tanggung jawabnya. Pemilik beberapa tenant juga dapat memantau workspace melalui Pusat Kendali.</p><a className="living-inline-link" href="/login">Jelajahi workspace <ArrowUpRight size={15}/></a></div>
         <div className="cinema-human-preview"><div><b>Manajemen tim</b><span>WORKSPACE PREVIEW</span></div><article><i>A</i><span><b>Manager</b><small>Pengelolaan workspace</small></span><em>ROLE</em></article><article><i>B</i><span><b>Karyawan</b><small>Akses operasional</small></span><em>ROLE</em></article><article><i>C</i><span><b>Karyawan</b><small>Akses operasional</small></span><em>ROLE</em></article><small className="cinema-human-note">Contoh tampilan — akses mengikuti pengaturan peran yang berlaku.</small></div>
       </section>
-
+      <TrustAndSupport supportChannels={supportChannels} />
 
       <section className="living-pricing living-pricing-redesign" id="harga">
         <div className="living-section-head living-reveal">

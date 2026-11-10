@@ -1,48 +1,40 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
-
 const read = path => readFile(new URL(path, import.meta.url), 'utf8')
 const homepage = await read('../src/Homepage.jsx')
-const styles = await read('../src/homepage-cinematic.css')
-const blueprint = await read('../docs/acoPos_CINEMATIC_DIGITAL_SHOWROOM_BLUEPRINT.md')
+const enhancements = await read('../src/HomepageEnhancements.jsx')
+const styles = await read('../src/homepage-acopos-spatial.css')
+const blueprint = await read('../docs/ACOPOS_CINEMATIC_DIGITAL_SHOWROOM_BLUEPRINT.md')
+const completeHomepage = homepage + enhancements
 
-test('homepage contains the cinematic product storytelling and showroom sections', () => {
-  for (const marker of [
-    'cinema-home', 'cinema-pos', 'cinema-inventory', 'cinema-self-order',
-    'cinema-data', 'cinema-team', 'id="cerita"',
-    'id="fitur"', 'id="harga"', 'id="faq"'
-  ]) assert.ok(homepage.includes(marker), 'Missing homepage marker: ' + marker)
-  assert.equal((homepage.match(/<section /g) || []).length + 2, 16, 'Expected 16 homepage parts including navigation and footer')
-  assert.match(homepage, /cinema-marquee/)
-  assert.match(blueprint, /## Struktur 16 bagian/)
+test('homepage contains the complete 17-part acoPos spatial experience',()=>{
+ for(const marker of ['cinema-home','cinema-pos','cinema-inventory','cinema-self-order','cinema-data','cinema-team','id="cerita"','id="fitur"','id="feature-explorer"','id="device-experience"','id="security-access"','id="why-acopos"','id="support-center"','id="harga"','id="faq"','QR Menu & Self Ordering'])assert.ok(completeHomepage.includes(marker),'Missing homepage marker: '+marker)
+ assert.equal((completeHomepage.match(/<section\b/g)||[]).length+2,17,'Expected 17 homepage parts including navigation and footer')
+ assert.match(homepage,/cinema-marquee/)
+ assert.match(blueprint,/## Struktur 17 bagian/)
 })
-
-test('pricing remains connected to the existing live package, duration, promotion, and quote sources', () => {
-  assert.match(homepage, /site_activation_packages/)
-  assert.match(homepage, /site_activation_durations/)
-  assert.match(homepage, /site_promotions/)
-  assert.match(homepage, /get_activation_quote/)
-  assert.match(homepage, /single_workspace/)
-  assert.match(homepage, /Paket Khusus/)
+test('pricing remains connected to existing live package, duration, promotion, and quote sources',()=>{
+ for(const marker of ['site_activation_packages','site_activation_durations','site_promotions','get_activation_quote','single_workspace','Paket Khusus'])assert.ok(homepage.includes(marker),'Missing pricing integration: '+marker)
 })
-
-test('showcase simulations are explicitly illustrative and do not create real transactions', () => {
-  assert.match(homepage, /SIMULASI ANTARMUKA/)
-  assert.match(homepage, /tidak menyimpan transaksi/)
-  assert.match(homepage, /DEMO • BUKAN PESANAN NYATA/)
-  assert.match(homepage, /bukan klaim performa pelanggan/)
+test('QR Menu & Self Ordering explains cashier-approved payment flow',()=>{
+ assert.match(homepage,/QR MENU & SELF ORDERING/)
+ assert.match(homepage,/unggah bukti pembayaran dan persetujuan kasir/)
+ assert.match(enhancements,/Persetujuan kasir sebelum diproses/)
+ assert.doesNotMatch(homepage,/SELF ORDER \/ PREVIEW|THE SELF ORDER EXPERIENCE/)
 })
-
-test('cinematic design uses ivory and navy and avoids neon/cyberpunk treatments', () => {
-  assert.match(styles, /--cinema-ivory:#f4f0e8/)
-  assert.match(styles, /--cinema-navy:#142936/)
-  assert.doesNotMatch(styles, /neon|cyberpunk|text-shadow:\s*0 0 0/i)
+test('showcase simulations remain illustrative and do not create real transactions',()=>{
+ assert.match(homepage,/SIMULASI ANTARMUKA/)
+ assert.match(homepage,/tidak menyimpan transaksi/)
+ assert.match(homepage,/DEMO • BUKAN PESANAN NYATA/)
+ assert.match(homepage,/bukan klaim performa pelanggan/)
+ assert.match(enhancements,/Pratinjau bersifat ilustratif/)
 })
-
-test('responsive breakpoints and reduced-motion fallback are present', () => {
-  assert.match(styles, /@media\(max-width:980px\)/)
-  assert.match(styles, /@media\(max-width:640px\)/)
-  assert.match(styles, /@media\(prefers-reduced-motion:reduce\)/)
-  assert.match(styles, /overflow:clip/)
+test('silver spatial design and responsive motion safeguards are present',()=>{
+ assert.match(styles,/--aco-silver:#c7ced7/)
+ assert.match(styles,/radial-gradient/)
+ assert.doesNotMatch(styles,/neon|cyberpunk/i)
+ assert.match(styles,/@media\\(max-width:900px\\)/)
+ assert.match(styles,/@media\\(max-width:640px\\)/)
+ assert.match(styles,/@media\\(prefers-reduced-motion:reduce\\)/)
 })
