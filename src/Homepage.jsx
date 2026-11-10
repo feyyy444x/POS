@@ -288,7 +288,7 @@ export default function Homepage() {
         <div className="living-manifesto-index">acoPos / 2026</div>
         <div className="living-manifesto-copy"><span>SEBUAH USAHA ADALAH ALUR YANG SALING TERHUBUNG.</span><h2>Ketika satu hal bergerak,<br/><em>semuanya ikut bergerak.</em></h2></div>
         <div className="living-manifesto-note">Bukan sekadar mencatat pembayaran. acoPos membantu pemilik usaha menghubungkan pekerjaan kasir, tim, produk, persediaan, laporan, dan layanan pelanggan dalam satu alur operasional.</div>
-        <div className="cinema-marquee" aria-label="Manage, monitor, connect, grow"><div><span>MANAGE</span><i>✳</i><span>MONITOR</span><i>✳</i><span>CONNECT</span><i>✳</i><span>GROW</span><i>✳</i><span>MANAGE</span></div></div>
+        <div className="cinema-marquee" aria-label="Manage, monitor, connect, grow"><div><span>MANAGE</span><Sparkles size={14} aria-hidden="true"/><span>MONITOR</span><Sparkles size={14} aria-hidden="true"/><span>CONNECT</span><Sparkles size={14} aria-hidden="true"/><span>GROW</span><Sparkles size={14} aria-hidden="true"/><span>MANAGE</span></div></div>
       </section>
 
       <section className="living-bridge living-reveal" id="pusat-kendali">
@@ -389,7 +389,7 @@ export default function Homepage() {
         <div className="living-coupon living-coupon-redesign">
           <label htmlFor="living-coupon"><Ticket size={15}/> Punya kode voucher?</label>
           <div><input id="living-coupon" value={coupon} onChange={e=>setCoupon(e.target.value.toUpperCase())} placeholder="Ketik kode voucher di sini"/>{coupon && <button type="button" onClick={()=>setCoupon('')} aria-label="Hapus kode kupon"><X size={15}/></button>}</div>
-          {coupon && <small className={serverQuotes[selectedPlan]?.promo_id?'is-valid':''}>{quoteLoading?'Memeriksa voucher dan harga ke server…':serverQuotes[selectedPlan]?.promo_id?'✓ '+(serverQuotes[selectedPlan]?.promo_title||'Voucher acoPos')+' valid untuk paket dan durasi ini.':'Kode tidak valid, tidak aktif, atau tidak berlaku untuk durasi yang dipilih.'}</small>}
+          {coupon && <small className={serverQuotes[selectedPlan]?.promo_id?'is-valid':''}>{quoteLoading?'Memeriksa voucher dan harga ke server…':serverQuotes[selectedPlan]?.promo_id?<><CheckCircle2 size={13} aria-hidden="true"/> {(serverQuotes[selectedPlan]?.promo_title||'Voucher acoPos')} valid untuk paket dan durasi ini.</>:'Kode tidak valid, tidak aktif, atau tidak berlaku untuk durasi yang dipilih.'}</small>}
         </div>
         {availablePromos.some(p=>requiresPromoCode(p)) && <div className="living-voucher-list living-voucher-list-redesign">{availablePromos.filter(p=>requiresPromoCode(p)).map(p=><article className={couponPromo?.id===p.id?'is-active':''} key={p.id}>
           <div><span><Ticket size={14}/>{p.title||'Voucher acoPos'}</span><p>{p.description||'Masukkan kode untuk menggunakan penawaran ini.'}</p><small>Potongan {promoDiscountLabel(p)} · {eligiblePeriods(p).map(period=>durations.find(d=>d.duration_key===period)?.name||period).join(', ')||'Semua durasi'}</small></div>
