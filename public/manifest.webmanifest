@@ -11,7 +11,7 @@
   "background_color": "#f2f0e9",
   "theme_color": "#f2f0e9",
   "icons": [
-    { "src": "/acoPos-mark.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
-    { "src": "/acoPos-mark.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+    { "src": "/acopos-mark.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/acopos-mark.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
   ]
 }
