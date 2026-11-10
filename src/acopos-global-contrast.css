@@ -73,3 +73,14 @@
     font-size: 12px;
   }
 }
+
+
+/* Homepage hero copy: explicit pure-black typography as requested. */
+.cinema-home .living-hero-copy,
+.cinema-home .living-hero-copy :where(h1,h1 span,p,.living-kicker,.living-hero-index,.living-hero-index span,.living-hero-actions a,.living-text-link,.living-text-link span) {
+  color: #000000 !important;
+}
+.cinema-home .living-hero-copy .living-cta,
+.cinema-home .living-hero-copy .living-demo-cta {
+  color: #000000 !important;
+}
