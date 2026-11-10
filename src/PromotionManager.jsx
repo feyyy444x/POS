@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { ArrowLeft, CalendarClock, Check, CirclePercent, Plus, RefreshCw, Save, ShieldCheck, Ticket, Trash2, X } from 'lucide-react'
 import { supabase } from './lib/supabase'
 import './admin-promotions.css'
-import './acoPos-design-system.css'
+import './acopos-design-system.css'
 
 function AdminHeaderClock(){
   const [now,setNow]=useState(()=>new Date())
