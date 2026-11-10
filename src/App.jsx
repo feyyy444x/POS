@@ -657,7 +657,7 @@ function App() {
     setPinStatus(null)
     const loadPinStatus=async()=>{
       if(session.user.user_metadata?.free_workspace_pending===true){
-        const response=await fetch('/.netlify/functions/complete-free-registration',{
+        const response=await fetch('/api/complete-free-registration',{
           method:'POST',
           headers:{Authorization:'Bearer '+session.access_token},
         })
@@ -1334,7 +1334,7 @@ function App() {
     const token = sessionData?.session?.access_token
     if (!token) { setNotice('Sesi login tidak tersedia. Silakan masuk kembali.'); return }
     try {
-      const response = await fetch('/.netlify/functions/manage-store-member-password', {
+      const response = await fetch('/api/manage-store-member-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
         body: JSON.stringify({ memberId: member.id, password }),
@@ -1995,7 +1995,7 @@ function SuperAdminScreen({session,syncStatus,setSyncStatus,onSignOut,platformAd
     if(!confirm('Ganti password akun '+user.email+'? Sampaikan password sementara secara aman kepada pemilik akun.'))return
     setUserActionId(user.user_id)
     try{
-      const response=await fetch('/.netlify/functions/manage-user-password',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+session.access_token},body:JSON.stringify({userId:user.user_id,password:nextPassword})})
+      const response=await fetch('/api/manage-user-password',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+session.access_token},body:JSON.stringify({userId:user.user_id,password:nextPassword})})
       const result=await response.json().catch(()=>({}))
       if(!response.ok)throw new Error(result.error||'Reset password gagal.')
       setNotice('Password akun berhasil diganti.')
