@@ -30,7 +30,7 @@ function AccessFrame({ children, eyebrow = 'SECURE WORKSPACE ACCESS' }) {
       <span>acoPos PLATFORM</span>
       <span>SECURE SESSION</span>
     </footer>
-    <span className="access-background-word" aria-hidden="true">CHILL</span>
+    <span className="access-background-word" aria-hidden="true">ACOPOS</span>
   </main>
 }
 
