@@ -136,7 +136,7 @@ export default function StoreControlCenter({ tenant, onBack, onStatusChange, onO
     const { data: sessionData } = await supabase.auth.getSession()
     const token = sessionData?.session?.access_token
     if (!token) { window.alert('Sesi login tidak tersedia.'); return }
-    const response = await fetch('/.netlify/functions/manage-user-password', {
+    const response = await fetch('/api/manage-user-password', {
       method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
       body: JSON.stringify({ userId: member.user_id, password }),
     })
