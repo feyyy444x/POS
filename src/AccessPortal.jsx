@@ -6,9 +6,9 @@ import './chillpos-design-system.css'
 import './access-portal.css'
 
 function AccessBrand() {
-  return <a className="access-brand" href="/" aria-label="ChillPos beranda">
-    <img src="/chillpos-mark.svg" alt="" />
-    <span>ChillPos<small>BUSINESS OPERATIONS</small></span>
+  return <a className="access-brand" href="/" aria-label="NexaPos beranda">
+    <img src="/nexapos-mark.svg" alt="" />
+    <span>NexaPos<small>BUSINESS OPERATIONS</small></span>
   </a>
 }
 
@@ -19,15 +19,15 @@ function AccessFrame({ children, eyebrow = 'SECURE WORKSPACE ACCESS' }) {
     <div className="access-grid" aria-hidden="true" />
     <header className="access-topline">
       <AccessBrand />
-      <span className="access-system-label"><i /> CHILLPOS / ACCESS SYSTEM</span>
+      <span className="access-system-label"><i /> NEXAPOS / ACCESS SYSTEM</span>
     </header>
     <section className="access-content">
       <div className="access-index"><span>CP—01</span><span>{eyebrow}</span></div>
       {children}
     </section>
     <footer className="access-footer">
-      <span>© {new Date().getFullYear()} ChillPos</span>
-      <span>CHILLPOS PLATFORM</span>
+      <span>© {new Date().getFullYear()} NexaPos</span>
+      <span>NEXAPOS PLATFORM</span>
       <span>SECURE SESSION</span>
     </footer>
     <span className="access-background-word" aria-hidden="true">CHILL</span>
@@ -112,7 +112,7 @@ export function AuthScreen() {
           }
           if (existing.data?.user?.user_metadata?.free_workspace_pending !== true) {
             await supabase.auth.signOut()
-            throw new Error('Email ini sudah digunakan oleh akun ChillPos yang aktif. Silakan masuk melalui halaman login.')
+            throw new Error('Email ini sudah digunakan oleh akun NexaPos yang aktif. Silakan masuk melalui halaman login.')
           }
           registrationUser = existing.data.user
           registrationSession = existing.data.session
@@ -177,10 +177,10 @@ export function AuthScreen() {
       <span className="access-kicker">{mode === 'login' ? 'YOUR BUSINESS. YOUR WORKSPACE.' : mode === 'register' ? 'START YOUR BUSINESS WORKSPACE.' : 'COMPLETE YOUR ACCESS.'}</span>
       <h1>{mode === 'login' ? <>Masuk ke<br /><em>ruang kerja.</em></> : mode === 'register' ? <>Daftar<br /><em>gratis.</em></> : <>Aktifkan<br /><em>akses Anda.</em></>}</h1>
       <p>{mode === 'login'
-        ? 'Gunakan akun ChillPos yang telah terdaftar untuk melanjutkan aktivitas operasional.'
+        ? 'Gunakan akun NexaPos yang telah terdaftar untuk melanjutkan aktivitas operasional.'
         : mode === 'register'
           ? 'Buat akun Owner dan satu workspace mandiri. Tidak diperlukan kode aktivasi atau pembayaran.'
-          : 'Aktivasi hanya tersedia untuk email yang telah menerima undangan dari Owner atau Admin ChillPos.'}</p>
+          : 'Aktivasi hanya tersedia untuk email yang telah menerima undangan dari Owner atau Admin NexaPos.'}</p>
     </div>
 
     <form className="access-form" onSubmit={submit}>
@@ -230,7 +230,7 @@ export function AuthScreen() {
       </>}
       {message && <div className={'access-message ' + (success ? 'is-success' : 'is-error')} role="status" aria-live="polite">{message}</div>}
       <button className="access-submit" type="submit" disabled={busy}>
-        <span>{busy ? 'Memproses akses…' : mode === 'login' ? 'Masuk ke ChillPos' : mode === 'register' ? 'Buat akun gratis' : 'Verifikasi undangan'}</span>
+        <span>{busy ? 'Memproses akses…' : mode === 'login' ? 'Masuk ke NexaPos' : mode === 'register' ? 'Buat akun gratis' : 'Verifikasi undangan'}</span>
         <span className="access-submit-icon"><ArrowRight size={18} /></span>
       </button>
       <div className="access-mode-switch">
@@ -299,7 +299,7 @@ export function FreeRegistrationCompletion() {
 
   return <AccessFrame eyebrow="EMAIL VERIFICATION / WORKSPACE SETUP">
     <div className="access-heading">
-      <span className="access-kicker">CHILLPOS / FREE WORKSPACE</span>
+      <span className="access-kicker">NEXAPOS / FREE WORKSPACE</span>
       <h1>{status === 'done' ? <>Workspace<br/><em>siap digunakan.</em></> : <>Menyiapkan<br/><em>workspace.</em></>}</h1>
       <p>{status === 'checking' || status === 'completing'
         ? 'Email Anda telah diverifikasi. Sistem sedang menyelesaikan pembuatan Workspace Gratis.'
@@ -343,7 +343,7 @@ export function PinGate({ status, onReady, onSignOut }) {
     <div className="access-heading">
       <span className="access-kicker">A SECOND LAYER OF PROTECTION</span>
       <h1>{setup ? <>Buat PIN<br /><em>keamanan.</em></> : <>Verifikasi<br /><em>identitas.</em></>}</h1>
-      <p>{setup ? 'Buat PIN pribadi sebelum menggunakan workspace ChillPos.' : 'Password telah diterima. Masukkan PIN pribadi untuk membuka workspace.'}</p>
+      <p>{setup ? 'Buat PIN pribadi sebelum menggunakan workspace NexaPos.' : 'Password telah diterima. Masukkan PIN pribadi untuk membuka workspace.'}</p>
     </div>
     <form className="access-form" onSubmit={submit}>
       <div className="access-form-meta"><span><ShieldCheck size={15} /> PIN SECURITY</span><span>04 DIGITS</span></div>
@@ -359,6 +359,6 @@ export function PinGate({ status, onReady, onSignOut }) {
       </button>
       <button type="button" className="access-signout" onClick={onSignOut}>Keluar dari akun</button>
     </form>
-    <div className="access-security-note"><span><i /></span><p>PIN diverifikasi oleh server dan sesi workspace dibatasi sesuai kebijakan keamanan ChillPos.</p></div>
+    <div className="access-security-note"><span><i /></span><p>PIN diverifikasi oleh server dan sesi workspace dibatasi sesuai kebijakan keamanan NexaPos.</p></div>
   </AccessFrame>
 }
