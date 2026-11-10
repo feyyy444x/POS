@@ -1,10 +1,10 @@
-name: NexaPos CI
+name: acoPos CI
 
 on:
   pull_request:
-    branches: [main, feature/nexapos-foundation]
+    branches: [main]
   push:
-    branches: [feature/nexapos-foundation, feature/nexapos-app-packaging]
+    branches: [acopos/rebrand-preview]
 
 permissions:
   contents: read
@@ -22,8 +22,8 @@ jobs:
           node-version: 22
       - name: Install dependencies
         run: npm install --no-package-lock
-      - name: Run Workspace Only conversion regression tests
-        run: node --test tests/workspace-conversion.test.mjs
+      - name: Run application regression tests
+        run: node --test tests/*.test.mjs
       - name: Build production bundle
         run: npm run build
         env:
