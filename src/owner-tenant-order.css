@@ -1,4 +1,4 @@
-/* Keep operational tenants first in both NexaSpace tenant grids. */
+/* Keep operational tenants first in both acoPos Control Center tenant grids. */
 .owner-tenant-grid > .owner-tenant-card {
   order: 2;
 }
