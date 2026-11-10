@@ -148,3 +148,24 @@
   font-weight: 750 !important;
   font-style: normal !important;
 }
+
+
+/* Promo voucher title: clear high-contrast type on the dark spotlight card. */
+.cinema-home .living-promo-spotlight .living-promo-spotlight-main .living-eyebrow,
+.cinema-home .living-promo-spotlight .living-promo-spotlight-label {
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  opacity: 1 !important;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, .24) !important;
+}
+.cinema-home .living-promo-spotlight .living-promo-spotlight-main h1,
+.cinema-home .living-promo-spotlight .living-promo-spotlight-main h2,
+.cinema-home .living-promo-spotlight .living-promo-spotlight-main h3,
+.cinema-home .living-promo-spotlight .living-promo-spotlight-main h1 *,
+.cinema-home .living-promo-spotlight .living-promo-spotlight-main h2 *,
+.cinema-home .living-promo-spotlight .living-promo-spotlight-main h3 * {
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  opacity: 1 !important;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, .28) !important;
+}
