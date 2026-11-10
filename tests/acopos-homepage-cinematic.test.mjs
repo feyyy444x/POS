@@ -13,6 +13,7 @@ test('homepage contains the complete 17-part acoPos spatial experience',()=>{
  assert.equal((completeHomepage.match(/<section\b/g)||[]).length+2,17,'Expected 17 homepage parts including navigation and footer')
  assert.match(homepage,/cinema-marquee/)
  assert.match(blueprint,/## Struktur 17 bagian/)
+ assert.doesNotMatch(completeHomepage,/NexaSpace|NexaPos|Nexa[A-Z]?/i,'Legacy platform branding must not appear on the acoPos homepage')
 })
 test('pricing remains connected to existing live package, duration, promotion, and quote sources',()=>{
  for(const marker of ['site_activation_packages','site_activation_durations','site_promotions','get_activation_quote','single_workspace','Paket Khusus'])assert.ok(homepage.includes(marker),'Missing pricing integration: '+marker)
