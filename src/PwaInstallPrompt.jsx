@@ -81,7 +81,7 @@ export default function PwaInstallPrompt() {
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <img src="/acoPos-mark.svg" alt="" width="42" height="42" />
+        <img src="/acopos-mark.svg" alt="" width="42" height="42" />
         <div style={{ flex: 1, minWidth: 0 }}>
           <strong style={{ display: 'block', fontSize: 14 }}>Pasang acoPos</strong>
           <span style={{ display: 'block', fontSize: 12, color: '#7b8178', marginTop: 3 }}>
