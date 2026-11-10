@@ -77,7 +77,7 @@ export function AuthScreen() {
           setMessage(userFacingError(result.error))
         } else {
           if (result.data?.user?.user_metadata?.free_workspace_pending === true && result.data?.session?.access_token) {
-            const completion = await fetch('/.netlify/functions/complete-free-registration', {
+            const completion = await fetch('/api/complete-free-registration', {
               method: 'POST',
               headers: { Authorization: 'Bearer ' + result.data.session.access_token },
             })
@@ -118,7 +118,7 @@ export function AuthScreen() {
           registrationSession = existing.data.session
         }
 
-        const prepareResponse = await fetch('/.netlify/functions/register-free', {
+        const prepareResponse = await fetch('/api/register-free', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -134,7 +134,7 @@ export function AuthScreen() {
         setPin('')
         setPinConfirm('')
         if (registrationSession?.access_token) {
-          const completion = await fetch('/.netlify/functions/complete-free-registration', {
+          const completion = await fetch('/api/complete-free-registration', {
             method: 'POST',
             headers: { Authorization: 'Bearer ' + registrationSession.access_token },
           })
@@ -147,7 +147,7 @@ export function AuthScreen() {
         setMode('login')
         setMessage('Akun berhasil dibuat. Periksa email Anda dan klik tautan verifikasi. Setelah email terverifikasi, sistem akan otomatis membuat Workspace Gratis dan mengarahkan Anda ke dalamnya.')
       } else {
-        const response = await fetch('/.netlify/functions/activate-invitation', {
+        const response = await fetch('/api/activate-invitation', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: email.trim(), password, activationCode: activationCode.trim() }),
@@ -279,7 +279,7 @@ export function FreeRegistrationCompletion() {
     completing.current = true
     setStatus('completing')
     setMessage('')
-    fetch('/.netlify/functions/complete-free-registration', {
+    fetch('/api/complete-free-registration', {
       method: 'POST',
       headers: { Authorization: 'Bearer ' + session.access_token },
     }).then(async response => {
