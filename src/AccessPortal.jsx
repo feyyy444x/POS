@@ -87,65 +87,24 @@ export function AuthScreen() {
           window.location.assign('/')
         }
       } else if (mode === 'register') {
-        const { data, error: signUpError } = await supabase.auth.signUp({
-          email: email.trim(),
-          password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/?screen=complete-free-registration`,
-            data: { full_name: ownerName.trim(), free_workspace_pending: true },
-          },
-        })
-        if (signUpError) throw signUpError
-        if (!data?.user?.id) throw new Error('Akun pendaftaran tidak dapat dibuat. Silakan coba kembali.')
-
-        let registrationUser = data.user
-        let registrationSession = data.session
-        if (data.user.identities?.length === 0) {
-          const existing = await supabase.auth.signInWithPassword({ email: email.trim(), password })
-          if (existing.error) {
-            if (/email not confirmed/i.test(existing.error.message || '')) {
-              const resent = await supabase.auth.resend({ type: 'signup', email: email.trim() })
-              if (resent.error) throw resent.error
-              throw new Error('Akun dengan email ini sudah dibuat tetapi belum diverifikasi. Tautan verifikasi telah dikirim ulang. Buka email, verifikasi, lalu kirim kembali formulir ini.')
-            }
-            throw new Error('Email ini sudah terdaftar. Jika ini akun Anda, gunakan password yang benar atau masuk melalui halaman login.')
-          }
-          if (existing.data?.user?.user_metadata?.free_workspace_pending !== true) {
-            await supabase.auth.signOut()
-            throw new Error('Email ini sudah digunakan oleh akun acoPos yang aktif. Silakan masuk melalui halaman login.')
-          }
-          registrationUser = existing.data.user
-          registrationSession = existing.data.session
-        }
-
         const prepareResponse = await fetch('/api/register-free', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            userId: registrationUser.id, email: email.trim(), ownerName: ownerName.trim(),
+            email: email.trim(), password, ownerName: ownerName.trim(),
             companyName: companyName.trim(), workspaceName: workspaceName.trim(), businessCategory, pin,
           }),
         })
         const prepared = await prepareResponse.json().catch(() => ({}))
-        if (!prepareResponse.ok) throw new Error(prepared.error || 'Persiapan workspace gagal. Silakan coba kembali.')
-
+        if (!prepareResponse.ok) throw new Error(prepared.error || 'Pendaftaran gratis gagal. Silakan coba kembali.')
+        const signedIn = await supabase.auth.signInWithPassword({ email: email.trim(), password })
+        if (signedIn.error) throw new Error('Workspace berhasil disiapkan, tetapi sesi masuk belum terbentuk. Silakan masuk menggunakan email dan password yang baru dibuat.')
         setPassword('')
         setPasswordConfirm('')
         setPin('')
         setPinConfirm('')
-        if (registrationSession?.access_token) {
-          const completion = await fetch('/api/complete-free-registration', {
-            method: 'POST',
-            headers: { Authorization: 'Bearer ' + registrationSession.access_token },
-          })
-          const completed = await completion.json().catch(() => ({}))
-          if (!completion.ok) throw new Error(completed.error || 'Workspace belum berhasil disiapkan.')
-          window.location.assign('/')
-          return
-        }
-        setSuccess(true)
-        setMode('login')
-        setMessage('Akun berhasil dibuat. Periksa email Anda dan klik tautan verifikasi. Setelah email terverifikasi, sistem akan otomatis membuat Workspace Gratis dan mengarahkan Anda ke dalamnya.')
+        window.location.assign('/')
+        return
       } else {
         const response = await fetch('/api/activate-invitation', {
           method: 'POST',
