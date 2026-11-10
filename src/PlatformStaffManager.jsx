@@ -64,7 +64,7 @@ export default function PlatformStaffManager({ onBack }) {
         if (password.length < 8) throw new Error('Password awal minimal 8 karakter.')
         const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
         if (sessionError || !sessionData?.session?.access_token) throw new Error('Sesi Super Admin berakhir. Silakan login ulang.')
-        const response = await fetch('/.netlify/functions/create-platform-staff', {
+        const response = await fetch('/api/create-platform-staff', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + sessionData.session.access_token },
           body: JSON.stringify({ email: email.trim(), fullName: fullName.trim(), password, role: 'admin', permissions: defaultPermissions() }),
