@@ -2089,7 +2089,7 @@ function SuperAdminScreen({session,syncStatus,setSyncStatus,onSignOut,platformAd
   })
   const navItems=[['dashboard','Ringkasan',LayoutDashboard],['stores','Manajemen Tenant',Store],['acoPos Control Center','Manajemen Pusat Kendali',Boxes],['users','Manajemen user',Users],['disabled','Akun staf nonaktif',Ban],['audit','Audit aktivitas',Activity],['support','Pusat bantuan',Headphones],['platform-staff','Tim & Hak Akses',UserPlus],['promotions','Promo & Diskon',Ticket],['subscription-plans','Paket Aktivasi & Harga',CreditCard]]
   const selectSection=(id)=>{setSection(id);setMobileNav(false)}
-  const pageTitle={dashboard:'Ringkasan platform',stores:'Manajemen Tenant',acoPos Control Center:'Manajemen Pusat Kendali','store-control':'Pusat Kendali Tenant',users:'Manajemen user',disabled:'Akun staf nonaktif',audit:'Audit aktivitas',support:'Pusat bantuan','platform-staff':'Tim & Hak Akses',promotions:'Promo & Diskon', 'subscription-plans':'Paket Aktivasi & Harga'}[section]
+  const pageTitle={dashboard:'Ringkasan platform',stores:'Manajemen Tenant','acoPos Control Center':'Manajemen Pusat Kendali','store-control':'Pusat Kendali Tenant',users:'Manajemen user',disabled:'Akun staf nonaktif',audit:'Audit aktivitas',support:'Pusat bantuan','platform-staff':'Tim & Hak Akses',promotions:'Promo & Diskon', 'subscription-plans':'Paket Aktivasi & Harga'}[section]
   if(section==='platform-staff') return <PlatformStaffManager onBack={()=>setSection('dashboard')}/>
   if(section==='promotions') return <PromotionManager onBack={()=>setSection('dashboard')} onSignOut={onSignOut} syncStatus={syncStatus}/>
   if(section==='subscription-plans') return <SubscriptionPlanManager onBack={()=>setSection('dashboard')} syncStatus={syncStatus}/>
