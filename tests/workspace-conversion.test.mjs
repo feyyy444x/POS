@@ -16,7 +16,7 @@ test('conversion is a PIN-verified platform-admin RPC and excludes free workspac
 })
 
 test('conversion keeps the same store row and promotes it to the company primary workspace', () => {
-  assert.match(migration, /update public\.stores[\s\S]*workspace_mode = 'nexaspace'[\s\S]*organization_id = v_org_id[\s\S]*is_primary_workspace = true/i)
+  assert.match(migration, /update public\.stores[\s\S]*workspace_mode = 'acoPos Control Center'[\s\S]*organization_id = v_org_id[\s\S]*is_primary_workspace = true/i)
   assert.match(migration, /insert into public\.platform_audit_logs/i)
   assert.doesNotMatch(migration, /delete from public\.(stores|products|orders|store_members)/i)
 })
