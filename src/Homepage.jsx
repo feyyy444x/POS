@@ -6,7 +6,7 @@ import {
 } from 'lucide-react'
 import { supabase } from './lib/supabase'
 import './homepage.css'
-import './acoPos-design-system.css'
+import './acopos-design-system.css'
 import './homepage-cinematic.css'
 
 const money = (value) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value || 0))
@@ -51,7 +51,7 @@ const promoDiscountLabel = (promo) => {
 }
 function Brand({ footer = false }) {
   return <a className={'living-brand' + (footer ? ' living-brand-footer' : '')} href="/" aria-label="acoPos beranda">
-    <img src="/acoPos-mark.svg" alt="" />
+    <img src="/acopos-mark.svg" alt="" />
     <span>acoPos<small>BUSINESS OPERATIONS</small></span>
   </a>
 }
@@ -269,7 +269,7 @@ export default function Homepage() {
         <div className="living-stage" aria-label="Ilustrasi alur acoPos">
           <div className="living-stage-ring ring-one" /><div className="living-stage-ring ring-two" /><div className="living-stage-ring ring-three" />
           <div className="living-stage-label label-top"><span>CONNECTED OPERATIONS</span><i /></div>
-          <div className="living-stage-core"><img src="/acoPos-mark.svg" alt="" /><span>ONE SYSTEM</span></div>
+          <div className="living-stage-core"><img src="/acopos-mark.svg" alt="" /><span>ONE SYSTEM</span></div>
           <div className="living-node node-pos"><span className="living-node-icon"><ShoppingCart size={18}/></span><small>01 / POS</small><b>Transaksi</b><i>LIVE</i></div>
           <div className="living-node node-team"><span className="living-node-icon"><Users size={18}/></span><small>02 / TEAM</small><b>Tim bekerja</b><i>SYNC</i></div>
           <div className="living-node node-queue"><span className="living-node-icon"><Monitor size={18}/></span><small>03 / QUEUE</small><b>Antrean</b><i>LIVE</i></div>
@@ -290,7 +290,7 @@ export default function Homepage() {
       <section className="living-bridge living-reveal" id="pusat-kendali">
         <div className="living-bridge-line" aria-hidden="true" />
         <div className="living-bridge-copy"><span className="living-eyebrow">PUSAT KENDALI / OWNER CONTROL CENTER</span><h2>Satu Perusahaan.<br/><em>Tenant tetap dalam kendali.</em></h2><p>Pusat Kendali adalah pusat kendali pemilik Perusahaan untuk melihat daftar tenant, memilih workspace yang akan dikelola, memantau ringkasan bisnis, serta mengatur tim dan pengaturan Perusahaan dari satu tempat.</p><a className="living-inline-link" href="/login">Masuk ke Pusat Kendali <ArrowUpRight size={15}/></a></div>
-        <div className="living-bridge-map"><div className="living-map-core"><img src="/acoPos-mark.svg" alt=""/><span>Pusat Kendali</span></div><div className="living-map-item map-one"><Store size={17}/><span>Perusahaan</span></div><div className="living-map-item map-two"><Users size={17}/><span>Tim</span></div><div className="living-map-item map-three"><Monitor size={17}/><span>Tenant</span></div><div className="living-map-item map-four"><BarChart3 size={17}/><span>Laporan</span></div><div className="living-map-link link-one"/><div className="living-map-link link-two"/><div className="living-map-link link-three"/><div className="living-map-link link-four"/></div>
+        <div className="living-bridge-map"><div className="living-map-core"><img src="/acopos-mark.svg" alt=""/><span>Pusat Kendali</span></div><div className="living-map-item map-one"><Store size={17}/><span>Perusahaan</span></div><div className="living-map-item map-two"><Users size={17}/><span>Tim</span></div><div className="living-map-item map-three"><Monitor size={17}/><span>Tenant</span></div><div className="living-map-item map-four"><BarChart3 size={17}/><span>Laporan</span></div><div className="living-map-link link-one"/><div className="living-map-link link-two"/><div className="living-map-link link-three"/><div className="living-map-link link-four"/></div>
       </section>
 
       <section className="living-story" id="cerita">
@@ -319,7 +319,7 @@ export default function Homepage() {
       <section className="living-bridge">
         <div className="living-bridge-line" aria-hidden="true" />
         <div className="living-bridge-copy living-reveal"><span className="living-eyebrow">FROM ONE ACTION TO THE NEXT</span><h2>Lebih sedikit proses terpisah.<br/><em>Lebih banyak hal yang terhubung.</em></h2><p>Satukan proses penjualan, aktivitas karyawan, pengelolaan produk, dan layanan pelanggan agar pemilik usaha punya gambaran operasional yang lebih utuh.</p><a className="living-inline-link" href="#fitur">Jelajahi ekosistem <ArrowRight size={15}/></a></div>
-        <div className="living-bridge-map living-reveal"><div className="living-map-core"><img src="/acoPos-mark.svg" alt=""/><span>acoPos</span></div><div className="living-map-item map-one"><ShoppingCart size={17}/><span>Transaksi</span></div><div className="living-map-item map-two"><Users size={17}/><span>Karyawan</span></div><div className="living-map-item map-three"><Monitor size={17}/><span>Antrean</span></div><div className="living-map-item map-four"><BarChart3 size={17}/><span>Laporan</span></div><div className="living-map-link link-one"/><div className="living-map-link link-two"/><div className="living-map-link link-three"/><div className="living-map-link link-four"/></div>
+        <div className="living-bridge-map living-reveal"><div className="living-map-core"><img src="/acopos-mark.svg" alt=""/><span>acoPos</span></div><div className="living-map-item map-one"><ShoppingCart size={17}/><span>Transaksi</span></div><div className="living-map-item map-two"><Users size={17}/><span>Karyawan</span></div><div className="living-map-item map-three"><Monitor size={17}/><span>Antrean</span></div><div className="living-map-item map-four"><BarChart3 size={17}/><span>Laporan</span></div><div className="living-map-link link-one"/><div className="living-map-link link-two"/><div className="living-map-link link-three"/><div className="living-map-link link-four"/></div>
       </section>
 
       {activePromo && <div className="living-promo-spotlight" aria-label="Promo acoPos"><div className="living-promo-spotlight-orbit" aria-hidden="true"/><div className="living-promo-spotlight-label"><Sparkles size={16}/> PENAWARAN acoPos <span className="living-live-dot"/></div><div className="living-promo-spotlight-main"><div><span className="living-eyebrow">PENAWARAN TERBATAS / acoPos</span><h2>{activePromo.title || 'Penawaran khusus acoPos'}</h2><p>{activePromo.description || 'Dapatkan harga khusus untuk masa akses acoPos pilihanmu.'}</p><div className="living-promo-spotlight-meta"><span><CheckCircle2 size={14}/> Ketentuan mengikuti paket dan durasi yang memenuhi syarat</span>{activePromo.starts_at && <span><Activity size={14}/> Mulai {new Date(activePromo.starts_at).toLocaleString('id-ID',{day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit',timeZone:'Asia/Jakarta'})} WIB</span>}</div></div><div className="living-promo-spotlight-value"><small>DISKON</small><strong>{promoDiscountLabel(activePromo)}</strong><span>{promoStartsLater ? 'Segera dimulai' : requiresPromoCode(activePromo) ? 'Gunakan kode promo' : 'Potongan otomatis jika memenuhi syarat'}</span></div></div><a className="living-cta living-cta-light" href="#harga">Lihat harga setelah diskon <ArrowRight size={15}/></a></div>}
@@ -340,7 +340,7 @@ export default function Homepage() {
       </section>
       <section className="cinema-product-scene cinema-selforder-scene" id="cinema-self-order">
         <div className="cinema-product-copy"><span className="cinema-eyebrow">08 / THE SELF ORDER EXPERIENCE</span><h2>Berikan pelanggan<br/><em>ruang untuk memesan.</em></h2><p>Perkenalkan pengalaman Self Order melalui katalog, keranjang, ringkasan pesanan, dan instruksi pembayaran.</p><span className="cinema-demo-label">DEMO • BUKAN PESANAN NYATA</span></div>
-        <div className="cinema-phone-preview"><div className="cinema-phone-screen"><img src="/acoPos-mark.svg" alt=""/><small>SELF ORDER / PREVIEW</small><h3>Menu toko</h3><article><i/><span><b>Produk contoh</b><small>Detail produk</small></span><em>+</em></article><article><i/><span><b>Produk pilihan</b><small>Detail produk</small></span><em>+</em></article><div className="cinema-phone-summary">Ringkasan pesanan <b>Demo checkout</b></div></div></div>
+        <div className="cinema-phone-preview"><div className="cinema-phone-screen"><img src="/acopos-mark.svg" alt=""/><small>SELF ORDER / PREVIEW</small><h3>Menu toko</h3><article><i/><span><b>Produk contoh</b><small>Detail produk</small></span><em>+</em></article><article><i/><span><b>Produk pilihan</b><small>Detail produk</small></span><em>+</em></article><div className="cinema-phone-summary">Ringkasan pesanan <b>Demo checkout</b></div></div></div>
       </section>
       <section className="cinema-product-scene cinema-data-scene" id="cinema-data">
         <div className="cinema-data-heading"><span className="cinema-eyebrow">09 / THE DATA DIMENSION</span><h2>Informasi untuk<br/><em>memahami aktivitas bisnis.</em></h2><p>Ringkasan transaksi, laporan penjualan, dan informasi produk membantu pemilik usaha membaca aktivitas operasional.</p></div>
