@@ -123,3 +123,28 @@
  .living-home .acopos-spatial-section *, .living-home .acopos-spatial-section *:before,
  .living-home .acopos-spatial-section *:after { animation:none!important; transition:none!important; }
 }
+
+
+/* Inventory preview: strengthen every label against the warm light card. */
+.cinema-home .cinema-inventory-scene .cinema-inventory-preview > div b,
+.cinema-home .cinema-inventory-scene .cinema-inventory-preview article b {
+  color: #142936 !important;
+  font-weight: 750 !important;
+}
+.cinema-home .cinema-inventory-scene .cinema-inventory-preview > div span {
+  color: #31574f !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  letter-spacing: .12em !important;
+}
+.cinema-home .cinema-inventory-scene .cinema-inventory-preview article small {
+  color: #344d4b !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+}
+.cinema-home .cinema-inventory-scene .cinema-inventory-preview article em {
+  color: #174f48 !important;
+  font-size: 10px !important;
+  font-weight: 750 !important;
+  font-style: normal !important;
+}
