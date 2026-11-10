@@ -1,8 +1,8 @@
 {
   "id": "/",
-  "name": "ChillPos — Smart Business",
-  "short_name": "ChillPos",
-  "description": "Kasir, produk, laporan, dan operasional bisnis ChillPos.",
+  "name": "acoPos — Smart Business",
+  "short_name": "acoPos",
+  "description": "Kasir, produk, laporan, dan operasional bisnis acoPos.",
   "lang": "id-ID",
   "start_url": "/",
   "scope": "/",
@@ -11,7 +11,7 @@
   "background_color": "#f2f0e9",
   "theme_color": "#f2f0e9",
   "icons": [
-    { "src": "/chillpos-mark.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
-    { "src": "/chillpos-mark.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+    { "src": "/acoPos-mark.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/acoPos-mark.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
   ]
 }
