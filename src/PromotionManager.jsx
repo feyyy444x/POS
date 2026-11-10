@@ -53,7 +53,7 @@ export default function PromotionManager({ onBack, onSignOut, staffMode = false,
     setLoading(true); setError('')
     let data, queryError
     if (staffMode) {
-      try { const response=await fetch('/.netlify/functions/platform-staff-workspace',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+(session?.access_token||'')},body:JSON.stringify({action:'promotions_list'})}); const result=await response.json(); if(!response.ok) throw new Error(result.error||'Promo belum dapat dimuat.'); data=result.data||[] }
+      try { const response=await fetch('/api/platform-staff-workspace',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+(session?.access_token||'')},body:JSON.stringify({action:'promotions_list'})}); const result=await response.json(); if(!response.ok) throw new Error(result.error||'Promo belum dapat dimuat.'); data=result.data||[] }
       catch (error) { queryError=error }
     } else ({ data, error: queryError } = await supabase.from('site_promotions').select('*').order('created_at', { ascending: false }))
     if (queryError) {
@@ -114,7 +114,7 @@ export default function PromotionManager({ onBack, onSignOut, staffMode = false,
     const payload = { title: form.title.trim() || 'Penawaran khusus acoPos', description: form.description.trim(), discount_type: form.discount_type, discount_value: Number(form.discount_value), eligible_periods: form.eligible_periods, promo_code: form.requires_code ? form.promo_code.trim().toUpperCase() : null, requires_code: form.requires_code, starts_at: dateValue(form.starts_at), ends_at: dateValue(form.ends_at), is_active: form.is_active, updated_at: new Date().toISOString() }
     let result = { error: null }
     if (staffMode) {
-      try { const response=await fetch('/.netlify/functions/platform-staff-workspace',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+(session?.access_token||'')},body:JSON.stringify({action:'promotions_save',promotion:{...payload,id:editingId||undefined}})}); const resultBody=await response.json(); if(!response.ok) throw new Error(resultBody.error||'Promo belum berhasil disimpan.') }
+      try { const response=await fetch('/api/platform-staff-workspace',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+(session?.access_token||'')},body:JSON.stringify({action:'promotions_save',promotion:{...payload,id:editingId||undefined}})}); const resultBody=await response.json(); if(!response.ok) throw new Error(resultBody.error||'Promo belum berhasil disimpan.') }
       catch (error) { result.error=error }
     } else {
       result = editingId
@@ -130,7 +130,7 @@ export default function PromotionManager({ onBack, onSignOut, staffMode = false,
   const toggle = async (promo) => {
     setError(''); setNotice('')
     let updateError = null
-    if (staffMode) { try { const response=await fetch('/.netlify/functions/platform-staff-workspace',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+(session?.access_token||'')},body:JSON.stringify({action:'promotions_toggle',id:promo.id,is_active:!promo.is_active})}); const result=await response.json(); if(!response.ok) throw new Error(result.error||'Status promo belum berhasil diubah.') } catch(error) { updateError=error } }
+    if (staffMode) { try { const response=await fetch('/api/platform-staff-workspace',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+(session?.access_token||'')},body:JSON.stringify({action:'promotions_toggle',id:promo.id,is_active:!promo.is_active})}); const result=await response.json(); if(!response.ok) throw new Error(result.error||'Status promo belum berhasil diubah.') } catch(error) { updateError=error } }
     else ({ error: updateError } = await supabase.from('site_promotions').update({ is_active: !promo.is_active, updated_at: new Date().toISOString() }).eq('id', promo.id))
     if (updateError) setError(promotionErrorMessage(updateError))
     else { setNotice(!promo.is_active ? 'Promo diaktifkan.' : 'Promo dinonaktifkan.'); await load() }
@@ -138,7 +138,7 @@ export default function PromotionManager({ onBack, onSignOut, staffMode = false,
   const remove = async (promo) => {
     if (!window.confirm('Hapus promo "' + promo.title + '"?')) return
     let deleteError = null
-    if (staffMode) { try { const response=await fetch('/.netlify/functions/platform-staff-workspace',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+(session?.access_token||'')},body:JSON.stringify({action:'promotions_delete',id:promo.id})}); const result=await response.json(); if(!response.ok) throw new Error(result.error||'Promo belum berhasil dihapus.') } catch(error) { deleteError=error } }
+    if (staffMode) { try { const response=await fetch('/api/platform-staff-workspace',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+(session?.access_token||'')},body:JSON.stringify({action:'promotions_delete',id:promo.id})}); const result=await response.json(); if(!response.ok) throw new Error(result.error||'Promo belum berhasil dihapus.') } catch(error) { deleteError=error } }
     else ({ error: deleteError } = await supabase.from('site_promotions').delete().eq('id', promo.id))
     if (deleteError) setError(promotionErrorMessage(deleteError))
     else { setNotice('Promo dihapus.'); if (editingId === promo.id) reset(); await load() }
