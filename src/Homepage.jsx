@@ -52,12 +52,12 @@ const promoDiscountLabel = (promo) => {
 }
 function Brand({ footer = false }) {
   return <a className={'living-brand' + (footer ? ' living-brand-footer' : '')} href="/" aria-label="NexaPos beranda">
-    <img src="/chillpos-mark.svg" alt="" />
+    <img src="/nexapos-mark.svg" alt="" />
     <span>NexaPos<small>BUSINESS OPERATIONS</small></span>
   </a>
 }
 export default function Homepage() {
-  const [plans, setPlans] = useState(fallbackPlans)
+  const [plans, setPlans] = useState([])
   const [durations, setDurations] = useState(fallbackDurations)
   const [selectedDuration, setSelectedDuration] = useState('monthly')
   const [promos, setPromos] = useState([])
@@ -139,10 +139,11 @@ export default function Homepage() {
         setDurations(nextDurations)
         setSelectedDuration(current => nextDurations.some(d => d.duration_key === current) ? current : (nextDurations.find(d => d.duration_key === 'yearly')?.duration_key || nextDurations[0]?.duration_key || 'yearly'))
       }
-      if (mounted && !packageResult.error && Array.isArray(packageResult.data) && packageResult.data.length) {
-        setPlans(packageResult.data.filter(plan => ['starter', 'growth', 'business', 'enterprise', 'single_workspace'].includes(String(plan.package_key || '').trim().toLowerCase()) && !/custom/i.test(String(plan.name || ''))).map(plan => ({
+      if (mounted) {
+        const configuredPackages = !packageResult.error && Array.isArray(packageResult.data) ? packageResult.data : []
+        setPlans(configuredPackages.filter(plan => ['starter', 'growth', 'business', 'enterprise'].includes(String(plan.package_key || '').trim().toLowerCase()) && !/custom/i.test(String(plan.name || ''))).map(plan => ({
           ...plan,
-          prices: { ...(fallbackPlans.find(fallback => fallback.key === plan.package_key)?.prices || {}), ...(plan.prices && typeof plan.prices === 'object' ? plan.prices : {}) },
+          prices: plan.prices && typeof plan.prices === 'object' ? plan.prices : {},
           key: plan.package_key,
           location_limit: Number(plan.location_limit),
           popular: Boolean(plan.is_popular),
@@ -233,7 +234,7 @@ export default function Homepage() {
       'Halo Tim NexaPos, saya ingin menanyakan penyewaan layanan.',
       'Paket: ' + plan.name + ' (' + Number(plan.location_limit || 1) + ' tenant tambahan)',
       'Masa sewa: ' + (plan.duration || selectedDuration),
-      'Harga normal: ' + money(plan.price),
+      plan.price == null ? 'Harga belum tersedia pada homepage; mohon konfirmasi harga terbaru.' : 'Harga normal: ' + money(plan.price),
       promo ? 'Promo: ' + (promo.title || promo.promo_code || 'Promo NexaPos') : '',
       promo ? 'Perkiraan harga setelah diskon: ' + money(Number(quote?.final_price ?? plan.price)) : '',
       coupon.trim() ? 'Kode kupon: ' + coupon.trim().toUpperCase() : '',
@@ -271,7 +272,7 @@ export default function Homepage() {
         <div className="living-stage" aria-label="Ilustrasi alur NexaPos">
           <div className="living-stage-ring ring-one" /><div className="living-stage-ring ring-two" /><div className="living-stage-ring ring-three" />
           <div className="living-stage-label label-top"><span>CONNECTED OPERATIONS</span><i /></div>
-          <div className="living-stage-core"><img src="/chillpos-mark.svg" alt="" /><span>ONE SYSTEM</span></div>
+          <div className="living-stage-core"><img src="/nexapos-mark.svg" alt="" /><span>ONE SYSTEM</span></div>
           <div className="living-node node-pos"><span className="living-node-icon"><ShoppingCart size={18}/></span><small>01 / POS</small><b>Transaksi</b><i>LIVE</i></div>
           <div className="living-node node-team"><span className="living-node-icon"><Users size={18}/></span><small>02 / TEAM</small><b>Tim bekerja</b><i>SYNC</i></div>
           <div className="living-node node-queue"><span className="living-node-icon"><Monitor size={18}/></span><small>03 / QUEUE</small><b>Antrean</b><i>LIVE</i></div>
@@ -283,16 +284,23 @@ export default function Homepage() {
       </section>
 
       <section className="living-manifesto living-reveal">
-        <div className="living-manifesto-index">CHILLPOS / 2026</div>
+        <div className="living-manifesto-index">NEXAPOS / 2026</div>
         <div className="living-manifesto-copy"><span>SEBUAH USAHA ADALAH ALUR YANG SALING TERHUBUNG.</span><h2>Ketika satu hal bergerak,<br/><em>semuanya ikut bergerak.</em></h2></div>
         <div className="living-manifesto-note">Bukan sekadar mencatat pembayaran. NexaPos membantu pemilik usaha menghubungkan pekerjaan kasir, tim, produk, persediaan, laporan, dan layanan pelanggan dalam satu alur operasional.</div>
         <div className="cinema-marquee" aria-label="Manage, monitor, connect, grow"><div><span>MANAGE</span><i>✳</i><span>MONITOR</span><i>✳</i><span>CONNECT</span><i>✳</i><span>GROW</span><i>✳</i><span>MANAGE</span></div></div>
       </section>
 
+
+      <section className="nx-home-overview living-reveal" id="tentang-nexapos">
+        <div className="nx-home-overview-copy"><span className="nx-home-overline">MENGENAL NEXAPOS</span><h2>Satu aplikasi web untuk mengelola <em>seluruh alur operasional bisnis.</em></h2><p>NexaPos membantu pemilik usaha dan tim mengelola transaksi kasir, produk, persediaan, karyawan, antrean, dan laporan melalui workspace yang terhubung. Untuk pengelolaan beberapa workspace, NexaSpace menyediakan pusat kendali perusahaan.</p></div>
+        <div className="nx-home-overview-grid"><article><b>01 / OPERASIONAL</b><strong>Kelola aktivitas harian</strong><p>Catat transaksi, atur produk dan stok, kelola akun tim, serta tinjau laporan penjualan.</p></article><article><b>02 / STRUKTUR</b><strong>Single Workspace atau NexaSpace</strong><p>Gunakan workspace mandiri atau kelola perusahaan dengan tenant-tenant terpisah melalui NexaSpace.</p></article><article><b>03 / LAYANAN</b><strong>Self Order dan antrean</strong><p>Pelanggan dapat mengirim pesanan dan bukti pembayaran melalui Self Order. Kasir memeriksa pembayaran sebelum pesanan diproses.</p></article></div>
+        <div className="nx-home-overview-flow"><span>DAFTAR / AKTIVASI</span><i>→</i><span>SIAPKAN WORKSPACE</span><i>→</i><span>ATUR TIM & PRODUK</span><i>→</i><span>JALANKAN BISNIS</span></div>
+      </section>
+
       <section className="living-bridge living-reveal" id="pusat-kendali">
         <div className="living-bridge-line" aria-hidden="true" />
         <div className="living-bridge-copy"><span className="living-eyebrow">PUSAT KENDALI / OWNER CONTROL CENTER</span><h2>Satu Perusahaan.<br/><em>Tenant tetap dalam kendali.</em></h2><p>Pusat Kendali adalah pusat kendali pemilik Perusahaan untuk melihat daftar tenant, memilih workspace yang akan dikelola, memantau ringkasan bisnis, serta mengatur tim dan pengaturan Perusahaan dari satu tempat.</p><a className="living-inline-link" href="/login">Masuk ke Pusat Kendali <ArrowUpRight size={15}/></a></div>
-        <div className="living-bridge-map"><div className="living-map-core"><img src="/chillpos-mark.svg" alt=""/><span>Pusat Kendali</span></div><div className="living-map-item map-one"><Store size={17}/><span>Perusahaan</span></div><div className="living-map-item map-two"><Users size={17}/><span>Tim</span></div><div className="living-map-item map-three"><Monitor size={17}/><span>Tenant</span></div><div className="living-map-item map-four"><BarChart3 size={17}/><span>Laporan</span></div><div className="living-map-link link-one"/><div className="living-map-link link-two"/><div className="living-map-link link-three"/><div className="living-map-link link-four"/></div>
+        <div className="living-bridge-map"><div className="living-map-core"><img src="/nexapos-mark.svg" alt=""/><span>Pusat Kendali</span></div><div className="living-map-item map-one"><Store size={17}/><span>Perusahaan</span></div><div className="living-map-item map-two"><Users size={17}/><span>Tim</span></div><div className="living-map-item map-three"><Monitor size={17}/><span>Tenant</span></div><div className="living-map-item map-four"><BarChart3 size={17}/><span>Laporan</span></div><div className="living-map-link link-one"/><div className="living-map-link link-two"/><div className="living-map-link link-three"/><div className="living-map-link link-four"/></div>
       </section>
 
       <section className="living-story" id="cerita">
@@ -309,7 +317,7 @@ export default function Homepage() {
             <div className="living-demo-top"><span>{currentScene.tag}</span><span><i/> SYSTEM FLOW</span></div>
             <div className="living-demo-copy"><span className="living-demo-index">{currentScene.index} / 03</span><span className="living-eyebrow">{currentScene.eyebrow}</span><h3>{currentScene.title}</h3><p>{currentScene.description}</p><div className="living-demo-status"><span className="living-demo-status-icon"><SceneIcon size={19}/></span><span><small>STATUS SIMULASI</small><b>{currentScene.status}</b></span><CheckCircle2 size={19}/></div></div>
             <div className="living-demo-graphic">
-              {scene==='kasir' && <><div className="living-receipt"><div className="living-receipt-head"><span>CHILLPOS / POS</span><span>ORDER #0128</span></div><div className="living-receipt-item"><span>Kopi susu</span><b>Rp18.000</b></div><div className="living-receipt-item"><span>Roti panggang</span><b>Rp15.000</b></div><div className="living-receipt-total"><span>TOTAL</span><b>Rp33.000</b></div><div className="living-receipt-paid"><Check size={14}/> PEMBAYARAN TERCATAT</div></div><div className="living-demo-orb"><ShoppingCart size={24}/><span>TRANSACTION<br/>COMPLETE</span></div></>}
+              {scene==='kasir' && <><div className="living-receipt"><div className="living-receipt-head"><span>NEXAPOS / POS</span><span>ORDER #0128</span></div><div className="living-receipt-item"><span>Kopi susu</span><b>Rp18.000</b></div><div className="living-receipt-item"><span>Roti panggang</span><b>Rp15.000</b></div><div className="living-receipt-total"><span>TOTAL</span><b>Rp33.000</b></div><div className="living-receipt-paid"><Check size={14}/> PEMBAYARAN TERCATAT</div></div><div className="living-demo-orb"><ShoppingCart size={24}/><span>TRANSACTION<br/>COMPLETE</span></div></>}
               {scene==='tim' && <><div className="living-team-stack"><div><span className="living-avatar avatar-a">A</span><span><b>Kasir A</b><small>Transaksi #0128</small></span><i>Aktif</i></div><div><span className="living-avatar avatar-b">B</span><span><b>Kasir B</b><small>Transaksi #0129</small></span><i>Aktif</i></div><div><span className="living-avatar avatar-c">C</span><span><b>Kasir C</b><small>Transaksi #0130</small></span><i>Aktif</i></div></div><div className="living-demo-orb"><Users size={24}/><span>MULTI-USER<br/>WORKSPACE</span></div></>}
               {scene==='antrian' && <><div className="living-tv-card"><span>ANTREAN BERIKUTNYA</span><strong>A012</strong><b>Loket / Kasir 2</b><small>Nama pelanggan: Rina</small></div><div className="living-demo-orb"><Monitor size={24}/><span>QUEUE<br/>OPERATIONS</span></div></>}
             </div>
@@ -321,10 +329,10 @@ export default function Homepage() {
       <section className="living-bridge">
         <div className="living-bridge-line" aria-hidden="true" />
         <div className="living-bridge-copy living-reveal"><span className="living-eyebrow">FROM ONE ACTION TO THE NEXT</span><h2>Lebih sedikit proses terpisah.<br/><em>Lebih banyak hal yang terhubung.</em></h2><p>Satukan proses penjualan, aktivitas karyawan, pengelolaan produk, dan layanan pelanggan agar pemilik usaha punya gambaran operasional yang lebih utuh.</p><a className="living-inline-link" href="#fitur">Jelajahi ekosistem <ArrowRight size={15}/></a></div>
-        <div className="living-bridge-map living-reveal"><div className="living-map-core"><img src="/chillpos-mark.svg" alt=""/><span>NexaPos</span></div><div className="living-map-item map-one"><ShoppingCart size={17}/><span>Transaksi</span></div><div className="living-map-item map-two"><Users size={17}/><span>Karyawan</span></div><div className="living-map-item map-three"><Monitor size={17}/><span>Antrean</span></div><div className="living-map-item map-four"><BarChart3 size={17}/><span>Laporan</span></div><div className="living-map-link link-one"/><div className="living-map-link link-two"/><div className="living-map-link link-three"/><div className="living-map-link link-four"/></div>
+        <div className="living-bridge-map living-reveal"><div className="living-map-core"><img src="/nexapos-mark.svg" alt=""/><span>NexaPos</span></div><div className="living-map-item map-one"><ShoppingCart size={17}/><span>Transaksi</span></div><div className="living-map-item map-two"><Users size={17}/><span>Karyawan</span></div><div className="living-map-item map-three"><Monitor size={17}/><span>Antrean</span></div><div className="living-map-item map-four"><BarChart3 size={17}/><span>Laporan</span></div><div className="living-map-link link-one"/><div className="living-map-link link-two"/><div className="living-map-link link-three"/><div className="living-map-link link-four"/></div>
       </section>
 
-      {activePromo && <div className="living-promo-spotlight" aria-label="Promo NexaPos"><div className="living-promo-spotlight-orbit" aria-hidden="true"/><div className="living-promo-spotlight-label"><Sparkles size={16}/> PENAWARAN CHILLPOS <span className="living-live-dot"/></div><div className="living-promo-spotlight-main"><div><span className="living-eyebrow">PENAWARAN TERBATAS / CHILLPOS</span><h2>{activePromo.title || 'Penawaran khusus NexaPos'}</h2><p>{activePromo.description || 'Dapatkan harga khusus untuk masa akses NexaPos pilihanmu.'}</p><div className="living-promo-spotlight-meta"><span><CheckCircle2 size={14}/> Ketentuan mengikuti paket dan durasi yang memenuhi syarat</span>{activePromo.starts_at && <span><Activity size={14}/> Mulai {new Date(activePromo.starts_at).toLocaleString('id-ID',{day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit',timeZone:'Asia/Jakarta'})} WIB</span>}</div></div><div className="living-promo-spotlight-value"><small>DISKON</small><strong>{promoDiscountLabel(activePromo)}</strong><span>{promoStartsLater ? 'Segera dimulai' : requiresPromoCode(activePromo) ? 'Gunakan kode promo' : 'Potongan otomatis jika memenuhi syarat'}</span></div></div><a className="living-cta living-cta-light" href="#harga">Lihat harga setelah diskon <ArrowRight size={15}/></a></div>}
+      {activePromo && <div className="living-promo-spotlight" aria-label="Promo NexaPos"><div className="living-promo-spotlight-orbit" aria-hidden="true"/><div className="living-promo-spotlight-label"><Sparkles size={16}/> PENAWARAN NEXAPOS <span className="living-live-dot"/></div><div className="living-promo-spotlight-main"><div><span className="living-eyebrow">PENAWARAN TERBATAS / NEXAPOS</span><h2>{activePromo.title || 'Penawaran khusus NexaPos'}</h2><p>{activePromo.description || 'Dapatkan harga khusus untuk masa akses NexaPos pilihanmu.'}</p><div className="living-promo-spotlight-meta"><span><CheckCircle2 size={14}/> Ketentuan mengikuti paket dan durasi yang memenuhi syarat</span>{activePromo.starts_at && <span><Activity size={14}/> Mulai {new Date(activePromo.starts_at).toLocaleString('id-ID',{day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit',timeZone:'Asia/Jakarta'})} WIB</span>}</div></div><div className="living-promo-spotlight-value"><small>DISKON</small><strong>{promoDiscountLabel(activePromo)}</strong><span>{promoStartsLater ? 'Segera dimulai' : requiresPromoCode(activePromo) ? 'Gunakan kode promo' : 'Potongan otomatis jika memenuhi syarat'}</span></div></div><a className="living-cta living-cta-light" href="#harga">Lihat harga setelah diskon <ArrowRight size={15}/></a></div>}
 
       <section className="living-features" id="fitur">
         <div className="living-section-head living-reveal"><div><span className="living-eyebrow">THE DIGITAL PRODUCT GALLERY</span><h2>Setiap fitur punya ruang.<br/><em>Setiap proses punya tujuan.</em></h2></div><p>Jelajahi fitur utama NexaPos dan kenali perannya dalam aktivitas bisnis sehari-hari.</p></div>
@@ -334,7 +342,7 @@ export default function Homepage() {
 
       <section className="cinema-product-scene cinema-pos-scene" id="cinema-pos">
         <div className="cinema-product-copy"><span className="cinema-eyebrow">06 / THE POS EXPERIENCE</span><h2>Pelayanan pelanggan.<br/><em>Dalam alur yang jelas.</em></h2><p>Perlihatkan bagaimana tim memilih produk, memeriksa keranjang, dan memahami ringkasan transaksi dalam satu alur kasir.</p><span className="cinema-demo-label">SIMULASI ANTARMUKA • BUKAN TRANSAKSI NYATA</span></div>
-        <div className="cinema-pos-preview"><div className="cinema-preview-top"><span/> <span/> <span/><b>CHILLPOS / POS PREVIEW</b></div><div className="cinema-pos-preview-body"><div><b>Daftar produk</b><small>Katalog dan kategori</small><i/><i/><i/><i/></div><aside><b>Keranjang</b><span>Produk contoh <strong>—</strong></span><span>Jumlah item <strong>—</strong></span><hr/><span>Total transaksi <strong>Preview</strong></span><small>Simulasi visual, tidak menyimpan transaksi.</small></aside></div></div>
+        <div className="cinema-pos-preview"><div className="cinema-preview-top"><span/> <span/> <span/><b>NEXAPOS / POS PREVIEW</b></div><div className="cinema-pos-preview-body"><div><b>Daftar produk</b><small>Katalog dan kategori</small><i/><i/><i/><i/></div><aside><b>Keranjang</b><span>Produk contoh <strong>—</strong></span><span>Jumlah item <strong>—</strong></span><hr/><span>Total transaksi <strong>Preview</strong></span><small>Simulasi visual, tidak menyimpan transaksi.</small></aside></div></div>
       </section>
       <section className="cinema-product-scene cinema-inventory-scene" id="cinema-inventory">
         <div className="cinema-inventory-preview"><div><b>Produk & inventaris</b><span>PREVIEW UI</span></div><article><i/><span><b>Produk</b><small>Informasi katalog</small></span><em>Detail</em></article><article><i/><span><b>Kategori</b><small>Pengelompokan produk</small></span><em>Detail</em></article><article><i/><span><b>Persediaan</b><small>Informasi stok</small></span><em>Detail</em></article><article><i/><span><b>Riwayat stok</b><small>Perubahan inventaris</small></span><em>Detail</em></article></div>
@@ -342,7 +350,7 @@ export default function Homepage() {
       </section>
       <section className="cinema-product-scene cinema-selforder-scene" id="cinema-self-order">
         <div className="cinema-product-copy"><span className="cinema-eyebrow">08 / THE SELF ORDER EXPERIENCE</span><h2>Berikan pelanggan<br/><em>ruang untuk memesan.</em></h2><p>Perkenalkan pengalaman Self Order melalui katalog, keranjang, ringkasan pesanan, dan instruksi pembayaran.</p><span className="cinema-demo-label">DEMO • BUKAN PESANAN NYATA</span></div>
-        <div className="cinema-phone-preview"><div className="cinema-phone-screen"><img src="/chillpos-mark.svg" alt=""/><small>SELF ORDER / PREVIEW</small><h3>Menu toko</h3><article><i/><span><b>Produk contoh</b><small>Detail produk</small></span><em>+</em></article><article><i/><span><b>Produk pilihan</b><small>Detail produk</small></span><em>+</em></article><div className="cinema-phone-summary">Ringkasan pesanan <b>Demo checkout</b></div></div></div>
+        <div className="cinema-phone-preview"><div className="cinema-phone-screen"><img src="/nexapos-mark.svg" alt=""/><small>SELF ORDER / PREVIEW</small><h3>Menu toko</h3><article><i/><span><b>Produk contoh</b><small>Detail produk</small></span><em>+</em></article><article><i/><span><b>Produk pilihan</b><small>Detail produk</small></span><em>+</em></article><div className="cinema-phone-summary">Ringkasan pesanan <b>Demo checkout</b></div></div></div>
       </section>
       <section className="cinema-product-scene cinema-data-scene" id="cinema-data">
         <div className="cinema-data-heading"><span className="cinema-eyebrow">09 / THE DATA DIMENSION</span><h2>Informasi untuk<br/><em>memahami aktivitas bisnis.</em></h2><p>Ringkasan transaksi, laporan penjualan, dan informasi produk membantu pemilik usaha membaca aktivitas operasional.</p></div>
@@ -357,13 +365,13 @@ export default function Homepage() {
 
       <section className="living-pricing living-pricing-redesign" id="harga">
         <div className="living-section-head living-reveal">
-          <div><span className="living-eyebrow">PAKET SEWA CHILLPOS / 04</span><h2>Satu sistem untuk bisnismu.<br/><em>Pilih kapasitas dan masa sewa.</em></h2></div>
+          <div><span className="living-eyebrow">PAKET SEWA NEXAPOS / 04</span><h2>Satu sistem untuk bisnismu.<br/><em>Pilih kapasitas dan masa sewa.</em></h2></div>
           <p>Gunakan fitur operasional NexaPos sesuai kebutuhan usaha. Pilih paket yang tersedia atau konsultasikan Paket Khusus untuk menentukan masa aktif dan jumlah tenant sesuai kebutuhan bisnismu. Kode aktivasi diterbitkan dan diproses oleh Super Admin.</p>
         </div>
         {activePromo && <article className="living-pricing-promo living-promo-feature" aria-live="polite">
           <div className="living-promo-feature-mark"><Sparkles size={23}/><span>LIMITED<br/>OFFER</span></div>
           <div className="living-promo-feature-copy">
-            <div className="living-promo-kicker"><span className="living-live-dot"/> {promoStartsLater ? 'PROMO SEGERA HADIR' : requiresPromoCode(activePromo) ? 'VOUCHER TERSEDIA' : 'PROMO DARI CHILLPOS'} <span className="living-promo-kicker-line"/></div>
+            <div className="living-promo-kicker"><span className="living-live-dot"/> {promoStartsLater ? 'PROMO SEGERA HADIR' : requiresPromoCode(activePromo) ? 'VOUCHER TERSEDIA' : 'PROMO DARI NEXAPOS'} <span className="living-promo-kicker-line"/></div>
             <h3>{activePromo.title || 'Penawaran khusus NexaPos'}</h3>
             <p>{activePromo.description || 'Dapatkan harga khusus untuk paket aktivasi pilihanmu.'}</p>
             <div className="living-promo-details">
@@ -392,22 +400,25 @@ export default function Homepage() {
           <button type="button" onClick={()=>setCoupon(p.promo_code||'')} disabled={!p.promo_code}>{p.promo_code?'Pakai voucher':'Kode tidak tersedia'} <ArrowRight size={13}/></button>
         </article>)}</div>}
         <div className="living-plan-grid living-plan-grid-redesign">
+          {!plans.length && <div className="living-no-promo"><span><Activity size={16}/></span><div><b>Informasi paket belum dapat dimuat</b><p>Silakan muat ulang halaman atau hubungi tim NexaPos untuk memperoleh informasi aktivasi terbaru.</p></div></div>}
           {plans.map((plan,index)=>{
             const duration=durations.find(d=>d.duration_key===selectedDuration) || durations[0]
-            const basePrice=Math.max(0,Number(plan.prices?.[selectedDuration] ?? 0))
-            const pricedPlan={...plan,price:basePrice,duration:duration?.name||selectedDuration,duration_days:Number(duration?.duration_days||0)}
+            const hasConfiguredPrice=Boolean(plan.prices && Object.prototype.hasOwnProperty.call(plan.prices,selectedDuration) && plan.prices[selectedDuration] !== null && plan.prices[selectedDuration] !== '')
+            const basePrice=hasConfiguredPrice?Math.max(0,Number(plan.prices[selectedDuration])):0
             const serverQuote=serverQuotes[plan.key]
+            const hasPrice=hasConfiguredPrice || Boolean(serverQuote?.ok)
+            const pricedPlan={...plan,price:hasPrice?basePrice:null,duration:duration?.name||selectedDuration,duration_days:Number(duration?.duration_days||0)}
             const displayPromo=serverQuote?.promo_id?{id:serverQuote.promo_id,title:serverQuote.promo_title,description:serverQuote.promo_description,discount_type:serverQuote.discount_type,discount_value:serverQuote.discount_value,eligible_periods:serverQuote.eligible_periods,promo_code:serverQuote.promo_code,requires_code:serverQuote.requires_code,starts_at:serverQuote.starts_at,ends_at:serverQuote.ends_at}:null
             const isEligible=Boolean(displayPromo)
             const discount=isEligible?Math.max(0,Number(serverQuote?.discount||0)):0
-            const finalPrice=Math.max(0,Number(serverQuote?.final_price ?? basePrice))
+            const finalPrice=hasPrice?Math.max(0,Number(serverQuote?.final_price ?? basePrice)):null
             const planFeatures=plan.features?.length?plan.features:defaultFeatures
             return <article className={'living-plan living-plan-redesign'+(plan.popular?' is-popular':'')+(selectedPlan===plan.key?' is-selected':'')} key={plan.key} style={{'--plan-index':index}} onClick={()=>setSelectedPlan(plan.key)}>
               <div className="living-plan-top"><span>{plan.name}</span>{plan.popular&&<b>REKOMENDASI</b>}</div>
               <p className="living-plan-note">{plan.note || 'Pilihan kapasitas tenant tambahan sesuai kebutuhan bisnismu.'}</p>
               <div className="living-plan-location"><Store size={14}/> Kuota {Number(plan.location_limit||1)} tenant tambahan di luar workspace utama</div>
               <div className="living-plan-price-label">{discount>0?'HARGA PROMO':'HARGA PAKET SEWA'}</div>
-              <div className="living-price living-price-redesign">{discount>0&&<del>{money(basePrice)}</del>}<strong>{money(finalPrice)}</strong><small>/ {duration?.name||'masa sewa'} ({Number(duration?.duration_days||0)} hari)</small></div>
+              <div className="living-price living-price-redesign">{hasPrice ? <>{discount>0&&<del>{money(basePrice)}</del>}<strong>{money(finalPrice)}</strong><small>/ {duration?.name||'masa sewa'} ({Number(duration?.duration_days||0)} hari)</small></> : <><strong>Hubungi admin</strong><small>Harga belum tersedia untuk durasi ini</small></>}</div>
               {discount>0&&<div className="living-saving living-saving-redesign"><Zap size={13}/> Hemat {money(discount)} <b>−{promoDiscountLabel(displayPromo)}</b></div>}
               {displayPromo && !isEligible && <div className="living-plan-ineligible">Promo tidak berlaku untuk durasi ini</div>}
               <div className="living-plan-divider"/>
