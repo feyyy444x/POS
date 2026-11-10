@@ -4,7 +4,7 @@ acoPos is a responsive point-of-sale and business-operations platform built with
 
 ## Included modules
 - Super Admin activation and account management
-- NexaSpace-style company control center presented as **acoPos Control Center**, plus tenant management
+- **acoPos Control Center** for company-level management, plus tenant management
 - Single Workspace registration and conversion to a company subscription
 - Role-based Owner, Manager, and Karyawan access with PIN verification
 - Product catalog, stock, categories, SKU/barcode, and pricing
