@@ -1,5 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-/* CHILLPOS — SOFT MOTION PREMIUM
+/* acoPos — SOFT MOTION PREMIUM
    Shared visual foundation for every route and role. Business behavior stays in React/Supabase. */
 :root{
   color-scheme:light;
@@ -242,11 +242,11 @@ td,th{line-height:1.55}
   .access-card,.access-form{padding:22px!important}
 }
 
-.chillpos-module-loading{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:var(--cp-ivory);color:var(--cp-muted);font-size:12px}
-.chillpos-module-loading .spinner{border-color:#d8ddd2!important;border-top-color:var(--cp-olive)!important}
+.acoPos-module-loading{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:var(--cp-ivory);color:var(--cp-muted);font-size:12px}
+.acoPos-module-loading .spinner{border-color:#d8ddd2!important;border-top-color:var(--cp-olive)!important}
 
 
-/* ChillPos final page-level polish: access, self-order, admin pricing/promos and support. */
+/* acoPos final page-level polish: access, self-order, admin pricing/promos and support. */
 /* Authentication / activation portal */
 .access-portal{
   --access-navy:var(--cp-ink);--access-deep:var(--cp-ivory);--access-teal:var(--cp-olive);
