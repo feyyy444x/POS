@@ -8,7 +8,7 @@ import {
 } from 'lucide-react'
 import { isSupabaseConfigured, supabase } from './lib/supabase'
 import { userFacingError } from './lib/userFacingError'
-import { saveOfflineStoreSnapshot, getOfflineStoreSnapshot, enqueueOfflineCashSale, listOfflineOutbox, updateOfflineOutboxRecord, OFFLINE_OUTBOX_STATUS } from './lib/offlineDatabase'
+import { saveOfflineStoreSnapshot, getOfflineStoreSnapshot, enqueueOfflineCashSale, requestOfflineStoragePersistence, listOfflineOutbox, updateOfflineOutboxRecord, OFFLINE_OUTBOX_STATUS } from './lib/offlineDatabase'
 import { syncOfflineCashOutbox } from './lib/offlineSync'
 import { validateAndStoreOfflineLicense, getOfflineLicenseStatus } from './lib/offlineLicense'
 import { AuthScreen, FreeRegistrationCompletion, PinGate } from './AccessPortal.jsx'
@@ -1215,6 +1215,7 @@ function App() {
           return false
         }
         setOfflineAccess({ ...license, isOffline: true })
+        const storageProtection = await requestOfflineStoragePersistence()
         const requestId = checkoutRequestIdRef.current
         await enqueueOfflineCashSale({
           storeId: store.id, userId: session.user.id, requestId,
@@ -1242,7 +1243,7 @@ function App() {
         setOfflineOutbox(await listOfflineOutbox({ storeId: store.id, userId: session.user.id }))
         checkoutRequestIdRef.current = null
         setCart([]); setPaidAmount(''); setDiscount('0'); setQueueCustomer('')
-        setNotice('Transaksi tersimpan di perangkat dengan status MENUNGGU SINKRONISASI. Belum tercatat sebagai transaksi server.')
+        setNotice('Transaksi tersimpan di perangkat dengan status MENUNGGU SINKRONISASI. Belum tercatat sebagai transaksi server.' + (storageProtection.granted ? '' : ' PERHATIAN: browser belum mengonfirmasi penyimpanan persisten. Jangan hapus data browser dan segera sinkronkan saat internet tersedia.'))
         return true
       } catch (error) {
         setNotice(userFacingError(error, 'Transaksi offline belum dapat disimpan secara aman.'))
