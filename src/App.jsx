@@ -517,6 +517,7 @@ function App() {
             setQueue(snapshot.queue || [])
             setOrderItems(snapshot.orderItems || [])
             setActiveShift(snapshot.activeShift || null)
+            setShiftBreak(snapshot.shiftBreak || null)
             setOfflineAccess({ ...license, isOffline: true })
             setOfflineOutbox(await listOfflineOutbox({ storeId: preferredStoreId, userId: session.user.id }))
             setSyncStatus('offline')
@@ -699,9 +700,9 @@ function App() {
     if (!store?.id || !session?.user?.id || !offlineLicense?.serverIssuedAt || typeof navigator === 'undefined' || !navigator.onLine) return
     saveOfflineStoreSnapshot({
       storeId: store.id, userId: session.user.id, store, membership, products, settings,
-      activeShift, orders, queue, orderItems, serverValidatedAt: offlineLicense.serverIssuedAt,
+      activeShift, shiftBreak, orders, queue, orderItems, serverValidatedAt: offlineLicense.serverIssuedAt,
     }).catch(error => console.warn('Offline workspace snapshot save failed:', error?.message || error))
-  }, [store, membership, products, settings, activeShift, orders, queue, orderItems, offlineLicense?.serverIssuedAt, session?.user?.id])
+  }, [store, membership, products, settings, activeShift, shiftBreak, orders, queue, orderItems, offlineLicense?.serverIssuedAt, session?.user?.id])
 
   useEffect(() => {
     if (!store?.id || !session?.user?.id || !offlineLicense?.serverIssuedAt || typeof navigator === 'undefined' || !navigator.onLine || offlineAccess?.isOffline) return
