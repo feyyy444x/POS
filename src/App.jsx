@@ -1244,7 +1244,13 @@ function App() {
       return
     }
     setQueueBusy(true)
-    const {data,error}=await supabase.rpc('complete_sale_idempotent',{p_store_id:store.id,p_items:cart.map(i=>({product_id:i.id,quantity:i.quantity})),p_discount:safeDiscount,p_payment_method:payMethod,p_paid_amount:paid,p_customer_name:settings?.queue_enabled===false?null:(queueCustomer||null),p_create_queue:settings?.queue_enabled!==false,p_request_id:checkoutRequestIdRef.current})
+    let checkoutResponse
+    try {
+      checkoutResponse = await supabase.rpc('complete_sale_idempotent',{p_store_id:store.id,p_items:cart.map(i=>({product_id:i.id,quantity:i.quantity})),p_discount:safeDiscount,p_payment_method:payMethod,p_paid_amount:paid,p_customer_name:settings?.queue_enabled===false?null:(queueCustomer||null),p_create_queue:settings?.queue_enabled!==false,p_request_id:checkoutRequestIdRef.current})
+    } catch (requestError) {
+      checkoutResponse = { data: null, error: requestError }
+    }
+    const { data, error } = checkoutResponse || {}
     if(error){
       setQueueBusy(false)
       const looksLikeNetworkFailure = !error.code || /fetch|network|timeout|connection/i.test(String(error.message||''))
