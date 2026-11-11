@@ -62,3 +62,20 @@ The PR's GitHub Actions workflow runs `supabase/tests/offline_shift_checkout_run
 - direct legacy RPC privilege denial and idempotent RPC privilege availability.
 
 This is a disposable schema fixture for the migration's checkout boundary. It is not a full clone of the production Supabase project; production schema/migration-ledger verification remains a separate release gate.
+
+## Manual QA checklist after keys and disposable migrations are ready
+
+1. Sign in to a tenant that has an active membership and active subscription. Open a cashier shift and wait for the license validation and workspace snapshot to finish.
+2. In browser developer tools, switch the network profile to Offline. Confirm the POS shows **MODE OFFLINE** and that only local POS cart/catalog actions and cash checkout remain usable.
+3. Create a cash sale. The printed/displayed receipt must say **BUKTI SEMENTARA · BELUM TERVERIFIKASI SERVER** and the outbox must show `pending_sync`.
+4. Reload the page while still offline. Confirm the store, products, cached shift/break state, pending sale, and locally reserved stock are restored for the same user and store.
+5. Try a QRIS/transfer sale, Self Order action, product edit, stock edit, staff action, and store settings save. These must remain blocked while offline.
+6. Try to sell more than the cached stock. The atomic IndexedDB reservation must reject the second sale without losing the first outbox record.
+7. Reconnect. Confirm pending records replay with the same request ID. Accepted records must show the server receipt number; changed totals, closed shifts, active breaks, and stock conflicts must become `needs_review`, not be silently retried.
+8. For a record with a server order, compare the server receipt and payment evidence before typing `COCOK` to complete manual review. For a rejected record, mark it rejected without deleting the local payload.
+9. Set a test package grace period to 0 hours in a disposable database and confirm the workspace becomes read-only. Test subscription expiry and a system-clock rollback greater than five minutes.
+10. Print the provisional receipt to the actual thermal printer used at the counter. Verify 58/80 mm layout, paper cut behavior, and that the pending watermark remains visible. A browser build cannot certify physical printer compatibility without this device test.
+
+## Trigger the disposable database test
+
+Open GitHub Actions → **acoPos CI** → **Run workflow** on `feature/acopos-offline-first-isolated`. The `Offline checkout database runtime tests` job creates an ephemeral PostgreSQL 16 service, applies the two PR migrations to its fixture schema, and runs shift/grace constraints. It does not connect to Supabase or production.
