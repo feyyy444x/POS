@@ -75,3 +75,10 @@
  .so-product-info strong{font-size:10px}
  .so-product-info b{font-size:10px}
 }
+
+/* Tenant branding in the public Self Order header */
+.so-brand-mark{overflow:hidden;flex:0 0 42px}
+.so-brand-mark img{display:block;width:100%;height:100%;object-fit:contain;background:#fff;border-radius:inherit}
+.so-brand-mark.is-fallback{background:#10243a;color:#fff}
+.so-brand-mark.is-fallback:empty{display:grid;place-items:center}
+.so-brand-mark span{display:grid;place-items:center;width:100%;height:100%}
