@@ -145,16 +145,14 @@ The existing service worker is an app-shell cache only. It must not be described
 
 ## Remaining work before this PR can be considered complete
 
-1. Run migration + pgTAP + authenticated-fixture integration tests against a disposable Supabase database.
-2. Complete the write-path audit for shift open/close/break, product CRUD, queue transitions, Self Order, refunds/voids, and tenant inactive read-only enforcement.
-3. Implement the versioned IndexedDB store snapshot and durable cash-only transaction outbox, with a server acknowledgement/reconciliation contract.
-4. Implement reconnect sync with idempotent replay, rejected/needs-review states, and no deletion before durable acknowledgement.
-5. Implement signed offline entitlement validation with the 72-hour default grace and Super Admin-configurable package policy; add clock rollback and expiry tests.
-6. Complete PWA asset/route/offline fallback tests, build, browser E2E, and real device/peripheral tests.
-7. Keep the PR draft and isolated until all gates pass and the user separately approves merge/deploy.
+1. Confirm GitHub Actions passes on the latest PR head, including behavioral sync and storage-persistence tests.
+2. Run the full ordered Supabase migration chain and pgTAP against a disposable Supabase project, with authenticated role fixtures. The current ephemeral PostgreSQL CI harness covers the new shift/license migration behavior but is not a full Supabase clone.
+3. Configure an isolated preview/test Supabase URL and service-role secret before setting any Netlify preview signing keys. The existing Netlify site has shared environment values that point to the production Supabase project; do not enable preview license issuance against production data.
+4. Add browser-level real IndexedDB E2E coverage for offline reload, browser restart, interrupted sync, duplicate retry, and conflict review.
+5. Test Android/Windows packaging and actual printer/scanner/cash-drawer/customer-display models. Do not claim compatibility until those physical tests pass.
+6. Keep the PR Draft and isolated. No merge, production deploy, or production migration without separate explicit approval.
 
-
-### Offline license key setup (required before any preview or release can issue licenses)
+## Offline license key setup (required before any preview or release can issue licenses)
 
 The signing key is intentionally not committed to this repository.
 
@@ -184,10 +182,13 @@ The signing key is intentionally not committed to this repository.
 - The client must obtain and verify a fresh server-signed license before replaying any pending offline sale.
 - The server still revalidates store operational status, membership, shift, current prices, and stock during each idempotent replay. A rejected or changed sale remains visible for human review; no silent acceptance or deletion.
 
-## Additional implementation progress
+## Additional implementation progress (2026-11-11)
 
-- Added versioned IndexedDB snapshot/outbox primitives in src/lib/offlineDatabase.js.
-- Added cash-only idempotent replay engine in src/lib/offlineSync.js. It preserves local records after acknowledgement and routes server/local total mismatches to needs_review.
-- Added static Node contract tests for the checkout guard, IndexedDB schema/immutability, and sync contract.
-- These modules are not yet connected to the checkout UI, and the offline license verifier/issuer is not implemented. Therefore offline POS is still not available to users.
-- GitHub CI on commit ee5fe5398a48a3e61ac15c0ffb24c5397750672c failed in existing regression/security test steps; build steps were skipped. See the audit document. A new focused test commit was added after that run and still needs a fresh CI execution.
+- IndexedDB v2, store/user-scoped snapshots, atomic cash outbox, persistent-storage permission request, immutable payload, and provisional local stock reservation are implemented.
+- Offline cash checkout is connected to the UI and creates a clearly marked temporary receipt; QRIS/transfer remain online-only.
+- Idempotent sync, durable acknowledgement retention, pending retry, needs-review handling, and manual reconciliation controls are connected.
+- Server-signed Ed25519 license issuer/verifier, 72-hour default grace, per-package Super Admin setting, subscription expiry enforcement, and best-effort clock rollback detection are implemented in the isolated branch.
+- Reconnect clears offline write mode and now blocks queued-sale replay until a fresh signed server license is verified.
+- CI previously passed application regression tests, production build, security checks, dependency audit, deployed-preview smoke checks, and the isolated PostgreSQL shift/license fixture. The newest changes add runtime sync tests and persistent-storage handling; their CI runs must complete before the latest head can be marked green.
+- Physical device/peripheral tests, full disposable Supabase migration-chain validation, Netlify preview signing-key configuration, and real-browser IndexedDB E2E remain pending. The Netlify site currently shares Supabase configuration that points to production, so no preview signing secrets will be enabled until an isolated test database is configured.
+- Offline functionality is integrated in this Draft PR branch, but not yet production-ready.
