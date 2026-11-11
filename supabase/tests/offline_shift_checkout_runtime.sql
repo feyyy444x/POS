@@ -51,6 +51,9 @@ create table public.cashier_shifts (
   cashier_id uuid not null,
   closed_at timestamptz
 );
+create table public.site_activation_packages (package_key text primary key);
+insert into public.site_activation_packages(package_key) values ('starter'),('single_workspace');
+
 create table public.cashier_shift_breaks (
   id uuid primary key default gen_random_uuid(),
   shift_id uuid not null,
@@ -86,6 +89,28 @@ end;
 $$;
 
 \i supabase/migrations/20261111130000_enforce_cashier_shift_on_checkout.sql
+\i supabase/migrations/20261111150000_offline_license_grace_period.sql
+
+do $
+declare
+  v_default text;
+begin
+  select column_default into v_default
+  from information_schema.columns
+  where table_schema='public' and table_name='site_activation_packages'
+    and column_name='offline_grace_hours';
+  if v_default is null or v_default not like '%72%' then
+    raise exception 'offline grace period must default to 72 hours';
+  end if;
+  update public.site_activation_packages set offline_grace_hours=24 where package_key='starter';
+  begin
+    update public.site_activation_packages set offline_grace_hours=169 where package_key='starter';
+    raise exception 'offline grace period accepted a value above 168 hours';
+  exception when check_violation then
+    null;
+  end;
+end;
+$;
 
 grant usage on schema public, auth, private to authenticated;
 grant execute on function auth.uid() to authenticated;
