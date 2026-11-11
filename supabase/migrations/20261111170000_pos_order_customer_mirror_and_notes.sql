@@ -97,7 +97,7 @@ create or replace function public.complete_sale_idempotent(
   p_customer_name text default null,
   p_create_queue boolean default true,
   p_request_id uuid default null,
-  p_customer_note text default null
+  p_customer_note text
 )
 returns jsonb
 language plpgsql
