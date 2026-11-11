@@ -1,5 +1,5 @@
 const DB_NAME = 'acopos-offline-pos'
-const DB_VERSION = 1
+const DB_VERSION = 2
 
 const SNAPSHOTS = 'store_snapshots'
 const OUTBOX = 'transaction_outbox'
@@ -47,9 +47,15 @@ export function openOfflineDatabase() {
     request.onupgradeneeded = () => {
       const db = request.result
 
+      // Snapshot data is a cache, so v1 snapshots can be safely rebuilt. Keep
+      // the durable transaction outbox untouched during this key migration.
+      if (request.oldVersion < 2 && db.objectStoreNames.contains(SNAPSHOTS)) {
+        db.deleteObjectStore(SNAPSHOTS)
+      }
       if (!db.objectStoreNames.contains(SNAPSHOTS)) {
-        const snapshots = db.createObjectStore(SNAPSHOTS, { keyPath: 'storeId' })
+        const snapshots = db.createObjectStore(SNAPSHOTS, { keyPath: ['storeId', 'userId'] })
         snapshots.createIndex('by_user', 'userId', { unique: false })
+        snapshots.createIndex('by_store', 'storeId', { unique: false })
       }
 
       if (!db.objectStoreNames.contains(OUTBOX)) {
@@ -121,7 +127,7 @@ export async function getOfflineStoreSnapshot(storeId, userId) {
   const db = await openOfflineDatabase()
   const transaction = db.transaction([SNAPSHOTS], 'readonly')
   const done = transactionResult(transaction)
-  const request = transaction.objectStore(SNAPSHOTS).get(storeId)
+  const request = transaction.objectStore(SNAPSHOTS).get([storeId, userId])
   const snapshot = await requestResult(request)
   await done
   if (!snapshot || snapshot.userId !== userId) return null
