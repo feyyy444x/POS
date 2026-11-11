@@ -19,7 +19,8 @@ test('offline licenses are verified with the pinned Ed25519 public key', () => {
 test('offline license issuer validates user membership and active subscription server-side', () => {
   assert.match(server, /admin\.auth\.getUser\(token\)/)
   assert.match(server, /store_members/)
-  assert.match(server, /membership\?\.is_active/)\n  assert.match(server, /membership\.disabled_at/)
+  assert.match(server, /membership\\?\\.is_active/)
+  assert.match(server, /membership\\.disabled_at/)
   assert.match(server, /owner_organizations/)
   assert.match(server, /site_activation_packages/)
   assert.match(server, /ACOPOS_LICENSE_PRIVATE_KEY/)
