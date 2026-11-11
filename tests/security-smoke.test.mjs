@@ -264,7 +264,7 @@ test('Tim & Hak Akses offers only full-access Admin acoPos role', () => {
 })
 
 
-const supportMigration = await readFile(new URL('supabase/migrations/20261029104814_acoPos_free_ai_support.sql', root), 'utf8')
+const supportMigration = await readFile(new URL('supabase/migrations/20261029104814_nexapos_free_ai_support.sql', root), 'utf8')
 const supportLockdownMigration = await readFile(new URL('supabase/migrations/20261029104857_lock_down_support_rpc.sql', root), 'utf8')
 const supportHandoffMigration = await readFile(new URL('supabase/migrations/20261029105000_refine_support_bot_handoff.sql', root), 'utf8')
 const supportHardenMigration = await readFile(new URL('supabase/migrations/20261029111824_harden_support_handoff_and_admin_reply.sql', root), 'utf8')
