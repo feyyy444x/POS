@@ -112,7 +112,11 @@ test('Chromium keeps offline POS data across reload/restart and serves the cache
 
   await page.goto('http://127.0.0.1:4174/', { waitUntil: 'domcontentloaded' })
   await page.evaluate(async () => {
-    if ('serviceWorker' in navigator) await navigator.serviceWorker.ready
+    if ('serviceWorker' in navigator) {
+      await navigator.serviceWorker.ready
+      return true
+    }
+    return false
   })
   await page.waitForFunction(() => Boolean(navigator.serviceWorker?.controller), { timeout: 20000 })
   await context.setOffline(true)
