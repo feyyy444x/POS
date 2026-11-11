@@ -218,18 +218,18 @@ export async function enqueueOfflineCashSale({
       transaction.abort()
       return
     }
+    let stockInvalid = false
     const nextProducts = snapshot.products.map(product => {
       const saleItem = record.items.find(item => item.product_id === product.id)
       if (!saleItem) return product
       const stock = Number(product.stock)
       if (!Number.isFinite(stock) || stock < saleItem.quantity) {
-        transaction.abort()
+        stockInvalid = true
         return product
       }
       return { ...product, stock: stock - saleItem.quantity }
     })
-    if (transaction.error) return
-    if (record.items.some(item => !snapshot.products.some(product => product.id === item.product_id))) {
+    if (stockInvalid || record.items.some(item => !snapshot.products.some(product => product.id === item.product_id))) {
       transaction.abort()
       return
     }
