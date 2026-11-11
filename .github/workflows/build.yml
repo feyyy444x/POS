@@ -52,6 +52,16 @@ jobs:
         uses: actions/checkout@v5
       - name: Run isolated checkout shift migration and runtime scenarios
         run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          fixture = Path("supabase/tests/offline_shift_checkout_runtime.sql").read_text()
+          for migration in (
+              "supabase/migrations/20261111130000_enforce_cashier_shift_on_checkout.sql",
+              "supabase/migrations/20261111150000_offline_license_grace_period.sql",
+          ):
+              fixture = fixture.replace("\\i " + migration, Path(migration).read_text())
+          Path("/tmp/acopos-offline-checkout-runtime.sql").write_text(fixture)
+          PY
           POSTGRES_CONTAINER="$(docker ps --format '{{.ID}} {{.Image}}' | awk '$2 ~ /^postgres:16/ { print $1; exit }')"
           test -n "$POSTGRES_CONTAINER"
-          docker exec -i -e PGPASSWORD=postgres "$POSTGRES_CONTAINER" psql -U postgres -d acopos_test -v ON_ERROR_STOP=1 < supabase/tests/offline_shift_checkout_runtime.sql
+          docker exec -i -e PGPASSWORD=postgres "$POSTGRES_CONTAINER" psql -U postgres -d acopos_test -v ON_ERROR_STOP=1 < /tmp/acopos-offline-checkout-runtime.sql
