@@ -203,11 +203,45 @@ The captured failures include stale test expectations for public registration ro
 No successful build result is available because the workflow skipped the build after the regression-test failure. Do not treat the CI run as a pass.
 
 
-## Offline storage and sync foundation added (source-only)
+## Offline storage, sync, license, and application integration (updated 2026-11-11)
 
-- src/lib/offlineDatabase.js adds a versioned IndexedDB database with store/user-partitioned store snapshots, a durable transaction outbox, metadata storage, immutable transaction payloads, and explicit pending/syncing/accepted/rejected/needs_review states.
-- Offline enqueue is cash-only and persists the client request ID plus product identifiers, quantities, estimated unit prices, estimated total, cashier identity, and queue policy before any later sync can occur.
-- src/lib/offlineSync.js replays outbox records through complete_sale_idempotent, preserves records after acknowledgement, retries transport failures, flags database/business rejections for review, and flags server/local total mismatches.
-- Static contract tests were added for the shift guard, IndexedDB contract, and sync contract under tests/.
+### Implemented on this isolated branch
 
-**Important:** these modules are not wired into the checkout UI yet. No transaction can currently be completed offline through the application. The outbox has not been exercised in a browser or tested against a disposable database. Do not enable offline checkout until signed entitlement, store snapshot lifecycle, session/shift continuity, UI pending states, reconciliation UX, and real IndexedDB tests are complete.
+- `src/lib/offlineDatabase.js`: IndexedDB v2 with store + user compound snapshot key, durable cash-only outbox, immutable sale payload, explicit reconciliation statuses, atomic stock reservation in the local snapshot, and request for persistent browser storage.
+- Schema upgrade from v1 rebuilds the disposable snapshot cache while retaining any existing outbox and metadata stores.
+- `src/lib/offlineSync.js`: injectable storage adapter, idempotent replay through `complete_sale_idempotent`, retained local acknowledgement records, retry of transport failures, and explicit `needs_review` for server rejection or local/server total mismatch.
+- Checkout UI: offline cash sale is saved before showing a temporary unverified receipt; QRIS/transfer remain online-only; pending, accepted, rejected, and review states remain visible; local stock is reserved provisionally.
+- Reconnect safety: online event clears offline write mode. The client must obtain and verify a fresh signed license before syncing any pending outbox rows. This prevents a stale offline license from replaying after the tenant/company was disabled while disconnected.
+- `netlify/functions/offline-license.mjs`: server-side Ed25519 issuer validates bearer session, active membership, store, organization, expiry, and package grace policy.
+- `src/lib/offlineLicense.js`: Ed25519 signature verification, store/user binding, absolute signed grace expiry, subscription expiry, and clock rollback detection against both the last local observation and signed issuance time.
+- `SubscriptionPlanManager.jsx` and migration `20261111150000_offline_license_grace_period.sql`: Super Admin can set 0–168 hours per package; default is 72 hours.
+- Documentation includes private/public key setup, secret-handling boundaries, local data retention, reconnect checks, and browser-storage limitations.
+- Automated runtime sync tests cover accepted acknowledgement, server total mismatch, business/shift rejection, network retry, and missing server client.
+
+### Verification already completed
+
+- GitHub Actions on commit `63347a75bb9330c11cc72b0cc0eea8995eeccb09` passed both acoPos CI and Security smoke checks.
+- The CI disposable PostgreSQL job executed the isolated shift/license migration fixture successfully. It exercised no shift, another employee's shift, wrong tenant, closed shift, active break, successful sale, stock decrement, legacy RPC denial, idempotent RPC grant, and 72-hour grace default / bounds.
+- The application regression suite and production bundle build passed on that commit.
+- Static security regression checks, dependency audit, and deployed-preview HTTP/bundle smoke checks passed on that commit.
+
+### Verification still pending on the latest commits
+
+- The newest commits add behavioral sync tests, persistent-storage request behavior, and fresh-license-before-sync gating. Their GitHub Actions runs must finish before those changes can be called green.
+- The disposable PostgreSQL fixture is a focused schema harness, not a full Supabase clone. It does not prove every migration applies cleanly to the current Supabase production schema.
+- The separate pgTAP privilege file has not been run by CI; privilege boundaries are also asserted in the disposable runtime fixture.
+- No live production migration ledger, production RPC ACL, or production data was inspected or modified.
+- No production deploy was performed.
+- No physical Android/Windows device, printer, barcode scanner, cash drawer, or customer display was available for hands-on testing.
+- Browser IndexedDB eviction, device profile loss, and local-storage tampering cannot be made impossible by a PWA. Persistent-storage permission is requested, but not guaranteed by every browser.
+
+### Release gates remaining
+
+1. Wait for and inspect GitHub Actions on the latest PR head, including the new sync behavior tests.
+2. Run the full ordered Supabase migration chain against a disposable Supabase project (not the production project) and run pgTAP + authenticated-role fixtures.
+3. Configure a separate preview/test Supabase URL and service-role secret before configuring Netlify preview signing secrets. The current site has shared environment values pointing to the production Supabase project; do not add a preview signing key until the preview database is isolated.
+4. Add browser-level tests using real IndexedDB in supported Chromium/Android browsers, including reload, browser restart, interrupted sync, duplicate retry, and conflict review.
+5. Test named physical printer/scanner/cash-drawer/customer-display models before claiming compatibility.
+6. Keep this PR Draft and isolated until a separate review and explicit approval for merge/deploy.
+
+The offline implementation is integrated in the PR branch but is **not production-ready**. Do not merge, deploy, or apply its migrations to production yet.
