@@ -2196,3 +2196,16 @@ tbody tr:hover{background:#f7fbfd}
 /* Sidebar logout action */
 .sidebar-logout-button{display:flex!important;align-items:center;justify-content:center;gap:9px;width:100%;min-height:38px;margin-top:10px;padding:8px 12px!important;font-size:12px;font-weight:700;}
 .owner-sidebar-bottom .sidebar-logout-button{margin-top:10px;}
+
+
+/* Live customer order mirror and POS notes */
+.pos-heading-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap}
+.cart-item-note-label{display:grid;gap:5px;margin-top:10px;font-size:11px;font-weight:700;color:var(--text-secondary,#6b7785)}
+.cart-item-note-label span,.checkout-fields label span{font-size:10px;font-weight:500;color:var(--text-muted,#8994a1)}
+.cart-item-note{width:100%;min-height:48px;resize:vertical;padding:8px 10px!important;font-size:11px!important;line-height:1.45}
+.cart-order-note{width:100%;min-height:66px;resize:vertical;margin:6px 0 12px;padding:10px 12px!important}
+.receipt-item small{font-size:10px;line-height:1.4;overflow-wrap:anywhere}
+.receipt-customer-note{padding:8px 0;font-size:11px;line-height:1.45;overflow-wrap:anywhere}
+.receipt-customer-note small{font-size:9px;font-weight:700;letter-spacing:.08em}
+.receipt-customer-note p{margin:4px 0}
+@media(max-width:720px){.pos-heading-actions{width:100%;justify-content:flex-start}.pos-heading-actions .btn{flex:1}.cart-item-note{min-height:42px}}
