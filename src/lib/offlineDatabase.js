@@ -356,7 +356,11 @@ export async function rejectOfflineOutboxRecord(requestId, userId) {
     }
 
     let stockRestored = false
-    if (snapshot && snapshot.userId === userId && snapshot.storeId === record.storeId) {
+    const snapshotMatches = snapshot && snapshot.userId === userId && snapshot.storeId === record.storeId
+    const allProductsPresent = snapshotMatches && record.items.every(item =>
+      snapshot.products.some(product => product.id === item.product_id),
+    )
+    if (allProductsPresent) {
       const products = snapshot.products.map(product => {
         const rejectedItem = record.items.find(item => item.product_id === product.id)
         return rejectedItem
