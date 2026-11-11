@@ -17,6 +17,7 @@ export async function syncOfflineCashOutbox({
   storeId,
   userId,
   onRecordUpdate,
+  storage = { listOfflineOutbox, updateOfflineOutboxRecord },
 } = {}) {
   if (!supabase?.rpc) throw new Error('Koneksi server acoPos belum siap.')
   if (!storeId || !userId) throw new Error('Identitas toko dan pengguna wajib tersedia.')
@@ -24,7 +25,7 @@ export async function syncOfflineCashOutbox({
     return { processed: 0, accepted: 0, needsReview: 0, pending: 0, offline: true }
   }
 
-  const records = await listOfflineOutbox({
+  const records = await storage.listOfflineOutbox({
     storeId,
     userId,
     statuses: [OFFLINE_OUTBOX_STATUS.PENDING, OFFLINE_OUTBOX_STATUS.SYNCING],
@@ -40,7 +41,7 @@ export async function syncOfflineCashOutbox({
 
     summary.processed += 1
     const attempts = Number(record.attempts || 0) + 1
-    await updateOfflineOutboxRecord(record.requestId, userId, {
+    await storage.updateOfflineOutboxRecord(record.requestId, userId, {
       status: OFFLINE_OUTBOX_STATUS.SYNCING,
       attempts,
       lastError: null,
@@ -64,7 +65,7 @@ export async function syncOfflineCashOutbox({
       })
     } catch (error) {
       const pending = !error?.code
-      await updateOfflineOutboxRecord(record.requestId, userId, {
+      await storage.updateOfflineOutboxRecord(record.requestId, userId, {
         status: pending ? OFFLINE_OUTBOX_STATUS.PENDING : OFFLINE_OUTBOX_STATUS.NEEDS_REVIEW,
         lastError: errorMessage(error),
         updatedAt: new Date().toISOString(),
@@ -79,7 +80,7 @@ export async function syncOfflineCashOutbox({
       // A database rejection is not retried blindly: it may be a shift, tenant,
       // product, price, or stock conflict that needs a human decision.
       const needsReview = Boolean(response.error.code)
-      await updateOfflineOutboxRecord(record.requestId, userId, {
+      await storage.updateOfflineOutboxRecord(record.requestId, userId, {
         status: needsReview ? OFFLINE_OUTBOX_STATUS.NEEDS_REVIEW : OFFLINE_OUTBOX_STATUS.PENDING,
         lastError: errorMessage(response.error),
         updatedAt: new Date().toISOString(),
@@ -92,7 +93,7 @@ export async function syncOfflineCashOutbox({
 
     const order = response.data?.order || response.data
     if (!order?.id) {
-      await updateOfflineOutboxRecord(record.requestId, userId, {
+      await storage.updateOfflineOutboxRecord(record.requestId, userId, {
         status: OFFLINE_OUTBOX_STATUS.NEEDS_REVIEW,
         lastError: 'Server tidak mengembalikan identitas transaksi yang dapat diverifikasi.',
         updatedAt: new Date().toISOString(),
@@ -107,7 +108,7 @@ export async function syncOfflineCashOutbox({
     const totalMatches = Number.isFinite(serverTotal) && Math.abs(serverTotal - estimatedTotal) < 0.01
     const status = totalMatches ? OFFLINE_OUTBOX_STATUS.ACCEPTED : OFFLINE_OUTBOX_STATUS.NEEDS_REVIEW
 
-    await updateOfflineOutboxRecord(record.requestId, userId, {
+    await storage.updateOfflineOutboxRecord(record.requestId, userId, {
       status,
       serverOrderId: order.id,
       serverReceiptNumber: order.receipt_number || null,
