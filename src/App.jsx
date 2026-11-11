@@ -1049,7 +1049,7 @@ function App() {
     try { localStorage.setItem('acoPos-order-mirror-v1:'+store.id, JSON.stringify(snapshot)) } catch {}
     try { orderMirrorChannelRef.current?.postMessage(snapshot) } catch {}
   }, [store?.id, store?.name, settings?.store_name, cart, subtotal, safeDiscount, total, queueCustomer, orderNote])
-  useEffect(() => { checkoutRequestIdRef.current = null }, [cart, safeDiscount, payMethod, paidAmount, queueCustomer, store?.id, settings?.queue_enabled])
+  useEffect(() => { checkoutRequestIdRef.current = null }, [cart, orderNote, safeDiscount, payMethod, paidAmount, queueCustomer, store?.id, settings?.queue_enabled])
   const waitingQueue = queue.filter(t=>t.status==='waiting')
   const activeQueue = queue.filter(t=>['called','serving'].includes(t.status))
   const todaysOrders = orders.filter(o=>o.created_at?.slice(0,10)===today())
