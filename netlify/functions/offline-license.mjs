@@ -67,6 +67,7 @@ export default async (request) => {
       expiresAt = expiryCandidates.length ? new Date(Math.min(...expiryCandidates)).toISOString() : null
       packageKey = organization.activation_package_key
     }
+    if (status !== 'active' || (expiresAt && !Number.isFinite(Date.parse(expiresAt)))) return json({ error: 'Tanggal masa aktif tidak valid.' }, 503)
     if (status !== 'active' || (expiresAt && Date.parse(expiresAt) <= Date.now())) {
       return json({ error: 'Toko tidak aktif atau masa sewanya berakhir.' }, 403)
     }
