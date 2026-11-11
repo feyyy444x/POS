@@ -50,9 +50,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v5
-      - name: Install PostgreSQL client
-        run: sudo apt-get update && sudo apt-get install -y postgresql-client
       - name: Run isolated checkout shift migration and runtime scenarios
-        env:
-          PGPASSWORD: postgres
-        run: psql -h localhost -U postgres -d acopos_test -v ON_ERROR_STOP=1 -f supabase/tests/offline_shift_checkout_runtime.sql
+        run: |
+          POSTGRES_CONTAINER="$(docker ps --format '{{.ID}} {{.Image}}' | awk '$2 ~ /^postgres:16/ { print $1; exit }')"
+          test -n "$POSTGRES_CONTAINER"
+          docker exec -i -e PGPASSWORD=postgres "$POSTGRES_CONTAINER" psql -U postgres -d acopos_test -v ON_ERROR_STOP=1 < supabase/tests/offline_shift_checkout_runtime.sql
