@@ -97,7 +97,7 @@ function requireText(value, label) {
   }
 }
 
-export async function saveOfflineStoreSnapshot({ storeId, userId, store, membership, products, settings, activeShift, orders, queue, orderItems, serverValidatedAt }) {
+export async function saveOfflineStoreSnapshot({ storeId, userId, store, membership, products, settings, activeShift, shiftBreak, orders, queue, orderItems, serverValidatedAt }) {
   requireText(storeId, 'ID toko')
   requireText(userId, 'ID pengguna')
   if (!Array.isArray(products)) throw new Error('Daftar produk offline tidak valid.')
@@ -116,6 +116,7 @@ export async function saveOfflineStoreSnapshot({ storeId, userId, store, members
     products,
     settings: settings || null,
     activeShift: activeShift || null,
+    shiftBreak: shiftBreak || null,
     orders: Array.isArray(orders) ? orders : [],
     queue: Array.isArray(queue) ? queue : [],
     orderItems: Array.isArray(orderItems) ? orderItems : [],
@@ -194,25 +195,50 @@ export async function enqueueOfflineCashSale({
   }
 
   const db = await openOfflineDatabase()
-  const transaction = db.transaction([OUTBOX], 'readwrite')
+  const transaction = db.transaction([OUTBOX, SNAPSHOTS], 'readwrite')
   const done = transactionResult(transaction)
-  const store = transaction.objectStore(OUTBOX)
-  const existingRequest = store.get(requestId)
+  const outboxStore = transaction.objectStore(OUTBOX)
+  const snapshotStore = transaction.objectStore(SNAPSHOTS)
+  const existingRequest = outboxStore.get(requestId)
+  const snapshotRequest = snapshotStore.get([storeId, userId])
 
   let result
-  existingRequest.onsuccess = () => {
-    const existing = existingRequest.result
+  let existingReady = false
+  let snapshotReady = false
+  let existing = null
+  let snapshot = null
+  const commitWhenReady = () => {
+    if (!existingReady || !snapshotReady) return
     if (existing) {
-      if (existing.storeId !== storeId || existing.userId !== userId) {
-        transaction.abort()
-        return
-      }
-      result = existing
+      if (existing.storeId !== storeId || existing.userId !== userId) transaction.abort()
+      else result = existing
       return
     }
-    store.add(record)
+    if (!snapshot || !Array.isArray(snapshot.products)) {
+      transaction.abort()
+      return
+    }
+    const nextProducts = snapshot.products.map(product => {
+      const saleItem = record.items.find(item => item.product_id === product.id)
+      if (!saleItem) return product
+      const stock = Number(product.stock)
+      if (!Number.isFinite(stock) || stock < saleItem.quantity) {
+        transaction.abort()
+        return product
+      }
+      return { ...product, stock: stock - saleItem.quantity }
+    })
+    if (transaction.error) return
+    if (record.items.some(item => !snapshot.products.some(product => product.id === item.product_id))) {
+      transaction.abort()
+      return
+    }
+    outboxStore.add(record)
+    snapshotStore.put({ ...snapshot, products: nextProducts, capturedAt: new Date().toISOString() })
     result = record
   }
+  existingRequest.onsuccess = () => { existing = existingRequest.result; existingReady = true; commitWhenReady() }
+  snapshotRequest.onsuccess = () => { snapshot = snapshotRequest.result; snapshotReady = true; commitWhenReady() }
 
   await done
   return result
