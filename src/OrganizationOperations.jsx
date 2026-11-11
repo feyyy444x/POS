@@ -71,12 +71,17 @@ export default function OrganizationOperations({ mode = 'team', tenants = [] }) 
   useEffect(() => { load() }, [load])
   useEffect(() => {
     if (!supabase || !tenantIds.length) return
-    const channels = tenantIds.map(storeId => supabase.channel('owner-team-sync-' + storeId)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'store_members', filter: 'store_id=eq.' + storeId }, load)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'store_invites', filter: 'store_id=eq.' + storeId }, load)
-      .subscribe())
+    const channels = tenantIds.map(storeId => {
+      const channel = supabase.channel('owner-team-sync-' + storeId)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'store_members', filter: 'store_id=eq.' + storeId }, load)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'store_invites', filter: 'store_id=eq.' + storeId }, load)
+      if (mode === 'monitoring') {
+        channel.on('postgres_changes', { event: '*', schema: 'public', table: 'cashier_shifts', filter: 'store_id=eq.' + storeId }, load)
+      }
+      return channel.subscribe()
+    })
     return () => { channels.forEach(channel => supabase.removeChannel(channel)) }
-  }, [tenantKey, load])
+  }, [tenantKey, load, mode])
   useEffect(() => { if (!inviteTenant && tenantIds[0]) setInviteTenant(tenantIds[0]) }, [tenantKey, inviteTenant])
 
   const filteredMembers = members.filter(member => {
