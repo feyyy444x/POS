@@ -226,9 +226,12 @@ No successful build result is available because the workflow skipped the build a
 - The application regression suite and production bundle build passed on that commit.
 - Static security regression checks, dependency audit, and deployed-preview HTTP/bundle smoke checks passed on that commit.
 
-### Verification still pending on the latest commits
+### Latest verified implementation checks
 
-- The latest verified head includes behavioral sync tests, persistent-storage request behavior, fresh-license-before-sync gating, disabled-membership license denial, and safe rejection/release of provisional stock. All CI jobs passed on the verified head.
+- Commit `e14a0d03900bf2c48fcd1d2b171a8f8c28447be1` passed the application regression suite, production bundle build, Chromium offline browser E2E, and isolated PostgreSQL checkout runtime fixture. Security smoke checks were still running at the time of this documentation update.
+- Chromium E2E used a persistent browser profile and verified IndexedDB snapshot/outbox persistence across reload and browser restart, plus cached PWA shell navigation while offline.
+- The latest stock-reconciliation hardening records the server snapshot validation timestamp used for each local reservation. Manual rejection restores stock only if the snapshot still matches that validation timestamp, preventing a stale reservation from inflating newer server stock.
+- The offline-license issuer queries only existing `store_members` columns (`role`, `is_active`) and allows the actual application roles Owner, Admin, Manager, and Karyawan.
 - The disposable PostgreSQL fixture is a focused schema harness, not a full Supabase clone. It does not prove every migration applies cleanly to the current Supabase production schema.
 - The separate pgTAP privilege file has not been run by CI; privilege boundaries are also asserted in the disposable runtime fixture.
 - No live production migration ledger, production RPC ACL, or production data was inspected or modified.
@@ -238,10 +241,10 @@ No successful build result is available because the workflow skipped the build a
 
 ### Release gates remaining
 
-1. Wait for and inspect GitHub Actions on the latest PR head, including the new sync behavior tests.
+1. Inspect the final security smoke result for the latest PR head and rerun CI after any further code changes.
 2. Run the full ordered Supabase migration chain against a disposable Supabase project (not the production project) and run pgTAP + authenticated-role fixtures.
 3. Configure a separate preview/test Supabase URL and service-role secret before configuring Netlify preview signing secrets. The current site has shared environment values pointing to the production Supabase project; do not add a preview signing key until the preview database is isolated.
-4. Add browser-level tests using real IndexedDB in supported Chromium/Android browsers, including reload, browser restart, interrupted sync, duplicate retry, and conflict review.
+4. Extend browser-level coverage to the full authenticated POS checkout UI, interrupted sync, duplicate retry, and conflict review; the current Chromium E2E covers real IndexedDB persistence and offline PWA shell behavior.
 5. Test named physical printer/scanner/cash-drawer/customer-display models before claiming compatibility.
 6. Keep this PR Draft and isolated until a separate review and explicit approval for merge/deploy.
 
