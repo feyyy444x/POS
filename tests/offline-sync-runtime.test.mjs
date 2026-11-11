@@ -84,11 +84,13 @@ test('database authorization, shift, and stock errors are retained for human rev
 test('network failure returns the transaction to pending for safe idempotent retry', async () => {
   const storage = memoryStorage()
   const supabase = { rpc: async () => { throw new TypeError('Failed to fetch') } }
-  const result = await syncOfflineCashOutbox({ supabase, ...scope, storage })
+  const fixedNow = Date.parse('2026-11-11T10:00:00.000Z')
+  const result = await syncOfflineCashOutbox({ supabase, ...scope, storage, now: () => fixedNow })
   const saved = storage.rows.get(baseRecord().requestId)
   assert.equal(result.pending, 1)
   assert.equal(saved.status, STATUS.PENDING)
   assert.equal(saved.attempts, 1)
+  assert.equal(Date.parse(saved.nextAttemptAt), fixedNow + 5000)
 })
 
 test('sync rejects a missing authenticated server client before touching the outbox', async () => {
@@ -98,4 +100,17 @@ test('sync rejects a missing authenticated server client before touching the out
     /Koneksi server/,
   )
   assert.equal(storage.rows.get(baseRecord().requestId).status, STATUS.PENDING)
+})
+
+test('sync defers a pending transaction until its exponential retry time', async () => {
+  const fixedNow = Date.parse('2026-11-11T10:00:00.000Z')
+  const row = { ...baseRecord(), nextAttemptAt: new Date(fixedNow + 60000).toISOString() }
+  const storage = memoryStorage([row])
+  let called = false
+  const supabase = { rpc: async () => { called = true; return { data: null, error: null } } }
+  const result = await syncOfflineCashOutbox({ supabase, ...scope, storage, now: () => fixedNow })
+  assert.equal(called, false)
+  assert.equal(result.processed, 0)
+  assert.equal(result.pending, 1)
+  assert.equal(storage.rows.get(row.requestId).attempts, 0)
 })
