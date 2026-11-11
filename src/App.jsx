@@ -1069,7 +1069,7 @@ function App() {
   useEffect(()=>{if(!notice)return;const timer=setTimeout(()=>setNotice(''),4500);return()=>clearTimeout(timer)},[notice])
 
   const isManager = ['owner','admin'].includes(membership?.role)
-  const canAddProduct = isManager || membership?.role === 'cashier'
+  const canAddProduct = isManager
   const currentShiftOrders=useMemo(()=>activeShift?orders.filter(o=>o.cashier_id===activeShift.cashier_id&&new Date(o.created_at)>=new Date(activeShift.opened_at)&&(!activeShift.closed_at||new Date(o.created_at)<=new Date(activeShift.closed_at))&&o.status==='paid'):[],[orders,activeShift])
   const expectedShiftCash=Number(activeShift?.opening_cash||0)+currentShiftOrders.filter(o=>o.payment_method==='cash').reduce((sum,o)=>sum+Number(o.total||0),0)
   const expectedShiftQris=currentShiftOrders.filter(o=>o.payment_method==='qris').reduce((sum,o)=>sum+Number(o.total||0),0)
@@ -1308,7 +1308,7 @@ function App() {
 
   const saveProduct = async (event) => {
     event.preventDefault()
-    if(!isManager && !(membership?.role === 'cashier' && !productModal?.id)){setNotice('Karyawan hanya dapat menambahkan produk baru; perubahan dan penghapusan produk memerlukan Manager.');return}
+    if(!isManager){setNotice('Hanya Owner atau Manager yang dapat menambah, mengubah, atau menghapus produk.');return}
     const form=new FormData(event.currentTarget)
     const data={store_id:store.id,name:String(form.get('name')).trim(),sku:String(form.get('sku')||'').trim()||null,barcode:String(form.get('barcode')||'').trim()||null,category:String(form.get('category')||'Umum').trim()||'Umum',price:Number(form.get('price')||0),cost_price:Number(form.get('cost_price')||0),stock:Number(form.get('stock')||0),is_active:true}
     const result=productModal?.id
