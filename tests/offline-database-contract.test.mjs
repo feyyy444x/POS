@@ -38,7 +38,7 @@ test('offline transaction payload is immutable after it enters the outbox', () =
 
 test('offline records are partitioned by both store and authenticated user', () => {
   assert.match(source, /snapshot\.userId !== userId/)
-  assert.match(source, /request\.oldVersion < 2[\s\S]*?db\.deleteObjectStore\(SNAPSHOTS\)/)
+  assert.match(source, /event\.oldVersion < 2[\s\S]*?db\.deleteObjectStore\(SNAPSHOTS\)/)
   assert.match(source, /record\.userId === userId/)
   assert.match(source, /existing\.storeId !== storeId \|\| existing\.userId !== userId/)
 })
