@@ -50,3 +50,12 @@ test('TV media upload enforces tenant, parent organization, and verified PIN bef
   assert.match(tvMediaUpload, /organization\.expires_at/)
   assert.match(tvMediaUpload, /pinStatus\?\.is_verified !== true/)
 })
+
+const ownerDeleteReadOnlyMigration = await readFile(new URL('supabase/migrations/20261111130000_owner_delete_tenant_respects_readonly_org.sql', root), 'utf8')
+
+test('Owner cannot delete a tenant while its parent company is inactive or expired', () => {
+  assert.match(ownerDeleteReadOnlyMigration, /if v_org\.status <> 'active'/)
+  assert.match(ownerDeleteReadOnlyMigration, /v_org\.expires_at is not null and v_org\.expires_at <= now\(\)/)
+  assert.match(ownerDeleteReadOnlyMigration, /Data hanya dapat dibaca/)
+  assert.ok(ownerDeleteReadOnlyMigration.indexOf('if v_org.status') < ownerDeleteReadOnlyMigration.indexOf('perform private.delete_store_tenant_data'))
+})
