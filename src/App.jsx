@@ -8,7 +8,7 @@ import {
 } from 'lucide-react'
 import { isSupabaseConfigured, supabase } from './lib/supabase'
 import { userFacingError } from './lib/userFacingError'
-import { saveOfflineStoreSnapshot, getOfflineStoreSnapshot, enqueueOfflineCashSale, requestOfflineStoragePersistence, listOfflineOutbox, updateOfflineOutboxRecord, OFFLINE_OUTBOX_STATUS } from './lib/offlineDatabase'
+import { saveOfflineStoreSnapshot, getOfflineStoreSnapshot, enqueueOfflineCashSale, requestOfflineStoragePersistence, listOfflineOutbox, updateOfflineOutboxRecord, rejectOfflineOutboxRecord, OFFLINE_OUTBOX_STATUS } from './lib/offlineDatabase'
 import { syncOfflineCashOutbox } from './lib/offlineSync'
 import { validateAndStoreOfflineLicense, getOfflineLicenseStatus } from './lib/offlineLicense'
 import { AuthScreen, FreeRegistrationCompletion, PinGate } from './AccessPortal.jsx'
@@ -1342,13 +1342,20 @@ function App() {
     if (!record?.requestId || !session?.user?.id) return
     if (!window.confirm('Tandai transaksi lokal ' + record.requestId.slice(0,8).toUpperCase() + ' sebagai ditolak? Data tidak dihapus dan tidak akan disinkronkan otomatis.')) return
     try {
-      await updateOfflineOutboxRecord(record.requestId, session.user.id, {
-        status: OFFLINE_OUTBOX_STATUS.REJECTED,
-        lastError: 'Ditandai ditolak setelah pemeriksaan manual.',
-        updatedAt: new Date().toISOString(),
-      })
+      if (record.serverOrderId) {
+        setNotice('Transaksi ini sudah tercatat di server dan tidak dapat ditandai ditolak dari perangkat.')
+        return
+      }
+      const result = await rejectOfflineOutboxRecord(record.requestId, session.user.id)
+      if (!result) throw new Error('Hanya transaksi yang belum tercatat di server dan berstatus perlu ditinjau yang dapat ditolak.')
+      setProducts(current => current.map(product => {
+        const rejectedItem = record.items.find(item => item.product_id === product.id)
+        return rejectedItem && result.stockRestored
+          ? { ...product, stock: Number(product.stock || 0) + rejectedItem.quantity }
+          : product
+      }))
       setOfflineOutbox(await listOfflineOutbox({ storeId: store.id, userId: session.user.id }))
-      setNotice('Transaksi ditandai ditolak. Catatan dan payload tetap tersimpan di perangkat.')
+      setNotice('Transaksi ditandai ditolak. ' + (result.stockRestored ? 'Stok lokal sementara dikembalikan. ' : 'Snapshot stok tidak tersedia; muat ulang katalog saat online. ') + 'Catatan dan payload tetap tersimpan di perangkat.')
     } catch (error) { setNotice(userFacingError(error, 'Status transaksi belum dapat diubah.')) }
   }
 
