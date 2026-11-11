@@ -380,15 +380,18 @@ export async function rejectOfflineOutboxRecord(requestId, userId) {
   recordRequest.onsuccess = () => {
     record = recordRequest.result
     recordReady = true
-    commitRejection()
-  }
-  const snapshotRequest = snapshotStore.get(
-    recordRequest.result?.storeId ? [recordRequest.result.storeId, userId] : ['', userId],
-  )
-  snapshotRequest.onsuccess = () => {
-    snapshot = snapshotRequest.result
-    snapshotReady = true
-    commitRejection()
+    if (!record || record.userId !== userId || record.serverOrderId ||
+        record.status !== OFFLINE_OUTBOX_STATUS.NEEDS_REVIEW) {
+      snapshotReady = true
+      commitRejection()
+      return
+    }
+    const snapshotRequest = snapshotStore.get([record.storeId, userId])
+    snapshotRequest.onsuccess = () => {
+      snapshot = snapshotRequest.result
+      snapshotReady = true
+      commitRejection()
+    }
   }
 
   await done
