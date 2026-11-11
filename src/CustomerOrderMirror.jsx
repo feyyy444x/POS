@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Monitor, ShoppingBag, Wifi, Clock3 } from 'lucide-react'
+import { Monitor, ShoppingBag, Wifi, Clock3, Maximize2, Minimize2 } from 'lucide-react'
 import './CustomerOrderMirror.css'
 
 const money = value => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value || 0))
@@ -10,6 +10,22 @@ export default function CustomerOrderMirror() {
   const [draft, setDraft] = useState(null)
   const [connected, setConnected] = useState(false)
   const [lastUpdate, setLastUpdate] = useState(null)
+  const [isFullscreen, setIsFullscreen] = useState(Boolean(document.fullscreenElement))
+
+  useEffect(() => {
+    const syncFullscreen = () => setIsFullscreen(Boolean(document.fullscreenElement))
+    document.addEventListener('fullscreenchange', syncFullscreen)
+    return () => document.removeEventListener('fullscreenchange', syncFullscreen)
+  }, [])
+
+  const toggleFullscreen = async () => {
+    try {
+      if (document.fullscreenElement) await document.exitFullscreen()
+      else await document.documentElement.requestFullscreen()
+    } catch {
+      // Fullscreen may be restricted by browser or device policy; the normal window remains usable.
+    }
+  }
 
   useEffect(() => {
     if (!storeId) return
@@ -48,7 +64,13 @@ export default function CustomerOrderMirror() {
   return <main className="order-mirror-shell">
     <header className="order-mirror-header">
       <div className="order-mirror-brand"><span className="order-mirror-mark">a</span><div><strong>{draft?.storeName || 'acoPos'}</strong><small>RINGKASAN PESANAN PELANGGAN</small></div></div>
-      <div className={'order-mirror-live ' + (connected ? 'is-connected' : '')}><i/><span>{connected ? 'TERHUBUNG' : 'MENUNGGU KASIR'}</span></div>
+      <div className="order-mirror-header-actions">
+        <div className={'order-mirror-live ' + (connected ? 'is-connected' : '')}><i/><span>{connected ? 'TERHUBUNG' : 'MENUNGGU KASIR'}</span></div>
+        <button type="button" className="order-mirror-fullscreen" onClick={toggleFullscreen} title={isFullscreen ? 'Keluar dari layar penuh' : 'Tampilkan layar penuh'}>
+          {isFullscreen ? <Minimize2 size={15}/> : <Maximize2 size={15}/>}
+          <span>{isFullscreen ? 'Keluar layar penuh' : 'Layar penuh'}</span>
+        </button>
+      </div>
     </header>
     <section className="order-mirror-content">
       <div className="order-mirror-intro"><span>ORDER PREVIEW</span><h1>Pesanan Anda</h1><p>Detail pesanan akan diperbarui otomatis saat kasir menambahkan menu.</p></div>
