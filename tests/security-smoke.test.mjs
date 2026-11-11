@@ -193,6 +193,7 @@ test('internal platform Admin uses the Super Admin workspace and server-side PIN
 test('platform Admin can create staff only with active role and verified PIN', () => {
   assert.match(createPlatformStaff, /authClient\.rpc\('get_my_pin_status'\)/)
   assert.match(createPlatformStaff, /pinStatus\?\.is_verified !== true/)
+  assert.match(platformStaffEndpoint, /pinStatus\?\.is_verified !== true/)
   assert.match(createPlatformStaff, /staffRole\?\.role === 'admin'/)
   assert.match(createPlatformStaff, /staffRole\?\.is_active === true/)
   assert.match(createPlatformStaff, /if \(!authorized\) return json/)
