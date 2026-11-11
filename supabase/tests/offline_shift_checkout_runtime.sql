@@ -33,7 +33,8 @@ create table public.orders (
   total numeric,
   payment_method text,
   paid_amount numeric,
-  change_amount numeric
+  change_amount numeric,
+  idempotency_key uuid unique
 );
 create table public.order_items (
   id bigint generated always as identity primary key,
@@ -44,7 +45,9 @@ create table public.order_items (
   unit_price numeric not null,
   line_total numeric not null
 );
-create table public.queue_tickets (id uuid);
+create table public.queue_tickets (id uuid default gen_random_uuid(), store_id uuid, order_id uuid, created_at timestamptz default now());
+create table public.store_members (store_id uuid not null, user_id uuid not null, is_active boolean not null default true, primary key(store_id,user_id));
+insert into public.store_members(store_id,user_id,is_active) values ('11111111-1111-4111-8111-111111111111','aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa',true);
 create table public.cashier_shifts (
   id uuid primary key,
   store_id uuid not null,
@@ -70,24 +73,16 @@ create or replace function public.create_queue_ticket(uuid,text,uuid)
 returns public.queue_tickets language sql
 as $$ select row(null::uuid)::public.queue_tickets $$;
 
--- Minimal idempotent wrapper so the migration's grants and delegated checkout
--- can be exercised without requiring the full application schema.
-create or replace function public.complete_sale_idempotent(
-  p_store_id uuid,
-  p_items jsonb,
-  p_discount numeric default 0,
-  p_payment_method text default 'cash',
-  p_paid_amount numeric default 0,
-  p_customer_name text default null,
-  p_create_queue boolean default true,
-  p_request_id uuid default gen_random_uuid()
-) returns jsonb language plpgsql security definer set search_path = ''
+create or replace function private.is_store_member(p_store_id uuid)
+returns boolean language sql stable security definer set search_path = ''
 as $$
-begin
-  return public.complete_sale(p_store_id,p_items,p_discount,p_payment_method,p_paid_amount,p_customer_name,p_create_queue);
-end;
+  select exists (
+    select 1 from public.store_members m
+    where m.store_id = p_store_id and m.user_id = (select auth.uid()) and m.is_active
+  )
 $$;
 
+\i supabase/migrations/20261030032837_idempotent_checkout.sql
 \i supabase/migrations/20261111130000_enforce_cashier_shift_on_checkout.sql
 \i supabase/migrations/20261111150000_offline_license_grace_period.sql
 
@@ -206,6 +201,15 @@ begin
   if v_order->'order'->>'id' is null then raise exception 'valid checkout did not return an order'; end if;
   select stock into v_stock from public.products where id=v_product;
   if v_stock <> 8 then raise exception 'valid checkout did not decrement stock exactly once'; end if;
+
+  -- Replaying the same store/request key returns the existing sale and never decrements stock twice.
+  v_order := public.complete_sale_idempotent(v_store_a,jsonb_build_array(jsonb_build_object('product_id',v_product,'quantity',2)),0,'cash',20000,null,false,v_request);
+  if v_order->'order'->>'id' is null then raise exception 'idempotent replay did not return the existing order'; end if;
+  if (select count(*) from public.orders where idempotency_key=v_request) <> 1 then
+    raise exception 'idempotent replay created more than one order';
+  end if;
+  select stock into v_stock from public.products where id=v_product;
+  if v_stock <> 8 then raise exception 'idempotent replay decremented stock more than once'; end if;
 end;
 $$;
 
