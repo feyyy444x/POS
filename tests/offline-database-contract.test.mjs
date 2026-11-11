@@ -12,6 +12,7 @@ test('offline storage uses versioned IndexedDB stores for snapshots, outbox, and
   assert.match(source, /DB_VERSION\s*=\s*2/)
   assert.match(source, /store_snapshots/)
   assert.match(source, /keyPath: \['storeId', 'userId'\]/)
+  assert.match(source, /shiftBreak: shiftBreak \|\| null/)
   assert.match(source, /get\(\[storeId, userId\]\)/)
   assert.match(source, /transaction_outbox/)
   assert.match(source, /metadata/)
@@ -21,7 +22,7 @@ test('offline outbox is cash-only and persists a request ID before sync', () => 
   assert.match(source, /export async function enqueueOfflineCashSale/)
   assert.match(source, /paymentMethod:\s*'cash'/)
   assert.match(source, /status:\s*OFFLINE_OUTBOX_STATUS\.PENDING/)
-  assert.match(source, /store\.add\(record\)/)
+  assert.match(source, /outboxStore\.add\(record\)/)
   assert.match(source, /requestId,/)
 })
 
