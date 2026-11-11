@@ -593,7 +593,14 @@ function App() {
       return
     }
     const member = selectedMember || availableMemberships[0]
-    if (selectedStoreId !== member.store_id) setSelectedStoreId(member.store_id)
+    if (selectedStoreId !== member.store_id) {
+      setSelectedStoreId(member.store_id)
+      setActiveShift(null)
+      setShiftBreak(null)
+      setOfflineAccess(null)
+      setOfflineLicense(null)
+      setOfflineOutbox([])
+    }
     setMembership(member)
     const loadIssues = []
     const [
