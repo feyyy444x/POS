@@ -120,7 +120,7 @@ insert into public.products(id,store_id,name,price,stock,is_active)
 values
  ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','11111111-1111-4111-8111-111111111111','Produk Uji',10000,10,true);
 
-do $
+do $$
 declare
   v_user_a uuid := 'aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa';
   v_user_b uuid := 'bbbbbbbb-2222-4222-8222-bbbbbbbbbbbb';
