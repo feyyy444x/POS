@@ -1,13 +1,15 @@
 import { createClient } from '@supabase/supabase-js'
 import { createPrivateKey, sign } from 'node:crypto'
 
+const env = key => typeof Netlify !== 'undefined' && Netlify.env?.get ? Netlify.env.get(key) : process.env[key]
+
 const json = (body, status = 200) => new Response(JSON.stringify(body), {
   status,
   headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' },
 })
 
 function signLicense(payload) {
-  const privatePem = String(process.env.ACOPOS_LICENSE_PRIVATE_KEY || '').replace(/\\n/g, '\n')
+  const privatePem = String(env('ACOPOS_LICENSE_PRIVATE_KEY') || '').replace(/\\n/g, '\n')
   if (!privatePem) throw new Error('ACOPOS_LICENSE_PRIVATE_KEY is not configured')
   const privateKey = createPrivateKey(privatePem)
   if (privateKey.asymmetricKeyType !== 'ed25519') throw new Error('Offline license signing key must be Ed25519')
@@ -27,9 +29,9 @@ export default async (request) => {
   const storeId = String(body?.storeId || '').trim()
   if (!/^[0-9a-f-]{36}$/i.test(storeId)) return json({ error: 'ID toko tidak valid.' }, 400)
 
-  const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!supabaseUrl || !serviceRoleKey || !process.env.ACOPOS_LICENSE_PRIVATE_KEY) {
+  const supabaseUrl = env('SUPABASE_URL') || env('VITE_SUPABASE_URL')
+  const serviceRoleKey = env('SUPABASE_SERVICE_ROLE_KEY')
+  if (!supabaseUrl || !serviceRoleKey || !env('ACOPOS_LICENSE_PRIVATE_KEY')) {
     console.error('Offline license endpoint is missing server configuration.')
     return json({ error: 'Penerbit lisensi offline belum dikonfigurasi.' }, 503)
   }
