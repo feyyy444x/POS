@@ -4,42 +4,40 @@ import { readFile } from 'node:fs/promises'
 
 const read = path => readFile(new URL(path, import.meta.url), 'utf8')
 
-test('homepage free registration CTA opens the public registration route', async () => {
+test('homepage free registration CTA opens the dedicated public registration route', async () => {
   const homepage = await read('../src/Homepage.jsx')
   const app = await read('../src/App.jsx')
-  assert.match(homepage, /href="\/\?screen=register"/)
-  assert.match(app, /if\(screen==='register'\)return <AuthScreen\/>/)
+  assert.match(homepage, /href="\/daftar-gratis"/)
+  assert.match(app, /window\.location\.pathname === '\/daftar-gratis' \? 'register' : 'login'/)
+  assert.match(app, /<AuthScreen initialMode=/)
 })
 
-test('email confirmation returns to a dedicated completion route and creates the workspace', async () => {
+test('registration prepares the server-side workspace before creating the authenticated session', async () => {
   const portal = await read('../src/AccessPortal.jsx')
-  const app = await read('../src/App.jsx')
-  assert.match(portal, /emailRedirectTo: `\$\{window\.location\.origin\}\/\?screen=complete-free-registration`/)
-  assert.match(app, /if\(screen==='complete-free-registration'\)return <FreeRegistrationCompletion\/>/)
-  assert.match(portal, /supabase\.auth\.onAuthStateChange/)
-  assert.match(portal, /fetch\('\/\.netlify\/functions\/complete-free-registration'/)
-  assert.match(portal, /window\.location\.replace\('\/'\)/)
+  const handler = await read('../netlify/functions/register-free.mjs')
+  const registration = portal.slice(portal.indexOf("} else if (mode === 'register') {"), portal.indexOf("} else {", portal.indexOf("} else if (mode === 'register') {") + 1))
+  assert.match(registration, /fetch\('\/api\/register-free'/)
+  assert.ok(registration.indexOf('if (!prepareResponse.ok)') < registration.indexOf('supabase.auth.signInWithPassword'))
+  assert.match(registration, /companyName: companyName\.trim\(\)/)
+  assert.match(registration, /businessCategory/)
+  assert.match(handler, /prepare_free_single_workspace_registration/)
+  assert.match(handler, /payload\?\.businessCategory/)
 })
 
-test('verified pending free registration is resumed when the customer signs in manually', async () => {
+test('registration validates password, PIN and business identity before sending the request', async () => {
+  const portal = await read('../src/AccessPortal.jsx')
+  assert.match(portal, /password\.length < 8/)
+  assert.ok(portal.includes("if (!/^\\d{4}$/.test(pin))"))
+  assert.match(portal, /password !== passwordConfirm/)
+  assert.match(portal, /pin !== pinConfirm/)
+  assert.match(portal, /businessCategory/)
+  assert.match(portal, /ownerName, companyName, workspaceName/)
+})
+
+test('a pending free registration is completed after a successful manual sign-in', async () => {
   const portal = await read('../src/AccessPortal.jsx')
   assert.match(portal, /user_metadata\?\.free_workspace_pending === true/)
   assert.match(portal, /result\.data\?\.session\?\.access_token/)
-  assert.match(portal, /complete-free-registration/)
-})
-
-test('registration success is not shown before the registration intent is prepared', async () => {
-  const portal = await read('../src/AccessPortal.jsx')
-  const registration = portal.slice(portal.indexOf("} else if (mode === 'register') {"), portal.indexOf("} else {", portal.indexOf("} else if (mode === 'register') {") + 1))
-  assert.ok(registration.indexOf('if (!prepareResponse.ok)') < registration.indexOf('setSuccess(true)'))
-  assert.match(registration, /register-free/)
-})
-
-test('interrupted public signups can resume without creating a duplicate auth account', async () => {
-  const portal = await read('../src/AccessPortal.jsx')
-  assert.match(portal, /data\.user\.identities\?\.length === 0/)
-  assert.match(portal, /supabase\.auth\.signInWithPassword\(\{ email: email\.trim\(\), password \}\)/)
-  assert.match(portal, /supabase\.auth\.resend\(\{ type: 'signup', email: email\.trim\(\) \}\)/)
-  assert.match(portal, /existing\.data\?\.user\?\.user_metadata\?\.free_workspace_pending !== true/)
-  assert.match(portal, /userId: registrationUser\.id/)
+  assert.match(portal, /fetch\('\/api\/complete-free-registration'/)
+  assert.ok(portal.indexOf('if (!completion.ok)') < portal.indexOf("window.location.assign('/')"))
 })

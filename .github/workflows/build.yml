@@ -1,10 +1,11 @@
 name: acoPos CI
 
 on:
+  workflow_dispatch:
   pull_request:
     branches: [main]
   push:
-    branches: [acopos/rebrand-preview]
+    branches: [acopos/rebrand-preview, feature/acopos-offline-first-isolated]
 
 permissions:
   contents: read
@@ -29,3 +30,44 @@ jobs:
         env:
           VITE_SUPABASE_URL: https://example.supabase.co
           VITE_SUPABASE_PUBLISHABLE_KEY: ci-placeholder-key
+      - name: Install Chromium for offline browser E2E
+        run: npx playwright install chromium
+      - name: Run real Chromium offline PWA and IndexedDB tests
+        run: ACOPOS_RUN_OFFLINE_BROWSER_E2E=1 node --test tests/offline-browser-e2e.test.mjs
+        timeout-minutes: 5
+
+  offline-checkout-db:
+    name: Offline checkout database runtime tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: acopos_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d acopos_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+      - name: Run isolated checkout shift migration and runtime scenarios
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          fixture = Path("supabase/tests/offline_shift_checkout_runtime.sql").read_text()
+          for migration in (
+              "supabase/migrations/20261030032837_idempotent_checkout.sql",
+              "supabase/migrations/20261111130000_enforce_cashier_shift_on_checkout.sql",
+              "supabase/migrations/20261111150000_offline_license_grace_period.sql",
+          ):
+              fixture = fixture.replace("\\i " + migration, Path(migration).read_text())
+          Path("/tmp/acopos-offline-checkout-runtime.sql").write_text(fixture)
+          PY
+          POSTGRES_CONTAINER="$(docker ps --format '{{.ID}} {{.Image}}' | awk '$2 ~ /^postgres:16/ { print $1; exit }')"
+          test -n "$POSTGRES_CONTAINER"
+          docker exec -i -e PGPASSWORD=postgres "$POSTGRES_CONTAINER" psql -U postgres -d acopos_test -v ON_ERROR_STOP=1 < /tmp/acopos-offline-checkout-runtime.sql

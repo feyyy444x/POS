@@ -29,7 +29,7 @@ const subscriptionPlanManagerUi = await readFile(new URL('src/SubscriptionPlanMa
 const storeControlCenterUi = await readFile(new URL('src/StoreControlCenter.jsx', root), 'utf8')
 const queueSettingsUi = await readFile(new URL('src/TvDisplaySettings.jsx', root), 'utf8')
 const queueRetirementMigration = await readFile(new URL('supabase/migrations/20261102115018_remove_queue_media_and_tv_templates.sql', root), 'utf8')
-const supportConversationRealtimeMigration = await readFile(new URL('supabase/migrations/20261102130341_acoPos_realtime_support_conversations.sql', root), 'utf8')
+const supportConversationRealtimeMigration = await readFile(new URL('supabase/migrations/20261102130341_nexapos_realtime_support_conversations.sql', root), 'utf8')
 const supportTypingMigration = await readFile(new URL('supabase/migrations/20261102132519_support_admin_typing_presence.sql', root), 'utf8')
 const supportCenterTypingUi = await readFile(new URL('src/SupportCenter.jsx', root), 'utf8')
 const supportCenterUi = await readFile(new URL('src/SupportCenter.jsx', root), 'utf8')
@@ -264,7 +264,7 @@ test('Tim & Hak Akses offers only full-access Admin acoPos role', () => {
 })
 
 
-const supportMigration = await readFile(new URL('supabase/migrations/20261029104814_acoPos_free_ai_support.sql', root), 'utf8')
+const supportMigration = await readFile(new URL('supabase/migrations/20261029104814_nexapos_free_ai_support.sql', root), 'utf8')
 const supportLockdownMigration = await readFile(new URL('supabase/migrations/20261029104857_lock_down_support_rpc.sql', root), 'utf8')
 const supportHandoffMigration = await readFile(new URL('supabase/migrations/20261029105000_refine_support_bot_handoff.sql', root), 'utf8')
 const supportHardenMigration = await readFile(new URL('supabase/migrations/20261029111824_harden_support_handoff_and_admin_reply.sql', root), 'utf8')
@@ -299,7 +299,7 @@ test('customer RLS isolates support messages and conversations while Admin acoPo
   assert.match(supportMigration, /USING \(private\.is_super_admin\(\)\)/)
   assert.match(supportMigration, /WITH CHECK \(private\.is_super_admin\(\)\)/)
   assert.match(supportMigration, /CREATE OR REPLACE FUNCTION public\.admin_reply_support_message/)
-  assert.match(supportMigration, /IF NOT private\.is_super_admin\(\) THEN RAISE EXCEPTION 'Admin acoPos access required'/)
+  assert.match(supportMigration, /IF NOT private\.is_super_admin\(\) THEN RAISE EXCEPTION 'Admin NexaPos access required'/)
 })
 
 test('human handoff stops bot replies until Admin takes over or reactivates bot', () => {
@@ -321,7 +321,7 @@ test('human handoff stops bot replies until Admin takes over or reactivates bot'
 test('handoff recognizes natural requests to speak with a human and validates admin targets', () => {
   assert.match(supportHardenMigration, /bicara \(dengan\|sama\) \(admin\|manusia\|petugas\)/)
   assert.match(supportHardenMigration, /IF NOT FOUND THEN RAISE EXCEPTION 'Percakapan tidak ditemukan'/)
-  assert.match(supportHardenMigration, /IF NOT private\.is_super_admin\(\) THEN RAISE EXCEPTION 'Admin acoPos access required'/)
+  assert.match(supportHardenMigration, /IF NOT private\.is_super_admin\(\) THEN RAISE EXCEPTION 'Admin NexaPos access required'/)
 })
 
 
@@ -490,7 +490,7 @@ test('owner tenant management lists only stores linked to the authenticated owne
 
 test('audit events are recorded server-side with scoped read policies and redacted secrets', () => {
   assert.match(auditLogsMigration, /create table if not exists public\.platform_audit_logs/i)
-  assert.match(auditLogsMigration, /create or replace function private\.capture_acoPos_audit_event/i)
+  assert.match(auditLogsMigration, /create or replace function private\.capture_nexapos_audit_event/i)
   assert.match(auditLogsMigration, /v_before := v_before - 'activation_code_hash' - 'pin_hash'/)
   assert.match(auditLogsMigration, /v_after := v_after - 'activation_code_hash' - 'pin_hash'/)
   assert.match(auditLogsMigration, /Owner reads organization audit logs/)
@@ -741,7 +741,7 @@ test('Owner and Manager can securely manage employees, while cashiers can only i
 test('Platform actions stay scoped to the selected company or tenant, and registration activation settings stay in acoPos', async () => {
   const app = await readFile(new URL('../src/App.jsx', import.meta.url), 'utf8')
   const tenantStart = app.indexOf("{section==='stores'&&")
-  const companyStart = app.indexOf("{section==='acoPos Control Center'&&", tenantStart)
+  const companyStart = app.indexOf("{section==='nexaspace'&&", tenantStart)
   const tenantSection = app.slice(tenantStart, companyStart)
   const companySection = app.slice(companyStart, app.indexOf("{section==='users'&&", companyStart))
   const tenantCenter = await readFile(new URL('../src/StoreControlCenter.jsx', import.meta.url), 'utf8')
@@ -839,10 +839,10 @@ test('Interactive Demo is retired and homepage CTA opens verified public free re
   const migration = await readFile(new URL('supabase/migrations/20261106111736_public_free_single_workspace_registration.sql', root), 'utf8')
   assert.doesNotMatch(app, /import\(['"]\.\/Demo\.jsx['"]\)/)
   assert.doesNotMatch(app, /screen==='demo'/)
-  assert.ok(homepageUi.includes('href="/?screen=register">Pendaftaran Gratis'))
+  assert.ok(homepageUi.includes('href="/daftar-gratis"'))
   assert.match(app, /screen==='register'.*AuthScreen/)
   assert.match(accessPortal, /password.length < 8/)
-  assert.match(accessPortal, /supabase\.auth\.signUp/)
+  assert.match(accessPortal, /supabase\.auth\.signInWithPassword/)
   assert.match(accessPortal, /companyName: companyName\.trim\(\)/)
   assert.match(registration, /prepare_free_single_workspace_registration/)
   assert.match(completion, /complete_free_single_workspace_registration/)
