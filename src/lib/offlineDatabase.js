@@ -136,6 +136,7 @@ export async function enqueueOfflineCashSale({
   discount = 0,
   paidAmount,
   customerName = null,
+  createQueue = true,
   estimatedTotal,
   createdAt = new Date().toISOString(),
 }) {
@@ -168,6 +169,7 @@ export async function enqueueOfflineCashSale({
     paymentMethod: 'cash',
     paidAmount: Number(paidAmount),
     customerName: customerName == null ? null : String(customerName),
+    createQueue: createQueue !== false,
     estimatedTotal: Number(estimatedTotal),
     createdAt,
     updatedAt: createdAt,
