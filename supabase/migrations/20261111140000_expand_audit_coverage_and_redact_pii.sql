@@ -148,10 +148,14 @@ drop trigger if exists audit_support_messages_changes on public.support_messages
 create trigger audit_support_messages_changes after insert or update or delete on public.support_messages
 for each row execute function private.capture_nexapos_audit_event();
 
-drop trigger if exists audit_support_conversation_status_changes on public.support_conversations;
+drop trigger if exists audit_support_conversations_status_changes on public.support_conversations;
 create trigger audit_support_conversation_status_changes after update of status on public.support_conversations
 for each row when (old.status is distinct from new.status)
 execute function private.capture_nexapos_audit_event();
+
+drop trigger if exists audit_support_conversations_lifecycle on public.support_conversations;
+create trigger audit_support_conversations_lifecycle after insert or delete on public.support_conversations
+for each row execute function private.capture_nexapos_audit_event();
 
 -- PIN hash is removed from snapshots; attempt counters are useful for security investigations.
 drop trigger if exists audit_user_security_pins_changes on public.user_security_pins;
