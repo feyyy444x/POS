@@ -29,7 +29,7 @@ const subscriptionPlanManagerUi = await readFile(new URL('src/SubscriptionPlanMa
 const storeControlCenterUi = await readFile(new URL('src/StoreControlCenter.jsx', root), 'utf8')
 const queueSettingsUi = await readFile(new URL('src/TvDisplaySettings.jsx', root), 'utf8')
 const queueRetirementMigration = await readFile(new URL('supabase/migrations/20261102115018_remove_queue_media_and_tv_templates.sql', root), 'utf8')
-const supportConversationRealtimeMigration = await readFile(new URL('supabase/migrations/20261102130341_acoPos_realtime_support_conversations.sql', root), 'utf8')
+const supportConversationRealtimeMigration = await readFile(new URL('supabase/migrations/20261102130341_nexapos_realtime_support_conversations.sql', root), 'utf8')
 const supportTypingMigration = await readFile(new URL('supabase/migrations/20261102132519_support_admin_typing_presence.sql', root), 'utf8')
 const supportCenterTypingUi = await readFile(new URL('src/SupportCenter.jsx', root), 'utf8')
 const supportCenterUi = await readFile(new URL('src/SupportCenter.jsx', root), 'utf8')
@@ -264,7 +264,7 @@ test('Tim & Hak Akses offers only full-access Admin acoPos role', () => {
 })
 
 
-const supportMigration = await readFile(new URL('supabase/migrations/20261029104814_acoPos_free_ai_support.sql', root), 'utf8')
+const supportMigration = await readFile(new URL('supabase/migrations/20261029104814_nexapos_free_ai_support.sql', root), 'utf8')
 const supportLockdownMigration = await readFile(new URL('supabase/migrations/20261029104857_lock_down_support_rpc.sql', root), 'utf8')
 const supportHandoffMigration = await readFile(new URL('supabase/migrations/20261029105000_refine_support_bot_handoff.sql', root), 'utf8')
 const supportHardenMigration = await readFile(new URL('supabase/migrations/20261029111824_harden_support_handoff_and_admin_reply.sql', root), 'utf8')
