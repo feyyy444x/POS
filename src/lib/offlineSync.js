@@ -2,7 +2,7 @@ import {
   listOfflineOutbox,
   updateOfflineOutboxRecord,
   OFFLINE_OUTBOX_STATUS,
-} from './offlineDatabase'
+} from './offlineDatabase.js'
 
 function isOnline() {
   return typeof navigator === 'undefined' || navigator.onLine !== false
