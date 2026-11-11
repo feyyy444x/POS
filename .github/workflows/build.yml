@@ -29,3 +29,29 @@ jobs:
         env:
           VITE_SUPABASE_URL: https://example.supabase.co
           VITE_SUPABASE_PUBLISHABLE_KEY: ci-placeholder-key
+
+  offline-checkout-db:
+    name: Offline checkout database runtime tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: acopos_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d acopos_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - name: Run isolated checkout shift migration and runtime scenarios
+        env:
+          PGPASSWORD: postgres
+        run: psql -h localhost -U postgres -d acopos_test -v ON_ERROR_STOP=1 -f supabase/tests/offline_shift_checkout_runtime.sql
