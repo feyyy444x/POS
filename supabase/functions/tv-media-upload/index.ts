@@ -32,6 +32,7 @@ Deno.serve(async (req: Request) => {
   }
 
   const authClient = createClient(supabaseUrl, anonKey, {
+    global: { headers: { Authorization: "Bearer " + accessToken } },
     auth: { persistSession: false, autoRefreshToken: false },
   });
   const { data: userResult, error: authError } = await authClient.auth.getUser(accessToken);
@@ -58,15 +59,28 @@ Deno.serve(async (req: Request) => {
   const [{ data: membership, error: membershipError }, { data: store, error: storeError }] = await Promise.all([
     admin.from("store_members").select("role,is_active,disabled_at")
       .eq("store_id", storeId).eq("user_id", userResult.user.id).maybeSingle(),
-    admin.from("stores").select("id,status,expires_at").eq("id", storeId).maybeSingle(),
+    admin.from("stores").select("id,status,expires_at,deleted_at,organization_id").eq("id", storeId).maybeSingle(),
   ]);
 
   if (membershipError || storeError) return response({ error: "Gagal memeriksa akses toko." }, 500);
   if (!membership || membership.is_active !== true || membership.disabled_at !== null || !["owner", "admin"].includes(membership.role)) {
     return response({ error: "Hanya Owner/Admin aktif yang dapat mengelola media TV." }, 403);
   }
-  if (!store || store.status !== "active" || (store.expires_at && new Date(store.expires_at).getTime() <= Date.now())) {
+  if (!store || store.deleted_at || store.status !== "active" || (store.expires_at && new Date(store.expires_at).getTime() <= Date.now())) {
     return response({ error: "Toko tidak aktif atau masa aktifnya berakhir." }, 403);
+  }
+  if (store.organization_id) {
+    const { data: organization, error: organizationError } = await admin.from("owner_organizations")
+      .select("id,status,expires_at").eq("id", store.organization_id).maybeSingle();
+    if (organizationError) return response({ error: "Status organisasi tidak dapat diverifikasi." }, 500);
+    if (!organization || organization.status !== "active" || (organization.expires_at && new Date(organization.expires_at).getTime() <= Date.now())) {
+      return response({ error: "Perusahaan tidak aktif atau masa sewanya telah berakhir." }, 403);
+    }
+  }
+  const { data: pinRows, error: pinError } = await authClient.rpc("get_my_pin_status");
+  const pinStatus = Array.isArray(pinRows) ? pinRows[0] : pinRows;
+  if (pinError || pinStatus?.is_verified !== true) {
+    return response({ error: "Verifikasi PIN diperlukan sebelum mengelola media TV." }, 403);
   }
 
   if (action === "reserve") {
