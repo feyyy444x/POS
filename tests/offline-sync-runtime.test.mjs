@@ -26,7 +26,7 @@ function memoryStorage(initial = [baseRecord()]) {
     async listOfflineOutbox({ storeId, userId, statuses }) {
       return [...rows.values()].filter(row =>
         row.storeId === storeId && row.userId === userId && statuses.includes(row.status),
-      ).map(structuredClone)
+      ).map(row => structuredClone(row))
     },
     async updateOfflineOutboxRecord(id, userId, patch) {
       const row = rows.get(id)
