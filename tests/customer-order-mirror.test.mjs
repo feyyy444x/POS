@@ -39,6 +39,13 @@ test('order notes are persisted with bounded lengths and displayed on receipts',
   assert.match(app, /order\.customer_note\?\.trim\(\).*CATATAN PESANAN/s)
 })
 
+test('authentication forms are excluded from draft persistence and beforeunload warnings', () => {
+  assert.match(app, /const isDraftEligibleForm = \(form\) =>/)
+  assert.match(app, /input\[type="password"\]/)
+  assert.match(app, /if \(form && isDraftEligibleForm\(form\) && !isSensitive\(field\)\) saveForm\(form\)/)
+  assert.match(app, /isDraftEligibleForm\(form\) && form\.dataset\.acoPosDirty === 'true'/)
+})
+
 test('dual-screen mode detects a second monitor and falls back safely when unavailable', () => {
   assert.match(app, /window\.getScreenDetails\(\)/)
   assert.match(app, /displayWindow\.moveTo\(target\.availLeft, target\.availTop\)/)
