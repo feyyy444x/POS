@@ -18,6 +18,10 @@ test('offline checkout accepts cash only and requires a writable offline license
   assert.match(app, /if\(shiftBreak\)/)
   assert.match(app, /if\(!activeShift\)/)
   assert.match(app, /data-offline-checkout/)
+  assert.match(app, /createQueue: false/)
+  assert.match(app, /BUKTI SEMENTARA · BELUM TERVERIFIKASI SERVER/)
+  assert.match(app, /Selesaikan review/)
+  assert.match(app, /Tandai ditolak/)
   assert.match(db, /stockInvalid/)
 })
 
