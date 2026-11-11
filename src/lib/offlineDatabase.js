@@ -252,6 +252,7 @@ export async function enqueueOfflineCashSale({
       transaction.abort()
       return
     }
+    record.snapshotServerValidatedAt = snapshot.serverValidatedAt || null
     outboxStore.add(record)
     snapshotStore.put({ ...snapshot, products: nextProducts, capturedAt: new Date().toISOString() })
     result = record
@@ -357,7 +358,8 @@ export async function rejectOfflineOutboxRecord(requestId, userId) {
     }
 
     let stockRestored = false
-    const snapshotMatches = snapshot && snapshot.userId === userId && snapshot.storeId === record.storeId
+    const snapshotMatches = snapshot && snapshot.userId === userId && snapshot.storeId === record.storeId &&
+      snapshot.serverValidatedAt === record.snapshotServerValidatedAt
     const allProductsPresent = snapshotMatches && record.items.every(item =>
       snapshot.products.some(product => product.id === item.product_id),
     )
