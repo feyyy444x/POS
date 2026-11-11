@@ -78,4 +78,4 @@ This is a disposable schema fixture for the migration's checkout boundary. It is
 
 ## Trigger the disposable database test
 
-Open GitHub Actions → **acoPos CI** → **Run workflow** on `feature/acopos-offline-first-isolated`. The `Offline checkout database runtime tests` job creates an ephemeral PostgreSQL 16 service, applies the two PR migrations to its fixture schema, and runs shift/grace constraints. It does not connect to Supabase or production.
+Open GitHub Actions → **acoPos CI** → **Run workflow** on `feature/acopos-offline-first-isolated`. The `Offline checkout database runtime tests` job creates an ephemeral PostgreSQL 16 service, runs the fixture with the `psql` client inside that service container, applies the two PR migrations to its fixture schema, and runs shift/grace constraints. It does not connect to Supabase or production.
