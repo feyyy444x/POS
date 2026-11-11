@@ -19,7 +19,7 @@ test('offline licenses are verified with the pinned Ed25519 public key', () => {
 test('offline license issuer validates user membership and active subscription server-side', () => {
   assert.match(server, /admin\.auth\.getUser\(token\)/)
   assert.match(server, /replace\(\/\^Bearer\\s\+\/i/)
-  assert.match(server, /\['owner', 'admin', 'cashier'\]/)
+  assert.match(server, /\['owner', 'admin', 'manager', 'cashier'\]/)
   assert.match(server, /store_members/)
   assert.match(server, /membership\?\.is_active/)
   assert.match(server, /select\('role,is_active'\)/)
