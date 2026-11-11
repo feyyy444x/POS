@@ -11,6 +11,8 @@ const ownerOperations = await readFile(new URL('src/OrganizationOperations.jsx',
 const subscriptionPlans = await readFile(new URL('src/SubscriptionPlanManager.jsx', root), 'utf8')
 const tvSettings = await readFile(new URL('src/TvDisplaySettings.jsx', root), 'utf8')
 const syncMigration = await readFile(new URL('supabase/migrations/20261111193000_realtime_and_operational_audit_coverage.sql', root), 'utf8')
+const adminMemberMigration = await readFile(new URL('supabase/migrations/20261111194500_restore_super_admin_member_management_rpcs.sql', root), 'utf8')
+const adminControl = await readFile(new URL('src/StoreControlCenter.jsx', root), 'utf8')
 
 test('cashier can open a separate customer mirror screen for the active tenant', () => {
   assert.match(app, /screen=order-mirror&store=/)
@@ -102,4 +104,18 @@ test('preview migration adds missing realtime tables and audit triggers idempote
   assert.match(syncMigration, /'self_service_order_items'/)
   assert.match(syncMigration, /'cashier_shift_breaks'/)
   assert.match(syncMigration, /private\.capture_nexapos_audit_event\(\)/)
+})
+
+
+test('Super Admin member actions have matching PIN-protected backend RPCs', () => {
+  assert.match(adminControl, /super_admin_update_store_member/)
+  assert.match(adminControl, /super_admin_delete_store_member_assignment/)
+  assert.match(adminMemberMigration, /create or replace function public\.super_admin_update_store_member/)
+  assert.match(adminMemberMigration, /create or replace function public\.super_admin_delete_store_member_assignment/)
+  assert.match(adminMemberMigration, /private\.is_super_admin\(\)/)
+  assert.match(adminMemberMigration, /private\.is_pin_verified\(\)/)
+  assert.match(adminMemberMigration, /v_member\.role = 'owner'/)
+  assert.match(adminMemberMigration, /Akun Super Admin dilindungi/)
+  assert.match(adminMemberMigration, /delete from public\.store_members where id = p_member_id/)
+  assert.match(adminMemberMigration, /grant execute on function public\.super_admin_update_store_member/)
 })
