@@ -27,7 +27,7 @@ test('registration prepares the server-side workspace before creating the authen
 test('registration validates password, PIN and business identity before sending the request', async () => {
   const portal = await read('../src/AccessPortal.jsx')
   assert.match(portal, /password\.length < 8/)
-  assert.match(portal, /!\^\\d\{4\}\$/.test(portal) ? /$^/ : /!\^\\d\{4\}\$./)
+  assert.ok(portal.includes("if (!/^\\d{4}$/.test(pin))"))
   assert.match(portal, /password !== passwordConfirm/)
   assert.match(portal, /pin !== pinConfirm/)
   assert.match(portal, /businessCategory/)
