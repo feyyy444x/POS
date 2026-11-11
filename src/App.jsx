@@ -1759,7 +1759,7 @@ function App() {
     const target=event.target
     const button=target?.closest?.('button')
     const offlineCheckoutAllowed=button?.hasAttribute('data-offline-checkout')&&offlineAccess?.isOffline&&offlineAccess?.writable
-    const offlineLocalUiAllowed=offlineAccess?.isOffline&&(target?.closest?.('.pos-catalog')||target?.closest?.('.cart-panel')||target?.closest?.('.receipt-modal-layer')||button?.hasAttribute('data-offline-outbox-action'))
+    const offlineLocalUiAllowed=offlineAccess?.isOffline&&(target?.closest?.('.product-tile,.category-pills,.pagination-actions')||target?.closest?.('.cart-panel')||target?.closest?.('.receipt-modal-layer')||button?.hasAttribute('data-offline-outbox-action'))
     const navigationAllowed=target?.closest?.('nav,a[href]')||button?.classList.contains('nav-link')||button?.classList.contains('mobile-menu')||button?.classList.contains('mobile-scrim')||button?.classList.contains('nx-back-button')||button?.classList.contains('admin-shortcut')||button?.hasAttribute('data-acoPos-nav')||button?.hasAttribute('data-lock-dismiss')||button?.title==='Keluar'||/keluar|logout/i.test(button?.textContent||'')||/refresh|perbarui/i.test((button?.className||'')+' '+(button?.getAttribute('aria-label')||''))
     const fieldInteraction=target?.closest?.('input,textarea,select,label')
     if(offlineCheckoutAllowed||offlineLocalUiAllowed||navigationAllowed||fieldInteraction)return
