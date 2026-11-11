@@ -12,6 +12,12 @@ The license issuer is a Netlify Function and requires:
 The browser verifier requires:
 - `VITE_ACOPOS_LICENSE_PUBLIC_KEY` (base64-encoded DER SubjectPublicKeyInfo public key)
 
+For this isolated PR, configure both values in Netlify **Deploy Preview context only** until the implementation is approved:
+- `ACOPOS_LICENSE_PRIVATE_KEY`: Secret = true; scope = Functions/Runtime; context = Deploy Preview.
+- `VITE_ACOPOS_LICENSE_PUBLIC_KEY`: Secret = false; scope = Builds; context = Deploy Preview.
+
+Do not use the `all` or `production` context for this PR. Existing production runtime configuration must remain untouched. The Supabase URL and server service-role key are already configured for the deploy-preview environment.
+
 The private and public keys must be a matched Ed25519 pair. Do not commit either private key or put it in any `VITE_*` variable.
 
 ## Generate a key pair
