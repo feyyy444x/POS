@@ -82,6 +82,19 @@ as $$
   )
 $$;
 
+-- Baseline checkout signature exists before the idempotency migration; the
+-- isolated shift migration below replaces this disposable stub with the full body.
+create or replace function public.complete_sale(
+  p_store_id uuid,
+  p_items jsonb,
+  p_discount numeric default 0,
+  p_payment_method text default 'cash',
+  p_paid_amount numeric default 0,
+  p_customer_name text default null,
+  p_create_queue boolean default true
+) returns jsonb language sql security definer set search_path = ''
+as $function$ select '{}'::jsonb $function$;
+
 \i supabase/migrations/20261030032837_idempotent_checkout.sql
 \i supabase/migrations/20261111130000_enforce_cashier_shift_on_checkout.sql
 \i supabase/migrations/20261111150000_offline_license_grace_period.sql
