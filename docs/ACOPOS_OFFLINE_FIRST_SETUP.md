@@ -43,3 +43,16 @@ Then verify the package table has `offline_grace_hours` and the checkout RPC pri
 - A disconnected device cannot receive a remote suspension until it reconnects. Server-side checks reject queued transactions when the device reconnects if the tenant, membership, shift, products, or stock are no longer valid.
 - Only cash sales can enter the offline outbox. QRIS, transfers, Self Order, product edits, stock edits, staff changes, and other operational writes remain online-only.
 - An offline receipt is explicitly marked pending and is not a server-confirmed receipt. Pending records remain stored after sync and require review if the server total or state conflicts.
+
+## Automated database regression coverage
+
+The PR's GitHub Actions workflow runs `supabase/tests/offline_shift_checkout_runtime.sql` against a fresh ephemeral PostgreSQL 16 service. The fixture applies the isolated checkout migration and exercises:
+- no open shift,
+- another employee's shift,
+- a shift belonging to another tenant,
+- a closed shift,
+- an active break,
+- a valid open shift, including exact stock decrement,
+- direct legacy RPC privilege denial and idempotent RPC privilege availability.
+
+This is a disposable schema fixture for the migration's checkout boundary. It is not a full clone of the production Supabase project; production schema/migration-ledger verification remains a separate release gate.
