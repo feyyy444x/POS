@@ -5,7 +5,7 @@ on:
   pull_request:
     branches: [main]
   push:
-    branches: [acopos/rebrand-preview]
+    branches: [acopos/rebrand-preview, feature/acopos-offline-first-isolated]
 
 permissions:
   contents: read
