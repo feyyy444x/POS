@@ -400,5 +400,5 @@ export async function rejectOfflineOutboxRecord(requestId, userId) {
   }
 
   await done
-  return result
+  return result ? { record: result, stockRestored: result.localStockRestored } : null
 }
