@@ -35,6 +35,24 @@ export function isOfflineStorageAvailable() {
   return typeof indexedDB !== 'undefined'
 }
 
+export async function requestOfflineStoragePersistence() {
+  if (typeof navigator === 'undefined' || !navigator.storage) {
+    return { supported: false, granted: false }
+  }
+  try {
+    const alreadyPersistent = typeof navigator.storage.persisted === 'function'
+      ? await navigator.storage.persisted()
+      : false
+    if (alreadyPersistent) return { supported: true, granted: true }
+    if (typeof navigator.storage.persist !== 'function') {
+      return { supported: false, granted: false }
+    }
+    return { supported: true, granted: Boolean(await navigator.storage.persist()) }
+  } catch {
+    return { supported: true, granted: false }
+  }
+}
+
 export function openOfflineDatabase() {
   if (!isOfflineStorageAvailable()) {
     return Promise.reject(new Error('Penyimpanan offline tidak tersedia pada browser ini.'))
