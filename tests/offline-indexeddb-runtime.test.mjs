@@ -4,11 +4,44 @@ import { IDBFactory } from 'fake-indexeddb'
 
 globalThis.indexedDB = new IDBFactory()
 
-const db = await import('../src/lib/offlineDatabase.js')
 const STORE = '11111111-1111-4111-8111-111111111111'
 const USER = 'aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa'
 const OTHER_USER = 'bbbbbbbb-2222-4222-8222-bbbbbbbbbbbb'
 const PRODUCT = 'cccccccc-3333-4333-8333-cccccccccccc'
+
+// Seed the v1 schema to exercise the real upgrade path: snapshots are a
+// disposable cache, but outbox rows and metadata must survive the v2 upgrade.
+await new Promise((resolve, reject) => {
+  const request = indexedDB.open('acopos-offline-pos', 1)
+  request.onupgradeneeded = () => {
+    const snapshots = request.result.createObjectStore('store_snapshots', { keyPath: 'storeId' })
+    const outbox = request.result.createObjectStore('transaction_outbox', { keyPath: 'requestId' })
+    outbox.createIndex('by_store', 'storeId', { unique: false })
+    outbox.createIndex('by_store_status_created', ['storeId', 'status', 'createdAt'], { unique: false })
+    outbox.createIndex('by_user', 'userId', { unique: false })
+    request.result.createObjectStore('metadata', { keyPath: 'key' })
+  }
+  request.onerror = () => reject(request.error)
+  request.onsuccess = () => {
+    const database = request.result
+    const transaction = database.transaction(['store_snapshots', 'transaction_outbox', 'metadata'], 'readwrite')
+    transaction.objectStore('store_snapshots').put({ storeId: STORE, userId: USER, products: [{ id: PRODUCT, stock: 4 }] })
+    transaction.objectStore('transaction_outbox').put({
+      requestId: 'legacy-v1-outbox-record',
+      storeId: STORE,
+      userId: USER,
+      status: 'pending_sync',
+      createdAt: '2026-11-11T09:00:00.000Z',
+      items: [{ product_id: PRODUCT, quantity: 1 }],
+    })
+    transaction.objectStore('metadata').put({ key: 'migration-check', value: 'preserved' })
+    transaction.oncomplete = () => { database.close(); resolve() }
+    transaction.onerror = () => reject(transaction.error)
+    transaction.onabort = () => reject(transaction.error)
+  }
+})
+
+const db = await import('../src/lib/offlineDatabase.js')
 
 async function seedSnapshot({ storeId = STORE, userId = USER, stock = 10 } = {}) {
   await db.saveOfflineStoreSnapshot({
@@ -45,8 +78,10 @@ test('real IndexedDB stores snapshots by store and user and commits a cash outbo
   const records = await db.listOfflineOutbox({ storeId: STORE, userId: USER })
 
   assert.equal(snapshot.products[0].stock, 8)
-  assert.equal(records.length, 1)
-  assert.equal(records[0].requestId, requestId)
+  assert.equal(records.length, 2)
+  assert.ok(records.some(record => record.requestId === requestId))
+  assert.ok(records.some(record => record.requestId === 'legacy-v1-outbox-record'))
+  assert.equal(await db.getOfflineMetadata('migration-check'), 'preserved')
   assert.equal(records[0].paymentMethod, 'cash')
   assert.equal(records[0].status, db.OFFLINE_OUTBOX_STATUS.PENDING)
   assert.equal(await db.getOfflineStoreSnapshot(STORE, OTHER_USER), null)
