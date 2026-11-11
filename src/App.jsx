@@ -1311,6 +1311,7 @@ function App() {
     try {
       await updateOfflineOutboxRecord(record.requestId, session.user.id, {
         status: OFFLINE_OUTBOX_STATUS.PENDING,
+        nextAttemptAt: null,
         lastError: 'Pengguna meminta percobaan sinkronisasi ulang.',
         updatedAt: new Date().toISOString(),
       })
