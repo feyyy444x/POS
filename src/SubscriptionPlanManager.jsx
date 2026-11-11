@@ -65,6 +65,14 @@ export default function SubscriptionPlanManager({ onBack, syncStatus = 'checking
   }, [])
 
   useEffect(() => { load() }, [load])
+  useEffect(() => {
+    if (!supabase) return
+    const channel = supabase.channel('acopos-activation-catalog-sync')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'site_activation_packages' }, load)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'site_activation_durations' }, load)
+      .subscribe()
+    return () => { supabase.removeChannel(channel) }
+  }, [load])
   // Harga paket selalu menyediakan empat durasi standar. Status tampil/nonaktif hanya mengatur penawaran di homepage, bukan menghilangkan kolom harga dari panel Admin.
   const pricingDurations = useMemo(() => ['daily', 'weekly', 'monthly', 'yearly'].map(key => durations.find(item => item.duration_key === key) || defaultDurations.find(item => item.duration_key === key)).filter(Boolean), [durations])
   const updatePlan = (key, field, value) => setPlans(current => current.map(plan => plan.package_key === key ? { ...plan, [field]: value } : plan))
