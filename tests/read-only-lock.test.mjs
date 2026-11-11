@@ -40,3 +40,13 @@ test('manager PIN reset RPC is not executable by anonymous users', () => {
   assert.ok(pinRpcMigration.toLowerCase().includes('revoke all on function public.manager_reset_store_member_pin(uuid) from public, anon;'))
   assert.ok(pinRpcMigration.toLowerCase().includes('grant execute on function public.manager_reset_store_member_pin(uuid) to authenticated;'))
 })
+
+const tvMediaUpload = await readFile(new URL('../supabase/functions/tv-media-upload/index.ts', import.meta.url), 'utf8')
+
+test('TV media upload enforces tenant, parent organization, and verified PIN before service-role writes', () => {
+  assert.match(tvMediaUpload, /select\("id,status,expires_at,deleted_at,organization_id"\)/)
+  assert.match(tvMediaUpload, /from\("owner_organizations"\)/)
+  assert.match(tvMediaUpload, /organization\.status !== "active"/)
+  assert.match(tvMediaUpload, /organization\.expires_at/)
+  assert.match(tvMediaUpload, /pinStatus\?\.is_verified !== true/)
+})
