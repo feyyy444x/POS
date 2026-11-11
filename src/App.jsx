@@ -8,6 +8,9 @@ import {
 } from 'lucide-react'
 import { isSupabaseConfigured, supabase } from './lib/supabase'
 import { userFacingError } from './lib/userFacingError'
+import { saveOfflineStoreSnapshot, getOfflineStoreSnapshot, enqueueOfflineCashSale, listOfflineOutbox } from './lib/offlineDatabase'
+import { syncOfflineCashOutbox } from './lib/offlineSync'
+import { validateAndStoreOfflineLicense, getOfflineLicenseStatus } from './lib/offlineLicense'
 import { AuthScreen, FreeRegistrationCompletion, PinGate } from './AccessPortal.jsx'
 import WorkspaceConversionModal from './WorkspaceConversionModal.jsx'
 // Heavy route modules are split into separate chunks so public visitors and
@@ -213,6 +216,9 @@ function App() {
   const [ownerMemberDeleteText,setOwnerMemberDeleteText] = useState('')
   const [ownerMemberDeleteBusy,setOwnerMemberDeleteBusy] = useState(false)
   const [syncStatus, setSyncStatus] = useState(() => typeof navigator !== 'undefined' && !navigator.onLine ? 'offline' : 'checking')
+  const [offlineLicense, setOfflineLicense] = useState(null)
+  const [offlineAccess, setOfflineAccess] = useState(null)
+  const [offlineOutbox, setOfflineOutbox] = useState([])
   const [manualRefreshTick, setManualRefreshTick] = useState(0)
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('Semua')
@@ -497,8 +503,35 @@ function App() {
     }
     let resolvedMembers = memberRows || []
     if (memberError) {
+      if (preferredStoreId) {
+        try {
+          const snapshot = await getOfflineStoreSnapshot(preferredStoreId, session.user.id)
+          const license = await getOfflineLicenseStatus({ storeId: preferredStoreId, userId: session.user.id })
+          if (snapshot?.store && snapshot?.membership && license.valid) {
+            setStore(snapshot.store)
+            setMembership({ ...snapshot.membership, store_id: preferredStoreId })
+            setMemberships([{ ...snapshot.membership, store_id: preferredStoreId }])
+            setSettings(snapshot.settings || null)
+            setProducts(snapshot.products || [])
+            setOrders(snapshot.orders || [])
+            setQueue(snapshot.queue || [])
+            setOrderItems(snapshot.orderItems || [])
+            setActiveShift(snapshot.activeShift || null)
+            setOfflineAccess({ ...license, isOffline: true })
+            setOfflineOutbox(await listOfflineOutbox({ storeId: preferredStoreId, userId: session.user.id }))
+            setSyncStatus('offline')
+            setNotice(license.writable
+              ? 'MODE OFFLINE AKTIF · Transaksi tunai disimpan di perangkat dan menunggu sinkronisasi. Perubahan data lain dikunci.'
+              : 'MODE OFFLINE HANYA-BACA · ' + (license.reason || 'Masa offline telah berakhir.'))
+            setLoading(false)
+            return
+          }
+        } catch (offlineError) {
+          console.warn('Offline workspace restore unavailable:', offlineError?.message || offlineError)
+        }
+      }
       if (strictSelection) setIsOwnerTenantWorkspace(false)
-      setNotice(userFacingError(memberError, 'Koneksi belum siap saat memuat keanggotaan. Periksa internet lalu coba lagi.'))
+      setNotice(userFacingError(memberError, 'Koneksi belum siap. Cache offline atau lisensi belum tersedia.'))
       setLoading(false)
       return
     }
@@ -639,6 +672,52 @@ function App() {
     setNotice(loadIssues.length ? 'Sebagian data gagal dimuat: ' + loadIssues.join(' · ') : '')
     setLoading(false)
   }, [session, selectedStoreId, isSuperAdmin])
+
+  useEffect(() => {
+    if (!store?.id || !session?.user?.id || !session?.access_token || typeof navigator === 'undefined' || !navigator.onLine) return
+    let cancelled = false
+    const issueLicense = async () => {
+      try {
+        const response = await fetch('/.netlify/functions/offline-license', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + session.access_token },
+          body: JSON.stringify({ storeId: store.id }),
+        })
+        const envelope = await response.json().catch(() => ({}))
+        if (!response.ok) throw new Error(envelope.error || 'Lisensi offline belum berhasil divalidasi.')
+        const payload = await validateAndStoreOfflineLicense(envelope, { storeId: store.id, userId: session.user.id })
+        if (!cancelled) { setOfflineLicense(payload); setOfflineAccess(null) }
+      } catch (error) {
+        if (!cancelled) setOfflineLicense({ valid: false, reason: error?.message || 'Lisensi offline tidak tersedia.' })
+      }
+    }
+    issueLicense()
+    return () => { cancelled = true }
+  }, [store?.id, session?.user?.id, session?.access_token])
+
+  useEffect(() => {
+    if (!store?.id || !session?.user?.id || !offlineLicense?.serverIssuedAt || typeof navigator === 'undefined' || !navigator.onLine) return
+    saveOfflineStoreSnapshot({
+      storeId: store.id, userId: session.user.id, store, membership, products, settings,
+      activeShift, orders, queue, orderItems, serverValidatedAt: offlineLicense.serverIssuedAt,
+    }).catch(error => console.warn('Offline workspace snapshot save failed:', error?.message || error))
+  }, [store, membership, products, settings, activeShift, orders, queue, orderItems, offlineLicense?.serverIssuedAt, session?.user?.id])
+
+  useEffect(() => {
+    if (!store?.id || !session?.user?.id || typeof navigator === 'undefined' || !navigator.onLine || offlineAccess?.isOffline) return
+    let cancelled = false
+    const syncPending = async () => {
+      try {
+        await syncOfflineCashOutbox({ supabase, storeId: store.id, userId: session.user.id })
+        const records = await listOfflineOutbox({ storeId: store.id, userId: session.user.id })
+        if (!cancelled) setOfflineOutbox(records)
+      } catch (error) {
+        console.warn('Offline transaction sync deferred:', error?.message || error)
+      }
+    }
+    syncPending()
+    return () => { cancelled = true }
+  }, [store?.id, session?.user?.id, syncStatus, manualRefreshTick, offlineAccess?.isOffline])
 
   useEffect(()=>{if(!session){setIsSuperAdmin(false);setIsPlatformAdmin(false);setAdminCheckReady(true);return}let cancelled=false;setAdminCheckReady(false);Promise.all([supabase.from('super_admins').select('user_id').eq('user_id',session.user.id).maybeSingle(),supabase.rpc('get_my_platform_staff_role')]).then(([adminResult,staffResult])=>{if(cancelled)return;const staffData=Array.isArray(staffResult.data)?staffResult.data[0]:staffResult.data;const isPlatformAdmin=!staffResult.error&&staffData?.role==='admin';setIsPlatformAdmin(isPlatformAdmin);setIsSuperAdmin(Boolean(adminResult.data)||isPlatformAdmin);setAdminCheckReady(true)}).catch(()=>{if(!cancelled){setIsSuperAdmin(false);setIsPlatformAdmin(false);setAdminCheckReady(true)}});return()=>{cancelled=true}},[session?.user?.id,session?.access_token])
 
@@ -1089,6 +1168,50 @@ function App() {
     if(!activeShift){setNotice('Buka sesi kerja Karyawan terlebih dahulu sebelum memproses transaksi.');setPage('cashier');return}
     const paid=payMethod==='cash'?(Number(paidAmount)||0):total
     if(paid<total){setNotice('Nominal pembayaran masih kurang.');return}
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+      if (payMethod !== 'cash') { setNotice('Saat offline, hanya pembayaran tunai yang dapat disimpan. QRIS dan transfer harus diproses online.'); return }
+      if (!offlineAccess?.isOffline || !offlineAccess?.writable) {
+        setNotice(offlineAccess?.reason || 'Lisensi offline tidak valid atau masa grace period telah berakhir. Sambungkan internet untuk validasi ulang.')
+        return
+      }
+      const requestId = checkoutRequestIdRef.current
+      try {
+        await enqueueOfflineCashSale({
+          storeId: store.id, userId: session.user.id, requestId,
+          items: cart.map(item => ({ product_id: item.id, quantity: item.quantity, unit_price: item.price, product_name: item.name })),
+          discount: safeDiscount, paidAmount: paid, customerName: queueCustomer || null,
+          createQueue: false, estimatedTotal: total,
+        })
+        const pendingOrder = {
+          id: 'offline-' + requestId,
+          receipt_number: 'MENUNGGU-' + requestId.slice(0, 8).toUpperCase(),
+          created_at: new Date().toISOString(), total, subtotal, discount: safeDiscount,
+          payment_method: 'cash', paid_amount: paid, change_amount: paid - total,
+          status: 'pending_sync', cashier_id: session.user.id,
+        }
+        const receiptItems = cart.map(item => ({
+          product_id: item.id, product_name: item.name, quantity: item.quantity,
+          unit_price: item.price, line_total: Number(item.price) * item.quantity,
+        }))
+        setReceipt({ order: pendingOrder, items: receiptItems, ticket: null, offlinePending: true })
+        setOrderSuccessToast({ number: pendingOrder.receipt_number, total })
+        setProducts(current => current.map(product => {
+          const sold = cart.find(item => item.id === product.id)
+          return sold ? { ...product, stock: Math.max(0, Number(product.stock) - sold.quantity) } : product
+        }))
+        setOfflineOutbox(await listOfflineOutbox({ storeId: store.id, userId: session.user.id }))
+        checkoutRequestIdRef.current = null
+        setCart([]); setPaidAmount(''); setDiscount('0'); setQueueCustomer('')
+        setNotice('Transaksi tersimpan di perangkat dengan status MENUNGGU SINKRONISASI. Belum tercatat sebagai transaksi server.')
+      } catch (error) {
+        setNotice(userFacingError(error, 'Transaksi offline belum dapat disimpan secara aman.'))
+      }
+      return
+    }
+    if (offlineAccess?.isOffline) {
+      setNotice('Sambungkan internet dan validasi ulang lisensi sebelum memproses transaksi online.')
+      return
+    }
     setQueueBusy(true)
     const {data,error}=await supabase.rpc('complete_sale_idempotent',{p_store_id:store.id,p_items:cart.map(i=>({product_id:i.id,quantity:i.quantity})),p_discount:safeDiscount,p_payment_method:payMethod,p_paid_amount:paid,p_customer_name:settings?.queue_enabled===false?null:(queueCustomer||null),p_create_queue:settings?.queue_enabled!==false,p_request_id:checkoutRequestIdRef.current})
     if(error){setQueueBusy(false);setNotice(userFacingError(error));return}
@@ -1533,12 +1656,12 @@ function App() {
   if(loading&&!store)return <div className="loading-screen"><span className="spinner spinner-large"/><span>Memeriksa keanggotaan toko…</span></div>
   if(!store)return <div className="loading-screen"><span className="spinner spinner-large"/><p>{notice||'Akun ini belum terhubung ke toko. Minta Owner atau Super Admin mengirim undangan.'}</p><button className="btn btn-outline" onClick={loadWorkspace} disabled={loading}><RefreshCw size={14}/> {loading?'Memeriksa toko…':'Cek koneksi toko'}</button><button className="btn btn-ghost" onClick={()=>supabase.auth.signOut()}>Keluar</button></div>
   const effectiveStoreStatus = store.status !== 'active' ? (store.status || 'pending') : (tenantOrganizationStatus && tenantOrganizationStatus.status !== 'active' ? tenantOrganizationStatus.status : (tenantOrganizationStatus?.expires_at && new Date(tenantOrganizationStatus.expires_at) <= new Date() ? 'expired' : (store.expires_at && new Date(store.expires_at) <= new Date() ? 'expired' : 'active')))
-  const tenantReadOnly = effectiveStoreStatus !== 'active'
+  const tenantReadOnly = effectiveStoreStatus !== 'active' || Boolean(offlineAccess?.isOffline)
 
   const tenantDaysRemaining = store?.expires_at ? Math.ceil((new Date(store.expires_at).setHours(0,0,0,0)-new Date().setHours(0,0,0,0))/86400000) : null
   const tenantExpiryTone = tenantDaysRemaining === null ? '' : tenantDaysRemaining < 7 ? 'critical' : tenantDaysRemaining <= 25 ? 'warning' : 'healthy'
   const titleMap={'owner-center':'Pusat Kendali',dashboard:'Ringkasan',pos:'Kasir / POS',products:'Produk & stok',queue:'Sistem antrean',monitoring:'Monitoring Karyawan aktif',reports:'Laporan penjualan','reports-org':'Laporan perusahaan',attendance:'Laporan absensi',cashier:'Buka / tutup sesi',settings:'Pengaturan toko',profile:'Profil & keamanan','tv-settings':'Pengaturan Layar Antrean',tenants:'Tenant & lokasi',audit:'Audit aktivitas'}
-  const guardTenantAction=(event)=>{if(!tenantReadOnly)return;const button=event.target?.closest?.('button');if(!button)return;const allowed=button.closest('nav')||button.classList.contains('nav-link')||button.classList.contains('mobile-menu')||button.classList.contains('mobile-scrim')||button.classList.contains('nx-back-button')||button.classList.contains('admin-shortcut')||button.hasAttribute('data-acoPos-nav')||button.hasAttribute('data-lock-dismiss')||button.title==='Keluar'||/keluar|logout/i.test(button.textContent||'')||/refresh|perbarui/i.test((button.className||'')+' '+(button.getAttribute('aria-label')||''));if(allowed)return;event.preventDefault();event.stopPropagation();event.nativeEvent?.stopImmediatePropagation?.();setLockNoticeOpen(true)}
+  const guardTenantAction=(event)=>{if(!tenantReadOnly)return;const button=event.target?.closest?.('button');if(!button)return;const offlineCheckoutAllowed=button.hasAttribute('data-offline-checkout')&&offlineAccess?.isOffline&&offlineAccess?.writable;if(offlineCheckoutAllowed)return;const allowed=button.closest('nav')||button.classList.contains('nav-link')||button.classList.contains('mobile-menu')||button.classList.contains('mobile-scrim')||button.classList.contains('nx-back-button')||button.classList.contains('admin-shortcut')||button.hasAttribute('data-acoPos-nav')||button.hasAttribute('data-lock-dismiss')||button.title==='Keluar'||/keluar|logout/i.test(button.textContent||'')||/refresh|perbarui/i.test((button.className||'')+' '+(button.getAttribute('aria-label')||''));if(allowed)return;event.preventDefault();event.stopPropagation();event.nativeEvent?.stopImmediatePropagation?.();setLockNoticeOpen(true)}
   const guardTenantSubmit=(event)=>{if(!tenantReadOnly)return;event.preventDefault();event.stopPropagation();event.nativeEvent?.stopImmediatePropagation?.();setLockNoticeOpen(true)}
   return <div className={`app-shell tenant-operations-shell nx-workspace-shell workspace-page-${page}`} onClickCapture={guardTenantAction} onSubmitCapture={guardTenantSubmit}>
     {tenantReadOnly&&<div className="tenant-readonly-banner" role="status" style={{margin:'14px 18px 0',padding:'14px 18px',border:'1px solid #f3c7a7',borderRadius:14,background:'#f5efe3',color:'#92754a'}}><strong>AKSES OPERASIONAL DIKUNCI</strong><span style={{display:'block',marginTop:4}}>Akses operasional {tenantOrganizationStatus?.organization_name||store.name||'Perusahaan Anda'} ini sedang dihentikan sementara. Anda masih dapat melihat halaman dan informasi yang tersedia, tetapi seluruh tindakan operasional tidak dapat digunakan.</span></div>}
@@ -1602,7 +1725,7 @@ function App() {
           <div className="dashboard-grid"><div className="panel sales-panel"><div className="panel-head"><div><h3>Transaksi terbaru</h3><p>Aktivitas penjualan terakhir</p></div><button className="text-button" onClick={()=>setPage('reports')}>Lihat semua <ArrowRight size={14}/></button></div>{orders.length===0?<EmptyState icon={FileText} title="Belum ada transaksi" text="Transaksi pertama Anda akan muncul di sini."/>:<div className="table-wrap"><table><thead><tr><th>No. struk</th><th>Waktu</th><th>Pembuat pesanan</th><th>Pembayaran</th><th>Total</th><th>Status</th></tr></thead><tbody>{orders.slice(0,5).map(o=><tr key={o.id}><td className="mono strong">{o.receipt_number}</td><td>{shortTime(o.created_at)}</td><td>{teamMembers.find(m=>m.user_id===o.cashier_id)?.full_name?.trim() || teamMembers.find(m=>m.user_id===o.cashier_id)?.email || (o.cashier_id===session.user.id ? (membership?.full_name?.trim()||session.user.email) : (o.cashier_id ? 'Karyawan ID '+o.cashier_id.slice(0,8) : 'Tidak tercatat (transaksi lama)'))}</td><td><span className="payment-tag">{o.payment_method}</span></td><td className="strong">{money(o.total)}</td><td><span className="status-pill status-paid">{o.status==='paid'?'Berhasil':o.status}</span></td></tr>)}</tbody></table></div>}</div><div className="panel queue-panel"><div className="panel-head"><div><h3>Antrean berjalan</h3><p>Pantauan layanan real-time</p></div><button className="icon-button" onClick={()=>setPage('queue')}><ArrowRight size={16}/></button></div><div className="queue-mini-stats"><div><small>Menunggu</small><strong>{waitingQueue.length}</strong></div><div><small>Dipanggil</small><strong>{activeQueue.length}</strong></div></div>{queue.filter(t=>t.status!=='done'&&t.status!=='skipped').slice(0,4).map(t=><div className="queue-mini-row" key={t.id}><span className="queue-number">{settings?.queue_prefix||'A'}{String(t.queue_number).padStart(3,'0')}</span><span className="queue-mini-name">{t.customer_name||'Pelanggan'}</span><span className={`status-pill ${t.status==='waiting'?'status-waiting':'status-serving'}`}>{t.status==='waiting'?'Menunggu':'Dipanggil'}</span></div>)}{queue.length===0&&<EmptyState icon={Ticket} title="Belum ada antrean" text="Antrean baru akan muncul otomatis."/>}</div></div>
         </section>}
 
-        {page==='pos'&&<section className="page-section"><div className="page-heading"><div><span className="eyebrow muted">SALES / CHECKOUT</span><h1>Karyawan <span className="heading-accent">POS.</span></h1><p>Pilih produk, proses pembayaran, dan cetak struk.</p></div><span className={`date-pill ${activeShift?'':'shift-closed-pill'}`}><i className="live-dot"/> {activeShift?'Shift aktif':'Shift belum dibuka'}</span></div>{!activeShift&&<div className="shift-required-banner"><div><strong>Buka shift untuk mengaktifkan transaksi POS</strong><p>Masukkan saldo awal kas melalui menu Buka / tutup sesi sebelum memproses penjualan.</p></div><button className="btn btn-primary" onClick={()=>setPage('cashier')}><Wallet size={16}/> Buka kasir</button></div>}{shiftBreak&&<div className="shift-required-banner" style={{borderColor:'#a18153',background:'rgba(161,129,83,.08)'}}><div><strong>Karyawan sedang istirahat</strong><p>Transaksi tidak dapat diselesaikan sampai Anda kembali bekerja. Sesi kasir tetap terbuka.</p></div><button className="btn btn-primary" onClick={()=>setPage('cashier')}><Clock3 size={16}/> Kembali bekerja</button></div>}{settings?.self_order_enabled&&<SelfOrderManager store={store} onNotice={setNotice} embedded/>}<div className="pos-layout"><div className="pos-catalog"><div className="catalog-toolbar"><div className="search-box"><Search size={17}/><input value={search} onChange={e=>{setSearch(e.target.value);setPosProductPage(1);setProductPage(1)}} placeholder="Cari nama, SKU, barcode…"/></div><button className="icon-button" onClick={loadWorkspace} title="Refresh produk"><RefreshCw size={16}/></button></div><div className="category-pills">{categories.map(c=><button key={c} className={category===c?'category-active':''} onClick={()=>setCategory(c)}>{c}</button>)}</div><div className="product-grid">{visibleProducts.slice((posProductPage-1)*listPageSize,posProductPage*listPageSize).map(p=><button key={p.id} className="product-tile" disabled={queueBusy||p.stock<=0} onClick={()=>addToCart(p)}><span className="product-tile-icon"><Package size={21}/></span><span className="product-tile-name">{p.name}</span><span className="product-tile-bottom"><strong>{money(p.price)}</strong><small>Stok {p.stock}</small></span><span className="product-add"><Plus size={14}/></span></button>)}</div>{visibleProducts.length===0&&<EmptyState icon={Package} title="Produk tidak ditemukan" text="Coba kata kunci lain atau tambahkan produk baru." action={canAddProduct?()=>setProductModal({}):null} actionLabel="Tambah produk"/>}<Pagination page={posProductPage} total={visibleProducts.length} pageSize={listPageSize} onChange={setPosProductPage}/></div><aside className="cart-panel"><div className="cart-head"><div><h3><ShoppingCart size={18}/> Keranjang</h3><p>{cart.reduce((s,i)=>s+i.quantity,0)} item dipilih</p></div><button className="text-button" onClick={()=>setCart([])} disabled={!cart.length}>Kosongkan</button></div><div className="cart-items">{cart.map(item=><div className="cart-item" key={item.id}><div className="cart-item-main"><strong>{item.name}</strong><small>{money(item.price)} / item</small><div className="quantity-control"><button disabled={queueBusy} onClick={()=>changeQty(item.id,-1)}><Minus size={12}/></button><span>{item.quantity}</span><button onClick={()=>changeQty(item.id,1)} disabled={queueBusy||item.quantity>=item.stock}><Plus size={12}/></button></div></div><div className="cart-item-side"><strong>{money(item.price*item.quantity)}</strong><button className="icon-button danger-icon" disabled={queueBusy} onClick={()=>removeCartItem(item.id)}><Trash2 size={14}/></button></div></div>)}{cart.length===0&&<EmptyState icon={ShoppingCart} title="Keranjang masih kosong" text="Pilih produk untuk memulai transaksi."/>}</div><div className="checkout-fields">{settings?.queue_enabled!==false&&<><label>Nama pelanggan <span>Opsional · untuk antrean</span></label><input className="text-input" value={queueCustomer} disabled={queueBusy} onChange={e=>setQueueCustomer(e.target.value)} placeholder="Nama untuk nomor antrean"/></>}<label>Diskon (Rp)</label><input className="text-input" type="number" min="0" max={subtotal} value={discount} disabled={queueBusy} onChange={e=>setDiscount(e.target.value)}/><label>Metode pembayaran</label><div className="payment-options">{[['cash','Tunai',Wallet],['qris','QRIS',QrCode],['transfer','Transfer',CreditCard]].map(([v,l,I])=><button key={v} className={payMethod===v?'payment-active':''} disabled={queueBusy} onClick={()=>setPayMethod(v)}><I size={15}/>{l}</button>)}</div>{payMethod==='cash'&&<><label>Uang diterima (Rp)</label><input className="text-input" type="number" min={total} value={paidAmount} disabled={queueBusy} onChange={e=>setPaidAmount(e.target.value)} placeholder={String(total)}/></>}</div><div className="cart-totals"><div><span>Subtotal</span><strong>{money(subtotal)}</strong></div><div><span>Diskon</span><strong className="discount-value">− {money(safeDiscount)}</strong></div><div className="grand-total"><span>Total pembayaran</span><strong>{money(total)}</strong></div>{payMethod==='cash'&&Number(paidAmount)>=total&&total>0&&<div><span>Kembalian</span><strong>{money(Number(paidAmount)-total)}</strong></div>}</div><button className="btn btn-primary btn-wide checkout-button" disabled={!cart.length||queueBusy||!activeShift} onClick={checkout}>{queueBusy?<span className="spinner"/>:<Check size={17}/>} Proses pembayaran <ArrowRight size={16}/></button><div className="cart-note"><ShieldCheck size={13}/> Transaksi aman tersimpan di cloud</div></aside></div></section>}
+        {page==='pos'&&<section className="page-section"><div className="page-heading"><div><span className="eyebrow muted">SALES / CHECKOUT</span><h1>Karyawan <span className="heading-accent">POS.</span></h1><p>Pilih produk, proses pembayaran, dan cetak struk.</p></div><span className={`date-pill ${activeShift?'':'shift-closed-pill'}`}><i className="live-dot"/> {activeShift?'Shift aktif':'Shift belum dibuka'}</span></div>{!activeShift&&<div className="shift-required-banner"><div><strong>Buka shift untuk mengaktifkan transaksi POS</strong><p>Masukkan saldo awal kas melalui menu Buka / tutup sesi sebelum memproses penjualan.</p></div><button className="btn btn-primary" onClick={()=>setPage('cashier')}><Wallet size={16}/> Buka kasir</button></div>}{shiftBreak&&<div className="shift-required-banner" style={{borderColor:'#a18153',background:'rgba(161,129,83,.08)'}}><div><strong>Karyawan sedang istirahat</strong><p>Transaksi tidak dapat diselesaikan sampai Anda kembali bekerja. Sesi kasir tetap terbuka.</p></div><button className="btn btn-primary" onClick={()=>setPage('cashier')}><Clock3 size={16}/> Kembali bekerja</button></div>}{settings?.self_order_enabled&&<SelfOrderManager store={store} onNotice={setNotice} embedded/>}<div className="pos-layout"><div className="pos-catalog"><div className="catalog-toolbar"><div className="search-box"><Search size={17}/><input value={search} onChange={e=>{setSearch(e.target.value);setPosProductPage(1);setProductPage(1)}} placeholder="Cari nama, SKU, barcode…"/></div><button className="icon-button" onClick={loadWorkspace} title="Refresh produk"><RefreshCw size={16}/></button></div><div className="category-pills">{categories.map(c=><button key={c} className={category===c?'category-active':''} onClick={()=>setCategory(c)}>{c}</button>)}</div><div className="product-grid">{visibleProducts.slice((posProductPage-1)*listPageSize,posProductPage*listPageSize).map(p=><button key={p.id} className="product-tile" disabled={queueBusy||p.stock<=0} onClick={()=>addToCart(p)}><span className="product-tile-icon"><Package size={21}/></span><span className="product-tile-name">{p.name}</span><span className="product-tile-bottom"><strong>{money(p.price)}</strong><small>Stok {p.stock}</small></span><span className="product-add"><Plus size={14}/></span></button>)}</div>{visibleProducts.length===0&&<EmptyState icon={Package} title="Produk tidak ditemukan" text="Coba kata kunci lain atau tambahkan produk baru." action={canAddProduct?()=>setProductModal({}):null} actionLabel="Tambah produk"/>}<Pagination page={posProductPage} total={visibleProducts.length} pageSize={listPageSize} onChange={setPosProductPage}/></div><aside className="cart-panel"><div className="cart-head"><div><h3><ShoppingCart size={18}/> Keranjang</h3><p>{cart.reduce((s,i)=>s+i.quantity,0)} item dipilih</p></div><button className="text-button" onClick={()=>setCart([])} disabled={!cart.length}>Kosongkan</button></div><div className="cart-items">{cart.map(item=><div className="cart-item" key={item.id}><div className="cart-item-main"><strong>{item.name}</strong><small>{money(item.price)} / item</small><div className="quantity-control"><button disabled={queueBusy} onClick={()=>changeQty(item.id,-1)}><Minus size={12}/></button><span>{item.quantity}</span><button onClick={()=>changeQty(item.id,1)} disabled={queueBusy||item.quantity>=item.stock}><Plus size={12}/></button></div></div><div className="cart-item-side"><strong>{money(item.price*item.quantity)}</strong><button className="icon-button danger-icon" disabled={queueBusy} onClick={()=>removeCartItem(item.id)}><Trash2 size={14}/></button></div></div>)}{cart.length===0&&<EmptyState icon={ShoppingCart} title="Keranjang masih kosong" text="Pilih produk untuk memulai transaksi."/>}</div><div className="checkout-fields">{settings?.queue_enabled!==false&&<><label>Nama pelanggan <span>Opsional · untuk antrean</span></label><input className="text-input" value={queueCustomer} disabled={queueBusy} onChange={e=>setQueueCustomer(e.target.value)} placeholder="Nama untuk nomor antrean"/></>}<label>Diskon (Rp)</label><input className="text-input" type="number" min="0" max={subtotal} value={discount} disabled={queueBusy} onChange={e=>setDiscount(e.target.value)}/><label>Metode pembayaran</label><div className="payment-options">{[['cash','Tunai',Wallet],['qris','QRIS',QrCode],['transfer','Transfer',CreditCard]].map(([v,l,I])=><button key={v} className={payMethod===v?'payment-active':''} disabled={queueBusy} onClick={()=>setPayMethod(v)}><I size={15}/>{l}</button>)}</div>{payMethod==='cash'&&<><label>Uang diterima (Rp)</label><input className="text-input" type="number" min={total} value={paidAmount} disabled={queueBusy} onChange={e=>setPaidAmount(e.target.value)} placeholder={String(total)}/></>}</div><div className="cart-totals"><div><span>Subtotal</span><strong>{money(subtotal)}</strong></div><div><span>Diskon</span><strong className="discount-value">− {money(safeDiscount)}</strong></div><div className="grand-total"><span>Total pembayaran</span><strong>{money(total)}</strong></div>{payMethod==='cash'&&Number(paidAmount)>=total&&total>0&&<div><span>Kembalian</span><strong>{money(Number(paidAmount)-total)}</strong></div>}</div><button className="btn btn-primary btn-wide checkout-button" data-offline-checkout disabled={!cart.length||queueBusy||!activeShift||(offlineAccess?.isOffline&&!offlineAccess?.writable)} onClick={checkout}>{queueBusy?<span className="spinner"/>:<Check size={17}/>} Proses pembayaran <ArrowRight size={16}/></button><div className="cart-note"><ShieldCheck size={13}/> {offlineAccess?.isOffline ? "Transaksi tunai disimpan lokal · menunggu konfirmasi server" : "Transaksi aman tersimpan di cloud"}</div></aside></div></section>}
 
         
         {page==='products'&&<section className="page-section"><div className="page-heading"><div><span className="eyebrow muted">INVENTORY / CATALOG</span><h1>Produk <span className="heading-accent">& stok.</span></h1><p>Kelola katalog, harga jual, barcode, dan ketersediaan stok.</p></div>{canAddProduct&&<button className="btn btn-primary" onClick={()=>setProductModal({})}><Plus size={17}/> Tambah produk</button>}</div><div className="product-toolbar panel"><div className="search-box"><Search size={17}/><input value={search} onChange={e=>{setSearch(e.target.value);setProductPage(1);setPosProductPage(1)}} placeholder="Cari produk, SKU, barcode…"/></div><label className="category-filter-label">Kategori<select className="text-input category-filter" value={productCategory} onChange={e=>{setProductCategory(e.target.value);setProductPage(1)}}>{categories.map(item=><option key={item} value={item}>{item}</option>)}</select></label><span className="result-count">{products.filter(p=>(productCategory==='Semua'||(p.category||'Umum')===productCategory)&&(p.name.toLowerCase().includes(search.toLowerCase())||(p.sku||'').toLowerCase().includes(search.toLowerCase())||(p.barcode||'').includes(search))).length} produk</span></div><div className="panel inventory-panel"><div className="table-wrap"><table><thead><tr><th>Produk</th><th>SKU / Barcode</th><th>Kategori</th><th>Harga jual</th><th>Stok</th><th>Status</th>{isManager&&<th>Aksi</th>}</tr></thead><tbody>{products.filter(p=>(productCategory==='Semua'||(p.category||'Umum')===productCategory)&&(p.name.toLowerCase().includes(search.toLowerCase())||(p.sku||'').toLowerCase().includes(search.toLowerCase())||(p.barcode||'').includes(search))).slice((productPage-1)*listPageSize,productPage*listPageSize).map(p=><tr key={p.id}><td><div className="product-cell"><span className="product-cell-icon"><Package size={17}/></span><strong>{p.name}</strong></div></td><td className="muted-cell">{p.sku||p.barcode||'—'}</td><td><span className="category-tag">{p.category||'Umum'}</span></td><td className="strong">{money(p.price)}</td><td><span className={`stock-count ${p.stock<=5?'stock-low':''}`}>{p.stock} unit</span></td><td><span className={`status-pill ${p.is_active?'status-paid':'status-inactive'}`}>{p.is_active?'Aktif':'Nonaktif'}</span></td>{isManager&&<td><div className="row-actions"><button className="icon-button" title="Edit produk" onClick={()=>setProductModal(p)}><Settings size={15}/></button><button className="icon-button danger-icon" title="Hapus produk" onClick={()=>deleteProduct(p)}><Trash2 size={15}/></button></div></td>}</tr>)}</tbody></table>{products.filter(p=>(productCategory==='Semua'||(p.category||'Umum')===productCategory)&&(p.name.toLowerCase().includes(search.toLowerCase())||(p.sku||'').toLowerCase().includes(search.toLowerCase())||(p.barcode||'').includes(search))).length===0&&<EmptyState icon={Package} title={products.length===0?'Katalog masih kosong':'Produk tidak ditemukan'} text={products.length===0?'Tambahkan produk pertama untuk mulai berjualan.':'Coba kategori atau kata kunci lain.'} action={isManager&&products.length===0?()=>setProductModal({}):null} actionLabel="Tambah produk"/>}</div><Pagination page={productPage} total={products.filter(p=>(productCategory==='Semua'||(p.category||'Umum')===productCategory)&&(p.name.toLowerCase().includes(search.toLowerCase())||(p.sku||'').toLowerCase().includes(search.toLowerCase())||(p.barcode||'').includes(search))).length} pageSize={listPageSize} onChange={setProductPage}/></div>{!canAddProduct&&<p className="permission-note"><ShieldCheck size={14}/> Karyawan dan Manager dapat melihat katalog. Manager dapat mengelola seluruh produk; Karyawan dapat menambahkan produk baru.</p>}</section>}
