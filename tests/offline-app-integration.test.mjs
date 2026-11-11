@@ -33,7 +33,7 @@ test('offline outbox and cached stock reservation are committed in one IndexedDB
 })
 
 test('online recovery replays the outbox through the idempotent RPC', () => {
-  assert.match(app, /syncOfflineCashOutbox/)
+  assert.match(app, /syncOfflineCashOutbox/)\n  assert.match(app, /looksLikeNetworkFailure/)\n  assert.match(app, /Coba sinkronkan/)\n  assert.match(app, /receipt\\.offlinePending/)
   assert.match(sync, /complete_sale_idempotent/)
   assert.match(sync, /p_request_id: record\.requestId/)
   assert.match(sync, /OFFLINE_OUTBOX_STATUS\.NEEDS_REVIEW/)
