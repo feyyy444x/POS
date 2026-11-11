@@ -34,7 +34,7 @@ test('offline outbox and cached stock reservation are committed in one IndexedDB
 })
 
 test('network failures queue cash transactions and online recovery replays them idempotently', () => {
-  assert.match(app, /syncOfflineCashOutbox/)
+  assert.match(app, /syncOfflineCashOutbox/)\n  assert.match(app, /!licenseOnlineValidated/)\n  assert.match(app, /setLicenseOnlineValidated\(false\);setSyncStatus\('reconnecting'\)/)\n  assert.match(app, /setLicenseOnlineValidated\(true\)/)
   assert.match(app, /looksLikeNetworkFailure/)
   assert.match(app, /Coba sinkronkan/)
   assert.match(app, /receipt\.offlinePending/)
