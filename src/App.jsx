@@ -370,9 +370,19 @@ function App() {
         || ['password', 'hidden', 'file', 'submit', 'button', 'reset', 'image'].includes(type)
         || /password|passwd|pin|activation.?code|invite.?code|token|secret|cvv|cvc|credit.?card|otp|one.?time.?code/.test(identity)
     }
-    const fieldsFor = (form) => Array.from(form.elements).filter((field) =>
-      field && ['INPUT', 'TEXTAREA', 'SELECT'].includes(field.tagName) && !isSensitive(field)
-    )
+    // Authentication and credential-change forms must never enter the draft system.
+    // Their submit flow commonly navigates/reloads after sign-in, which would otherwise
+    // trigger the browser's generic "Changes you made may not be saved" warning.
+    const isDraftEligibleForm = (form) => {
+      if (!(form instanceof HTMLFormElement) || form.hasAttribute('data-no-draft')) return false
+      return !form.querySelector('input[type="password"], input[autocomplete="current-password"], input[autocomplete="new-password"], input[autocomplete="one-time-code"]')
+    }
+    const fieldsFor = (form) => {
+      if (!isDraftEligibleForm(form)) return []
+      return Array.from(form.elements).filter((field) =>
+        field && ['INPUT', 'TEXTAREA', 'SELECT'].includes(field.tagName) && !isSensitive(field)
+      )
+    }
     const fieldIdentity = (form, field, index) => {
       const label = field.labels ? Array.from(field.labels).map((item) => item.textContent || '').join(' ').trim() : ''
       const base = field.name || field.id || field.getAttribute('aria-label')
@@ -440,7 +450,7 @@ function App() {
     const onInput = (event) => {
       const field = event.target
       const form = field?.form
-      if (form && !isSensitive(field)) saveForm(form)
+      if (form && isDraftEligibleForm(form) && !isSensitive(field)) saveForm(form)
     }
     const onReset = (event) => {
       const form = event.target
@@ -452,7 +462,7 @@ function App() {
     document.addEventListener('input', onInput, true)
     document.addEventListener('change', onInput, true)
     document.addEventListener('reset', onReset, true)
-    const hasUnsavedDraft = () => Array.from(document.forms).some(form => form.dataset.acoPosDirty === 'true')
+    const hasUnsavedDraft = () => Array.from(document.forms).some(form => isDraftEligibleForm(form) && form.dataset.acoPosDirty === 'true')
     const onNavigationClick = event => {
       const target = event.target?.closest?.('.nav-link, .nx-back-button, .admin-shortcut, [data-acoPos-nav]')
       if (!target || target.closest('form') || !hasUnsavedDraft()) return
