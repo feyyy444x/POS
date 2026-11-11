@@ -10,7 +10,7 @@ const source = readFileSync(
 test('offline storage uses versioned IndexedDB stores for snapshots, outbox, and metadata', () => {
   assert.match(source, /DB_NAME\s*=\s*'acopos-offline-pos'/)
   assert.match(source, /DB_VERSION\s*=\s*1/)
-  assert.match(source, /store_snapshots/)
+  assert.match(source, /store_snapshots/)\n  assert.match(source, /keyPath: \\[\s*'storeId', 'userId'\\s*\\]/)\n  assert.match(source, /get\\(\\[storeId, userId\\]\\)/)
   assert.match(source, /transaction_outbox/)
   assert.match(source, /metadata/)
 })
@@ -30,7 +30,7 @@ test('offline transaction payload is immutable after it enters the outbox', () =
 })
 
 test('offline records are partitioned by both store and authenticated user', () => {
-  assert.match(source, /snapshot\.userId !== userId/)
+  assert.match(source, /snapshot\.userId !== userId/)\n  assert.match(source, /request\.oldVersion < 2[\\s\\S]*?db\.deleteObjectStore\\(SNAPSHOTS\\)/)
   assert.match(source, /record\.userId === userId/)
   assert.match(source, /existing\.storeId !== storeId \|\| existing\.userId !== userId/)
 })
