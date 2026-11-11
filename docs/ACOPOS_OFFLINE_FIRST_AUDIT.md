@@ -209,19 +209,19 @@ No successful build result is available because the workflow skipped the build a
 
 - `src/lib/offlineDatabase.js`: IndexedDB v2 with store + user compound snapshot key, durable cash-only outbox, immutable sale payload, explicit reconciliation statuses, atomic stock reservation in the local snapshot, and request for persistent browser storage.
 - Schema upgrade from v1 rebuilds the disposable snapshot cache while retaining any existing outbox and metadata stores.
-- `src/lib/offlineSync.js`: injectable storage adapter, idempotent replay through `complete_sale_idempotent`, retained local acknowledgement records, retry of transport failures, and explicit `needs_review` for server rejection or local/server total mismatch.
-- Checkout UI: offline cash sale is saved before showing a temporary unverified receipt; QRIS/transfer remain online-only; pending, accepted, rejected, and review states remain visible; local stock is reserved provisionally.
+- `src/lib/offlineSync.js`: injectable storage adapter, idempotent replay through `complete_sale_idempotent`, retained local acknowledgement records, bounded exponential retry backoff (5 seconds to 15 minutes), and explicit `needs_review` for server rejection or local/server total mismatch.
+- Checkout UI: offline cash sale is saved before showing a temporary unverified receipt; QRIS/transfer remain online-only; pending, accepted, rejected, and review states remain visible; local stock is reserved provisionally. A manually rejected sale restores the provisional stock atomically where its full product snapshot remains available. A sale already acknowledged by the server cannot be marked rejected.
 - Reconnect safety: online event clears offline write mode. The client must obtain and verify a fresh signed license before syncing any pending outbox rows. This prevents a stale offline license from replaying after the tenant/company was disabled while disconnected.
 - `netlify/functions/offline-license.mjs`: server-side Ed25519 issuer validates bearer session, active membership, store, organization, expiry, and package grace policy.
 - `src/lib/offlineLicense.js`: Ed25519 signature verification, store/user binding, absolute signed grace expiry, subscription expiry, and clock rollback detection against both the last local observation and signed issuance time.
 - `SubscriptionPlanManager.jsx` and migration `20261111150000_offline_license_grace_period.sql`: Super Admin can set 0–168 hours per package; default is 72 hours.
 - Documentation includes private/public key setup, secret-handling boundaries, local data retention, reconnect checks, and browser-storage limitations.
-- Automated runtime sync tests cover accepted acknowledgement, server total mismatch, business/shift rejection, network retry, and missing server client.
+- Automated runtime sync tests cover accepted acknowledgement, server total mismatch, business/shift rejection, network retry/backoff, deferred retry scheduling, and missing server client.
 
 ### Verification already completed
 
-- GitHub Actions on commit `63347a75bb9330c11cc72b0cc0eea8995eeccb09` passed both acoPos CI and Security smoke checks.
-- The CI disposable PostgreSQL job executed the isolated shift/license migration fixture successfully. It exercised no shift, another employee's shift, wrong tenant, closed shift, active break, successful sale, stock decrement, legacy RPC denial, idempotent RPC grant, and 72-hour grace default / bounds.
+- GitHub Actions on latest verified head `5cd390808a3bfd6da674a4bcd547dfbeff021aeb` passed both acoPos CI and Security smoke checks. The frontend regression suite, production bundle build, isolated PostgreSQL runtime fixture, static security checks, dependency audit, and preview HTTP/bundle smoke checks all passed.
+- The CI disposable PostgreSQL job executed the real checked-in idempotent checkout migration plus the isolated shift/license migration fixture successfully. It exercised no shift, another employee's shift, wrong tenant, closed shift, active break, successful sale, stock decrement, same-request replay without a second stock decrement, legacy RPC denial, idempotent RPC grant, and 72-hour grace default / bounds.
 - The application regression suite and production bundle build passed on that commit.
 - Static security regression checks, dependency audit, and deployed-preview HTTP/bundle smoke checks passed on that commit.
 
