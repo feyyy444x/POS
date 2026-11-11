@@ -56,6 +56,7 @@ jobs:
           from pathlib import Path
           fixture = Path("supabase/tests/offline_shift_checkout_runtime.sql").read_text()
           for migration in (
+              "supabase/migrations/20261030032837_idempotent_checkout.sql",
               "supabase/migrations/20261111130000_enforce_cashier_shift_on_checkout.sql",
               "supabase/migrations/20261111150000_offline_license_grace_period.sql",
           ):
