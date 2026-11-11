@@ -133,3 +133,22 @@ The existing service worker is an app-shell cache only. It must not be described
 - PWA, Service Worker, IndexedDB, Capacitor, and Tauri have no required framework licence fee.
 - Store distribution, signing, hardware, hosting/monitoring, and engineering/testing may introduce costs.
 - Initial validation can use installable PWA previews; paid app-store distribution is not required for the first phase.
+
+
+## Current isolated implementation status (2026-11-11)
+
+- Completed source audit of the full migration filename sequence for the legacy checkout RPC ACL. The later read-only tenant migration revokes direct access to the legacy non-idempotent RPC; this is retained as a regression test, not reported as an active source gap.
+- Added 20261111130000_enforce_cashier_shift_on_checkout.sql. The authoritative checkout function now requires the authenticated employee's own open shift in the exact store and rejects an active break. The legacy RPC remains inaccessible to authenticated clients; the idempotent wrapper remains the application entry point.
+- Added supabase/tests/checkout_rpc_privileges.test.sql with pgTAP checks for legacy RPC denial, idempotent RPC access for authenticated, and anon denial.
+- Updated docs/ACOPOS_OFFLINE_FIRST_AUDIT.md with the corrected finding and required authenticated-fixture integration matrix.
+- These migrations and tests exist only in this draft PR branch. They have not been applied to production or executed against a local/test database. Do not mark the shift guard as runtime-verified until the matrix in the audit document passes.
+
+## Remaining work before this PR can be considered complete
+
+1. Run migration + pgTAP + authenticated-fixture integration tests against a disposable Supabase database.
+2. Complete the write-path audit for shift open/close/break, product CRUD, queue transitions, Self Order, refunds/voids, and tenant inactive read-only enforcement.
+3. Implement the versioned IndexedDB store snapshot and durable cash-only transaction outbox, with a server acknowledgement/reconciliation contract.
+4. Implement reconnect sync with idempotent replay, rejected/needs-review states, and no deletion before durable acknowledgement.
+5. Implement signed offline entitlement validation with the 72-hour default grace and Super Admin-configurable package policy; add clock rollback and expiry tests.
+6. Complete PWA asset/route/offline fallback tests, build, browser E2E, and real device/peripheral tests.
+7. Keep the PR draft and isolated until all gates pass and the user separately approves merge/deploy.
