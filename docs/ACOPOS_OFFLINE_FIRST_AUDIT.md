@@ -15,7 +15,7 @@ The current application is an online-first POS with an installable PWA shell. It
 
 ### F-01 — Legacy non-idempotent checkout RPC is revoked in the final migration state
 
-<badge>Resolved in migration history; keep regression coverage</badge>
+**Resolved in migration history; keep regression coverage.**
 
 **Correction after reviewing the complete migration sequence:**
 
