@@ -210,3 +210,13 @@ The GitHub Actions runs associated with commit ee5fe5398a48a3e61ac15c0ffb24c5397
 The captured failures include stale test expectations for public registration routes and Single Workspace migration content, an invalid regular expression in a homepage cinematic test, and tests trying to read paths that do not exist in the current tree (including src/acoPos-layout-safety.css and a migration filename whose current checked-in name still contains the older support-conversation identifier). These failing checks do not touch the new checkout migration directly, but the red CI means the branch is not release-ready. A new focused static regression test for the offline checkout guard has been added at tests/offline-checkout-guard.test.mjs; it has not yet been executed by CI.
 
 No successful build result is available because the workflow skipped the build after the regression-test failure. Do not treat the CI run as a pass.
+
+
+## Offline storage and sync foundation added (source-only)
+
+- src/lib/offlineDatabase.js adds a versioned IndexedDB database with store/user-partitioned store snapshots, a durable transaction outbox, metadata storage, immutable transaction payloads, and explicit pending/syncing/accepted/rejected/needs_review states.
+- Offline enqueue is cash-only and persists the client request ID plus product identifiers, quantities, estimated unit prices, estimated total, cashier identity, and queue policy before any later sync can occur.
+- src/lib/offlineSync.js replays outbox records through complete_sale_idempotent, preserves records after acknowledgement, retries transport failures, flags database/business rejections for review, and flags server/local total mismatches.
+- Static contract tests were added for the shift guard, IndexedDB contract, and sync contract under tests/.
+
+**Important:** these modules are not wired into the checkout UI yet. No transaction can currently be completed offline through the application. The outbox has not been exercised in a browser or tested against a disposable database. Do not enable offline checkout until signed entitlement, store snapshot lifecycle, session/shift continuity, UI pending states, reconciliation UX, and real IndexedDB tests are complete.
