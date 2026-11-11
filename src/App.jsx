@@ -455,6 +455,14 @@ function App() {
   }, [orderSuccessToast])
 
   useEffect(() => {
+    setOfflineAccess(null)
+    setOfflineLicense(null)
+    setOfflineOutbox([])
+    setActiveShift(null)
+    setShiftBreak(null)
+  }, [session?.user?.id])
+
+  useEffect(() => {
     if (!supabase) { setAuthReady(true); return }
     supabase.auth.getSession().then(({data})=>{setSession(data.session);setAuthReady(true)})
     const {data:{subscription}} = supabase.auth.onAuthStateChange((_event, nextSession)=>setSession(nextSession))
@@ -704,7 +712,7 @@ function App() {
   }, [store?.id, session?.user?.id, session?.access_token, syncStatus])
 
   useEffect(() => {
-    if (!store?.id || !session?.user?.id || !offlineLicense?.serverIssuedAt || typeof navigator === 'undefined' || !navigator.onLine) return
+    if (!store?.id || !session?.user?.id || membership?.user_id !== session.user.id || !offlineLicense?.serverIssuedAt || typeof navigator === 'undefined' || !navigator.onLine) return
     saveOfflineStoreSnapshot({
       storeId: store.id, userId: session.user.id, store, membership, products, settings,
       activeShift, shiftBreak, orders, queue, orderItems, serverValidatedAt: offlineLicense.serverIssuedAt,
