@@ -331,3 +331,66 @@ export async function getOfflineMetadata(key) {
   await done
   return result?.value ?? null
 }
+
+export async function rejectOfflineOutboxRecord(requestId, userId) {
+  requireText(requestId, 'ID transaksi')
+  requireText(userId, 'ID pengguna')
+  const db = await openOfflineDatabase()
+  const transaction = db.transaction([OUTBOX, SNAPSHOTS], 'readwrite')
+  const done = transactionResult(transaction)
+  const outboxStore = transaction.objectStore(OUTBOX)
+  const snapshotStore = transaction.objectStore(SNAPSHOTS)
+  const recordRequest = outboxStore.get(requestId)
+  let recordReady = false
+  let snapshotReady = false
+  let record = null
+  let snapshot = null
+  let result = null
+
+  const commitRejection = () => {
+    if (!recordReady || !snapshotReady) return
+    if (!record || record.userId !== userId || record.serverOrderId ||
+        record.status !== OFFLINE_OUTBOX_STATUS.NEEDS_REVIEW) {
+      transaction.abort()
+      return
+    }
+
+    let stockRestored = false
+    if (snapshot && snapshot.userId === userId && snapshot.storeId === record.storeId) {
+      const products = snapshot.products.map(product => {
+        const rejectedItem = record.items.find(item => item.product_id === product.id)
+        return rejectedItem
+          ? { ...product, stock: Number(product.stock || 0) + rejectedItem.quantity }
+          : product
+      })
+      snapshotStore.put({ ...snapshot, products, capturedAt: new Date().toISOString() })
+      stockRestored = true
+    }
+
+    result = {
+      ...record,
+      status: OFFLINE_OUTBOX_STATUS.REJECTED,
+      localStockRestored: stockRestored,
+      lastError: 'Ditandai ditolak setelah pemeriksaan manual.',
+      updatedAt: new Date().toISOString(),
+    }
+    outboxStore.put(result)
+  }
+
+  recordRequest.onsuccess = () => {
+    record = recordRequest.result
+    recordReady = true
+    commitRejection()
+  }
+  const snapshotRequest = snapshotStore.get(
+    recordRequest.result?.storeId ? [recordRequest.result.storeId, userId] : ['', userId],
+  )
+  snapshotRequest.onsuccess = () => {
+    snapshot = snapshotRequest.result
+    snapshotReady = true
+    commitRejection()
+  }
+
+  await done
+  return result
+}
