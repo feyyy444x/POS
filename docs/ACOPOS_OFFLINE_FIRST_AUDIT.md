@@ -199,3 +199,14 @@ The pgTAP ACL test is committed, but neither it nor the integration matrix has b
 | Authenticated fixture integration tests | Not executed |
 | Production migration ledger / live function ACL | Not checked |
 | Build / browser E2E / real offline-device test | Not run |
+
+
+## CI follow-up
+
+The GitHub Actions runs associated with commit ee5fe5398a48a3e61ac15c0ffb24c5397750672c completed with failure:
+- acoPos CI: regression-test step failed (44 passed, 9 failed); production build step was skipped.
+- Security smoke checks: static security regression-test step failed; build and deployed-preview smoke steps were skipped.
+
+The captured failures include stale test expectations for public registration routes and Single Workspace migration content, an invalid regular expression in a homepage cinematic test, and tests trying to read paths that do not exist in the current tree (including src/acoPos-layout-safety.css and a migration filename whose current checked-in name still contains the older support-conversation identifier). These failing checks do not touch the new checkout migration directly, but the red CI means the branch is not release-ready. A new focused static regression test for the offline checkout guard has been added at tests/offline-checkout-guard.test.mjs; it has not yet been executed by CI.
+
+No successful build result is available because the workflow skipped the build after the regression-test failure. Do not treat the CI run as a pass.
