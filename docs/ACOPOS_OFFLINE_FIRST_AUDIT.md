@@ -217,6 +217,7 @@ No successful build result is available because the workflow skipped the build a
 - `SubscriptionPlanManager.jsx` and migration `20261111150000_offline_license_grace_period.sql`: Super Admin can set 0–168 hours per package; default is 72 hours.
 - Documentation includes private/public key setup, secret-handling boundaries, local data retention, reconnect checks, and browser-storage limitations.
 - Automated runtime sync tests cover accepted acknowledgement, server total mismatch, business/shift rejection, network retry/backoff, deferred retry scheduling, and missing server client.
+- Fake-IndexedDB runtime tests exercise snapshot/user isolation, v1→v2 schema migration, legacy outbox/metadata preservation, atomic local stock reservation, duplicate local enqueue, insufficient-stock rollback, manual rejection stock restoration, and refusal to reject a server-accepted sale.
 
 ### Verification already completed
 
@@ -227,7 +228,7 @@ No successful build result is available because the workflow skipped the build a
 
 ### Verification still pending on the latest commits
 
-- The newest commits add behavioral sync tests, persistent-storage request behavior, and fresh-license-before-sync gating. Their GitHub Actions runs must finish before those changes can be called green.
+- The latest verified head includes behavioral sync tests, persistent-storage request behavior, fresh-license-before-sync gating, disabled-membership license denial, and safe rejection/release of provisional stock. All CI jobs passed on the verified head.
 - The disposable PostgreSQL fixture is a focused schema harness, not a full Supabase clone. It does not prove every migration applies cleanly to the current Supabase production schema.
 - The separate pgTAP privilege file has not been run by CI; privilege boundaries are also asserted in the disposable runtime fixture.
 - No live production migration ledger, production RPC ACL, or production data was inspected or modified.
