@@ -42,8 +42,8 @@ export default async (request) => {
     if (authError || !user?.id) return json({ error: 'Sesi login tidak valid.' }, 401)
 
     const { data: membership, error: membershipError } = await admin
-      .from('store_members').select('role,is_active').eq('store_id', storeId).eq('user_id', user.id).maybeSingle()
-    if (membershipError || !membership?.is_active) return json({ error: 'Akun tidak memiliki akses aktif ke toko ini.' }, 403)
+       .from('store_members').select('role,is_active,disabled_at').eq('store_id', storeId).eq('user_id', user.id).maybeSingle()
+    if (membershipError || !membership?.is_active || membership.disabled_at) return json({ error: 'Akun tidak memiliki akses aktif ke toko ini.' }, 403)
 
     const { data: store, error: storeError } = await admin
       .from('stores').select('id,status,expires_at,deleted_at,activation_package_key,workspace_mode,organization_id')
