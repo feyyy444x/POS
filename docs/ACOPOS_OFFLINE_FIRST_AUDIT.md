@@ -145,3 +145,57 @@ Offline mode cannot simply replace step 5 with local success; it requires a dura
 3. Audit all write-capable flows that could be queued offline (product edits, shifts, Self Order, refunds/voids, queue actions).
 4. Implement PWA asset/offline shell improvements separately from transaction storage.
 5. Implement durable IndexedDB cash-sale outbox only after the server acceptance contract is approved.
+
+
+## Follow-up audit and isolated hardening (2026-11-11)
+
+### F-01 re-evaluated — legacy RPC grant is revoked by a later migration
+
+The initial finding is **not an active gap in the current source migration sequence**. The compatibility migration 20261030033109_legacy_checkout_compatibility.sql grants the legacy function, but the later 20261030142837_readonly_suspended_tenants.sql recreates the idempotent wrapper and explicitly revokes execution of public.complete_sale(...) from public, anon, and authenticated. A complete listing of the branch's migration directory confirms no later migration re-grants it.
+
+The new isolated hardening migration reasserts this least-privilege boundary. supabase/tests/checkout_rpc_privileges.test.sql adds pgTAP assertions that authenticated can execute only the idempotent wrapper and anon cannot execute it.
+
+**Runtime caveat:** the source sequence does not prove the production database has applied every migration in order or retained the expected ACL. Live production privilege and migration-ledger checks remain intentionally unperformed.
+
+### F-02 confirmed and hardened — checkout now validates the employee's own open shift
+
+New migration: 20261111130000_enforce_cashier_shift_on_checkout.sql.
+
+The authoritative public.complete_sale function now:
+- rejects unauthenticated calls;
+- retains the tenant operational-status check;
+- locks an open shift for the exact p_store_id and auth.uid();
+- rejects checkout when that employee has no personal open shift;
+- rejects checkout while an unended break exists for that exact shift;
+- retains server-side product, stock, price, payment, order-item, and queue handling;
+- keeps direct authenticated execution revoked on the legacy non-idempotent RPC and grants the authenticated role only the idempotent wrapper.
+
+The row lock is intended to serialize checkout with shift closure. The break record check is tenant-, shift-, and cashier-scoped. The frontend checks remain for user experience; the database function is now authoritative.
+
+### Required integration test matrix before marking F-02 fully verified
+
+Run against a disposable local/test database with real authenticated fixtures:
+1. Same cashier + same store + open shift + not on break: checkout succeeds.
+2. No open shift: checkout is rejected and no order/stock mutation remains.
+3. Another employee has an open shift but caller does not: checkout is rejected.
+4. Caller has a shift in another tenant only: checkout is rejected.
+5. Shift is closed: checkout is rejected.
+6. Caller is on an active break: checkout is rejected.
+7. Break ended: checkout succeeds.
+8. Store inactive/expired or organization inactive/expired: checkout is rejected.
+9. Duplicate request ID through idempotent wrapper: exactly one order and one stock decrement.
+10. Legacy RPC called directly by authenticated role: permission denied.
+
+The pgTAP ACL test is committed, but neither it nor the integration matrix has been executed in this environment. No production migration was applied.
+
+## Updated verification status
+
+| Check | Result |
+|---|---|
+| Full source migration listing for later checkout grants/revokes | Completed; later migration revokes legacy RPC |
+| Reassert legacy RPC privilege boundary in isolated migration | Committed to PR branch |
+| Server-side cashier open-shift + break enforcement | Committed to PR branch |
+| pgTAP checkout RPC privilege assertions | Added; not executed |
+| Authenticated fixture integration tests | Not executed |
+| Production migration ledger / live function ACL | Not checked |
+| Build / browser E2E / real offline-device test | Not run |
