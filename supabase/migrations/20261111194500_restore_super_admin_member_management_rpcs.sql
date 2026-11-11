@@ -34,7 +34,11 @@ begin
   for update;
 
   if not found then raise exception 'Keanggotaan tidak ditemukan'; end if;
-  if v_member.role = 'owner' then raise exception 'Keanggotaan Owner dilindungi'; end if;
+  if v_member.role = 'owner' or exists (
+    select 1 from public.owner_organizations oo where oo.owner_user_id = v_member.user_id
+  ) then
+    raise exception 'Keanggotaan Owner dilindungi';
+  end if;
   if v_member.user_id is null or exists (
     select 1 from public.super_admins sa where sa.user_id = v_member.user_id
   ) then
@@ -77,7 +81,11 @@ begin
   for update;
 
   if not found then raise exception 'Keanggotaan tidak ditemukan'; end if;
-  if v_member.role = 'owner' then raise exception 'Keanggotaan Owner dilindungi'; end if;
+  if v_member.role = 'owner' or exists (
+    select 1 from public.owner_organizations oo where oo.owner_user_id = v_member.user_id
+  ) then
+    raise exception 'Keanggotaan Owner dilindungi';
+  end if;
   if v_member.user_id is null or exists (
     select 1 from public.super_admins sa where sa.user_id = v_member.user_id
   ) then
