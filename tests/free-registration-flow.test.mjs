@@ -4,42 +4,52 @@ import { readFile } from 'node:fs/promises'
 
 const read = path => readFile(new URL(path, import.meta.url), 'utf8')
 
-test('homepage free registration CTA opens the public registration route', async () => {
+test('homepage free registration CTA opens the dedicated public registration path', async () => {
   const homepage = await read('../src/Homepage.jsx')
   const app = await read('../src/App.jsx')
-  assert.match(homepage, /href="\/\?screen=register"/)
-  assert.match(app, /if\(screen==='register'\)return <AuthScreen\/>/)
+  assert.match(homepage, /href="\/daftar-gratis"/)
+  assert.match(homepage, /Coba Gratis 30 Hari/)
+  assert.match(app, /window\.location\.pathname === '\/daftar-gratis' \? 'register' : 'login'/)
 })
 
-test('email confirmation returns to a dedicated completion route and creates the workspace', async () => {
+test('free registration creates and confirms the account server-side without an email verification link', async () => {
   const portal = await read('../src/AccessPortal.jsx')
+  const handler = await read('../netlify/functions/register-free.mjs')
+  const completion = await read('../netlify/functions/complete-free-registration.mjs')
+  assert.match(portal, /fetch\('\/api\/register-free'/)
+  assert.match(portal, /supabase\.auth\.signInWithPassword/)
+  assert.match(portal, /window\.location\.assign\('\/'\)/)
+  assert.doesNotMatch(portal, /emailRedirectTo|auth\.resend|supabase\.auth\.signUp/)
+  assert.match(handler, /email_confirm: true/)
+  assert.match(handler, /prepare_free_single_workspace_registration/)
+  assert.match(handler, /complete_free_single_workspace_registration/)
+  assert.match(completion, /complete_free_single_workspace_registration/)
+  assert.match(completion, /email_confirmed_at/)
+})
+
+test('registration validates and prepares the workspace before signing the new Owner in', async () => {
+  const portal = await read('../src/AccessPortal.jsx')
+  const start = portal.indexOf("} else if (mode === 'register') {")
+  const end = portal.indexOf("\n      } else {", start + 20)
+  assert.ok(start >= 0 && end > start)
+  const registration = portal.slice(start, end)
+  const preparedCheck = registration.indexOf('if (!prepareResponse.ok)')
+  const signIn = registration.indexOf('supabase.auth.signInWithPassword')
+  assert.ok(preparedCheck >= 0 && signIn > preparedCheck)
+  assert.ok(registration.indexOf("fetch('/api/register-free'") >= 0)
+  assert.ok(registration.indexOf("window.location.assign('/')") > signIn)
+  assert.doesNotMatch(registration, /setSuccess\(true\)/)
+})
+
+test('an interrupted registration can finish idempotently after the Owner signs in', async () => {
   const app = await read('../src/App.jsx')
-  assert.match(portal, /emailRedirectTo: `\$\{window\.location\.origin\}\/\?screen=complete-free-registration`/)
-  assert.match(app, /if\(screen==='complete-free-registration'\)return <FreeRegistrationCompletion\/>/)
-  assert.match(portal, /supabase\.auth\.onAuthStateChange/)
-  assert.match(portal, /fetch\('\/\.netlify\/functions\/complete-free-registration'/)
-  assert.match(portal, /window\.location\.replace\('\/'\)/)
-})
-
-test('verified pending free registration is resumed when the customer signs in manually', async () => {
-  const portal = await read('../src/AccessPortal.jsx')
-  assert.match(portal, /user_metadata\?\.free_workspace_pending === true/)
-  assert.match(portal, /result\.data\?\.session\?\.access_token/)
-  assert.match(portal, /complete-free-registration/)
-})
-
-test('registration success is not shown before the registration intent is prepared', async () => {
-  const portal = await read('../src/AccessPortal.jsx')
-  const registration = portal.slice(portal.indexOf("} else if (mode === 'register') {"), portal.indexOf("} else {", portal.indexOf("} else if (mode === 'register') {") + 1))
-  assert.ok(registration.indexOf('if (!prepareResponse.ok)') < registration.indexOf('setSuccess(true)'))
-  assert.match(registration, /register-free/)
-})
-
-test('interrupted public signups can resume without creating a duplicate auth account', async () => {
-  const portal = await read('../src/AccessPortal.jsx')
-  assert.match(portal, /data\.user\.identities\?\.length === 0/)
-  assert.match(portal, /supabase\.auth\.signInWithPassword\(\{ email: email\.trim\(\), password \}\)/)
-  assert.match(portal, /supabase\.auth\.resend\(\{ type: 'signup', email: email\.trim\(\) \}\)/)
-  assert.match(portal, /existing\.data\?\.user\?\.user_metadata\?\.free_workspace_pending !== true/)
-  assert.match(portal, /userId: registrationUser\.id/)
+  const completion = await read('../netlify/functions/complete-free-registration.mjs')
+  const handler = await read('../netlify/functions/register-free.mjs')
+  assert.match(app, /free_workspace_pending/)
+  assert.match(app, /fetch\('\/api\/complete-free-registration'/)
+  assert.match(app, /Authorization:'Bearer '\+session\.access_token/)
+  assert.match(completion, /auth\.getUser\(token\)/)
+  assert.match(completion, /complete_free_single_workspace_registration/)
+  assert.match(completion, /existingOwnerMembership/)
+  assert.match(handler, /already\|registered\|exists/i)
 })
