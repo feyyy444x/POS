@@ -152,3 +152,12 @@ The existing service worker is an app-shell cache only. It must not be described
 5. Implement signed offline entitlement validation with the 72-hour default grace and Super Admin-configurable package policy; add clock rollback and expiry tests.
 6. Complete PWA asset/route/offline fallback tests, build, browser E2E, and real device/peripheral tests.
 7. Keep the PR draft and isolated until all gates pass and the user separately approves merge/deploy.
+
+
+### Additional implementation progress
+
+- Added versioned IndexedDB snapshot/outbox primitives in src/lib/offlineDatabase.js.
+- Added cash-only idempotent replay engine in src/lib/offlineSync.js. It preserves local records after acknowledgement and routes server/local total mismatches to needs_review.
+- Added static Node contract tests for the checkout guard, IndexedDB schema/immutability, and sync contract.
+- These modules are not yet connected to the checkout UI, and the offline license verifier/issuer is not implemented. Therefore offline POS is still not available to users.
+- GitHub CI on commit ee5fe5398a48a3e61ac15c0ffb24c5397750672c failed in existing regression/security test steps; build steps were skipped. See the audit document. A new focused test commit was added after that run and still needs a fresh CI execution.
