@@ -61,37 +61,6 @@ begin
   end if;
 
 
--- Serialize break start/end with checkout by locking the same cashier shift row.
--- Without this trigger, a break could be inserted after checkout's break check
--- but before the sale commits.
-create or replace function private.lock_cashier_shift_for_break()
-returns trigger
-language plpgsql
-security definer
-set search_path = ''
-as $function$
-begin
-  perform 1
-  from public.cashier_shifts s
-  where s.id = new.shift_id
-    and s.store_id = new.store_id
-    and s.cashier_id = new.cashier_id
-    and s.closed_at is null
-  for update;
-  if not found then
-    raise exception 'Shift kasir tidak aktif atau tidak cocok untuk perubahan istirahat';
-  end if;
-  return new;
-end;
-$function$;
-
-drop trigger if exists lock_cashier_shift_for_break on public.cashier_shift_breaks;
-create trigger lock_cashier_shift_for_break
-before insert or update of ended_at on public.cashier_shift_breaks
-for each row execute function private.lock_cashier_shift_for_break();
-
-revoke all on function private.lock_cashier_shift_for_break() from public, anon, authenticated;
-
   if jsonb_typeof(p_items) <> 'array' or jsonb_array_length(p_items) = 0 then
     raise exception 'Cart is empty';
   end if;
@@ -183,6 +152,37 @@ revoke all on function private.lock_cashier_shift_for_break() from public, anon,
   );
 end;
 $function$;
+
+-- Serialize break start/end with checkout by locking the same cashier shift row.
+-- Without this trigger, a break could be inserted after checkout's break check
+-- but before the sale commits.
+create or replace function private.lock_cashier_shift_for_break()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $function$
+begin
+  perform 1
+  from public.cashier_shifts s
+  where s.id = new.shift_id
+    and s.store_id = new.store_id
+    and s.cashier_id = new.cashier_id
+    and s.closed_at is null
+  for update;
+  if not found then
+    raise exception 'Shift kasir tidak aktif atau tidak cocok untuk perubahan istirahat';
+  end if;
+  return new;
+end;
+$function$;
+
+drop trigger if exists lock_cashier_shift_for_break on public.cashier_shift_breaks;
+create trigger lock_cashier_shift_for_break
+before insert or update of ended_at on public.cashier_shift_breaks
+for each row execute function private.lock_cashier_shift_for_break();
+
+revoke all on function private.lock_cashier_shift_for_break() from public, anon, authenticated;
 
 -- The public client must use the idempotent wrapper only. The wrapper invokes
 -- this function internally as its owner; authenticated clients do not need
