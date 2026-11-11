@@ -26,25 +26,22 @@ The current application is an online-first POS with an installable PWA shell. It
 
 **Remaining verification:** confirm the production migration ledger and live function privileges before any release. Source history alone is not proof of the deployed database state.
 
-### F-02 — Open-shift enforcement for normal POS checkout is client-side, not in the checkout function
+### F-02 — Open-shift enforcement for normal POS checkout
 
-**Severity: High — must resolve before offline checkout**
+**Severity: High — source-level fix added in isolated PR; runtime verification still required.**
 
-Evidence:
-- src/App.jsx checks `activeShift` and `shiftBreak` before calling checkout (around lines 1093–1096).
-- `complete_sale` in `20261028172202_validate_aggregated_stock_during_sale.sql` checks authenticated user, store operational status, payment, product activity, and stock, but does not verify an open cashier shift for `auth.uid()`.
+Baseline evidence:
+- `src/App.jsx` checks `activeShift` and `shiftBreak` before calling checkout.
+- The original `complete_sale` implementation did not enforce an open shift at the database boundary.
 - `complete_sale_idempotent` delegates to `complete_sale`.
-- In contrast, `update_self_service_order_status` in `20261101105710_require_open_shift_for_self_order_actions.sql` explicitly checks an open shift belonging to the authenticated employee in the exact store.
 
-Risk:
-- Direct RPC invocation can bypass the UI's open-shift and break checks.
-- An offline outbox must not become a second route around cashier/shift rules.
+Change in this isolated branch:
+- Migration `20261111130000_enforce_cashier_shift_on_checkout.sql` redefines the authoritative checkout function.
+- It locks only an open shift belonging to `auth.uid()` in the requested `p_store_id`.
+- It rejects checkout when no matching open shift exists or when that shift has an unfinished break.
+- The public legacy checkout RPC remains revoked; authenticated clients execute only the idempotent wrapper.
 
-Required before offline:
-- Add server-side open-shift ownership validation to the authoritative POS checkout RPC.
-- Define how a break affects checkout at the server boundary (if policy requires blocking sales during break, persist/check break state server-side).
-- Keep the check tenant-scoped and bound to `auth.uid()`.
-- Add tests for no shift, another employee's shift, wrong tenant, closed shift, and break state.
+**Still required before release:** run the migration and pgTAP/runtime tests against a disposable database for no shift, another employee's shift, wrong tenant, closed shift, active break, and successful checkout. Confirm the function signature and grants against the deployed schema before any production migration. The source-level contract test is not a substitute for these database tests.
 
 ### F-03 — Offline transaction persistence and synchronization do not exist in the inspected baseline
 
