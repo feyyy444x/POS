@@ -209,6 +209,7 @@ export async function enqueueOfflineCashSale({
     serverTotal: null,
     lastError: null,
     attempts: 0,
+    nextAttemptAt: null,
     schemaVersion: DB_VERSION,
   }
 
@@ -285,7 +286,7 @@ export async function updateOfflineOutboxRecord(requestId, userId, patch) {
 
   const allowedKeys = new Set([
     'status', 'updatedAt', 'serverOrderId', 'serverReceiptNumber',
-    'serverTotal', 'lastError', 'attempts',
+    'serverTotal', 'lastError', 'attempts', 'nextAttemptAt',
   ])
   if (Object.keys(patch).some(key => !allowedKeys.has(key))) {
     throw new Error('Payload transaksi offline bersifat tetap dan tidak dapat diubah.')
