@@ -13,6 +13,7 @@ const PRODUCT_PAGE_SIZE = 6
 export function SelfOrderPublic(){
   const storeId = new URLSearchParams(window.location.search).get('store')
   const [catalog,setCatalog] = useState(null)
+  const [logoFailed,setLogoFailed] = useState(false)
   const [loading,setLoading] = useState(true)
   const [error,setError] = useState('')
   const [cart,setCart] = useState({})
@@ -31,6 +32,7 @@ export function SelfOrderPublic(){
     setLoading(false)
   },[storeId])
   useEffect(()=>{load()},[load])
+  useEffect(()=>{setLogoFailed(false)},[catalog?.logo_url])
   const categories=useMemo(()=>['Semua',...new Set((catalog?.products||[]).map(p=>p.category||'Umum'))],[catalog])
   const selected=(catalog?.products||[]).filter(p=>(category==='Semua'||(p.category||'Umum')===category))
   const productPages=Math.max(1,Math.ceil(selected.length/PRODUCT_PAGE_SIZE))
@@ -56,7 +58,7 @@ export function SelfOrderPublic(){
   if(error&&!catalog)return <main className="so-public"><div className="so-empty"><ShoppingBag size={30}/><h1>Self Order tidak tersedia</h1><p>{error}</p><button className="so-primary" onClick={load}><RefreshCw size={16}/> Coba lagi</button></div></main>
   if(order)return <main className="so-public"><div className="so-success"><span className="so-success-icon"><Check size={28}/></span><span className="so-eyebrow">PESANAN DITERIMA</span><h1>Terima kasih, {customer.name || 'pelanggan'}.</h1><p>Pesanan Anda telah dikirim dan menunggu verifikasi pembayaran oleh kasir.</p><div className="so-order-reference"><small>Nomor pesanan</small><strong>{order.order_number}</strong><small>Total pembayaran</small><strong>{idr(order.total)}</strong><span className="so-pending"><Clock3 size={15}/> Menunggu verifikasi</span></div><button className="so-primary" onClick={()=>{setOrder(null);setCustomer({name:'',phone:'',notes:''});load()}}>Kembali ke menu</button></div></main>
   return <main className="so-public">
-    <header className="so-public-header"><div className="so-brand-mark">{catalog.logo_url?<img src={catalog.logo_url} alt={"Logo "+(catalog.store_name||"toko")} onError={e=>{e.currentTarget.style.display="none";e.currentTarget.parentElement.classList.add("is-fallback")}}/>:<span>{(catalog.store_name||"a").trim().charAt(0).toUpperCase()}</span>}</div><div><strong>{catalog.store_name||'Toko acoPos'}</strong><small>{catalog.address||'Pemesanan digital'}</small></div><span className="so-live">SELF ORDER</span></header>
+    <header className="so-public-header"><div className="so-brand-mark">{catalog.logo_url&&!logoFailed?<img src={catalog.logo_url} alt={"Logo "+(catalog.store_name||"toko")} onError={()=>setLogoFailed(true)}/>:<span>{(catalog.store_name||"a").trim().charAt(0).toUpperCase()}</span>}</div><div><strong>{catalog.store_name||'Toko acoPos'}</strong><small>{catalog.address||'Pemesanan digital'}</small></div><span className="so-live">SELF ORDER</span></header>
     <section className="so-hero"><span className="so-eyebrow">PESAN DENGAN MUDAH</span><h1>Pesan favoritmu,<br/><em>tanpa antre.</em></h1><p>Pilih menu, periksa pesanan, lalu lakukan pembayaran melalui QRIS.</p></section>
     <div className="so-categories">{categories.map(item=><button key={item} className={category===item?'active':''} onClick={()=>{setCategory(item);setProductPage(1)}}>{item}</button>)}</div>
     <section className="so-product-grid">{visibleProducts.map(product=><article className="so-product" key={product.id}><div className="so-product-image"><Package size={23}/></div><div className="so-product-info"><small>{product.category||'Umum'}</small><strong>{product.name}</strong><b>{idr(product.price)}</b><div className="so-quantity"><button onClick={()=>setQty(product.id,-1)} aria-label={'Kurangi '+product.name}>−</button><span>{cart[product.id]||0}</span><button onClick={()=>setQty(product.id,1)} aria-label={'Tambah '+product.name}>+</button></div></div></article>)}</section>
