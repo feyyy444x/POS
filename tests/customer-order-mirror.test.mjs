@@ -39,6 +39,21 @@ test('order notes are persisted with bounded lengths and displayed on receipts',
   assert.match(app, /order\.customer_note\?\.trim\(\).*CATATAN PESANAN/s)
 })
 
+test('dual-screen mode detects a second monitor and falls back safely when unavailable', () => {
+  assert.match(app, /window\.getScreenDetails\(\)/)
+  assert.match(app, /displayWindow\.moveTo\(target\.availLeft, target\.availTop\)/)
+  assert.match(app, /displayWindow\.resizeTo\(target\.availWidth/)
+  assert.match(app, /Browser belum mendukung deteksi monitor otomatis/)
+  assert.match(app, /Browser memblokir jendela layar pelanggan/)
+  assert.match(app, /onClick=\{openCustomerDisplay\}/)
+})
+
+test('customer display supports fullscreen mode for a customer-facing monitor', () => {
+  assert.match(mirror, /requestFullscreen\(\)/)
+  assert.match(mirror, /exitFullscreen\(\)/)
+  assert.match(mirror, /Layar penuh/)
+})
+
 test('customer mirror has responsive styling and live status indicators', () => {
   assert.match(styles, /\.pos-heading-actions/)
   assert.match(styles, /\.cart-item-note/)
