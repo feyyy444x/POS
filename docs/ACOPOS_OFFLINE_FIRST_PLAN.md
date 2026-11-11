@@ -154,7 +154,37 @@ The existing service worker is an app-shell cache only. It must not be described
 7. Keep the PR draft and isolated until all gates pass and the user separately approves merge/deploy.
 
 
-### Additional implementation progress
+### Offline license key setup (required before any preview or release can issue licenses)
+
+The signing key is intentionally not committed to this repository.
+
+1. Generate a dedicated Ed25519 key pair in a secure operator environment:
+   ```sh
+   openssl genpkey -algorithm ED25519 -out acopos-license-private.pem
+   openssl pkey -in acopos-license-private.pem -pubout -outform DER | base64 -w0
+   ```
+2. Store the complete private PEM only as the Netlify environment variable `ACOPOS_LICENSE_PRIVATE_KEY`. Never place it in Git, a frontend variable, build artifact, issue, or chat.
+3. Set the DER public-key Base64 output as `VITE_ACOPOS_LICENSE_PUBLIC_KEY` for the matching deploy context. The public key is safe to ship in the client bundle.
+4. Set the variables for a disposable preview context first. Verify that the issuer rejects missing/invalid bearer tokens, inactive memberships, inactive/expired stores, inactive/expired organizations, missing package policy, and invalid signatures.
+5. Rotate keys only with an explicit key-version/overlap migration. Replacing the public key without a planned overlap invalidates every locally cached license signed by the previous key.
+
+**Current configuration status:** the source code and key-generation instructions are present, but no private key or public key has been generated or installed in Netlify. The issuer therefore fails closed until an operator configures these values. No production secret was changed by this PR.
+
+## Offline local-data lifecycle and device controls
+
+- Outbox rows are scoped to both authenticated user and store and remain on-device after server acceptance/rejection for audit/reconciliation.
+- Signing out does not erase unresolved local sales. The next user cannot list or sync another user's records.
+- Do not add a "clear offline data" action that can erase pending rows. A future device-management screen must first export/reconcile pending transactions and require an explicit owner/admin confirmation.
+- Browser IndexedDB is not encrypted against a person with access to the device profile. Use OS account protection/full-disk encryption and lock the cashier session; native Android/Windows packaging should add platform secure storage before broader rollout.
+- A signed timestamp bounds grace to the absolute signed expiry. Local clock rollback is detected against both the last observed clock and the signed issuance time. Browser storage/clock controls remain best-effort signals, not hardware-backed tamper proofing.
+
+## Reconnect safety
+
+- A reconnect event immediately clears the offline write allowance.
+- The client must obtain and verify a fresh server-signed license before replaying any pending offline sale.
+- The server still revalidates store operational status, membership, shift, current prices, and stock during each idempotent replay. A rejected or changed sale remains visible for human review; no silent acceptance or deletion.
+
+## Additional implementation progress
 
 - Added versioned IndexedDB snapshot/outbox primitives in src/lib/offlineDatabase.js.
 - Added cash-only idempotent replay engine in src/lib/offlineSync.js. It preserves local records after acknowledgement and routes server/local total mismatches to needs_review.
