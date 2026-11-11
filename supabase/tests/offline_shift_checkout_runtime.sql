@@ -91,7 +91,7 @@ $$;
 \i supabase/migrations/20261111130000_enforce_cashier_shift_on_checkout.sql
 \i supabase/migrations/20261111150000_offline_license_grace_period.sql
 
-do $
+do $$
 declare
   v_default text;
 begin
@@ -110,7 +110,7 @@ begin
     null;
   end;
 end;
-$;
+$$;
 
 grant usage on schema public, auth, private to authenticated;
 grant execute on function auth.uid() to authenticated;
