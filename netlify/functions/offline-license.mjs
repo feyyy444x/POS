@@ -46,12 +46,13 @@ export default async (request) => {
     if (membershipError || !membership?.is_active) return json({ error: 'Akun tidak memiliki akses aktif ke toko ini.' }, 403)
 
     const { data: store, error: storeError } = await admin
-      .from('stores').select('id,status,expires_at,activation_package_key,workspace_mode,organization_id')
+      .from('stores').select('id,status,expires_at,deleted_at,activation_package_key,workspace_mode,organization_id')
       .eq('id', storeId).maybeSingle()
     if (storeError || !store) return json({ error: 'Toko tidak ditemukan.' }, 404)
     let status = store.status
     let expiresAt = store.expires_at
     let packageKey = store.activation_package_key
+    if (store.deleted_at || store.status !== 'active') return json({ error: 'Toko sudah dihapus atau tidak aktif.' }, 403)
     if (store.organization_id) {
       const { data: organization, error: organizationError } = await admin
         .from('owner_organizations').select('status,expires_at,activation_package_key')
@@ -61,7 +62,9 @@ export default async (request) => {
         return json({ error: 'Perusahaan tidak aktif atau masa sewanya berakhir.' }, 403)
       }
       status = organization.status === 'active' ? store.status : organization.status
-      expiresAt = organization.expires_at
+      const expiryCandidates = [store.expires_at, organization.expires_at].filter(Boolean).map(value => Date.parse(value))
+      if (expiryCandidates.some(value => !Number.isFinite(value))) return json({ error: 'Tanggal masa aktif tidak valid.' }, 503)
+      expiresAt = expiryCandidates.length ? new Date(Math.min(...expiryCandidates)).toISOString() : null
       packageKey = organization.activation_package_key
     }
     if (status !== 'active' || (expiresAt && Date.parse(expiresAt) <= Date.now())) {
