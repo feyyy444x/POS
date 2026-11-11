@@ -26,7 +26,7 @@ export default async (request) => {
   if (authError || !authData?.user) return json({ error: 'Sesi tidak valid. Silakan login ulang.' }, 401)
   const { data: pinRows, error: pinError } = await auth.rpc('get_my_pin_status')
   const pinStatus = Array.isArray(pinRows) ? pinRows[0] : pinRows
-  if (pinError || (pinStatus?.has_pin && !pinStatus?.is_verified)) return json({ error: 'Verifikasi PIN diperlukan sebelum menggunakan workspace internal.' }, 403)
+  if (pinError || pinStatus?.is_verified !== true) return json({ error: 'Verifikasi PIN diperlukan sebelum menggunakan workspace internal.' }, 403)
   const admin = createClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } })
   try {
     const { data: assignment, error: roleError } = await admin.from('platform_staff_roles')
