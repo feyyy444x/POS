@@ -8,6 +8,10 @@ function isOnline() {
   return typeof navigator === 'undefined' || navigator.onLine !== false
 }
 
+function retryDelayMs(attempts) {
+  return Math.min(15 * 60 * 1000, 5000 * (2 ** Math.max(0, attempts - 1)))
+}
+
 function errorMessage(error) {
   return String(error?.message || error?.details || 'Sinkronisasi belum berhasil.')
 }
@@ -18,6 +22,7 @@ export async function syncOfflineCashOutbox({
   userId,
   onRecordUpdate,
   storage = { listOfflineOutbox, updateOfflineOutboxRecord },
+  now = () => Date.now(),
 } = {}) {
   if (!supabase?.rpc) throw new Error('Koneksi server acoPos belum siap.')
   if (!storeId || !userId) throw new Error('Identitas toko dan pengguna wajib tersedia.')
@@ -25,13 +30,15 @@ export async function syncOfflineCashOutbox({
     return { processed: 0, accepted: 0, needsReview: 0, pending: 0, offline: true }
   }
 
-  const records = await storage.listOfflineOutbox({
+  const allRecords = await storage.listOfflineOutbox({
     storeId,
     userId,
     statuses: [OFFLINE_OUTBOX_STATUS.PENDING, OFFLINE_OUTBOX_STATUS.SYNCING],
   })
 
-  const summary = { processed: 0, accepted: 0, needsReview: 0, pending: 0, offline: false }
+  const currentTime = now()
+  const records = allRecords.filter(record => !record.nextAttemptAt || !Number.isFinite(Date.parse(record.nextAttemptAt)) || Date.parse(record.nextAttemptAt) <= currentTime)
+  const summary = { processed: 0, accepted: 0, needsReview: 0, pending: allRecords.length - records.length, offline: false }
 
   for (const record of records) {
     if (!isOnline()) {
@@ -45,7 +52,8 @@ export async function syncOfflineCashOutbox({
       status: OFFLINE_OUTBOX_STATUS.SYNCING,
       attempts,
       lastError: null,
-      updatedAt: new Date().toISOString(),
+      updatedAt: new Date(now()).toISOString(),
+      nextAttemptAt: null,
     })
 
     let response
@@ -68,7 +76,8 @@ export async function syncOfflineCashOutbox({
       await storage.updateOfflineOutboxRecord(record.requestId, userId, {
         status: pending ? OFFLINE_OUTBOX_STATUS.PENDING : OFFLINE_OUTBOX_STATUS.NEEDS_REVIEW,
         lastError: errorMessage(error),
-        updatedAt: new Date().toISOString(),
+        updatedAt: new Date(now()).toISOString(),
+        nextAttemptAt: pending ? new Date(now() + retryDelayMs(attempts)).toISOString() : null,
       })
       if (pending) summary.pending += 1
       else summary.needsReview += 1
@@ -83,7 +92,8 @@ export async function syncOfflineCashOutbox({
       await storage.updateOfflineOutboxRecord(record.requestId, userId, {
         status: needsReview ? OFFLINE_OUTBOX_STATUS.NEEDS_REVIEW : OFFLINE_OUTBOX_STATUS.PENDING,
         lastError: errorMessage(response.error),
-        updatedAt: new Date().toISOString(),
+        updatedAt: new Date(now()).toISOString(),
+        nextAttemptAt: needsReview ? null : new Date(now() + retryDelayMs(attempts)).toISOString(),
       })
       if (needsReview) summary.needsReview += 1
       else summary.pending += 1
@@ -96,7 +106,8 @@ export async function syncOfflineCashOutbox({
       await storage.updateOfflineOutboxRecord(record.requestId, userId, {
         status: OFFLINE_OUTBOX_STATUS.NEEDS_REVIEW,
         lastError: 'Server tidak mengembalikan identitas transaksi yang dapat diverifikasi.',
-        updatedAt: new Date().toISOString(),
+        updatedAt: new Date(now()).toISOString(),
+        nextAttemptAt: null,
       })
       summary.needsReview += 1
       onRecordUpdate?.(record.requestId, 'needs_review')
@@ -116,7 +127,8 @@ export async function syncOfflineCashOutbox({
       lastError: totalMatches
         ? null
         : 'Total server berbeda dari perkiraan lokal. Periksa transaksi dan struk sebelum menutup rekonsiliasi.',
-      updatedAt: new Date().toISOString(),
+      updatedAt: new Date(now()).toISOString(),
+      nextAttemptAt: null,
     })
 
     if (totalMatches) summary.accepted += 1
