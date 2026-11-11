@@ -1,0 +1,276 @@
+const DB_NAME = 'acopos-offline-pos'
+const DB_VERSION = 1
+
+const SNAPSHOTS = 'store_snapshots'
+const OUTBOX = 'transaction_outbox'
+const META = 'metadata'
+
+export const OFFLINE_OUTBOX_STATUS = Object.freeze({
+  PENDING: 'pending_sync',
+  SYNCING: 'syncing',
+  ACCEPTED: 'accepted',
+  REJECTED: 'rejected',
+  NEEDS_REVIEW: 'needs_review',
+})
+
+const VALID_STATUSES = new Set(Object.values(OFFLINE_OUTBOX_STATUS))
+let databasePromise
+
+function requestResult(request) {
+  return new Promise((resolve, reject) => {
+    request.onsuccess = () => resolve(request.result)
+    request.onerror = () => reject(request.error || new Error('IndexedDB request failed'))
+  })
+}
+
+function transactionResult(transaction) {
+  return new Promise((resolve, reject) => {
+    transaction.oncomplete = () => resolve()
+    transaction.onabort = () => reject(transaction.error || new Error('IndexedDB transaction aborted'))
+    transaction.onerror = () => reject(transaction.error || new Error('IndexedDB transaction failed'))
+  })
+}
+
+export function isOfflineStorageAvailable() {
+  return typeof indexedDB !== 'undefined'
+}
+
+export function openOfflineDatabase() {
+  if (!isOfflineStorageAvailable()) {
+    return Promise.reject(new Error('Penyimpanan offline tidak tersedia pada browser ini.'))
+  }
+  if (databasePromise) return databasePromise
+
+  databasePromise = new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, DB_VERSION)
+
+    request.onupgradeneeded = () => {
+      const db = request.result
+
+      if (!db.objectStoreNames.contains(SNAPSHOTS)) {
+        const snapshots = db.createObjectStore(SNAPSHOTS, { keyPath: 'storeId' })
+        snapshots.createIndex('by_user', 'userId', { unique: false })
+      }
+
+      if (!db.objectStoreNames.contains(OUTBOX)) {
+        const outbox = db.createObjectStore(OUTBOX, { keyPath: 'requestId' })
+        outbox.createIndex('by_store', 'storeId', { unique: false })
+        outbox.createIndex('by_store_status_created', ['storeId', 'status', 'createdAt'], { unique: false })
+        outbox.createIndex('by_user', 'userId', { unique: false })
+      }
+
+      if (!db.objectStoreNames.contains(META)) {
+        db.createObjectStore(META, { keyPath: 'key' })
+      }
+    }
+
+    request.onsuccess = () => {
+      const db = request.result
+      db.onversionchange = () => {
+        db.close()
+        databasePromise = null
+      }
+      resolve(db)
+    }
+    request.onerror = () => {
+      databasePromise = null
+      reject(request.error || new Error('Gagal membuka penyimpanan offline.'))
+    }
+    request.onblocked = () => {
+      databasePromise = null
+      reject(new Error('Pembaruan penyimpanan offline tertahan oleh tab acoPos lain. Tutup tab lain lalu coba lagi.'))
+    }
+  })
+
+  return databasePromise
+}
+
+function requireText(value, label) {
+  if (typeof value !== 'string' || !value.trim()) {
+    throw new Error(label + ' wajib tersedia untuk penyimpanan offline.')
+  }
+}
+
+export async function saveOfflineStoreSnapshot({ storeId, userId, products, settings, activeShift, serverValidatedAt }) {
+  requireText(storeId, 'ID toko')
+  requireText(userId, 'ID pengguna')
+  if (!Array.isArray(products)) throw new Error('Daftar produk offline tidak valid.')
+  if (!serverValidatedAt || Number.isNaN(Date.parse(serverValidatedAt))) {
+    throw new Error('Waktu validasi server tidak valid.')
+  }
+
+  const db = await openOfflineDatabase()
+  const transaction = db.transaction([SNAPSHOTS], 'readwrite')
+  const done = transactionResult(transaction)
+  transaction.objectStore(SNAPSHOTS).put({
+    storeId,
+    userId,
+    products,
+    settings: settings || null,
+    activeShift: activeShift || null,
+    serverValidatedAt,
+    capturedAt: new Date().toISOString(),
+    schemaVersion: DB_VERSION,
+  })
+  await done
+}
+
+export async function getOfflineStoreSnapshot(storeId, userId) {
+  requireText(storeId, 'ID toko')
+  requireText(userId, 'ID pengguna')
+  const db = await openOfflineDatabase()
+  const transaction = db.transaction([SNAPSHOTS], 'readonly')
+  const done = transactionResult(transaction)
+  const request = transaction.objectStore(SNAPSHOTS).get(storeId)
+  const snapshot = await requestResult(request)
+  await done
+  if (!snapshot || snapshot.userId !== userId) return null
+  return snapshot
+}
+
+export async function enqueueOfflineCashSale({
+  storeId,
+  userId,
+  requestId,
+  items,
+  discount = 0,
+  paidAmount,
+  customerName = null,
+  estimatedTotal,
+  createdAt = new Date().toISOString(),
+}) {
+  requireText(storeId, 'ID toko')
+  requireText(userId, 'ID pengguna')
+  requireText(requestId, 'ID transaksi')
+  if (!Array.isArray(items) || items.length === 0) throw new Error('Keranjang transaksi kosong.')
+  if (items.some(item => !item || typeof item.product_id !== 'string' || !Number.isInteger(item.quantity) || item.quantity < 1)) {
+    throw new Error('Rincian produk transaksi offline tidak valid.')
+  }
+  if (items.some(item => item.unit_price != null && (!Number.isFinite(Number(item.unit_price)) || Number(item.unit_price) < 0))) {
+    throw new Error('Harga perkiraan produk tidak valid.')
+  }
+  if (!Number.isFinite(Number(discount)) || Number(discount) < 0) throw new Error('Diskon tidak valid.')
+  if (!Number.isFinite(Number(paidAmount)) || Number(paidAmount) < 0) throw new Error('Nominal pembayaran tidak valid.')
+  if (!Number.isFinite(Number(estimatedTotal)) || Number(estimatedTotal) < 0) throw new Error('Total perkiraan tidak valid.')
+  if (!createdAt || Number.isNaN(Date.parse(createdAt))) throw new Error('Waktu transaksi tidak valid.')
+
+  const record = {
+    requestId,
+    storeId,
+    userId,
+    items: items.map(item => ({
+      product_id: item.product_id,
+      quantity: item.quantity,
+      unit_price: item.unit_price == null ? null : Number(item.unit_price),
+      product_name: item.product_name == null ? null : String(item.product_name),
+    })),
+    discount: Number(discount),
+    paymentMethod: 'cash',
+    paidAmount: Number(paidAmount),
+    customerName: customerName == null ? null : String(customerName),
+    estimatedTotal: Number(estimatedTotal),
+    createdAt,
+    updatedAt: createdAt,
+    status: OFFLINE_OUTBOX_STATUS.PENDING,
+    serverOrderId: null,
+    serverReceiptNumber: null,
+    serverTotal: null,
+    lastError: null,
+    attempts: 0,
+    schemaVersion: DB_VERSION,
+  }
+
+  const db = await openOfflineDatabase()
+  const transaction = db.transaction([OUTBOX], 'readwrite')
+  const done = transactionResult(transaction)
+  const store = transaction.objectStore(OUTBOX)
+  const existingRequest = store.get(requestId)
+
+  let result
+  existingRequest.onsuccess = () => {
+    const existing = existingRequest.result
+    if (existing) {
+      if (existing.storeId !== storeId || existing.userId !== userId) {
+        transaction.abort()
+        return
+      }
+      result = existing
+      return
+    }
+    store.add(record)
+    result = record
+  }
+
+  await done
+  return result
+}
+
+export async function listOfflineOutbox({ storeId, userId, statuses } = {}) {
+  requireText(storeId, 'ID toko')
+  requireText(userId, 'ID pengguna')
+  const db = await openOfflineDatabase()
+  const transaction = db.transaction([OUTBOX], 'readonly')
+  const done = transactionResult(transaction)
+  const request = transaction.objectStore(OUTBOX).index('by_store').getAll(storeId)
+  const records = await requestResult(request)
+  await done
+  const allowed = statuses ? new Set(statuses) : null
+  return records
+    .filter(record => record.userId === userId && (!allowed || allowed.has(record.status)))
+    .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
+}
+
+export async function updateOfflineOutboxRecord(requestId, userId, patch) {
+  requireText(requestId, 'ID transaksi')
+  requireText(userId, 'ID pengguna')
+  if (!patch || typeof patch !== 'object') throw new Error('Perubahan status offline tidak valid.')
+  if (patch.status && !VALID_STATUSES.has(patch.status)) throw new Error('Status transaksi offline tidak dikenal.')
+
+  const allowedKeys = new Set([
+    'status', 'updatedAt', 'serverOrderId', 'serverReceiptNumber',
+    'serverTotal', 'lastError', 'attempts',
+  ])
+  if (Object.keys(patch).some(key => !allowedKeys.has(key))) {
+    throw new Error('Payload transaksi offline bersifat tetap dan tidak dapat diubah.')
+  }
+
+  const db = await openOfflineDatabase()
+  const transaction = db.transaction([OUTBOX], 'readwrite')
+  const done = transactionResult(transaction)
+  const store = transaction.objectStore(OUTBOX)
+  const request = store.get(requestId)
+  let updated = null
+
+  request.onsuccess = () => {
+    const current = request.result
+    if (!current || current.userId !== userId) {
+      transaction.abort()
+      return
+    }
+    updated = { ...current, ...patch, updatedAt: patch.updatedAt || new Date().toISOString() }
+    store.put(updated)
+  }
+
+  await done
+  return updated
+}
+
+export async function setOfflineMetadata(key, value) {
+  requireText(key, 'Kunci metadata')
+  const db = await openOfflineDatabase()
+  const transaction = db.transaction([META], 'readwrite')
+  const done = transactionResult(transaction)
+  transaction.objectStore(META).put({ key, value, updatedAt: new Date().toISOString() })
+  await done
+}
+
+export async function getOfflineMetadata(key) {
+  requireText(key, 'Kunci metadata')
+  const db = await openOfflineDatabase()
+  const transaction = db.transaction([META], 'readonly')
+  const done = transactionResult(transaction)
+  const request = transaction.objectStore(META).get(key)
+  const result = await requestResult(request)
+  await done
+  return result?.value ?? null
+}
