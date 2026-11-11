@@ -10,6 +10,8 @@ const source = readFileSync(
 test('offline storage uses versioned IndexedDB stores for snapshots, outbox, and metadata', () => {
   assert.match(source, /DB_NAME\s*=\s*'acopos-offline-pos'/)
   assert.match(source, /DB_VERSION\s*=\s*2/)
+  assert.match(source, /onupgradeneeded = \(event\)/)
+  assert.match(source, /event\.oldVersion < 2/)
   assert.match(source, /store_snapshots/)
   assert.match(source, /requestOfflineStoragePersistence/)
   assert.match(source, /navigator\.storage\.persist\(\)/)
