@@ -62,12 +62,12 @@ export function openOfflineDatabase() {
   databasePromise = new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, DB_VERSION)
 
-    request.onupgradeneeded = () => {
+    request.onupgradeneeded = (event) => {
       const db = request.result
 
       // Snapshot data is a cache, so v1 snapshots can be safely rebuilt. Keep
       // the durable transaction outbox untouched during this key migration.
-      if (request.oldVersion < 2 && db.objectStoreNames.contains(SNAPSHOTS)) {
+      if (event.oldVersion < 2 && db.objectStoreNames.contains(SNAPSHOTS)) {
         db.deleteObjectStore(SNAPSHOTS)
       }
       if (!db.objectStoreNames.contains(SNAPSHOTS)) {
