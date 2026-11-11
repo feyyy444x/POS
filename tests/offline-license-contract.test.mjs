@@ -35,7 +35,7 @@ test('offline grace is bounded and defaults to 72 hours per activation package',
 
 test('offline license detects clock rollback and subscription/grace expiry', () => {
   assert.match(client, /CLOCK_SKEW_TOLERANCE_MS/)
-  assert.match(client, /now \+ CLOCK_SKEW_TOLERANCE_MS < lastSeenAt/)
+  assert.match(client, /now \\+ CLOCK_SKEW_TOLERANCE_MS < previousSeen/)
   assert.match(client, /subscriptionExpiresAt/)
   assert.match(client, /graceExpiry/)
   assert.match(client, /writable: false/)
