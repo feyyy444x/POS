@@ -217,6 +217,7 @@ function App() {
   const [ownerMemberDeleteBusy,setOwnerMemberDeleteBusy] = useState(false)
   const [syncStatus, setSyncStatus] = useState(() => typeof navigator !== 'undefined' && !navigator.onLine ? 'offline' : 'checking')
   const [offlineLicense, setOfflineLicense] = useState(null)
+  const [licenseOnlineValidated, setLicenseOnlineValidated] = useState(false)
   const [offlineAccess, setOfflineAccess] = useState(null)
   const [offlineOutbox, setOfflineOutbox] = useState([])
   const [manualRefreshTick, setManualRefreshTick] = useState(0)
@@ -692,6 +693,8 @@ function App() {
   useEffect(() => {
     if (!store?.id || !session?.user?.id || !session?.access_token || typeof navigator === 'undefined' || !navigator.onLine) return
     let cancelled = false
+    let mounted = true
+    setLicenseOnlineValidated(false)
     const issueLicense = async () => {
       try {
         const response = await fetch('/.netlify/functions/offline-license', {
@@ -702,13 +705,20 @@ function App() {
         const envelope = await response.json().catch(() => ({}))
         if (!response.ok) throw new Error(envelope.error || 'Lisensi offline belum berhasil divalidasi.')
         const payload = await validateAndStoreOfflineLicense(envelope, { storeId: store.id, userId: session.user.id })
-        if (!cancelled) { setOfflineLicense(payload); setOfflineAccess(null) }
+        if (!cancelled && mounted) {
+          setOfflineLicense(payload)
+          setOfflineAccess(null)
+          setLicenseOnlineValidated(true)
+        }
       } catch (error) {
-        if (!cancelled) setOfflineLicense({ valid: false, reason: error?.message || 'Lisensi offline tidak tersedia.' })
+        if (!cancelled && mounted) {
+          setOfflineLicense({ valid: false, reason: error?.message || 'Lisensi offline tidak tersedia.' })
+          setLicenseOnlineValidated(false)
+        }
       }
     }
     issueLicense()
-    return () => { cancelled = true }
+    return () => { cancelled = true; mounted = false }
   }, [store?.id, session?.user?.id, session?.access_token, syncStatus])
 
   useEffect(() => {
@@ -720,7 +730,7 @@ function App() {
   }, [store, membership, products, settings, activeShift, shiftBreak, orders, queue, orderItems, offlineLicense?.serverIssuedAt, session?.user?.id])
 
   useEffect(() => {
-    if (!store?.id || !session?.user?.id || !offlineLicense?.serverIssuedAt || typeof navigator === 'undefined' || !navigator.onLine) return
+    if (!store?.id || !session?.user?.id || !offlineLicense?.serverIssuedAt || !licenseOnlineValidated || typeof navigator === 'undefined' || !navigator.onLine) return
     let cancelled = false
     const syncPending = async () => {
       try {
@@ -737,13 +747,14 @@ function App() {
     }
     syncPending()
     return () => { cancelled = true }
-  }, [store?.id, session?.user?.id, syncStatus, manualRefreshTick, offlineAccess?.isOffline, offlineLicense?.serverIssuedAt, loadWorkspace])
+  }, [store?.id, session?.user?.id, syncStatus, manualRefreshTick, offlineAccess?.isOffline, offlineLicense?.serverIssuedAt, licenseOnlineValidated, loadWorkspace])
 
   useEffect(()=>{if(!session){setIsSuperAdmin(false);setIsPlatformAdmin(false);setAdminCheckReady(true);return}let cancelled=false;setAdminCheckReady(false);Promise.all([supabase.from('super_admins').select('user_id').eq('user_id',session.user.id).maybeSingle(),supabase.rpc('get_my_platform_staff_role')]).then(([adminResult,staffResult])=>{if(cancelled)return;const staffData=Array.isArray(staffResult.data)?staffResult.data[0]:staffResult.data;const isPlatformAdmin=!staffResult.error&&staffData?.role==='admin';setIsPlatformAdmin(isPlatformAdmin);setIsSuperAdmin(Boolean(adminResult.data)||isPlatformAdmin);setAdminCheckReady(true)}).catch(()=>{if(!cancelled){setIsSuperAdmin(false);setIsPlatformAdmin(false);setAdminCheckReady(true)}});return()=>{cancelled=true}},[session?.user?.id,session?.access_token])
 
   useEffect(()=>{
-    const handleOnline=()=>{setSyncStatus('reconnecting');setOfflineAccess(null)}
+    const handleOnline=()=>{setLicenseOnlineValidated(false);setSyncStatus('reconnecting');setOfflineAccess(null)}
     const handleOffline=()=>{
+      setLicenseOnlineValidated(false)
       setSyncStatus('offline')
       if(store?.id&&session?.user?.id){getOfflineLicenseStatus({storeId:store.id,userId:session.user.id}).then(status=>setOfflineAccess({...status,isOffline:true})).catch(error=>setOfflineAccess({valid:false,writable:false,isOffline:true,reason:error?.message||'Lisensi offline tidak dapat dibaca.'}))}
     }
