@@ -31,7 +31,7 @@ jobs:
           VITE_SUPABASE_URL: https://example.supabase.co
           VITE_SUPABASE_PUBLISHABLE_KEY: ci-placeholder-key
       - name: Install Chromium for offline browser E2E
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install chromium
       - name: Run real Chromium offline PWA and IndexedDB tests
         run: ACOPOS_RUN_OFFLINE_BROWSER_E2E=1 node --test tests/offline-browser-e2e.test.mjs
         timeout-minutes: 5
