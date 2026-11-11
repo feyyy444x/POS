@@ -5,7 +5,7 @@ on:
   pull_request:
     branches: [main]
   push:
-    branches: [main, feature/nexapos-operations-bundle-v2, nexapos/consolidated-pr-22]
+    branches: [main, feature/nexapos-operations-bundle-v2, nexapos/consolidated-pr-22, acopos/rebrand-preview]
 
 permissions:
   contents: read
