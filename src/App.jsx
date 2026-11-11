@@ -484,9 +484,9 @@ function App() {
       return
     }
     let memberRows = null
-    let memberError = null
-    // Auth/session and RLS can settle shortly after sign-in; retry both empty and transient-error responses.
-    for (let attempt = 0; attempt < 4; attempt++) {
+    let memberError = typeof navigator !== 'undefined' && !navigator.onLine ? { message: 'Perangkat sedang offline.' } : null
+    // Auth/session and RLS can settle shortly after sign-in; do not waste 40 seconds retrying while offline.
+    for (let attempt = 0; attempt < 4 && !memberError; attempt++) {
       let timeoutId
       const timeout = new Promise(resolve => { timeoutId = setTimeout(() => resolve({data:null,error:{message:'Permintaan ke server terlalu lama. Periksa koneksi internet lalu coba masuk kembali.'}}), 10000) })
       let result
@@ -693,7 +693,7 @@ function App() {
     }
     issueLicense()
     return () => { cancelled = true }
-  }, [store?.id, session?.user?.id, session?.access_token])
+  }, [store?.id, session?.user?.id, session?.access_token, syncStatus])
 
   useEffect(() => {
     if (!store?.id || !session?.user?.id || !offlineLicense?.serverIssuedAt || typeof navigator === 'undefined' || !navigator.onLine) return
@@ -704,7 +704,7 @@ function App() {
   }, [store, membership, products, settings, activeShift, orders, queue, orderItems, offlineLicense?.serverIssuedAt, session?.user?.id])
 
   useEffect(() => {
-    if (!store?.id || !session?.user?.id || typeof navigator === 'undefined' || !navigator.onLine || offlineAccess?.isOffline) return
+    if (!store?.id || !session?.user?.id || !offlineLicense?.serverIssuedAt || typeof navigator === 'undefined' || !navigator.onLine || offlineAccess?.isOffline) return
     let cancelled = false
     const syncPending = async () => {
       try {
@@ -717,13 +717,16 @@ function App() {
     }
     syncPending()
     return () => { cancelled = true }
-  }, [store?.id, session?.user?.id, syncStatus, manualRefreshTick, offlineAccess?.isOffline])
+  }, [store?.id, session?.user?.id, syncStatus, manualRefreshTick, offlineAccess?.isOffline, offlineLicense?.serverIssuedAt])
 
   useEffect(()=>{if(!session){setIsSuperAdmin(false);setIsPlatformAdmin(false);setAdminCheckReady(true);return}let cancelled=false;setAdminCheckReady(false);Promise.all([supabase.from('super_admins').select('user_id').eq('user_id',session.user.id).maybeSingle(),supabase.rpc('get_my_platform_staff_role')]).then(([adminResult,staffResult])=>{if(cancelled)return;const staffData=Array.isArray(staffResult.data)?staffResult.data[0]:staffResult.data;const isPlatformAdmin=!staffResult.error&&staffData?.role==='admin';setIsPlatformAdmin(isPlatformAdmin);setIsSuperAdmin(Boolean(adminResult.data)||isPlatformAdmin);setAdminCheckReady(true)}).catch(()=>{if(!cancelled){setIsSuperAdmin(false);setIsPlatformAdmin(false);setAdminCheckReady(true)}});return()=>{cancelled=true}},[session?.user?.id,session?.access_token])
 
   useEffect(()=>{
-    const handleOnline=()=>setSyncStatus('checking')
-    const handleOffline=()=>setSyncStatus('offline')
+    const handleOnline=()=>{setSyncStatus('reconnecting');setOfflineAccess(null)}
+    const handleOffline=()=>{
+      setSyncStatus('offline')
+      if(store?.id&&session?.user?.id){getOfflineLicenseStatus({storeId:store.id,userId:session.user.id}).then(status=>setOfflineAccess({...status,isOffline:true})).catch(error=>setOfflineAccess({valid:false,writable:false,isOffline:true,reason:error?.message||'Lisensi offline tidak dapat dibaca.'}))}
+    }
     window.addEventListener('online',handleOnline)
     window.addEventListener('offline',handleOffline)
     if(!navigator.onLine)setSyncStatus('offline')
