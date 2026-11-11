@@ -734,7 +734,7 @@ function App() {
     window.addEventListener('offline',handleOffline)
     if(!navigator.onLine)setSyncStatus('offline')
     return()=>{window.removeEventListener('online',handleOnline);window.removeEventListener('offline',handleOffline)}
-  },[])
+  }, [store?.id, session?.user?.id])
 
   useEffect(()=>{
     if(!session){setPinStatus(null);return}
