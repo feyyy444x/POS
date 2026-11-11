@@ -35,6 +35,14 @@ export default function TvDisplaySettings({ store, settings, membership, onNotic
   }, [storeId, notify])
 
   useEffect(() => { load() }, [load])
+  useEffect(() => {
+    if (!storeId || !supabase) return
+    const channel = supabase.channel('acoPos-tv-settings-sync-' + storeId)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'store_settings', filter: 'store_id=eq.' + storeId }, load)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'store_tv_settings', filter: 'store_id=eq.' + storeId }, load)
+      .subscribe()
+    return () => { supabase.removeChannel(channel) }
+  }, [storeId, load])
 
   const saveEnabled = async (nextValue) => {
     if (!canManage || !storeId || !supabase) return
