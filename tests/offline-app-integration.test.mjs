@@ -10,6 +10,7 @@ test('offline workspace restores only a matching signed license and user/store s
   assert.match(app, /getOfflineStoreSnapshot\(preferredStoreId, session\.user\.id\)/)
   assert.match(app, /getOfflineLicenseStatus\(\{ storeId: preferredStoreId, userId: session\.user\.id \}\)/)
   assert.match(app, /snapshot\?\.store && snapshot\?\.membership && license\.valid/)
+  assert.match(app, /membership\?\.user_id !== session\.user\.id/)
 })
 
 test('offline checkout accepts cash only and requires a writable offline license and open shift', () => {
@@ -32,8 +33,11 @@ test('offline outbox and cached stock reservation are committed in one IndexedDB
   assert.match(db, /stock - saleItem\.quantity/)
 })
 
-test('online recovery replays the outbox through the idempotent RPC', () => {
-  assert.match(app, /syncOfflineCashOutbox/)\n  assert.match(app, /looksLikeNetworkFailure/)\n  assert.match(app, /Coba sinkronkan/)\n  assert.match(app, /receipt\\.offlinePending/)
+test('network failures queue cash transactions and online recovery replays them idempotently', () => {
+  assert.match(app, /syncOfflineCashOutbox/)
+  assert.match(app, /looksLikeNetworkFailure/)
+  assert.match(app, /Coba sinkronkan/)
+  assert.match(app, /receipt\.offlinePending/)
   assert.match(sync, /complete_sale_idempotent/)
   assert.match(sync, /p_request_id: record\.requestId/)
   assert.match(sync, /OFFLINE_OUTBOX_STATUS\.NEEDS_REVIEW/)
