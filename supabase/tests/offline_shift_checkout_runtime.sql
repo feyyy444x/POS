@@ -71,7 +71,7 @@ as $$ select p_store_id is not null $$;
 
 create or replace function public.create_queue_ticket(uuid,text,uuid)
 returns public.queue_tickets language sql
-as $$ select row(null::uuid)::public.queue_tickets $$;
+as $ select row(gen_random_uuid(), $1, $3, now())::public.queue_tickets $;
 
 create or replace function private.is_store_member(p_store_id uuid)
 returns boolean language sql stable security definer set search_path = ''
