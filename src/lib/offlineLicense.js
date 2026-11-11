@@ -1,4 +1,4 @@
-import { getOfflineMetadata, setOfflineMetadata } from './offlineDatabase'
+import { getOfflineMetadata, setOfflineMetadata } from './offlineDatabase.js'
 
 const LICENSE_KEY = (storeId, userId) => 'license:' + storeId + ':' + userId
 const CLOCK_KEY = (storeId, userId) => 'clock:' + storeId + ':' + userId
