@@ -76,7 +76,7 @@ export async function getOfflineLicenseStatus({ storeId, userId, now = Date.now(
   }
   const graceExpiry = issuedAt + graceHours * 60 * 60 * 1000
   const validUntil = Math.min(graceExpiry, subscriptionExpiry)
-  if (now > validUntil) {
+  if (now >= validUntil) {
     return { valid: true, writable: false, payload, validUntil, reason: 'Masa offline berakhir. Sambungkan internet untuk mengaktifkan kembali operasi.' }
   }
   return { valid: true, writable: true, payload, validUntil, reason: '' }
