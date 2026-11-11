@@ -13,24 +13,18 @@ The current application is an online-first POS with an installable PWA shell. It
 
 ## Findings
 
-### F-01 — Legacy checkout RPC grant appears to reopen a non-idempotent path
+### F-01 — Legacy non-idempotent checkout RPC is revoked in the final migration state
 
-**Severity: High — must resolve before offline checkout**
+<badge>Resolved in migration history; keep regression coverage</badge>
 
-Evidence:
-- `20261030032837_idempotent_checkout.sql` creates `complete_sale_idempotent(..., p_request_id)`, serializes retries by store/request ID, and revokes authenticated execution from `complete_sale(...)`.
-- Later migration `20261030033109_legacy_checkout_compatibility.sql` explicitly grants `EXECUTE` on `public.complete_sale(uuid,jsonb,numeric,text,numeric,text,boolean)` back to `authenticated`.
-- The frontend checkout currently calls `complete_sale_idempotent` (src/App.jsx, checkout handler), but the legacy RPC grant remains a callable path for authenticated clients unless a later deployed migration revokes it again.
+**Correction after reviewing the complete migration sequence:**
 
-Risk:
-- A modified/stale client or direct RPC caller can invoke the non-idempotent legacy checkout path, potentially creating duplicate sales on retries.
-- The unique index on `orders(store_id,idempotency_key)` does not protect legacy calls that do not attach an idempotency key.
+- `20261030032837_idempotent_checkout.sql` creates `complete_sale_idempotent(..., p_request_id)` and revokes authenticated execution of the legacy `complete_sale(...)` RPC.
+- `20261030033109_legacy_checkout_compatibility.sql` temporarily restores the legacy grant for compatibility.
+- The later `20261030142837_readonly_suspended_tenants.sql` migration revokes that legacy grant again. The final source migration state therefore does not leave the non-idempotent RPC executable by authenticated clients.
+- The offline branch adds a regression assertion to prevent a future migration from reopening that path.
 
-Required before offline:
-- Verify actual production function privileges and migration ledger.
-- Revoke authenticated/public/anon execution of the legacy function after confirming no supported client still depends on it.
-- Ensure only the idempotent server entry point is executable by application clients.
-- Add a database privilege regression test.
+**Remaining verification:** confirm the production migration ledger and live function privileges before any release. Source history alone is not proof of the deployed database state.
 
 ### F-02 — Open-shift enforcement for normal POS checkout is client-side, not in the checkout function
 
