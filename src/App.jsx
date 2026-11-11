@@ -1754,7 +1754,20 @@ function App() {
   const tenantDaysRemaining = store?.expires_at ? Math.ceil((new Date(store.expires_at).setHours(0,0,0,0)-new Date().setHours(0,0,0,0))/86400000) : null
   const tenantExpiryTone = tenantDaysRemaining === null ? '' : tenantDaysRemaining < 7 ? 'critical' : tenantDaysRemaining <= 25 ? 'warning' : 'healthy'
   const titleMap={'owner-center':'Pusat Kendali',dashboard:'Ringkasan',pos:'Kasir / POS',products:'Produk & stok',queue:'Sistem antrean',monitoring:'Monitoring Karyawan aktif',reports:'Laporan penjualan','reports-org':'Laporan perusahaan',attendance:'Laporan absensi',cashier:'Buka / tutup sesi',settings:'Pengaturan toko',profile:'Profil & keamanan','tv-settings':'Pengaturan Layar Antrean',tenants:'Tenant & lokasi',audit:'Audit aktivitas'}
-  const guardTenantAction=(event)=>{if(!tenantReadOnly)return;const button=event.target?.closest?.('button');if(!button)return;const offlineCheckoutAllowed=button.hasAttribute('data-offline-checkout')&&offlineAccess?.isOffline&&offlineAccess?.writable;const offlineLocalUiAllowed=offlineAccess?.isOffline&&(button.closest('.pos-catalog')||button.closest('.cart-panel')||button.closest('.receipt-modal-layer')||button.hasAttribute('data-offline-outbox-action'));if(offlineCheckoutAllowed||offlineLocalUiAllowed)return;const allowed=button.closest('nav')||button.classList.contains('nav-link')||button.classList.contains('mobile-menu')||button.classList.contains('mobile-scrim')||button.classList.contains('nx-back-button')||button.classList.contains('admin-shortcut')||button.hasAttribute('data-acoPos-nav')||button.hasAttribute('data-lock-dismiss')||button.title==='Keluar'||/keluar|logout/i.test(button.textContent||'')||/refresh|perbarui/i.test((button.className||'')+' '+(button.getAttribute('aria-label')||''));if(allowed)return;event.preventDefault();event.stopPropagation();event.nativeEvent?.stopImmediatePropagation?.();setLockNoticeOpen(true)}
+  const guardTenantAction=(event)=>{
+    if(!tenantReadOnly)return
+    const target=event.target
+    const button=target?.closest?.('button')
+    const offlineCheckoutAllowed=button?.hasAttribute('data-offline-checkout')&&offlineAccess?.isOffline&&offlineAccess?.writable
+    const offlineLocalUiAllowed=offlineAccess?.isOffline&&(target?.closest?.('.pos-catalog')||target?.closest?.('.cart-panel')||target?.closest?.('.receipt-modal-layer')||button?.hasAttribute('data-offline-outbox-action'))
+    const navigationAllowed=target?.closest?.('nav,a[href]')||button?.classList.contains('nav-link')||button?.classList.contains('mobile-menu')||button?.classList.contains('mobile-scrim')||button?.classList.contains('nx-back-button')||button?.classList.contains('admin-shortcut')||button?.hasAttribute('data-acoPos-nav')||button?.hasAttribute('data-lock-dismiss')||button?.title==='Keluar'||/keluar|logout/i.test(button?.textContent||'')||/refresh|perbarui/i.test((button?.className||'')+' '+(button?.getAttribute('aria-label')||''))
+    const fieldInteraction=target?.closest?.('input,textarea,select,label')
+    if(offlineCheckoutAllowed||offlineLocalUiAllowed||navigationAllowed||fieldInteraction)return
+    event.preventDefault()
+    event.stopPropagation()
+    event.nativeEvent?.stopImmediatePropagation?.()
+    setLockNoticeOpen(true)
+  }
   const guardTenantSubmit=(event)=>{if(!tenantReadOnly)return;event.preventDefault();event.stopPropagation();event.nativeEvent?.stopImmediatePropagation?.();setLockNoticeOpen(true)}
   return <div className={`app-shell tenant-operations-shell nx-workspace-shell workspace-page-${page}`} onClickCapture={guardTenantAction} onSubmitCapture={guardTenantSubmit}>
     {tenantReadOnly&&<div className="tenant-readonly-banner" role="status" style={{margin:'14px 18px 0',padding:'14px 18px',border:'1px solid #f3c7a7',borderRadius:14,background:'#f5efe3',color:'#92754a'}}><strong>AKSES OPERASIONAL DIKUNCI</strong><span style={{display:'block',marginTop:4}}>Akses operasional {tenantOrganizationStatus?.organization_name||store.name||'Perusahaan Anda'} ini sedang dihentikan sementara. Anda masih dapat melihat halaman dan informasi yang tersedia, tetapi seluruh tindakan operasional tidak dapat digunakan.</span></div>}
