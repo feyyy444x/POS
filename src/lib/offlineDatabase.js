@@ -97,7 +97,7 @@ function requireText(value, label) {
   }
 }
 
-export async function saveOfflineStoreSnapshot({ storeId, userId, products, settings, activeShift, serverValidatedAt }) {
+export async function saveOfflineStoreSnapshot({ storeId, userId, store, membership, products, settings, activeShift, orders, queue, orderItems, serverValidatedAt }) {
   requireText(storeId, 'ID toko')
   requireText(userId, 'ID pengguna')
   if (!Array.isArray(products)) throw new Error('Daftar produk offline tidak valid.')
@@ -111,9 +111,14 @@ export async function saveOfflineStoreSnapshot({ storeId, userId, products, sett
   transaction.objectStore(SNAPSHOTS).put({
     storeId,
     userId,
+    store: store || null,
+    membership: membership || null,
     products,
     settings: settings || null,
     activeShift: activeShift || null,
+    orders: Array.isArray(orders) ? orders : [],
+    queue: Array.isArray(queue) ? queue : [],
+    orderItems: Array.isArray(orderItems) ? orderItems : [],
     serverValidatedAt,
     capturedAt: new Date().toISOString(),
     schemaVersion: DB_VERSION,
