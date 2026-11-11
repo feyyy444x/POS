@@ -68,7 +68,7 @@ as $$ select p_store_id is not null $$;
 
 create or replace function public.create_queue_ticket(uuid,text,uuid)
 returns public.queue_tickets language sql
-as $ select row(null::uuid)::public.queue_tickets $;
+as $$ select row(null::uuid)::public.queue_tickets $$;
 
 -- Minimal idempotent wrapper so the migration's grants and delegated checkout
 -- can be exercised without requiring the full application schema.
