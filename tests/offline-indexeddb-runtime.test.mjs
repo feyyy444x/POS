@@ -147,3 +147,31 @@ test('a sale already acknowledged by the server cannot be marked rejected locall
   assert.equal(records[0].status, db.OFFLINE_OUTBOX_STATUS.NEEDS_REVIEW)
   assert.equal(snapshot.products[0].stock, 8)
 })
+
+test('manual rejection does not add provisional stock to a newer server snapshot', async () => {
+  const storeId = '66666666-6666-4666-8666-666666666666'
+  await seedSnapshot({ storeId, userId: OTHER_USER })
+  const requestId = '12121212-1212-4212-8212-121212121212'
+  await db.enqueueOfflineCashSale({ ...sale(requestId), storeId, userId: OTHER_USER })
+  // The browser reconnects and replaces its cached stock with a newer,
+  // authoritative server snapshot before the cashier rejects the old sale.
+  await db.saveOfflineStoreSnapshot({
+    storeId,
+    userId: OTHER_USER,
+    store: { id: storeId, status: 'active' },
+    membership: { user_id: OTHER_USER, role: 'cashier', is_active: true },
+    products: [{ id: PRODUCT, name: 'Produk Uji', price: 10000, stock: 6, is_active: true }],
+    settings: { store_id: storeId, queue_enabled: false },
+    activeShift: { id: 'shift-open', cashier_id: OTHER_USER, closed_at: null },
+    shiftBreak: null,
+    serverValidatedAt: '2026-11-11T11:00:00.000Z',
+  })
+  await db.updateOfflineOutboxRecord(requestId, OTHER_USER, {
+    status: db.OFFLINE_OUTBOX_STATUS.NEEDS_REVIEW,
+    lastError: 'Server menolak transaksi',
+  })
+  const rejected = await db.rejectOfflineOutboxRecord(requestId, OTHER_USER)
+  const snapshot = await db.getOfflineStoreSnapshot(storeId, OTHER_USER)
+  assert.equal(rejected.stockRestored, false)
+  assert.equal(snapshot.products[0].stock, 6, 'new server stock must not be inflated by a stale local reservation')
+})
