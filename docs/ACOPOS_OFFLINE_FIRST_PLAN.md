@@ -186,9 +186,9 @@ The signing key is intentionally not committed to this repository.
 
 - IndexedDB v2, store/user-scoped snapshots, atomic cash outbox, persistent-storage permission request, immutable payload, and provisional local stock reservation are implemented.
 - Offline cash checkout is connected to the UI and creates a clearly marked temporary receipt; QRIS/transfer remain online-only.
-- Idempotent sync, durable acknowledgement retention, pending retry, needs-review handling, and manual reconciliation controls are connected.
+- Idempotent sync, durable acknowledgement retention, bounded exponential retry (5 seconds–15 minutes), needs-review handling, and manual reconciliation controls are connected. Rejecting a local-only failed sale atomically restores provisional stock when the matching snapshot is intact; server-accepted sales cannot be marked rejected.
 - Server-signed Ed25519 license issuer/verifier, 72-hour default grace, per-package Super Admin setting, subscription expiry enforcement, and best-effort clock rollback detection are implemented in the isolated branch.
 - Reconnect clears offline write mode and now blocks queued-sale replay until a fresh signed server license is verified.
-- CI previously passed application regression tests, production build, security checks, dependency audit, deployed-preview smoke checks, and the isolated PostgreSQL shift/license fixture. The newest changes add runtime sync tests and persistent-storage handling; their CI runs must complete before the latest head can be marked green.
+- GitHub Actions on verified head `5cd390808a3bfd6da674a4bcd547dfbeff021aeb` passed application regression tests, production build, security checks, dependency audit, deployed-preview smoke checks, and the isolated PostgreSQL shift/license/idempotency fixture. Runtime sync tests cover acceptance, mismatch, database rejection, retry/backoff, and deferred retry.
 - Physical device/peripheral tests, full disposable Supabase migration-chain validation, Netlify preview signing-key configuration, and real-browser IndexedDB E2E remain pending. The Netlify site currently shares Supabase configuration that points to production, so no preview signing secrets will be enabled until an isolated test database is configured.
 - Offline functionality is integrated in this Draft PR branch, but not yet production-ready.
