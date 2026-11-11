@@ -52,10 +52,13 @@ export async function validateAndStoreOfflineLicense(envelope, { storeId, userId
 
 export function evaluateOfflineLicense(payload, { lastSeenAt = 0, now = Date.now() } = {}) {
   const previousSeen = Number(lastSeenAt || 0)
-  if (previousSeen && now + CLOCK_SKEW_TOLERANCE_MS < previousSeen) {
+  const issuedAt = Date.parse(payload?.serverIssuedAt)
+  // The signed issuance timestamp is an immutable lower bound. This also
+  // catches a clock moved behind issuance when local clock metadata was cleared.
+  if ((previousSeen && now + CLOCK_SKEW_TOLERANCE_MS < previousSeen) ||
+      (Number.isFinite(issuedAt) && now + CLOCK_SKEW_TOLERANCE_MS < issuedAt)) {
     return { valid: false, writable: false, clockRollback: true, reason: 'Perubahan jam perangkat terdeteksi. Sambungkan internet untuk validasi ulang.' }
   }
-  const issuedAt = Date.parse(payload?.serverIssuedAt)
   const graceHours = Number(payload?.offlineGraceHours)
   const subscriptionExpiry = payload?.subscriptionExpiresAt ? Date.parse(payload.subscriptionExpiresAt) : Infinity
   if (!Number.isFinite(issuedAt) || !Number.isInteger(graceHours) || graceHours < 0 || graceHours > 168 ||
