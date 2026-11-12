@@ -1,5 +1,5 @@
--- Safely remove disabled staff logins without deleting support conversation history.
--- Historical operational records retain their snapshots; nullable actor links become detached.
+-- Permanently remove eligible disabled staff logins without erasing operational or support history.
+-- Historical support actor IDs and email snapshots remain available to the Super Admin inbox.
 
 alter table public.support_conversations
   add column if not exists user_email_snapshot text;
@@ -10,25 +10,24 @@ from auth.users u
 where u.id = sc.user_id
   and sc.user_email_snapshot is null;
 
-alter table public.support_conversations
-  alter column user_id drop not null;
+-- Keep the original UUIDs as historical conversation/thread keys. Removing these
+-- foreign keys prevents Auth deletion from cascading away chat history or nulling
+-- the IDs that the support inbox uses to group and reopen old conversations.
 alter table public.support_conversations
   drop constraint if exists support_conversations_user_id_fkey;
-alter table public.support_conversations
-  add constraint support_conversations_user_id_fkey
-  foreign key (user_id) references auth.users(id) on delete set null;
 
-alter table public.support_messages
-  alter column user_id drop not null,
-  alter column sender_id drop not null;
 alter table public.support_messages
   drop constraint if exists support_messages_user_id_fkey,
   drop constraint if exists support_messages_sender_id_fkey;
-alter table public.support_messages
-  add constraint support_messages_user_id_fkey
-    foreign key (user_id) references auth.users(id) on delete set null,
-  add constraint support_messages_sender_id_fkey
-    foreign key (sender_id) references auth.users(id) on delete set null;
+
+comment on column public.support_conversations.user_id is
+  'Historical Auth user UUID retained as a support-thread key after account deletion.';
+comment on column public.support_conversations.user_email_snapshot is
+  'Email snapshot retained for support history after the Auth account is deleted.';
+comment on column public.support_messages.user_id is
+  'Historical Auth user UUID retained to group support messages after account deletion.';
+comment on column public.support_messages.sender_id is
+  'Historical Auth sender UUID; no longer a live Auth foreign key after account deletion.';
 
 create or replace function public.super_admin_delete_disabled_account(p_user_id uuid)
 returns void
@@ -47,7 +46,8 @@ begin
     raise exception 'Target akun tidak valid';
   end if;
 
-  -- Lock the account row so concurrent membership changes cannot race deletion.
+  -- Lock the Auth row first. The FK key lock also prevents a concurrent new
+  -- membership from being attached while the eligibility checks are running.
   select u.email
     into v_email
   from auth.users u
@@ -57,6 +57,17 @@ begin
   if not found then
     raise exception 'Akun tidak ditemukan';
   end if;
+
+  -- Serialize with concurrent membership/status changes for this account.
+  perform 1
+  from public.store_members m
+  where m.user_id = p_user_id
+  for update;
+
+  perform 1
+  from public.owner_organizations o
+  where o.owner_user_id = p_user_id
+  for update;
 
   if exists (
     select 1 from public.super_admins sa where sa.user_id = p_user_id
@@ -106,15 +117,38 @@ begin
     raise exception 'Akun masih memiliki sesi kasir terbuka. Tutup sesi kasir terlebih dahulu.';
   end if;
 
+  -- Supabase Storage owns uploaded objects independently from Auth. Never delete
+  -- object rows with SQL (that can orphan files); ask an administrator to move
+  -- ownership through the Storage API before deleting this account.
+  if exists (
+    select 1
+    from storage.objects so
+    where so.owner_id = p_user_id::text
+       or so.owner = p_user_id
+  ) then
+    raise exception 'Akun masih memiliki file di Storage. Pindahkan kepemilikan file melalui Storage terlebih dahulu.';
+  end if;
+
   -- Invitations are pending access records, not historical transaction records.
   if v_email is not null then
     delete from public.store_invites
     where lower(email) = lower(v_email);
   end if;
 
-  -- Delete memberships explicitly; operational tables keep their actor snapshots
-  -- and nullable auth references (ON DELETE SET NULL).
+  -- Keep operational records and their actor snapshots. The store_members DELETE
+  -- audit trigger records each removed membership before the Auth row is deleted.
   delete from public.store_members where user_id = p_user_id;
+
+  -- Record the global account deletion explicitly; never store credentials/tokens.
+  insert into public.platform_audit_logs (
+    actor_user_id, entity_table, entity_id, action, before_data
+  ) values (
+    (select auth.uid()),
+    'auth.users',
+    p_user_id::text,
+    'DELETE',
+    jsonb_build_object('user_id', p_user_id, 'email', v_email)
+  );
 
   delete from auth.users where id = p_user_id;
   if not found then
