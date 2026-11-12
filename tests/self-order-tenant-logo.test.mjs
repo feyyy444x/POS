@@ -8,7 +8,7 @@ const styles = await readFile(new URL('src/SelfOrder.css', root), 'utf8')
 const migration = await readFile(new URL('supabase/migrations/20261111203000_self_order_public_tenant_logo.sql', root), 'utf8')
 
 test('public Self Order renders the current tenant logo with a safe initial fallback', () => {
-  assert.match(component, /catalog\.logo_url\?/)
+  assert.match(component, /catalog\.logo_url\s*&&\s*!logoFailed/)
   assert.match(component, /src=\{catalog\.logo_url\}/)
   assert.match(component, /catalog\.store_name\|\|"a"/)
   assert.match(styles, /\.so-brand-mark img/)
