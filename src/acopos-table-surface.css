@@ -178,3 +178,43 @@
   overflow: visible;
   text-overflow: clip;
 }
+
+
+/* Identity and role labels stay on one horizontal line; the table itself scrolls. */
+:where(.owner-table-wrap,.staff-table-wrap,.table-wrap,.table-scroll,.table-container,.table-responsive)
+:where(.owner-role-chip,.staff-role-pill,.role-chip,.status-pill,.owner-status,.payment-tag,.category-tag) {
+  display: inline-flex !important;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: max-content;
+  max-width: none;
+  white-space: nowrap !important;
+  overflow-wrap: normal !important;
+  word-break: keep-all !important;
+  line-height: 1.35 !important;
+}
+:where(.owner-table-wrap,.staff-table-wrap,.table-wrap,.table-scroll,.table-container,.table-responsive)
+tbody td:nth-child(2) {
+  white-space: nowrap !important;
+  min-width: max-content;
+}
+:where(.owner-table-wrap,.staff-table-wrap,.table-wrap,.table-scroll,.table-container,.table-responsive)
+tbody td:first-child :where(strong,small) {
+  display: block;
+  width: max-content;
+  max-width: none;
+  white-space: nowrap !important;
+  overflow-wrap: normal !important;
+  word-break: keep-all !important;
+}
+.staff-person,
+.owner-table-wrap td:first-child,
+.staff-table-wrap td:first-child {
+  min-width: max-content;
+}
+.user-copy strong,
+.user-copy small {
+  white-space: nowrap;
+  word-break: keep-all;
+}
