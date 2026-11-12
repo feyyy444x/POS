@@ -120,7 +120,13 @@ export function AuthScreen({ initialMode = 'login' } = {}) {
         setMode('login')
       }
     } catch (error) {
-      setMessage(userFacingError(error, 'Terjadi kesalahan. Silakan coba lagi.'))
+      // The invitation endpoint returns safe, user-facing reasons for rejected
+      // activation (wrong email/code, expired invite, or inactive tenant).
+      // Preserve those messages instead of replacing every HTTP 4xx with a generic error.
+      const activationMessage = mode === 'activate' && typeof error?.message === 'string' && error.message.trim()
+        ? error.message.trim()
+        : ''
+      setMessage(activationMessage || userFacingError(error, 'Terjadi kesalahan. Silakan coba lagi.'))
     } finally {
       setBusy(false)
     }
