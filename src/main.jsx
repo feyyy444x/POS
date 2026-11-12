@@ -7,6 +7,7 @@ import './acopos-design-system.css'
 import './acopos-layout-safety.css'
 import './acopos-global-contrast.css'
 import './acopos-table-surface.css'
+import './acopos-pos-category-fit.css'
 
 class AppErrorBoundary extends React.Component {
   constructor(props) {
