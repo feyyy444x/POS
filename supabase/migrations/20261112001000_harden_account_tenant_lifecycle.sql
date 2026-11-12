@@ -188,7 +188,7 @@ begin
       select 1 from information_schema.columns
       where table_schema = 'storage' and table_name = 'objects' and column_name = 'owner_id'
     ) then
-      execute 'select exists (select 1 from storage.objects where owner_id = $1)'
+      execute 'select exists (select 1 from storage.objects where owner_id::text = $1)'
         into v_has_owned_objects using p_user_id::text;
     elsif exists (
       select 1 from information_schema.columns
