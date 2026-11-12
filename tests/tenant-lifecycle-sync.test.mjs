@@ -98,7 +98,7 @@ test('Employee transfer accepts only an active, unexpired target in the backend 
 
 test('Permanent account deletion stops when the account still owns Storage objects', () => {
   assert.match(lifecycleHardening, /storage\.objects/)
-  assert.match(lifecycleHardening, /owner_id = \$1/)
+  assert.match(lifecycleHardening, /owner_id(?:::text)? = \$1/)
   assert.match(lifecycleHardening, /Akun masih memiliki file Storage/)
   assert.match(lifecycleHardening, /Pindahkan atau hapus file melalui Storage API/)
 })
