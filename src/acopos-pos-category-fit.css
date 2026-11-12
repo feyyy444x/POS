@@ -1,0 +1,44 @@
+/* Keep POS category filters inside the catalog width on every viewport. */
+.app-shell .category-pills {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 8px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow: visible;
+  padding: 2px 0 14px;
+}
+.app-shell .category-pills button {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal;
+  overflow: visible;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  text-align: center;
+  line-height: 1.35;
+  padding: 9px 12px;
+}
+.app-shell .pos-catalog,
+.app-shell .pos-layout {
+  min-width: 0;
+  max-width: 100%;
+}
+@media (max-width: 600px) {
+  .app-shell .category-pills {
+    gap: 7px;
+    padding-bottom: 12px;
+  }
+  .app-shell .category-pills button {
+    flex: 0 1 auto;
+    padding: 9px 11px;
+    font-size: 11px;
+  }
+}
