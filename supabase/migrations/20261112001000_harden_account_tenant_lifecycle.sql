@@ -162,7 +162,75 @@ begin
     alter function public.super_admin_delete_user(uuid)
       rename to super_admin_delete_user_before_storage_guard;
   end if;
-end $$;
+end $;
+
+-- Employee deletion is atomic: lock the Auth account and memberships, block open
+-- cashier shifts, revoke sessions, then remove memberships and the Auth identity.
+-- Transaction/audit rows remain and their nullable cashier/user references detach.
+create or replace function public.super_admin_delete_user_before_storage_guard(p_user_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $function$
+declare
+  v_email text;
+begin
+  if not private.is_super_admin() then
+    raise exception 'Super Admin access required';
+  end if;
+  if p_user_id is null or p_user_id = (select auth.uid()) then
+    raise exception 'Tidak dapat menghapus akun sendiri';
+  end if;
+  if exists (select 1 from public.super_admins sa where sa.user_id = p_user_id) then
+    raise exception 'Akun Super Admin dilindungi';
+  end if;
+
+  perform 1 from auth.users u where u.id = p_user_id for update;
+  if not found then
+    raise exception 'Akun tidak ditemukan';
+  end if;
+  select u.email into v_email from auth.users u where u.id = p_user_id;
+
+  -- Owner accounts must continue through their dedicated organization lifecycle.
+  if exists (
+    select 1 from public.store_members m
+    where m.user_id = p_user_id and m.role = 'owner'
+  ) or exists (
+    select 1 from public.owner_organizations o
+    where o.owner_user_id = p_user_id
+  ) then
+    perform private.delete_owner_account_and_organization(p_user_id);
+    return;
+  end if;
+
+  -- Lock membership rows before checking/cleaning them so concurrent admin actions
+  -- cannot race this permanent deletion.
+  perform 1 from public.store_members m
+  where m.user_id = p_user_id
+  order by m.store_id
+  for update;
+
+  if exists (
+    select 1 from public.cashier_shifts cs
+    where cs.cashier_id = p_user_id and cs.closed_at is null
+  ) then
+    raise exception 'Akun masih memiliki sesi kasir terbuka. Tutup sesi kasir terlebih dahulu.';
+  end if;
+
+  delete from public.store_invites si
+  where v_email is not null and lower(si.email) = lower(v_email);
+
+  -- Revoke active sessions before deleting Auth identity. This does not delete
+  -- business history; historical references use nullable user/cashier links.
+  delete from auth.sessions where user_id = p_user_id;
+  delete from public.store_members where user_id = p_user_id;
+  delete from auth.users where id = p_user_id;
+  if not found then
+    raise exception 'Akun tidak ditemukan';
+  end if;
+end;
+$function$;
 
 create or replace function public.super_admin_delete_user(p_user_id uuid)
 returns void
@@ -280,15 +348,7 @@ begin
   ) then
     raise exception 'Akun Owner harus dihapus melalui Manajemen Pusat Kendali';
   end if;
-  if exists (
-    select 1 from public.store_members m
-    where m.user_id = p_user_id
-      and m.is_active = true
-      and m.disabled_at is null
-  ) then
-    raise exception 'Akun masih memiliki keanggotaan tenant aktif';
-  end if;
-
+  -- Active employee memberships are removed atomically by the guarded deletion RPC.
   perform public.super_admin_delete_user(p_user_id);
 end;
 $function$;
