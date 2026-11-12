@@ -35,7 +35,7 @@ function AccessFrame({ children, eyebrow = 'SECURE WORKSPACE ACCESS' }) {
 }
 
 export function AuthScreen({ initialMode = 'login' } = {}) {
-  const [mode, setMode] = useState(initialMode === 'register' ? 'register' : 'login')
+  const [mode, setMode] = useState(['login', 'register', 'activate'].includes(initialMode) ? initialMode : 'login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [activationCode, setActivationCode] = useState('')
@@ -114,7 +114,9 @@ export function AuthScreen({ initialMode = 'login' } = {}) {
         const result = await response.json().catch(() => ({}))
         if (!response.ok) throw new Error(result.error || 'Aktivasi undangan gagal. Periksa kembali email dan status undangan.')
         setSuccess(true)
-        setMessage('Undangan berhasil diverifikasi dan password berhasil dibuat. Silakan masuk menggunakan email dan password tersebut.')
+        setMessage(result.message || 'Kode aktivasi berhasil digunakan. Silakan masuk ke acoPos.')
+        setPassword('')
+        setActivationCode('')
         setMode('login')
       }
     } catch (error) {
@@ -139,7 +141,7 @@ export function AuthScreen({ initialMode = 'login' } = {}) {
         ? 'Gunakan akun acoPos yang telah terdaftar untuk melanjutkan aktivitas operasional.'
         : mode === 'register'
           ? 'Mulai dengan Workspace mandiri acoPos tanpa kode aktivasi atau pembayaran. Nikmati masa uji coba gratis selama 30 hari.'
-          : 'Aktivasi hanya tersedia untuk email yang telah menerima undangan dari Owner atau Admin acoPos.'}</p>
+          : 'Masukkan email akun dan kode aktivasi yang diterbitkan sistem acoPos. Email hanya digunakan sebagai ID login; tidak ada tautan verifikasi email.'}</p>
     </div>
 
     <form className="access-form" onSubmit={submit}>
@@ -162,7 +164,7 @@ export function AuthScreen({ initialMode = 'login' } = {}) {
           </select>
         </div>
       </>}
-      <label htmlFor="access-email">Email {mode === 'login' ? 'terdaftar' : 'akun'}</label>
+      <label htmlFor="access-email">Email {mode === 'login' ? 'terdaftar' : 'akun (ID login)'}</label>
       <div className="access-field">
         <UserRound size={17} aria-hidden="true" />
         <input id="access-email" type="email" value={email} onChange={event => setEmail(event.target.value)} placeholder="nama@bisnis.com" required autoComplete="email" />
@@ -200,7 +202,7 @@ export function AuthScreen({ initialMode = 'login' } = {}) {
       </div>
       {mode === 'login' && <div className="access-mode-switch"><span>Memiliki kode undangan?</span><button type="button" onClick={() => changeMode('activate')}>Aktivasi undangan</button></div>}
     </form>
-    <div className="access-security-note"><span><i /></span><p>Password minimal 8 karakter dan PIN pribadi 4 angka. Jangan bagikan kredensial akun kepada orang lain.</p></div>
+    <div className="access-security-note"><span><i /></span><p>Email digunakan sebagai ID login dan tidak memerlukan verifikasi tautan. Akses pendaftaran Owner/Karyawan tetap harus memakai kode aktivasi yang diterbitkan sistem.</p></div>
   </AccessFrame>
 }
 export function FreeRegistrationCompletion() {
