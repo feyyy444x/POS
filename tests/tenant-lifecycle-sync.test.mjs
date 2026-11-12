@@ -78,6 +78,7 @@ test('Custom duration is normalized to the exact Custom label without changing i
   assert.match(subscriptionManager, /name: item\.duration_key === 'custom' \? 'Custom'/)
   assert.match(subscriptionManager, /duration\.duration_key === 'custom' \? 'Custom'/)
   assert.match(subscriptionManager, /readOnly=\{duration\.duration_key==='custom'\}/)
+  assert.match(app, /name:item\.duration_key==='custom'\?'Custom'/)
   assert.match(lifecycleHardening, /where duration_key = 'custom'[\s\S]*name is distinct from 'Custom'/)
 })
 
@@ -100,6 +101,15 @@ test('Permanent account deletion stops when the account still owns Storage objec
   assert.match(lifecycleHardening, /owner_id = \$1/)
   assert.match(lifecycleHardening, /Akun masih memiliki file Storage/)
   assert.match(lifecycleHardening, /Pindahkan atau hapus file melalui Storage API/)
+})
+
+test('Disabled-account deletion RPC exists and requires Super Admin, PIN, and no active memberships', () => {
+  assert.match(lifecycleHardening, /function public\.super_admin_delete_disabled_account\(p_user_id uuid\)/)
+  assert.match(lifecycleHardening, /if not private\.is_super_admin\(\) then/)
+  assert.match(lifecycleHardening, /if not private\.is_pin_verified\(\) then/)
+  assert.match(lifecycleHardening, /Akun masih memiliki keanggotaan tenant aktif/)
+  assert.match(lifecycleHardening, /perform public\.super_admin_delete_user\(p_user_id\)/)
+  assert.match(app, /super_admin_delete_disabled_account/)
 })
 
 test('Permanent Super Admin tenant deletion requires verified PIN', () => {
