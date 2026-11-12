@@ -76,7 +76,7 @@ test('account name, email and role labels remain horizontal inside scrollable ta
 
 test('Single Workspace hides all company navigation and return-to-company controls', async () => {
   const appSource = await readFile(new URL('../src/App.jsx', import.meta.url), 'utf8')
-  assert.match(appSource, /membership\?\.role\s*===\s*'owner'\s*&&\s*store\?\.workspace_mode\s*!==\s*'single_workspace'\s*&&\s*<button[^>]*Pusat perusahaan/)
+  assert.match(appSource, /membership\?\.role\s*===\s*'owner'\s*&&\s*store\?\.workspace_mode\s*!==\s*'single_workspace'\s*&&\s*<button[\s\S]{0,300}Pusat perusahaan/)
   assert.match(appSource, /membership\?\.role\s*===\s*'owner'\s*&&\s*store\?\.workspace_mode\s*!==\s*'single_workspace'\s*\?\s*\[\['owner-center'/)
   assert.match(appSource, /membership\?\.role\s*===\s*'owner'\s*&&\s*store\?\.workspace_mode\s*!==\s*'single_workspace'\s*\?\s*\[\['reports-org'/)
 })
