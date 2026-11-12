@@ -63,7 +63,12 @@ export default function OrganizationOperations({ mode = 'team', tenants = [] }) 
       if (loadError) {
         setShifts([])
         setError('Data monitoring sesi Karyawan lintas tenant tidak dapat dibaca. Pastikan akses Owner dan kebijakan RLS sudah aktif. Detail: ' + loadError.message)
-      } else setShifts(data || [])
+      } else {
+        setShifts(data || [])
+        const { data: memberRows, error: memberError } = await supabase.from('store_members')
+          .select('store_id,user_id,full_name,email').in('store_id', tenantIds)
+        setMembers(memberError ? [] : (memberRows || []))
+      }
     }
     setLoading(false)
   }, [mode, tenantKey])
@@ -209,7 +214,7 @@ export default function OrganizationOperations({ mode = 'team', tenants = [] }) 
     </> : <>
       <div className="owner-operations-summary"><div><Activity size={19}/><span><strong>{shifts.length}</strong><small>Sesi Karyawan terbuka</small></span></div><div><Users size={19}/><span><strong>{openCashiers}</strong><small>Karyawan aktif</small></span></div><div><Store size={19}/><span><strong>{new Set(shifts.map(s => s.store_id)).size}</strong><small>Tenant beroperasi</small></span></div></div>
       <div className="owner-table-wrap"><table><thead><tr><th>Karyawan</th><th>Tenant</th><th>Mulai sesi</th><th>Status</th></tr></thead><tbody>
-        {shifts.map(shift => <tr key={shift.id}><td><strong>{shift.cashier_name_snapshot || 'Karyawan'}</strong><small>{shift.cashier_id || '—'}</small></td><td>{tenantNames[shift.store_id] || 'Tenant'}</td><td>{dateTime(shift.opened_at)}</td><td><span className="owner-status is-active">Sesi terbuka</span></td></tr>)}
+        {shifts.map(shift => <tr key={shift.id}><td><strong>{members.find(member => member.store_id === shift.store_id && member.user_id === shift.cashier_id)?.full_name?.trim() || members.find(member => member.store_id === shift.store_id && member.user_id === shift.cashier_id)?.email || shift.cashier_name_snapshot || 'Karyawan'}</strong><small>{members.find(member => member.store_id === shift.store_id && member.user_id === shift.cashier_id)?.email || shift.cashier_id || '—'}</small></td><td>{tenantNames[shift.store_id] || 'Tenant'}</td><td>{dateTime(shift.opened_at)}</td><td><span className="owner-status is-active">Sesi terbuka</span></td></tr>)}
       </tbody></table>{!loading && !error && !shifts.length && <div className="owner-no-tenant">Tidak ada sesi kasir yang sedang terbuka.</div>}</div>
       <p className="owner-data-footnote">Monitoring ini menampilkan sesi kasir yang masih terbuka. Status transaksi dan laporan penjualan tersedia pada menu Laporan Gabungan.</p>
     </>}
