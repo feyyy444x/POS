@@ -67,3 +67,49 @@ test('tenant reactivation RPC accepts active status while preserving organizatio
   assert.match(reactivation, /private\.is_pin_verified\(\)/)
   assert.match(app, /supabase\.rpc\('set_store_tenant_status',\{p_store_id:tenant\.id,p_status:nextStatus\}\)/)
 })
+
+
+const lifecycleHardening = await readFile(new URL('../supabase/migrations/20261112001000_harden_account_tenant_lifecycle.sql', import.meta.url), 'utf8')
+const subscriptionManager = await readFile(new URL('../src/SubscriptionPlanManager.jsx', import.meta.url), 'utf8')
+const organizationSettings = await readFile(new URL('../src/OrganizationSettings.jsx', import.meta.url), 'utf8')
+
+test('Custom duration is normalized to the exact Custom label without changing its configured day count', () => {
+  assert.match(lifecycleHardening, /set name = 'Custom'[\s\S]*where duration_key = 'custom'/)
+  assert.match(subscriptionManager, /name: item\.duration_key === 'custom' \? 'Custom'/)
+  assert.match(subscriptionManager, /duration\.duration_key === 'custom' \? 'Custom'/)
+  assert.match(subscriptionManager, /readOnly=\{duration\.duration_key==='custom'\}/)
+  assert.match(lifecycleHardening, /where duration_key = 'custom'[\s\S]*name is distinct from 'Custom'/)
+})
+
+test('Package save feedback uses the same package key as the disabled state', () => {
+  assert.match(subscriptionManager, /disabled=\{!plansReady \|\| savingKey===plan\.package_key\}/)
+  assert.match(subscriptionManager, /savingKey===plan\.package_key\?/)
+})
+
+test('Employee transfer accepts only an active, unexpired target in the backend and UI', () => {
+  assert.match(lifecycleHardening, /v_target_status <> 'active'/)
+  assert.match(lifecycleHardening, /v_target_expires_at <= now\(\)/)
+  assert.match(lifecycleHardening, /v_org_status <> 'active'/)
+  assert.match(lifecycleHardening, /closed_at is null/)
+  assert.match(app, /const availableTargets=tenants\.filter\(t=>t\.id!==source\.store_id&&t\.status==='active'/)
+  assert.match(app, /Pindahkan akun/)
+})
+
+test('Permanent account deletion stops when the account still owns Storage objects', () => {
+  assert.match(lifecycleHardening, /storage\.objects/)
+  assert.match(lifecycleHardening, /owner_id = \$1/)
+  assert.match(lifecycleHardening, /Akun masih memiliki file Storage/)
+  assert.match(lifecycleHardening, /Pindahkan atau hapus file melalui Storage API/)
+})
+
+test('Permanent Super Admin tenant deletion requires verified PIN', () => {
+  assert.match(lifecycleHardening, /public\.super_admin_delete_store_tenant/)
+  assert.match(lifecycleHardening, /if not private\.is_pin_verified\(\) then/)
+  assert.match(lifecycleHardening, /Verifikasi PIN diperlukan sebelum menghapus tenant secara permanen/)
+})
+
+test('Organization profile save reports success only after the protected RPC succeeds', () => {
+  assert.match(organizationSettings, /supabase\.rpc\('owner_update_organization_profile'/)
+  assert.match(organizationSettings, /if \(error\) \{[\s\S]*Nama perusahaan belum berhasil disimpan/)
+  assert.match(organizationSettings, /Nama perusahaan berhasil diperbarui dan tersimpan di database/)
+})
