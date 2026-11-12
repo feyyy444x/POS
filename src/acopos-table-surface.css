@@ -1,0 +1,146 @@
+/* acoPos shared data-table surfaces and contrast pass.
+   Applied after legacy styles so every role uses the same readable table treatment. */
+:root {
+  --acopos-table-ink: #263746;
+  --acopos-table-muted: #4b5b68;
+  --acopos-table-line: #cbd5de;
+  --acopos-table-head: #e8eef3;
+  --acopos-table-paper: #ffffff;
+  --acopos-table-hover: #f0f5f8;
+}
+:where(.app-shell,.tenant-operations-shell,.super-admin-shell,.nx-owner-shell,.owner-console,.owner-shell,.owner-center-shell,.owner-workspace,.store-control-shell,.control-center-shell,.workspace-shell) {
+  color: #263746;
+}
+:where(.app-shell,.tenant-operations-shell,.super-admin-shell,.nx-owner-shell,.owner-console,.owner-shell,.owner-center-shell,.owner-workspace,.store-control-shell,.control-center-shell,.workspace-shell)
+:where(h1,h2,h3,h4,h5,h6,strong,label,legend,dt,dd,p,small,span,li) {
+  text-shadow: none;
+}
+:where(.app-shell,.tenant-operations-shell,.super-admin-shell,.nx-owner-shell,.owner-console,.owner-shell,.owner-center-shell,.owner-workspace,.store-control-shell,.control-center-shell,.workspace-shell)
+:where(.muted,.subtle,.helper-text,.field-help,.field-hint,.description,.form-hint,.stat-meta,.meta-text,.table-caption,.owner-table-wrap small,.staff-table-wrap small) {
+  color: #536270 !important;
+}
+:where(.app-shell,.tenant-operations-shell,.super-admin-shell,.nx-owner-shell,.owner-console,.owner-shell,.owner-center-shell,.owner-workspace,.store-control-shell,.control-center-shell,.workspace-shell)
+:where(input:not([type=checkbox]):not([type=radio]),select,textarea,.text-input) {
+  color: #263746 !important;
+  background-color: #fff !important;
+  border-color: #aebbc6 !important;
+}
+:where(.app-shell,.tenant-operations-shell,.super-admin-shell,.nx-owner-shell,.owner-console,.owner-shell,.owner-center-shell,.owner-workspace,.store-control-shell,.control-center-shell,.workspace-shell)
+:where(input,textarea,select)::placeholder {
+  color: #687987 !important;
+  opacity: 1 !important;
+}
+:where(.table-wrap,.table-scroll,.table-container,.table-responsive,.owner-table-wrap,.staff-table-wrap) {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  margin-block: 12px;
+  overflow-x: auto;
+  overflow-y: visible;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--acopos-table-line) !important;
+  border-radius: 13px;
+  background: var(--acopos-table-paper) !important;
+  box-shadow: 0 2px 8px rgba(38,55,70,.045);
+  scrollbar-width: thin;
+  scrollbar-color: #9aaab7 #edf1f4;
+}
+:where(.table-wrap,.table-scroll,.table-container,.table-responsive,.owner-table-wrap,.staff-table-wrap) > table {
+  width: 100%;
+  min-width: 620px;
+  margin: 0 !important;
+  border: 0 !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+  background: var(--acopos-table-paper) !important;
+  color: var(--acopos-table-ink) !important;
+  table-layout: auto;
+}
+:where(.table-wrap,.table-scroll,.table-container,.table-responsive,.owner-table-wrap,.staff-table-wrap) thead th {
+  position: static;
+  padding: 12px 14px !important;
+  background: var(--acopos-table-head) !important;
+  color: #263746 !important;
+  border: 0 !important;
+  border-bottom: 1px solid #bdc9d3 !important;
+  font-size: 11px !important;
+  font-weight: 750 !important;
+  line-height: 1.45 !important;
+  letter-spacing: .015em;
+  text-align: left;
+  vertical-align: middle;
+  white-space: normal !important;
+  overflow-wrap: anywhere;
+}
+:where(.table-wrap,.table-scroll,.table-container,.table-responsive,.owner-table-wrap,.staff-table-wrap) tbody td {
+  padding: 12px 14px !important;
+  background: #fff !important;
+  color: #344452 !important;
+  border: 0 !important;
+  border-bottom: 1px solid #e0e6eb !important;
+  font-size: 12px !important;
+  line-height: 1.55 !important;
+  text-align: left;
+  vertical-align: middle;
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+  word-break: normal !important;
+  text-overflow: clip !important;
+}
+:where(.table-wrap,.table-scroll,.table-container,.table-responsive,.owner-table-wrap,.staff-table-wrap) tbody tr:nth-child(even) td {
+  background: #f8fafb !important;
+}
+:where(.table-wrap,.table-scroll,.table-container,.table-responsive,.owner-table-wrap,.staff-table-wrap) tbody tr:hover td {
+  background: var(--acopos-table-hover) !important;
+}
+:where(.table-wrap,.table-scroll,.table-container,.table-responsive,.owner-table-wrap,.staff-table-wrap) tbody tr:last-child td {
+  border-bottom: 0 !important;
+}
+:where(.table-wrap,.table-scroll,.table-container,.table-responsive,.owner-table-wrap,.staff-table-wrap) :where(button,.btn,a) {
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+:where(.table-wrap,.table-scroll,.table-container,.table-responsive,.owner-table-wrap,.staff-table-wrap) :where(.status-pill,.badge,.chip,.tag) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+  white-space: normal;
+  line-height: 1.4;
+}
+:where(.app-shell,.tenant-operations-shell,.super-admin-shell,.nx-owner-shell,.owner-console,.owner-shell,.owner-center-shell,.owner-workspace,.store-control-shell,.control-center-shell,.workspace-shell) :where(.panel,.card,.content-card,.table-card,.settings-card,.admin-card,.owner-card,.section-card,.report-panel,.tenant-list-panel) {
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
+}
+:where(.app-shell,.tenant-operations-shell,.super-admin-shell,.nx-owner-shell,.owner-console,.owner-shell,.owner-center-shell,.owner-workspace,.store-control-shell,.control-center-shell,.workspace-shell)
+:where(h1,h2,h3,h4,h5,h6,p,small,label,legend,th,td,dt,dd) {
+  max-width: 100%;
+  overflow: visible;
+  text-overflow: clip;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+@media (max-width: 760px) {
+  :where(.table-wrap,.table-scroll,.table-container,.table-responsive,.owner-table-wrap,.staff-table-wrap) {
+    margin-inline: 0;
+    border-radius: 11px;
+  }
+  :where(.table-wrap,.table-scroll,.table-container,.table-responsive,.owner-table-wrap,.staff-table-wrap) > table {
+    min-width: 600px;
+  }
+  :where(.table-wrap,.table-scroll,.table-container,.table-responsive,.owner-table-wrap,.staff-table-wrap) :where(th,td) {
+    max-width: 240px;
+    padding: 10px 11px !important;
+    font-size: 11px !important;
+  }
+}
+@media (max-width: 380px) {
+  :where(.app-shell,.tenant-operations-shell,.super-admin-shell,.nx-owner-shell,.owner-console,.owner-shell,.owner-center-shell,.owner-workspace,.store-control-shell,.control-center-shell,.workspace-shell) :where(.panel,.card,.content-card,.section-card) {
+    border-radius: 12px;
+  }
+}
