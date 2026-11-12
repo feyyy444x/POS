@@ -1563,7 +1563,7 @@ function App() {
     {section:'ANALYTICS',items:[['reports','Laporan penjualan',BarChart3],...(membership?.role==='owner'&&store?.workspace_mode!=='single_workspace'?[['reports-org','Laporan perusahaan',Store]]:[]),['attendance','Laporan absensi',CalendarDays]]},
     {section:'CASH MANAGEMENT',items:[['cashier','Buka / tutup sesi',Wallet]]},
     {section:'PREFERENCES',items:[['settings','Pengaturan toko',Settings],['profile','Profil & keamanan',UserRound], ...(['owner','admin'].includes(membership?.role)?[['tv-settings','Pengaturan Layar Antrean',Monitor]]:[])]},
-    {section:'PERUSAHAAN',items:membership?.role==='owner'&&store?.workspace_mode!=='single_workspace'?[['owner-center','Pusat perusahaan',LayoutDashboard],['team','Tim & Hak Akses',Users],['tenants','Tenant & lokasi',Store],['audit','Audit aktivitas',Activity]]:(['admin','manager'].includes(membership?.role)?[['team','Tim & Hak Akses',Users]]:[])}
+    {section:'PERUSAHAAN',items:membership?.role==='owner'?(store?.workspace_mode==='single_workspace'?[['team','Tim & Hak Akses',Users]]:[['owner-center','Pusat perusahaan',LayoutDashboard],['team','Tim & Hak Akses',Users],['tenants','Tenant & lokasi',Store],['audit','Audit aktivitas',Activity]]):(['admin','manager'].includes(membership?.role)?[['team','Tim & Hak Akses',Users]]:[])}
   ]
 
   if(!authReady || (session && !adminCheckReady))return <div className="loading-screen"><span className="spinner spinner-large"/><span>Menyiapkan acoPos…</span></div>
