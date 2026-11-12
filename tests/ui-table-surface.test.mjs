@@ -53,3 +53,13 @@ test('mobile table surfaces remain scrollable and keep cell text readable', () =
   assert.match(tables, /max-width:\s*240px/)
   assert.match(tables, /padding:\s*10px 11px/)
 })
+
+
+test('POS category chips stay inside a horizontal swipe scroller instead of overflowing or wrapping', () => {
+  assert.match(tables, /\.category-pills\s*\{[\s\S]*?flex-wrap:\s*nowrap\s*!important/)
+  assert.match(tables, /\.category-pills\s*\{[\s\S]*?width:\s*100%/)
+  assert.match(tables, /\.category-pills\s*\{[\s\S]*?max-width:\s*100%/)
+  assert.match(tables, /\.category-pills\s*\{[\s\S]*?overflow-x:\s*auto\s*!important/)
+  assert.match(tables, /\.category-pills\s*>\s*button\s*\{[\s\S]*?flex:\s*0 0 auto\s*!important/)
+  assert.match(tables, /touch-action:\s*pan-x/)
+})
