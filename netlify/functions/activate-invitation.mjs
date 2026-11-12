@@ -7,12 +7,14 @@ const json = (body, status = 200) => new Response(JSON.stringify(body), {
 })
 
 export default async (request) => {
-  // Permit activation only on production and the one explicitly approved preview host.
+  // Permit activation only on the canonical public domain and the one explicitly
+  // approved preview host. CONTEXT may be absent in the function runtime.
   // Other preview deployments must never mutate production Auth or tenant memberships.
   const deployContext = process.env.CONTEXT || process.env.NETLIFY_CONTEXT
   const requestHost = new URL(request.url).hostname
+  const approvedProduction = requestHost === 'acopos.my.id' || requestHost === 'www.acopos.my.id'
   const approvedPreview = requestHost === 'acopos-rebrand-preview--acopos.netlify.app'
-  if (deployContext !== 'production' && !approvedPreview) {
+  if (deployContext !== 'production' && !approvedProduction && !approvedPreview) {
     return json({ error: 'Aktivasi dinonaktifkan pada preview ini.' }, 404)
   }
   if (request.method === 'OPTIONS') return new Response(null, { status: 204 })
