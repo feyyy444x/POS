@@ -6,6 +6,8 @@ const json = (body, status = 200) => new Response(JSON.stringify(body), {
 })
 
 export default async (request) => {
+  // Preview deploys share production Supabase credentials; block privileged server actions outside production.
+  if (process.env.NETLIFY_CONTEXT !== 'production') return json({ error: 'Fitur admin dinonaktifkan pada preview.' }, 404)
   if (request.method !== 'POST') return json({ error: 'Metode tidak didukung.' }, 405)
   const token = String(request.headers.get('authorization') || '').replace(/^Bearer\s+/i, '').trim()
   if (!token) return json({ error: 'Sesi login diperlukan.' }, 401)
