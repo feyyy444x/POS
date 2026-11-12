@@ -10,6 +10,7 @@ export default function OrganizationReports({ organization, tenants = [] }) {
   const [orders, setOrders] = useState([])
   const [items, setItems] = useState([])
   const [products, setProducts] = useState([])
+  const [members, setMembers] = useState([])
   const [startDate, setStartDate] = useState(today())
   const [endDate, setEndDate] = useState(today())
   const [search, setSearch] = useState('')
@@ -21,7 +22,7 @@ export default function OrganizationReports({ organization, tenants = [] }) {
 
   const load = useCallback(async () => {
     if (!supabase || !organization?.id || !tenantIds.length) {
-      setOrders([]); setItems([]); setProducts([])
+      setOrders([]); setItems([]); setProducts([]); setMembers([])
       setError(!organization?.id ? 'Perusahaan Owner belum terhubung.' : '')
       setLoading(false)
       return
@@ -44,13 +45,15 @@ export default function OrganizationReports({ organization, tenants = [] }) {
       if ((data || []).length < 1000) break
     }
     if (ordersError) {
-      setOrders([]); setItems([]); setProducts([])
+      setOrders([]); setItems([]); setProducts([]); setMembers([])
       setError('Laporan perusahaan gagal dimuat. Pastikan akses Owner dan kebijakan RLS tenant sudah benar.')
       setLoading(false)
       return
     }
     setError(nextOrders.length >= 10000 ? 'Rentang tanggal memuat setidaknya 10.000 transaksi. Persempit rentang tanggal untuk memastikan laporan lengkap.' : '')
     setOrders(nextOrders)
+    const { data: memberRows } = await supabase.from('store_members').select('store_id,user_id,full_name,email').in('store_id', tenantIds)
+    setMembers(memberRows || [])
     const orderIds = nextOrders.map(order => order.id)
     const itemBatches = []
     for (let index = 0; index < orderIds.length; index += 200) itemBatches.push(orderIds.slice(index, index + 200))
@@ -93,10 +96,12 @@ export default function OrganizationReports({ organization, tenants = [] }) {
       if (date < startDate || date > endDate) return false
       if (!q) return true
       const tenant = tenants.find(t => t.id === order.store_id)
-      return [order.receipt_number, order.payment_method, order.status, order.cashier_id, tenant?.name]
+      const member = members.find(item => item.store_id === order.store_id && item.user_id === order.cashier_id)
+      const cashierName = member?.full_name?.trim() || member?.email || order.cashier_id
+      return [order.receipt_number, order.payment_method, order.status, cashierName, order.cashier_id, tenant?.name]
         .some(value => String(value || '').toLocaleLowerCase('id-ID').includes(q))
     })
-  }, [orders, tenants, startDate, endDate, search])
+  }, [orders, tenants, members, startDate, endDate, search])
 
   const paidOrders = filtered.filter(order => order.status === 'paid')
   const paidIds = new Set(paidOrders.map(order => order.id))
@@ -111,8 +116,8 @@ export default function OrganizationReports({ organization, tenants = [] }) {
 
   const downloadCsv = () => {
     const rows = [
-      ['Tenant', 'No Struk', 'Tanggal', 'Pembayaran', 'Karyawan ID', 'Subtotal', 'Diskon', 'Total', 'Status'],
-      ...filtered.map(order => [tenants.find(tenant => tenant.id === order.store_id)?.name || order.store_id, order.receipt_number, order.created_at, order.payment_method, order.cashier_id, order.subtotal, order.discount, order.total, order.status])
+      ['Tenant', 'No Struk', 'Tanggal', 'Pembayaran', 'Nama kasir', 'Subtotal', 'Diskon', 'Total', 'Status'],
+      ...filtered.map(order => { const member = members.find(item => item.store_id === order.store_id && item.user_id === order.cashier_id); return [tenants.find(tenant => tenant.id === order.store_id)?.name || order.store_id, order.receipt_number, order.created_at, order.payment_method, member?.full_name?.trim() || member?.email || order.cashier_id, order.subtotal, order.discount, order.total, order.status] })
     ]
     const csv = rows.map(row => row.map(value => '"' + String(value ?? '').replaceAll('"', '""') + '"').join(',')).join('\n')
     const url = URL.createObjectURL(new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' }))
@@ -129,6 +134,6 @@ export default function OrganizationReports({ organization, tenants = [] }) {
     {error && <div className="notice">{error}</div>}
     <div className="stats-grid report-finance-stats"><div className="stat-card"><span className="stat-icon tone-violet"><Wallet size={18}/></span><div><small>Total penjualan lintas tenant</small><strong>{money(revenue)}</strong><small>{paidOrders.length} transaksi lunas</small></div></div><div className="stat-card"><span className="stat-icon tone-blue"><BarChart3 size={18}/></span><div><small>Perkiraan modal produk</small><strong>{money(capital)}</strong><small>Harga modal × unit terjual</small></div></div><div className="stat-card"><span className="stat-icon tone-orange"><Store size={18}/></span><div><small>Tenant tercakup</small><strong>{tenantIds.length}</strong><small>Dari perusahaan Owner</small></div></div><div className="stat-card"><span className="stat-icon tone-green"><BarChart3 size={18}/></span><div><small>Unit terjual</small><strong>{units.toLocaleString('id-ID')}</strong><small>Seluruh tenant terpilih</small></div></div></div>
     <div className="panel report-panel"><div className="panel-head"><div><h3><Store size={17}/> Ringkasan per tenant</h3><p>Perbandingan transaksi lunas pada rentang yang dipilih.</p></div></div>{loading?<div className="empty-state"><span className="spinner spinner-large"/></div>:<div className="table-wrap"><table><thead><tr><th>Tenant</th><th>Transaksi lunas</th><th>Total penjualan</th></tr></thead><tbody>{tenantTotals.map(row=><tr key={row.id}><td><strong>{row.name}</strong></td><td>{row.count.toLocaleString('id-ID')}</td><td className="strong">{money(row.total)}</td></tr>)}</tbody></table></div>}</div>
-    <div className="panel report-panel"><div className="panel-head"><div><h3>Transaksi seluruh tenant</h3><p>Nomor struk, tenant, pembayaran, dan total transaksi.</p></div><span className="result-count">{filtered.length} transaksi</span></div>{loading?<div className="empty-state"><span className="spinner spinner-large"/></div>:filtered.length===0?<div className="empty-state"><strong>Belum ada transaksi pada rentang ini</strong><p>Ubah tanggal atau kata pencarian.</p></div>:<div className="table-wrap"><table><thead><tr><th>Tenant</th><th>No. struk</th><th>Waktu</th><th>Kasir ID</th><th>Metode</th><th>Total</th><th>Status</th></tr></thead><tbody>{filtered.slice(0,300).map(order=><tr key={order.id}><td>{tenants.find(tenant=>tenant.id===order.store_id)?.name||order.store_id}</td><td className="mono strong">{order.receipt_number||'—'}</td><td>{new Date(order.created_at).toLocaleString('id-ID',{timeZone:'Asia/Jakarta'})}</td><td className="mono">{order.cashier_id||'—'}</td><td>{order.payment_method||'—'}</td><td className="strong">{money(order.total)}</td><td><span className={'status-pill '+(order.status==='paid'?'status-paid':'status-inactive')}>{order.status}</span></td></tr>)}</tbody></table></div>}</div>
+    <div className="panel report-panel"><div className="panel-head"><div><h3>Transaksi seluruh tenant</h3><p>Nomor struk, tenant, pembayaran, dan total transaksi.</p></div><span className="result-count">{filtered.length} transaksi</span></div>{loading?<div className="empty-state"><span className="spinner spinner-large"/></div>:filtered.length===0?<div className="empty-state"><strong>Belum ada transaksi pada rentang ini</strong><p>Ubah tanggal atau kata pencarian.</p></div>:<div className="table-wrap"><table><thead><tr><th>Tenant</th><th>No. struk</th><th>Waktu</th><th>Kasir</th><th>Metode</th><th>Total</th><th>Status</th></tr></thead><tbody>{filtered.slice(0,300).map(order=><tr key={order.id}><td>{tenants.find(tenant=>tenant.id===order.store_id)?.name||order.store_id}</td><td className="mono strong">{order.receipt_number||'—'}</td><td>{new Date(order.created_at).toLocaleString('id-ID',{timeZone:'Asia/Jakarta'})}</td><td>{(()=>{const member=members.find(item=>item.store_id===order.store_id&&item.user_id===order.cashier_id);return member?.full_name?.trim()||member?.email||('ID '+String(order.cashier_id||'—').slice(0,12))})()}</td><td>{order.payment_method||'—'}</td><td className="strong">{money(order.total)}</td><td><span className={'status-pill '+(order.status==='paid'?'status-paid':'status-inactive')}>{order.status}</span></td></tr>)}</tbody></table></div>}</div>
   </section>
 }
