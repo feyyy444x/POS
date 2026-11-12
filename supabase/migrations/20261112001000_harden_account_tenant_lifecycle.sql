@@ -161,7 +161,7 @@ begin
      and to_regprocedure('public.super_admin_delete_user_before_storage_guard(uuid)') is null then
     execute 'alter function public.super_admin_delete_user(uuid) rename to super_admin_delete_user_before_storage_guard';
   end if;
-end $;
+end $$;
 
 -- Employee deletion is atomic: lock the Auth account and memberships, block open
 -- cashier shifts, revoke sessions, then remove memberships and the Auth identity.
