@@ -12,9 +12,11 @@ export default async (request) => {
   // Preview and production use the same Supabase project. Allow live signup only
   // on production or this explicitly approved preview branch; all other previews
   // remain blocked from creating real Auth users and workspaces.
-  const deployContext = process.env.NETLIFY_CONTEXT || process.env.CONTEXT
-  const deployBranch = process.env.BRANCH || process.env.NETLIFY_BRANCH
-  const approvedPreview = deployContext === 'branch-deploy' && deployBranch === 'acopos/rebrand-preview'
+  const deployContext = process.env.CONTEXT || process.env.NETLIFY_CONTEXT
+  const requestHost = new URL(request.url).hostname
+  // Netlify's system context variables can differ between branch aliases and
+  // deploy-specific URLs. Bind the exception to the one explicitly approved host.
+  const approvedPreview = requestHost === 'acopos-rebrand-preview--acopos.netlify.app'
   if (deployContext !== 'production' && !approvedPreview) {
     return json({ error: 'Pendaftaran sementara dinonaktifkan pada preview ini.' }, 404)
   }
