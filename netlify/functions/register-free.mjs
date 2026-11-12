@@ -9,10 +9,14 @@ const validName = value => typeof value === 'string' && value.trim().length >= 2
 const categories = ['Retail / Toko','Minimarket','Fashion / Pakaian','Kuliner / Restoran','Kafe / Kedai','Jasa','Salon / Barbershop','Apotek','Elektronik','Lainnya']
 
 export default async (request) => {
-  // Branch deploys and deploy previews share the production Supabase project.
-  // Never allow public preview deployments to create Auth users or workspaces there.
-  if (process.env.NETLIFY_CONTEXT !== 'production') {
-    return json({ error: 'Pendaftaran sementara dinonaktifkan pada preview.' }, 404)
+  // Preview and production use the same Supabase project. Allow live signup only
+  // on production or this explicitly approved preview branch; all other previews
+  // remain blocked from creating real Auth users and workspaces.
+  const deployContext = process.env.NETLIFY_CONTEXT || process.env.CONTEXT
+  const deployBranch = process.env.BRANCH || process.env.NETLIFY_BRANCH
+  const approvedPreview = deployContext === 'branch-deploy' && deployBranch === 'acopos/rebrand-preview'
+  if (deployContext !== 'production' && !approvedPreview) {
+    return json({ error: 'Pendaftaran sementara dinonaktifkan pada preview ini.' }, 404)
   }
   if (request.method !== 'POST') return json({ error: 'Metode tidak didukung.' }, 405)
   let payload
