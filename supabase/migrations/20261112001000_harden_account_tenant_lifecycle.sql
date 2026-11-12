@@ -244,3 +244,54 @@ $function$;
 revoke all on function public.super_admin_delete_store_tenant(uuid) from public, anon;
 grant execute on function public.super_admin_delete_store_tenant(uuid) to authenticated;
 revoke all on function public.super_admin_delete_store_tenant_before_pin_guard(uuid) from public, anon, authenticated;
+
+
+-- The disabled-account screen calls this dedicated RPC. Keep its policy explicit
+-- and delegate the actual deletion to the same guarded account-deletion path.
+create or replace function public.super_admin_delete_disabled_account(p_user_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $function$
+begin
+  if not private.is_super_admin() then
+    raise exception 'Super Admin access required';
+  end if;
+  if not private.is_pin_verified() then
+    raise exception 'Verifikasi PIN diperlukan sebelum menghapus akun';
+  end if;
+  if p_user_id is null or p_user_id = (select auth.uid()) then
+    raise exception 'Target akun tidak valid';
+  end if;
+  if exists (select 1 from public.super_admins sa where sa.user_id = p_user_id) then
+    raise exception 'Akun Super Admin dilindungi';
+  end if;
+  if private.is_platform_staff_user(p_user_id) then
+    raise exception 'Akun staf platform tidak dapat dihapus melalui menu akun staf nonaktif';
+  end if;
+  if exists (
+    select 1 from public.store_members m
+    where m.user_id = p_user_id
+      and m.role = 'owner'
+  ) or exists (
+    select 1 from public.owner_organizations o
+    where o.owner_user_id = p_user_id
+  ) then
+    raise exception 'Akun Owner harus dihapus melalui Manajemen Pusat Kendali';
+  end if;
+  if exists (
+    select 1 from public.store_members m
+    where m.user_id = p_user_id
+      and m.is_active = true
+      and m.disabled_at is null
+  ) then
+    raise exception 'Akun masih memiliki keanggotaan tenant aktif';
+  end if;
+
+  perform public.super_admin_delete_user(p_user_id);
+end;
+$function$;
+
+revoke all on function public.super_admin_delete_disabled_account(uuid) from public, anon;
+grant execute on function public.super_admin_delete_disabled_account(uuid) to authenticated;
