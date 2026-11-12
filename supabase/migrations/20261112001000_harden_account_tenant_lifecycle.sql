@@ -159,8 +159,7 @@ do $$
 begin
   if to_regprocedure('public.super_admin_delete_user(uuid)') is not null
      and to_regprocedure('public.super_admin_delete_user_before_storage_guard(uuid)') is null then
-    alter function public.super_admin_delete_user(uuid)
-      rename to super_admin_delete_user_before_storage_guard;
+    execute 'alter function public.super_admin_delete_user(uuid) rename to super_admin_delete_user_before_storage_guard';
   end if;
 end $;
 
@@ -284,8 +283,7 @@ do $$
 begin
   if to_regprocedure('public.super_admin_delete_store_tenant(uuid)') is not null
      and to_regprocedure('public.super_admin_delete_store_tenant_before_pin_guard(uuid)') is null then
-    alter function public.super_admin_delete_store_tenant(uuid)
-      rename to super_admin_delete_store_tenant_before_pin_guard;
+    execute 'alter function public.super_admin_delete_store_tenant(uuid) rename to super_admin_delete_store_tenant_before_pin_guard';
   end if;
 end $$;
 
