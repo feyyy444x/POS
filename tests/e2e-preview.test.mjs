@@ -93,25 +93,25 @@ test('deployed preview sends baseline browser security headers', async () => {
   assert.deepEqual(missing, [], `Preview is missing browser security headers: ${missing.join(', ')}`)
 })
 
-test('activation endpoint rejects GET without touching invitation data', async () => {
+test('preview blocks the privileged activation endpoint before processing requests', async () => {
   const response = await fetchWithRetry(activationUrl, { method: 'GET', signal: AbortSignal.timeout(15000) })
-  assert.equal(response.status, 405)
+  assert.equal(response.status, 404)
   assert.match(response.headers.get('content-type') || '', /application\/json/i)
-  assert.match(await response.text(), /Metode tidak didukung/i)
+  assert.match(await response.text(), /dinonaktifkan pada preview/i)
 })
 
-test('activation endpoint rejects malformed JSON', async () => {
+test('preview blocks malformed activation requests before JSON parsing', async () => {
   const response = await fetch(activationUrl, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: '{invalid-json',
     signal: AbortSignal.timeout(15000),
   })
-  assert.equal(response.status, 400)
-  assert.match(await response.text(), /Permintaan tidak valid/i)
+  assert.equal(response.status, 404)
+  assert.match(await response.text(), /dinonaktifkan pada preview/i)
 })
 
-test('activation endpoint denies a nonexistent invitation without creating an account', async () => {
+test('preview cannot use production invitation activation to create an Auth account', async () => {
   const response = await fetch(activationUrl, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
@@ -122,30 +122,30 @@ test('activation endpoint denies a nonexistent invitation without creating an ac
     }),
     signal: AbortSignal.timeout(20000),
   })
-  assert.equal(response.status, 403)
-  assert.match(await response.text(), /undangan|kode aktivasi/i)
+  assert.equal(response.status, 404)
+  assert.match(await response.text(), /dinonaktifkan pada preview/i)
 })
 
 
 
-test('free registration preparation endpoint rejects unsupported methods and malformed payloads', async () => {
+test('preview blocks free-registration preparation before payload validation', async () => {
   const getResponse = await fetchWithRetry(freeRegistrationUrl, { method: 'GET', signal: AbortSignal.timeout(15000) })
-  assert.equal(getResponse.status, 405)
+  assert.equal(getResponse.status, 404)
   const postResponse = await fetchWithRetry(freeRegistrationUrl, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: '{invalid-json',
     signal: AbortSignal.timeout(15000),
   })
-  assert.equal(postResponse.status, 400)
+  assert.equal(postResponse.status, 404)
 })
 
-test('free registration completion requires an authenticated session', async () => {
+test('preview blocks privileged free-registration completion before session processing', async () => {
   const response = await fetchWithRetry(completeRegistrationUrl, {
     method: 'POST',
     signal: AbortSignal.timeout(15000),
   })
-  assert.equal(response.status, 401)
+  assert.equal(response.status, 404)
 })
 
 test('deployed preview bundle includes the acoPos Joeclyn assistant and human handoff UI', async () => {
