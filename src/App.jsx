@@ -1852,7 +1852,7 @@ function SuperAdminScreen({session,syncStatus,setSyncStatus,onSignOut,platformAd
         const saved=new Map(durationResult.data.filter(item=>allowedKeys.has(String(item.duration_key||'').trim().toLowerCase())).map(item=>[item.duration_key,item]))
         const next=activationDurationDefaults.map(item=>{
           const row=saved.get(item.duration_key)
-          return {...item,...(row||{}),duration_days:Number(row?.duration_days??item.duration_days),is_active:row?Boolean(row.is_active):item.is_active}
+          return {...item,...(row||{}),name:item.duration_key==='custom'?'Custom':(row?.name||item.name),duration_days:Number(row?.duration_days??item.duration_days),is_active:row?Boolean(row.is_active):item.is_active}
         }).filter(item=>item.is_active).sort((a,b)=>Number(a.sort_order)-Number(b.sort_order))
         if(next.length)setActivationDurations(next)
         setDuration(current=>next.some(item=>item.duration_key===current)?current:(next.find(item=>item.duration_key==='monthly')?.duration_key||next[0]?.duration_key||'monthly'))
