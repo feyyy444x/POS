@@ -11,6 +11,9 @@ const ERROR_MESSAGES = [
 
 export function userFacingError(error, fallback = 'Permintaan belum berhasil diproses. Coba lagi; jika masalah berlanjut, hubungi admin.') {
   const raw = typeof error === 'string' ? error : error?.message || error?.details || ''
+  if (/database error deleting user|error deleting user|user.*owns?.*storage|storage\\.objects|cannot delete.*storage|owned.*objects/i.test(raw)) {
+    return 'Supabase menolak penghapusan akun. Periksa apakah akun masih memiliki file di Storage atau ada relasi/trigger database yang menahannya. File dan riwayat transaksi tidak dihapus otomatis; selesaikan keterkaitan tersebut melalui prosedur yang aman lalu coba lagi.'
+  }
   if (/cashier_shifts_cashier_id_fkey|cashier_shift_breaks_cashier_id_fkey|cashier_manual_alerts_(cashier_id|sent_by)_fkey/i.test(raw)) {
     return 'Penghapusan tertahan oleh referensi riwayat kasir. Migrasi perbaikan penghapusan akun belum diterapkan pada database ini; riwayat transaksi tidak dihapus. Hubungi admin untuk menerapkan migrasi dengan aman.'
   }
