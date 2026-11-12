@@ -7,12 +7,13 @@ const json = (body, status = 200) => new Response(JSON.stringify(body), {
 
 export default async (request) => {
   // This endpoint only clears the pending marker after the direct registration
-  // flow has already created the Owner membership. Limit preview access to the
-  // one explicitly approved branch alias.
+  // flow has already created the Owner membership. Allow only the canonical public
+  // domain or the one explicitly approved preview alias. CONTEXT may be absent at runtime.
   const deployContext = process.env.CONTEXT || process.env.NETLIFY_CONTEXT
   const requestHost = new URL(request.url).hostname
+  const approvedProduction = requestHost === 'acopos.my.id' || requestHost === 'www.acopos.my.id'
   const approvedPreview = requestHost === 'acopos-rebrand-preview--acopos.netlify.app'
-  if (deployContext !== 'production' && !approvedPreview) {
+  if (deployContext !== 'production' && !approvedProduction && !approvedPreview) {
     return json({ error: 'Penyelesaian pendaftaran dinonaktifkan pada preview ini.' }, 404)
   }
   if (request.method !== 'POST') return json({ error: 'Metode tidak didukung.' }, 405)
