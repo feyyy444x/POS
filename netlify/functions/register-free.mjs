@@ -9,15 +9,14 @@ const validName = value => typeof value === 'string' && value.trim().length >= 2
 const categories = ['Retail / Toko','Minimarket','Fashion / Pakaian','Kuliner / Restoran','Kafe / Kedai','Jasa','Salon / Barbershop','Apotek','Elektronik','Lainnya']
 
 export default async (request) => {
-  // Preview and production use the same Supabase project. Allow live signup only
-  // on production or this explicitly approved preview branch; all other previews
-  // remain blocked from creating real Auth users and workspaces.
+  // Preview and production use the same Supabase project. Allow live signup
+  // only on the canonical public domain or the explicitly approved preview alias.
+  // Netlify's CONTEXT variable is not guaranteed to be present in function runtime.
   const deployContext = process.env.CONTEXT || process.env.NETLIFY_CONTEXT
   const requestHost = new URL(request.url).hostname
-  // Netlify's system context variables can differ between branch aliases and
-  // deploy-specific URLs. Bind the exception to the one explicitly approved host.
+  const approvedProduction = requestHost === 'acopos.my.id' || requestHost === 'www.acopos.my.id'
   const approvedPreview = requestHost === 'acopos-rebrand-preview--acopos.netlify.app'
-  if (deployContext !== 'production' && !approvedPreview) {
+  if (deployContext !== 'production' && !approvedProduction && !approvedPreview) {
     return json({ error: 'Pendaftaran sementara dinonaktifkan pada preview ini.' }, 404)
   }
   if (request.method !== 'POST') return json({ error: 'Metode tidak didukung.' }, 405)
