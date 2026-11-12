@@ -2374,6 +2374,7 @@ export default function Root(){
   if(screen==='order-mirror')return <CustomerOrderMirror/>
   if(screen==='self-order')return <SelfOrderPublic/>
   if(screen==='complete-free-registration')return <FreeRegistrationCompletion/>
-  if(screen==='register')return <AuthScreen/>
+  if(screen==='register')return <AuthScreen initialMode="register"/> 
+  if(screen==='activate')return <AuthScreen initialMode="activate"/>
   return <><App/><SupportPortal/></>
 }
