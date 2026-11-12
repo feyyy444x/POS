@@ -63,3 +63,12 @@ test('POS category chips stay inside a horizontal swipe scroller instead of over
   assert.match(tables, /\.category-pills\s*>\s*button\s*\{[\s\S]*?flex:\s*0 0 auto\s*!important/)
   assert.match(tables, /touch-action:\s*pan-x/)
 })
+
+
+test('account name, email and role labels remain horizontal inside scrollable tables', () => {
+  assert.match(tables, /\.owner-role-chip[\s\S]*?white-space:\s*nowrap\s*!important/)
+  assert.match(tables, /\.staff-role-pill[\s\S]*?white-space:\s*nowrap\s*!important/)
+  assert.match(tables, /tbody td:first-child[\s\S]*?white-space:\s*nowrap\s*!important/)
+  assert.match(tables, /\.user-copy strong,[\s\S]*?white-space:\s*nowrap/)
+  assert.match(tables, /min-width:\s*max-content/)
+})
