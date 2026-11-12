@@ -144,3 +144,37 @@
     border-radius: 12px;
   }
 }
+
+
+/* POS category filters are a horizontal scroller, never a wrapping row. */
+.pos-catalog,
+.pos-layout {
+  min-width: 0;
+  max-width: 100%;
+}
+.category-pills {
+  display: flex;
+  flex-wrap: nowrap !important;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x;
+  scrollbar-width: none;
+  padding: 3px 2px 14px;
+}
+.category-pills::-webkit-scrollbar {
+  display: none;
+}
+.category-pills > button {
+  flex: 0 0 auto !important;
+  width: auto;
+  max-width: none;
+  white-space: nowrap !important;
+  overflow: visible;
+  text-overflow: clip;
+}
