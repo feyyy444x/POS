@@ -9,6 +9,11 @@ const validName = value => typeof value === 'string' && value.trim().length >= 2
 const categories = ['Retail / Toko','Minimarket','Fashion / Pakaian','Kuliner / Restoran','Kafe / Kedai','Jasa','Salon / Barbershop','Apotek','Elektronik','Lainnya']
 
 export default async (request) => {
+  // Branch deploys and deploy previews share the production Supabase project.
+  // Never allow public preview deployments to create Auth users or workspaces there.
+  if (process.env.NETLIFY_CONTEXT !== 'production') {
+    return json({ error: 'Pendaftaran sementara dinonaktifkan pada preview.' }, 404)
+  }
   if (request.method !== 'POST') return json({ error: 'Metode tidak didukung.' }, 405)
   let payload
   try { payload = await request.json() } catch { return json({ error: 'Permintaan tidak valid.' }, 400) }
