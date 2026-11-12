@@ -7,6 +7,8 @@ const PERMISSION_BY_ACTION = {
   users: 'users', users_toggle_login: 'users', stores: 'stores', stores_toggle_status: 'stores', reports: 'system_reports', support_inbox: 'support', support_reply: 'support', plans_list: 'plans', plans_save: 'plans', promotions_list: 'promotions', promotions_save: 'promotions', promotions_toggle: 'promotions', promotions_delete: 'promotions',
 }
 export default async (request) => {
+  // Preview deploys share production Supabase credentials; block privileged server actions outside production.
+  if (process.env.NETLIFY_CONTEXT !== 'production') return json({ error: 'Fitur admin dinonaktifkan pada preview.' }, 404)
   if (request.method === 'OPTIONS') return new Response(null, { status: 204 })
   if (request.method !== 'POST') return json({ error: 'Metode tidak didukung.' }, 405)
   const token = (request.headers.get('authorization') || '').match(/^Bearer\s+(.+)$/i)?.[1]
