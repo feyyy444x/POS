@@ -71,3 +71,16 @@ test('disabled employee account deletion no longer requires manual membership de
   assert.doesNotMatch(disabledFunction, /Akun masih memiliki keanggotaan tenant aktif/)
   assert.match(disabledFunction, /perform public\.super_admin_delete_user\(p_user_id\)/)
 })
+
+
+test('disabled employee deletion remains available when the employee has memberships in other tenants', async () => {
+  const app = await readFile(new URL('../src/App.jsx', import.meta.url), 'utf8')
+  const handlerStart = app.indexOf('const deleteDisabledAccount=async(member)=>')
+  const handlerEnd = app.indexOf('const changeStatus=async(tenant,nextStatus)=>', handlerStart)
+  assert.ok(handlerStart >= 0 && handlerEnd > handlerStart, 'disabled-account deletion handler exists')
+  const handler = app.slice(handlerStart, handlerEnd)
+  assert.doesNotMatch(handler, /has_other_active_membership/)
+  assert.match(handler, /setDeleteConfirmTarget\(\{kind:'disabled',user:member\}\)/)
+  assert.match(app, /disabled=\{deletingUserId===m\.user_id\}/)
+  assert.match(app, /Tenant, transaksi, laporan, dan audit log tetap dipertahankan/)
+})
