@@ -6,8 +6,15 @@ const json = (body, status = 200) => new Response(JSON.stringify(body), {
 })
 
 export default async (request) => {
-  // Preview deploys share production Supabase credentials; block privileged server actions outside production.
-  if (process.env.NETLIFY_CONTEXT !== 'production') return json({ error: 'Fitur admin dinonaktifkan pada preview.' }, 404)
+  // This endpoint only clears the pending marker after the direct registration
+  // flow has already created the Owner membership. Limit preview access to the
+  // one explicitly approved branch alias.
+  const deployContext = process.env.CONTEXT || process.env.NETLIFY_CONTEXT
+  const requestHost = new URL(request.url).hostname
+  const approvedPreview = requestHost === 'acopos-rebrand-preview--acopos.netlify.app'
+  if (deployContext !== 'production' && !approvedPreview) {
+    return json({ error: 'Penyelesaian pendaftaran dinonaktifkan pada preview ini.' }, 404)
+  }
   if (request.method !== 'POST') return json({ error: 'Metode tidak didukung.' }, 405)
   const token = String(request.headers.get('authorization') || '').replace(/^Bearer\s+/i, '').trim()
   if (!token) return json({ error: 'Sesi login diperlukan.' }, 401)
@@ -25,36 +32,33 @@ export default async (request) => {
     const user = account?.user
     if (accountError || !user?.id || !user.email_confirmed_at) return json({ error: 'Sesi akun belum terverifikasi.' }, 401)
 
-    const { data: storeId, error } = await admin.rpc('complete_free_single_workspace_registration', { p_user_id: user.id })
-    if (error) {
-      console.error('Free registration completion failed:', error.message)
-      return json({ error: 'Workspace belum berhasil disiapkan. Hubungi dukungan.' }, 409)
+    // Registration now creates the workspace synchronously inside /register-free.
+    // The old follow-up RPC signature required an internal activation code that
+    // is intentionally never exposed to the client, so do not call that stale RPC.
+    const { data: existingOwnerMembership, error: membershipError } = await admin
+      .from('store_members')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('role', 'owner')
+      .eq('is_active', true)
+      .limit(1)
+    if (membershipError) {
+      console.error('Could not confirm Owner workspace after registration:', membershipError.message)
+      return json({ error: 'Status workspace belum dapat diverifikasi.' }, 503)
     }
-    if (!storeId) {
-      const { data: existingOwnerMembership, error: membershipError } = await admin
-        .from('store_members').select('id').eq('user_id', user.id).eq('role', 'owner').limit(1)
-      if (membershipError) {
-        console.error('Could not confirm existing Owner workspace after registration retry:', membershipError.message)
-        return json({ error: 'Status workspace belum dapat diverifikasi.' }, 503)
-      }
-      if (!existingOwnerMembership?.length && user.user_metadata?.free_workspace_pending === true) {
-        return json({ error: 'Data pendaftaran belum ditemukan. Hubungi dukungan agar akun tidak tertinggal tanpa workspace.' }, 409)
-      }
-      if (existingOwnerMembership?.length && user.user_metadata?.free_workspace_pending === true) {
-        const { error: metadataError } = await admin.auth.admin.updateUserById(user.id, {
-          user_metadata: { ...(user.user_metadata || {}), free_workspace_pending: false },
-        })
-        if (metadataError) console.error('Free registration metadata cleanup after idempotent retry failed:', metadataError.message)
-      }
-      return json({ pending: false })
+    if (!existingOwnerMembership?.length) {
+      return json({ error: 'Workspace belum terbentuk. Silakan hubungi dukungan agar pendaftaran dapat diperiksa.' }, 409)
     }
 
     const { error: metadataError } = await admin.auth.admin.updateUserById(user.id, {
       user_metadata: { ...(user.user_metadata || {}), free_workspace_pending: false },
     })
-    if (metadataError) console.error('Free registration metadata cleanup failed:', metadataError.message)
+    if (metadataError) {
+      console.error('Free registration metadata cleanup failed:', metadataError.message)
+      return json({ error: 'Workspace sudah dibuat, tetapi penanda penyelesaian akun belum berhasil diperbarui. Keluar lalu masuk kembali atau hubungi dukungan.' }, 503)
+    }
 
-    return json({ pending: true, storeId, message: 'Workspace gratis berhasil dibuat.' })
+    return json({ pending: false, message: 'Workspace gratis sudah aktif.' })
   } catch (error) {
     console.error('Free registration completion error:', error?.message || error)
     return json({ error: 'Penyelesaian pendaftaran gagal. Silakan coba kembali.' }, 500)
