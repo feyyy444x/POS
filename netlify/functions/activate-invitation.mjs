@@ -155,7 +155,7 @@ export default async (request) => {
       return json({ error: 'Akun sudah dibuat, tetapi status undangan belum selesai diperbarui. Coba aktivasi kembali.' }, 500)
     }
 
-    return json({ success: true, message: existingAccount ? 'Undangan diterima. Gunakan password akun yang sudah ada untuk login.' : 'Undangan valid. Akun siap digunakan untuk login.' })
+    return json({ success: true, existingAccount, message: existingAccount ? 'Kode aktivasi berhasil. Akun ini sudah ada, jadi gunakan password lama untuk login; password tidak diubah.' : 'Kode aktivasi berhasil. Akun baru telah dibuat tanpa verifikasi email. Silakan login menggunakan email dan password yang baru dibuat.' })
   } catch (error) {
     console.error('Unexpected invitation activation failure:', error?.message || error)
     return json({ error: 'Aktivasi gagal karena kesalahan sistem. Silakan coba lagi.' }, 500)
